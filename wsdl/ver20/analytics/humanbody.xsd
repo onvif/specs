@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright (c) 2008-2019 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+
+Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
+
+THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.
+-->
+<xs:schema 	xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+	xmlns:tt="http://www.onvif.org/ver10/schema" 
+	xmlns:fc="http://www.onvif.org/ver20/analytics/humanface" 
+	xmlns:bd="http://www.onvif.org/ver20/analytics/humanbody" 
+			targetNamespace="http://www.onvif.org/ver20/analytics/humanbody" 
+			elementFormDefault="qualified" version="19.12">
+	<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../ver10/schema/common.xsd"/>
+	<!--===============================-->
+	<!--    body metadata streaming    -->
+	<!--===============================-->
+	<xs:simpleType name="BodyShape">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Fat"/>
+			<xs:enumeration value="Thin"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="BodyMetric">
+		<xs:sequence>	
+			<xs:element name="Height" type="xs:int" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the Stature of the body, the unit is centimeter.</xs:documentation> 
+			</xs:annotation>
+			</xs:element>
+			<xs:element name="BodyShape" type="xs:string" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describle the Shape of the body, acceptable values are defined in bd:BodyShape.</xs:documentation>
+			</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>	
+	<xs:complexType name="Scarf">
+		<xs:sequence>
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Color of the Scarf, acceptable values are defined in ColorDescriptor.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Wear" type="xs:boolean" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe if the body wears the Scarf.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+		</xs:complexType>
+	<xs:complexType name="Gloves">
+		<xs:sequence>
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Color of Gloves, acceptable values are defined in tt:ColorDescriptor.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Wear" type="xs:boolean" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe if the body wears Gloves.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
+	<xs:simpleType name="TopsCategory">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="LongSleeve"/>
+			<xs:enumeration value="ShortSleeve"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Grain">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Stria"/>
+			<xs:enumeration value="Plaid"/>
+			<xs:enumeration value="PureColour"/>
+			<xs:enumeration value="Decal"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TopsStyle">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Tailor"/>
+			<xs:enumeration value="Jacket"/>
+			<xs:enumeration value="Sweater"/>
+			<xs:enumeration value="Overcoat"/>
+			<xs:enumeration value="Dress"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="Tops">
+		<xs:sequence>
+			<xs:element name="Category" type="xs:string" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Category of the Tops, acceptable values are defined in bd:TopsCategory.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Color of the Tops, acceptable values are defined in tt:ColorDescriptor.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Grain" type="xs:string" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Grain of the Tops, acceptable values are defined in bd:Grain.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Style" type="xs:string" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Style of the Tops, acceptable values are defined in bd:TopsStyle.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
+	<xs:simpleType name="BottomsCategory">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Trousers"/>
+			<xs:enumeration value="Shorts"/>
+			<xs:enumeration value="Skirt"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="BottomsStyle">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="FornalPants"/>
+			<xs:enumeration value="Jeans"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="Bottoms">
+		<xs:sequence>
+			<xs:element name="Category" type="xs:string" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Category of the Bottoms, acceptable values are defined in bd:BottomsCategory.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Color of the Bottoms, acceptable values are defined in tt:ColorDescriptor.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Grain" type="xs:string" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Grain of the Bottoms, acceptable values are defined in bd:Grain.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Style" type="xs:string" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Style of the Bottoms, acceptable values are defined in bd:BottomsStyle.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
+	<xs:simpleType name="ShoesCategory">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="LeatherShoes"/>
+			<xs:enumeration value="Sneakers"/>
+			<xs:enumeration value="Sandal"/>
+			<xs:enumeration value="Slipper"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="Shoes">
+		<xs:sequence>
+			<xs:element name="Category" type="xs:string" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Category of the Shoes, acceptable values are defined in bd:ShoesCategory.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Color of the Shoes, acceptable values are defined in tt:ColorDescriptor.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
+	<xs:complexType name="Clothing">
+		<xs:sequence>
+			<xs:element name="Scarf" type="bd:Scarf" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Scarf of the body,acceptable values are defined in bd:Scarf.</xs:documentation>
+			</xs:annotation>
+			</xs:element>
+			<xs:element name="Gloves" type="bd:Gloves" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe Gloves of the body,acceptable values are defined in bd:Gloves.</xs:documentation>
+			</xs:annotation>
+			</xs:element>
+			<xs:element name="Tops" type="bd:Tops" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Tops of the body,acceptable values are defined in bd:Tops.</xs:documentation>
+			</xs:annotation>
+			</xs:element>
+			<xs:element name="Bottoms" type="bd:Bottoms" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Bottoms of the body,acceptable values are defined in bd:Bottoms.</xs:documentation>
+			</xs:annotation>
+			</xs:element>
+			<xs:element name="Shoes" type="bd:Shoes" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Shoes of the body,acceptable values are defined in bd:Shoes.</xs:documentation>
+			</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
+	<xs:simpleType name="KnapsackCategory">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="SingleShoulderBag"/>
+			<xs:enumeration value="Backpack"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="Bag">
+		<xs:sequence>
+			<xs:element name="Category" type="xs:string" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Category of the Bag, acceptable values are defined in bd:KnapsackCategory.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Colour of the Bag, acceptable values are defined in tt:ColorDescriptor.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
+	<xs:complexType name="Umbrella">
+		<xs:sequence>
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Color of the Bag, acceptable values are defined in tt:ColorDescriptor.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Open" type="xs:boolean" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe if the body Opens the Umbrella.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
+	<xs:complexType name="Box">
+		<xs:sequence>
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Color of the Box, acceptable values are defined in tt:ColorDescriptor.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Lug" type="xs:boolean" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe if the body Lugs the Box.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
+	<xs:simpleType name="CartCategory">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="BabyCarriage"/>
+			<xs:enumeration value="TwoWheelVehicle"/>
+			<xs:enumeration value="Tricyle"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="Cart">
+		<xs:sequence>
+			<xs:element name="Category" type="xs:string" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Category of the Cart, acceptable values are defined in bd:CartCategory.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
+			<xs:annotation>
+				<xs:documentation>Describe the Color of the Cart, acceptable values are defined in tt:ColorDescriptor.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
+	<xs:complexType name="Belonging">
+		<xs:sequence>
+			<xs:element name="Bag" type="bd:Bag" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the Bag of the body,acceptable values are defined in bd:Bag</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Umbrella" type="bd:Umbrella" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the Umbrella carried by the body,acceptable values are defined in bd:Umbrella.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="LiftSomething" type="xs:boolean" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe if the body Lifts something.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Box" type="bd:Box" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the Box luffed by the body,acceptable values are defined in bd:Box.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Cart" type="bd:Cart" minOccurs="0"> 	
+			<xs:annotation> 
+				<xs:documentation>Describe the Cart pushed by the body,acceptable values are defined in bd:Cart.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Weapon" type="xs:boolean" minOccurs="0"> 	
+			<xs:annotation> 
+				<xs:documentation>Describe if the body carries the Weapon.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>			
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
+	<xs:simpleType name="Smoking">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="NoSmoking"/>
+			<xs:enumeration value="Cigar"/>
+			<xs:enumeration value="ElectronicCigarettes"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="UsingMobile">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="ByLeftHand"/>
+			<xs:enumeration value="ByRightHand"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="HumanActivity">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Walking"/>
+			<xs:enumeration value="Running"/>
+			<xs:enumeration value="Fallen"/>
+			<xs:enumeration value="Squatting"/>
+			<xs:enumeration value="Sitting"/>
+			<xs:enumeration value="Standing"/>
+			<xs:enumeration value="Driving"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="Behaviour">
+		<xs:sequence>
+			<xs:element name="Smoking" type="bd:Smoking" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Acceptable values are defined in bd:Smoking.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 			
+			<xs:element name="UsingMobile" type="bd:UsingMobile" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Acceptable values are defined in bd:UsingMobile.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Activity" type="xs:string" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the activity of the body, Acceptable values are defined in bd:HumanActivity.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 				
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<xs:complexType name="HumanBody">
+		<xs:sequence>
+			<xs:element name="BodyMetric" type="bd:BodyMetric" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the body metric of the body.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Clothing" type="bd:Clothing" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the Clothing of the body.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 			
+			<xs:element name="Belonging" type="bd:Belonging" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the Belonging of the body.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 		
+			<xs:element name="Behaviour" type="bd:Behaviour" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the Behaviour of the body.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>	
+</xs:schema>

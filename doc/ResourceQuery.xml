@@ -1,0 +1,1622 @@
+<?xml version="1.0"?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <info>
+    <title>ONVIF Resource Query Specification</title>
+    <titleabbrev>ResourceQuery</titleabbrev>
+    <releaseinfo>19.12</releaseinfo>
+    <author>
+      <orgname>ONVIF™</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate> December, 2019</pubdate>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="media/logo.png" contentwidth="60mm" />
+      </imageobject>
+    </mediaobject>
+    <copyright>
+      <year>2008-2020</year>
+      <holder>ONVIF™ All rights reserved.</holder>
+    </copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>18.12</revnumber>
+        <date>Dec 2018</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>First release</revremark>
+      </revision>
+      <revision>
+        <revnumber>19.12</revnumber>
+        <date>Dec 2019</date>
+        <author>
+          <personname>Stefan Andresson</personname>
+        </author>
+        <revremark>Added Resource Query for Recordings</revremark>
+      </revision>
+    </revhistory>
+  </info>
+  <chapter>
+    <title>Scope </title>
+    <para>This document defines the protocol for accessing resources on a remote system.</para>
+  </chapter>
+  <chapter>
+    <title>Normative references</title>
+    <para>IANA Media Type Reference</para>
+    <para role="reference">&lt; <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.iana.org/assignments/media-types/media-types.xhtml"></link>&gt;</para>
+    <para>IETF RFC 4122 - A Universally Unique IDentifier (UUID) URN Namespace</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://tools.ietf.org/html/rfc4122"></link>&gt;</para>
+    <para>ONVIF Core Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
+  </chapter>
+  <chapter>
+    <title>Terms and Definitions</title>
+    <section>
+      <title>Definitions</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*" />
+          <colspec colname="c2" colwidth="76*" />
+          <tbody valign="top">
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Media Configuration</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>An abstract component that produces or consumes  a media stream on the network, i.e. video and/or audio stream. </para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Media Profile</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>Maps video and audio sources and outputs encoders as well as PTZ and analytics configurations.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Remote Token</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>Token of a remote resource</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Resource</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>In this document the term is used to refer to an ONVIF resource that can be addressed via a token.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Token</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>Unique textual reference of a resource.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+    <section>
+      <title>Abbreviations</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*" />
+          <colspec colname="c2" colwidth="76*" />
+          <tbody valign="top">
+            <row>
+              <entry valign="middle">
+                <para>API</para>
+              </entry>
+              <entry valign="middle">
+                <para>Application Protocol Interface</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>NVR</para>
+              </entry>
+              <entry valign="middle">
+                <para>Network Video Recorder</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>RTSP</para>
+              </entry>
+              <entry valign="middle">
+                <para>Real Time Streaming Protocol</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>URI</para>
+              </entry>
+              <entry valign="middle">
+                <para>Uniform Resource Identifier</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>URL</para>
+              </entry>
+              <entry valign="middle">
+                <para>Uniform Resource Locator</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>VMS</para>
+              </entry>
+              <entry valign="middle">
+                <para>Video Management System (synonym for VSS)</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>VSS</para>
+              </entry>
+              <entry valign="middle">
+                <para>Video Surveillance System</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Overview</title>
+    <para>This document describes how a Video Management System can expose its resources so that a remote VSS or a client can make use of them with the APIs defined by the various ONVIF specifications.</para>
+    <para>The example in <xref linkend="_Ref486253450" /> shows two cameras attached to a lower level VSS which are operated from a client that connects to an upper level VSS. This document assumes that standard existing ONVIF commands are used for e.g. moving the focus in the example below.</para>
+    <para>This specification focuses on resource naming and querying. </para>
+    <figure>
+      <title xml:id="_Ref486253450">Example setup with two VSS </title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="media/ResourceQuery/image2.svg" contentwidth="100mm" />
+        </imageobject>
+      </mediaobject>
+    </figure>
+    <section>
+      <title>Resource Addressing</title>
+      <para>In the ONVIF specifications resources are addressed by so called tokens. Tokens are character strings of a defined length and are enumerated by the device to ease the devices resource management. Similarly this specifications assumes that a VSS enumerates its attached device resources in such a way that a unique token is assigned to each of its attached devices resources.</para>
+      <para>Additionally this specification assumes that a VSS implements resource token mapping by adding a prefix delimited by a colon. Whether a VSS simply prepends a prefix to a device token or does a complete remapping is outside of the scope of this specification.</para>
+      <para>The following list provides an incomplete list of resources that can be handled:</para>
+      <itemizedlist>
+        <listitem>
+          <para>Media Profiles</para>
+        </listitem>
+        <listitem>
+          <para>Video and Audio Sources</para>
+        </listitem>
+        <listitem>
+          <para>Any Media Configurations including OSD and Masks</para>
+        </listitem>
+        <listitem>
+          <para>PTZ Nodes</para>
+        </listitem>
+        <listitem>
+          <para>Digital Inputs</para>
+        </listitem>
+        <listitem>
+          <para>Relay Outputs</para>
+        </listitem>
+        <listitem>
+          <para>Recordings, Recording Tracks and Recording Jobs</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+    <section>
+      <title>Resource Queries and Updates</title>
+      <para>This specification uses the ONVIF property event mechanism to model global resources. A client or upper level VSS subscribes to a VSS pull point. In consecutive requests it then pulls all resources it is interested in in order to get to know all relevant resources of a lower level VSS. </para>
+      <para>Once all resources have been reported further pull messages will either timeout when no changes happened or report changes. In this context changes are added resources, modification of resource properties or removed resources.</para>
+      <para>By applying the property event notification mechanism to resources a client or upper level VSS has always up to date information about the lower level VSS resources it is interested in.</para>
+    </section>
+    <section>
+      <title>Events</title>
+      <para>An upper level VSS can retrieve events either generic or for a given token. In order to retrieve e.g. motion events from a dedicated resource a client has to provide a content filter with matching source token.</para>
+    </section>
+    <section>
+      <title>Authentication</title>
+      <para>Access to remote VSS may require strict authentication constraints. Refer to the ONVIF Security Configuration Specification for means to server and client authentication.</para>
+    </section>
+    <section>
+      <title>Live Checks</title>
+      <para>The mechanism defined in this specification make use of the ONVIF real-time pull point. When no events are pending at a pull point the PullMessages call will timeout after a client defined timeout. The client is in control of the timeout and can so ensure a continuous heartbeat from the server. Hence an additional ping or heartbeat interface is not needed.</para>
+    </section>
+    <section>
+      <title>Live Video Example</title>
+      <para>This example assumes that a police station client wants to get live feeds related to an incident at a certain geo location.</para>
+      <orderedlist>
+        <listitem>
+          <para>The client authenticates itself at the VSS using its client certificate.</para>
+        </listitem>
+        <listitem>
+          <para>Client subscribes to VSS topic Resource/MediaProfile in a distance of 100 meter of a lon/lat provided geo location.</para>
+        </listitem>
+        <listitem>
+          <para>VSS responds to PullMessages with enumerating all media profiles in the given area.</para>
+        </listitem>
+        <listitem>
+          <para>If the client receives multiple profiles for a remote device it may select the best suited one by querying the profile configurations. For each profile token the client calls GetProfiles. By supplying parameter Type set to VideoSource and VideoEncoder it will receive detailed information about the Video resolution and encoder settings.</para>
+        </listitem>
+        <listitem>
+          <para>The client calls GetStreamUri for each video source on the selected profile</para>
+        </listitem>
+        <listitem>
+          <para>The client streams video and displays it on the Police Video Wall.</para>
+        </listitem>
+      </orderedlist>
+      <para>At the first glance it looks like no new functional interface has been defined. Although this is correct, the VSS still has to implement a number of operations in order to make the above example happen:</para>
+      <orderedlist numeration="loweralpha">
+        <listitem>
+          <para>Enumerate its attached camera profiles as resource events</para>
+        </listitem>
+        <listitem>
+          <para>Implement the Media2 API</para>
+        </listitem>
+        <listitem>
+          <para>Map request media profile token to cameras and their local tokens</para>
+        </listitem>
+        <listitem>
+          <para>Map response profile tokens to global tokens</para>
+        </listitem>
+        <listitem>
+          <para>Support streaming proxy and map camera stream uri to proxy</para>
+        </listitem>
+      </orderedlist>
+      <para>Additionally an intelligent VSS may expose only those media profiles to its client that have a decent data rate so that it is able to proxy those Video streams.</para>
+      <para>Instead of directly connecting to the remote lower level VSS systems the police station client may connect to an upper level VSS that in turn combines search results from multiple lower level VSS and forwards commands to individual camera sources via the appropriate lower level VSS. </para>
+    </section>
+    <section xml:id="_Ref25752452">
+      <title>Forensic Example</title>
+      <para>This example assumes that a police station client wants to retrieve recordings related to an incident at a certain geo location.</para>
+      <orderedlist>
+        <listitem>
+          <para>The client authenticates itself at the VSS using its client certificate.</para>
+        </listitem>
+        <listitem>
+          <para>Client subscribes to VSS topic Resource/VideoSource in a distance of 100 meter of a lon/lat provided geo location.</para>
+        </listitem>
+        <listitem>
+          <para>VSS responds to PullMessages with enumerating all video sources in the given area.</para>
+        </listitem>
+        <listitem>
+          <para>Client calls FindEvents passing the interested time range and a list of video sources as search scope.</para>
+        </listitem>
+        <listitem>
+          <para>Client calls GetEventSearchResults to get all available recordings at the interested location and in the given period of time.</para>
+        </listitem>
+        <listitem>
+          <para>The client retrieves the RTSP URIs by calling the Replay GetReplayUri method for the recording.</para>
+        </listitem>
+        <listitem>
+          <para>The client plays back video of interested cameras by retrieving the RTSP media stream for the uri retrieved by a call to Replay:GetReplayUri.</para>
+        </listitem>
+      </orderedlist>
+      <para>Alternative to the above approach the client might also directly query recording resource at a geo location. Some replays may fail because the cameras did not record for the selected location at the selected time of day.</para>
+      <para>Above example is applicable for both content stored in camera's edge storage and VMS recording server. It is up to the VMS application how the recordings are retrieved.</para>
+    </section>
+    <section>
+      <title>Notification Mechanism</title>
+      <para>This specification assumes that the ONVIF Realtime Pullpoint mechanism is deployed. Note that the resource query is transparent to the event transport mechanism and the events may also be conveyed via the OASIS Base Notification mechanism or the Notification Streaming Interface.</para>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Resource Addressing</title>
+    <section>
+      <title>Remote Tokens</title>
+      <para>ONVIF specifications are generally assuming that the device defines tokens which are unique within a device and its context. This specification extends the scheme to allow building globally unique tokens called remote tokens. </para>
+      <para>A remote token shall be constructed like a qname with a device specific prefix and a local token. </para>
+      <para>	RemoteToken = Prefix + ':' + LocalToken</para>
+      <para>The overall string length of the remote token is limited to 64 characters. A local token must not exceed 36 characters and should contain no colon. The length limitation is chosen such that it enables the use of UUIDs as defined in RFC 4122. Note that device implementations typically use compact tokens composed from few characters.</para>
+      <para>A VSS shall use the same prefix for all tokens of the same device. This allows a client to understand which tokens they can use for any ONVIF API call.</para>
+      <para>A VSS may choose to simply use device local tokens as LocalToken part or create an internal mapping. A client may not assume that use tokens received from a VSS directly in device calls by stripping the prefix.</para>
+      <para>The naming conventions for the prefix part are outside of the scope of this specification. Depending on the application area implementers may choose different approaches. As a consequence this specification does not mandate that remote tokens are globally unique between different VSS. See Annex A for a country specific definition of globally unique addresses.</para>
+    </section>
+    <section>
+      <title>Token Context</title>
+      <para>Clients talking to multiple servers at a time like VSS and/or devices shall address resources to a server only with tokens received from that same server. There is no guarantee that remote tokens received from one server may be used to address the same resource at another server.</para>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Resource Queries</title>
+    <section>
+      <title>General</title>
+      <para>This specification models resources as so called property events. A resource is an ONVIF configuration item addressed via a token.  </para>
+      <para>A server supporting resource queries shall signal the supported resource queries via the GetEventProperties interface of the event service. The following resources may be enumerated:</para>
+      <para>For media configurations:</para>
+      <para>VideoSourceConfiguration, AudioSourceConfiguration, VideoEncoderConfiguration, AudioEncoderConfiguration,  AudioOutputConfiguration, AudioDecoderConfiguration, MetadataConfiguration, AnalyticsConfiguration, PTZConfiguration, OSDConfiguration, MaskConfiguration</para>
+      <para>For media profiles: MediaProfile</para>
+    </section>
+    <section>
+      <title>Resource Event</title>
+      <para>Each resource maps to the following event definition;</para>
+      <programlisting><![CDATA[
+Topic: tns1:Resource/<resource name>
+<tt:MessageDescription IsProperty="true">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="Token" Type="tt:ReferenceToken"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription Name="Name" Type="xs:string"/>
+    <tt:ElementItemDescription Name="Location" Type="tt:GeoLocation"/>
+    <tt:SimpleItemDescription Name="Scope" Type="xs:string"/>
+    <tt:SimpleItemDescription Name="Offline" Type="xs:boolean"/>
+  </tt:Data>
+</tt:MessageDescription>
+]]></programlisting>
+      <para>The source item Token is mandatory and shall contain a qualified token that is unique within the serving system.</para>
+      <para>The data items are optional. </para>
+      <para>The data item scope refers to the ONVIF device discovery scope entry. It may occur multiple times for each scope entry supported by the device.</para>
+      <para>An event shall be generated with PropertyOperation set to Initialized whenever a resource is signaled the first time in a subscription or it is newly added to the system. An event with PropertyOperation set to Deleted shall be generated when a resource is removed from the system.</para>
+      <para>Note that a change from online to offline or vice versa shall only create a PropertyOperation of type Changed if the event contains an Offline state boolean.</para>
+    </section>
+    <section>
+      <title>Location Filter</title>
+      <para>A service supporting resource queries shall support the Location Filter. </para>
+      <programlisting><![CDATA[
+<xs:complexType name="LocationFilter">
+  <xs:sequence>
+    <xs:element name="lon" type="xs:double"/>
+    <xs:element name="lat" type="xs:double"/>
+    <xs:element name="height" type="xs:float" minOccurs="0"/>
+    <xs:element name="radius" type="xs:float"/>
+    <xs:element name="includeUnknown" type="xs:boolean" minOccurs="0"/>
+  </xs:sequence >
+</xs:complexType>
+]]></programlisting>
+      <para>Devices with unknown location shall correspond to a match if the property includeUnkown is set.</para>
+    </section>
+    <section xml:id="_Ref25752483">
+      <title>Prefix Filter</title>
+      <para>A server supporting resource queries shall support the Prefix Filter. The prefix filter allows to restrict the search to any events of a device by the prefix assigned by the VMS.</para>
+      <programlisting><![CDATA[
+<xs:complexType name="PrefixFilter">
+  <xs:sequence>
+    <xs:element name="Prefix" type="xs:string"/>
+  </xs:sequence>
+</xs:complexType>
+]]></programlisting>
+    </section>
+    <section>
+      <title>Scope Filter</title>
+      <para>A server supporting resource queries shall support the Scope Filter allowing to search for device scope entries.</para>
+      <programlisting><![CDATA[
+<xs:complexType name="ScopeFilter">
+  <xs:sequence>
+    <xs:element name="Scope" maxOccurs="unbounded">
+      <xs:complexType>
+        <xs:simpleContent>
+          <xs:extension base="xs:string">
+	        <xs:attribute name="Match"/>
+	      </xs:extension>
+  	  </xs:simpleContent> 
+      </xs:complexType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+]]></programlisting>
+      <para>See section 7.3.3 of the ONVIF Core Specification for the scope matching rules.</para>
+    </section>
+    <section>
+      <title>Select Filter</title>
+      <para>A server supporting resource queries shall support the Select Filter allowing to restrict the resulting data items of each event in order to reduce the message sizes of large queries.</para>
+      <programlisting><![CDATA[
+<xs:complexType name="SelectFilter">
+  <xs:sequence>
+    <xs:element name="Path" type="xs:string" maxOccurs=”unbounded/>
+  </xs:sequence >
+</xs:complexType>
+]]></programlisting>
+      <para>Each entry defines an XPath expression that matches to one of the event data items.</para> 
+      <para>The following example restricts the content of the result to the resource name and location scope:</para>
+      <programlisting><![CDATA[
+<SelectFilter>
+  <Path>/Name</Path>
+  <Path>/Scope/Location</Path>
+</SelectFilter>
+]]></programlisting>
+    </section>
+  </chapter>
+  <appendix>
+    <title>Addressing Scheme  (informative)</title>
+    <para>This Annex defines a globally unique addressing scheme that can be used to address devices like cameras, DVRs and others. The scheme includes information for area, device type.</para>
+    <section>
+      <title>Overview</title>
+      <para>Figure A1 shows the order of the four fields in the 20-digit encoding scheme:</para>
+      <figure>
+        <title>Fields of the device ID scheme</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="media/ResourceQuery/image3.svg" contentwidth="93.34mm" contentdepth="27.23mm" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+      <para>The device ID and ID of other resources should finish the initial configuration in the bottom platform.</para>
+    </section>
+    <section>
+      <title>Field Definitions </title>
+      <section>
+        <title>Zone Code</title>
+        <para>The eight digit zone code is split into four two digit items as shown in Table A1.</para>
+        <table>
+          <title>The zone code elements</title>
+          <tgroup cols="4">
+            <colspec colname="c1" colwidth="24*" />
+            <colspec colname="c2" colwidth="24*" />
+            <colspec colname="c3" colwidth="22*" />
+            <colspec colname="c4" colwidth="30*" />
+            <tbody valign="top">
+              <row>
+                <entry align="center">
+                  <para>2 digit</para>
+                </entry>
+                <entry align="center">
+                  <para>2 digit</para>
+                </entry>
+                <entry align="center">
+                  <para>2 digit</para>
+                </entry>
+                <entry align="center">
+                  <para>2 digit</para>
+                </entry>
+              </row>
+              <row>
+                <entry align="center">
+                  <para>Province</para>
+                </entry>
+                <entry align="center">
+                  <para>City</para>
+                </entry>
+                <entry align="center">
+                  <para>District</para>
+                </entry>
+                <entry align="center">
+                  <para>Unit</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+        <para>The first six digit is the Administrative Division code, which depends on the location of the Surveillance Center and meets the requirement of GB/T 2260-2007, similar to the post code. For example, the code of city X is 420100.</para>
+        <para>The unit code is defined by users, such as Police Station etc. It starts from 01, 00 represents the Surveillance Center. </para>
+      </section>
+      <section>
+        <title>Agency Code </title>
+        <para>Table A2 defines the two digit agency codes.</para>
+        <table>
+          <title>Industry Coding</title>
+          <tgroup cols="4">
+            <colspec colname="c1" colwidth="10*" />
+            <colspec colname="c2" colwidth="30*" />
+            <colspec colname="c3" colwidth="30*" />
+            <colspec colname="c4" colwidth="31*" />
+            <thead>
+              <row>
+                <entry>
+                  <para>Code Type</para>
+                </entry>
+                <entry>
+                  <para>Name</para>
+                </entry>
+                <entry>
+                  <para>Subject</para>
+                </entry>
+                <entry>
+                  <para>Notes</para>
+                </entry>
+              </row>
+            </thead>
+            <tbody valign="top">
+              <row>
+                <entry valign="middle">
+                  <para>00</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Urban Roadway </para>
+                </entry>
+                <entry morerows="12" valign="middle">
+                  <para>Government</para>
+                  <para>Offices</para>
+                </entry>
+                <entry>
+                  <para>includes urban roadway, commercial avenue, public areas &amp; key areas, etc.</para>
+                </entry>
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>01</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Society Community</para>
+                </entry>
+                <entry>
+                  <para>includes residential districts, buildings, and cyber café, etc.</para>
+                </entry>
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>02</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Social Security Agency </para>
+                </entry>
+                <entry>
+                  <para>includes public security buildings &amp; detention room</para>
+                </entry>
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>03</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Other Security Agencies</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>04</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Traffic Roadway </para>
+                </entry>
+                <entry>
+                  <para>includes road artery, national roadway &amp; highway</para>
+                </entry>
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>05</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Traffic Checkpoints </para>
+                </entry>
+                <entry>
+                  <para>includes crossroads, E-police, checkpoint &amp; toll gate, etc.</para>
+                </entry>
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>06</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Traffic Management Agency</para>
+                </entry>
+                <entry>
+                  <para>includes Traffic Control  office buildings, etc.</para>
+                </entry>
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>07</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Agency Relates to Traffic Management</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>08</para>
+                </entry>
+                <entry>
+                  <para>City Management</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>09</para>
+                </entry>
+                <entry>
+                  <para>Health &amp; Environmental Management</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>10</para>
+                </entry>
+                <entry>
+                  <para>Commodity Inspection &amp; Custom</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>11</para>
+                </entry>
+                <entry>
+                  <para>Education </para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>12-39</para>
+                </entry>
+                <entry />
+                <entry>
+                  <para>Reserved 1</para>
+                </entry>
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>40</para>
+                </entry>
+                <entry>
+                  <para>Farming, Forestry, Animal Husbandry &amp; Fishery</para>
+                </entry>
+                <entry morerows="16" valign="middle">
+                  <para>Enterprise/Administrative</para>
+                  <para>Institution</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>41</para>
+                </entry>
+                <entry>
+                  <para>Mining</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>42</para>
+                </entry>
+                <entry>
+                  <para>Manufacturing</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>43</para>
+                </entry>
+                <entry>
+                  <para>Metallurgy</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>44</para>
+                </entry>
+                <entry>
+                  <para>Electric Power</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>45</para>
+                </entry>
+                <entry>
+                  <para>Gas</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>46</para>
+                </entry>
+                <entry>
+                  <para>Construction</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>47</para>
+                </entry>
+                <entry>
+                  <para>Logistics</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>48</para>
+                </entry>
+                <entry>
+                  <para>Postal Services</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>49</para>
+                </entry>
+                <entry>
+                  <para>IT</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>50</para>
+                </entry>
+                <entry>
+                  <para>Hotels &amp; Catering</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>51</para>
+                </entry>
+                <entry>
+                  <para>Financing</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>52</para>
+                </entry>
+                <entry>
+                  <para>Real Estate</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>53</para>
+                </entry>
+                <entry>
+                  <para>Commercial Services</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>54</para>
+                </entry>
+                <entry>
+                  <para>Water Resources Enterprises</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>55</para>
+                </entry>
+                <entry>
+                  <para>Entertainment</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>56-79</para>
+                </entry>
+                <entry />
+                <entry>
+                  <para>Reserved 2</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>80-89</para>
+                </entry>
+                <entry />
+                <entry>
+                  <para>Dwellers Building</para>
+                </entry>
+                <entry>
+                  <para>Reserved 3</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>90-99</para>
+                </entry>
+                <entry />
+                <entry>
+                  <para>Other Entities</para>
+                </entry>
+                <entry>
+                  <para>Reserved 4</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </section>
+      <section>
+        <title>Device Type Code</title>
+        <para>Table A3 defines the three digit device type codes.</para>
+        <table>
+          <title>Device Type Codes</title>
+          <tgroup cols="3">
+            <colspec colname="c1" colwidth="16*" />
+            <colspec colname="c2" colwidth="53*" />
+            <colspec colname="c3" colwidth="31*" />
+            <thead>
+              <row>
+                <entry>
+                  <para>Code Value</para>
+                </entry>
+                <entry>
+                  <para>Device Type</para>
+                </entry>
+                <entry>
+                  <para>Notes</para>
+                </entry>
+              </row>
+            </thead>
+            <tbody valign="top">
+              <row>
+                <entry>
+                  <para>111</para>
+                </entry>
+                <entry>
+                  <para>DVR </para>
+                </entry>
+                <entry>
+                  <para>111-130: Front-end devices</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>112</para>
+                </entry>
+                <entry>
+                  <para>Video Server</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>113</para>
+                </entry>
+                <entry>
+                  <para>Encoder</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>114</para>
+                </entry>
+                <entry>
+                  <para>Decoder</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>115</para>
+                </entry>
+                <entry>
+                  <para>Video Switching Matrix</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>116</para>
+                </entry>
+                <entry>
+                  <para>Audio Switching Matrix</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>117</para>
+                </entry>
+                <entry>
+                  <para>Alarm Controller</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>118</para>
+                </entry>
+                <entry>
+                  <para>NVR</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>119</para>
+                </entry>
+                <entry>
+                  <para>Online Information Acquisition Device</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>120</para>
+                </entry>
+                <entry>
+                  <para>Online Information Acquisition System</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>121</para>
+                </entry>
+                <entry>
+                  <para>Checkpoints on Roadway</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>130</para>
+                </entry>
+                <entry>
+                  <para>HVR</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>121-129</para>
+                </entry>
+                <entry>
+                  <para>Extended Front-end devices</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>131</para>
+                </entry>
+                <entry>
+                  <para>Camera</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>132</para>
+                </entry>
+                <entry>
+                  <para>IPC</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>133</para>
+                </entry>
+                <entry>
+                  <para>Display Encoding</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>134</para>
+                </entry>
+                <entry>
+                  <para>Alarm Input Devices </para>
+                  <para>(IR alarm, smoke sensor alarm &amp; access control, etc.)</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>135</para>
+                </entry>
+                <entry>
+                  <para>Alarm Output Devices</para>
+                  <para>(Alarm bell &amp; Alarm lamp )</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>136</para>
+                </entry>
+                <entry>
+                  <para>Audio Input Devices</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>137</para>
+                </entry>
+                <entry>
+                  <para>Audio Output Devices</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>138</para>
+                </entry>
+                <entry>
+                  <para>Mobile Transmission Devices</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>139</para>
+                </entry>
+                <entry>
+                  <para>Other Peripheral Devices</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>140-149</para>
+                </entry>
+                <entry>
+                  <para>Types of Extended Peripheral Devices</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>200</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Central Signaling Control Server</para>
+                  <para>(Signal Networking Unit)</para>
+                </entry>
+                <entry>
+                  <para>200-299 indicates platform devices.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>201</para>
+                </entry>
+                <entry>
+                  <para>Web Application Server</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>202</para>
+                </entry>
+                <entry>
+                  <para>Media Distribution Server</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>203</para>
+                </entry>
+                <entry>
+                  <para>Proxy Server</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>204</para>
+                </entry>
+                <entry>
+                  <para>Security Server</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>205</para>
+                </entry>
+                <entry>
+                  <para>Alarm Server</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>206</para>
+                </entry>
+                <entry>
+                  <para>Database Server</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>207</para>
+                </entry>
+                <entry>
+                  <para>GIS Server</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>208</para>
+                </entry>
+                <entry>
+                  <para>Management Server</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>209</para>
+                </entry>
+                <entry>
+                  <para>Access Gateway</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>210</para>
+                </entry>
+                <entry>
+                  <para>Media Storage Server</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>211</para>
+                </entry>
+                <entry />
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>215</para>
+                </entry>
+                <entry>
+                  <para>Traffic Grouping</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>216</para>
+                </entry>
+                <entry>
+                  <para>Virtual Grouping</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>212-213</para>
+                  <para>217-299</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Extended Device Type</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>300</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Central User</para>
+                </entry>
+                <entry>
+                  <para>300-399 indicates the central user.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>301-343</para>
+                </entry>
+                <entry>
+                  <para>Industrial Role User</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>344-399</para>
+                </entry>
+                <entry>
+                  <para>Extended Central User Type</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>400</para>
+                </entry>
+                <entry>
+                  <para>Terminal User</para>
+                </entry>
+                <entry>
+                  <para>400-499 indicates terminal user.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>401-443</para>
+                </entry>
+                <entry>
+                  <para>Industrial Role User</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>444-499</para>
+                </entry>
+                <entry>
+                  <para>Extended Central User Type</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>500</para>
+                </entry>
+                <entry>
+                  <para>Signaling Server of Video/Image Information Application Platform </para>
+                </entry>
+                <entry>
+                  <para>500-599 indicates the external servers of platform.</para>
+                </entry>
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>501</para>
+                </entry>
+                <entry>
+                  <para>Signaling Server of Video/Image Information Maintenance Platform</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry>
+                  <para>502</para>
+                </entry>
+                <entry>
+                  <para>Video/Image Analysis Device/System of Public Security</para>
+                </entry>
+                <entry>
+                  <para>Newly-added in Video/Image Library</para>
+                </entry>
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>503</para>
+                </entry>
+                <entry>
+                  <para>Video/Image Information Database of Public Security</para>
+                </entry>
+                <entry>
+                  <para>Newly-added in Video/Image Library</para>
+                </entry>
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>504</para>
+                </entry>
+                <entry>
+                  <para>Video/Image Information Platform of Public Security</para>
+                </entry>
+                <entry>
+                  <para>Newly-added in Video/Image Library</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>505-599</para>
+                </entry>
+                <entry>
+                  <para>Extended Platform Server (External)</para>
+                </entry>
+                <entry />
+              </row>
+              <row>
+                <entry valign="middle">
+                  <para>600-699</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Extended Type</para>
+                </entry>
+                <entry>
+                  <para>600-699 indicates the extended types.</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </section>
+      <section>
+        <title>Serial Number</title>
+        <para>The seven digit serial number generally follows numerical order, which includes the location information, such as Subway-Subway Passage-Ticket Office-Platform-Subway Carriage.</para>
+        <table>
+	  <title>Serial Number Value</title>
+          <tgroup cols="2">
+            <colspec colname="c1" colwidth="14*" />
+            <colspec colname="c2" colwidth="86*" />
+            <tbody valign="top">
+              <row>
+                <entry>
+                  <para>1 digit</para>
+                </entry>
+                <entry>
+                  <para>6 digit</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>Network ID</para>
+                </entry>
+                <entry>
+                  <para>Serial number of device or user</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+        <para>The Network ID is encoded as follows: </para>
+        <para>0, 1, 2, 3 and 4 refer to surveillance alarm network; </para>
+        <para>5 refers to public security network;</para>
+        <para>6 refers to government network;</para>
+        <para>7 refers to Internet;</para>
+        <para>8 &amp; 9 are reserved;</para>
+      </section>
+      <section>
+        <title>Examples</title>
+        <para>IP Camera No.15 of Metro Line 1’s No.10 ticket-check in city X:</para>
+        <table>
+          <title>Example IP Camera No.15</title>
+          <tgroup cols="7">
+            <colspec colname="c1" colwidth="11*" />
+            <colspec colname="c2" colwidth="14*" />
+            <colspec colname="c3" colwidth="19*" />
+            <colspec colname="c4" colwidth="14*" />
+            <colspec colname="c5" colwidth="14*" />
+            <colspec colname="c6" colwidth="14*" />
+            <colspec colname="c7" colwidth="14*" />
+            <tbody valign="top">
+              <row>
+                <entry valign="middle">
+                  <para>City X</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Metro Line 1</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Agency Code</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Device Type Code</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Station No.</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Ticket Check</para>
+                </entry>
+                <entry valign="middle">
+                  <para>IPC No.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>320100</para>
+                </entry>
+                <entry>
+                  <para>01</para>
+                </entry>
+                <entry>
+                  <para>07</para>
+                </entry>
+                <entry>
+                  <para>132</para>
+                </entry>
+                <entry>
+                  <para>10</para>
+                </entry>
+                <entry>
+                  <para>08</para>
+                </entry>
+                <entry>
+                  <para>015</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+        <para>Server No.02 of Metro Line 1’s surveillance center in city X:</para>
+        <table>
+          <title>Example Server No.02</title>
+          <tgroup cols="7">
+            <colspec colname="c1" colwidth="11*" />
+            <colspec colname="c2" colwidth="14*" />
+            <colspec colname="c3" colwidth="19*" />
+            <colspec colname="c4" colwidth="14*" />
+            <colspec colname="c5" colwidth="14*" />
+            <colspec colname="c6" colwidth="14*" />
+            <colspec colname="c7" colwidth="14*" />
+            <tbody valign="top">
+              <row>
+                <entry valign="middle">
+                  <para>City X</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Line 1</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Agency Code </para>
+                </entry>
+                <entry valign="middle">
+                  <para>Device Type Code</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Invalid Station No.</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Invalid Ticket Check</para>
+                </entry>
+                <entry valign="middle">
+                  <para>Server No.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>320100</para>
+                </entry>
+                <entry>
+                  <para>01</para>
+                </entry>
+                <entry>
+                  <para>07</para>
+                </entry>
+                <entry>
+                  <para>200</para>
+                </entry>
+                <entry>
+                  <para>00</para>
+                </entry>
+                <entry>
+                  <para>00</para>
+                </entry>
+                <entry>
+                  <para>002</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </section>
+    </section>
+  </appendix>
+  <appendix>
+    <title>APIs with Token Adaption</title>
+    <para>
+      <emphasis role="bold">(Informative)</emphasis>
+    </para>
+    <para>This annex informs about the expected resource token handling of a VSS. Incoming global token may need to be transformed into device local tokens and tokens received from a device may need to be transformed into global tokens.</para>
+    <section>
+      <title>Consuming Live Video</title>
+      <itemizedlist>
+        <listitem>
+          <para>Media2:GetProfiles Both incoming and outgoing profile and configuration tokens need to be adapted.</para>
+        </listitem>
+        <listitem>
+          <para>Media2:GetStreamingUri The incoming profile token needs to be adapted. Additionally the VSS needs to ensure that the streaming URI can be reached by the client. This shall include a streaming proxy service.</para>
+        </listitem>
+        <listitem>
+          <para>Media2:GetSnapshotUri The incoming profile token needs to be adapted. Additionally the VSS needs to ensure that the snapshot URI can be reached by the client. This shall include a proxy service.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+    <section>
+      <title>Controlling PTZ Cameras</title>
+      <para>For all the below listed functions the incoming profile token needs to be adapted.</para>
+      <itemizedlist>
+        <listitem>
+          <para>PTZ:AbsoluteMove, PTZ:ContinuousMove</para>
+        </listitem>
+        <listitem>
+          <para>PTZ:Stop</para>
+        </listitem>
+        <listitem>
+          <para>PTZ:GetPresets, PTZ:GotoPreset</para>
+        </listitem>
+        <listitem>
+          <para>PTZ:SendAuxiliaryCommand</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+    <section>
+      <title>Retrieving Recordings</title>
+      <itemizedlist>
+        <listitem>
+          <para>RecordingSearch:GetRecordingInformation Both incoming and outgoing recording and track tokens need to be adapted.</para>
+        </listitem>
+        <listitem>
+          <para>RecordingSearch:FindRecordings Both incoming and outgoing recording, track and search tokens need to be adapted.</para>
+        </listitem>
+        <listitem>
+          <para>RecordingSearch:GetRecordingSearchResults Both incoming and outgoing recording, track and search tokens need to be adapted.</para>
+        </listitem>
+        <listitem>
+          <para>RecordingSearch:EndSearch The incoming search tokens needs to be adapted.</para>
+        </listitem>
+        <listitem>
+          <para>Replay:GetReplayUri The incoming recording token needs to be adapted. Additionally the VSS needs to ensure that the streaming URI can be reached by the client. This shall include a streaming proxy service.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+    <section>
+      <title>Forwarding of Events</title>
+      <para>Typically the Source section contains tokens that need to be adapted.</para>
+    </section>
+  </appendix>
+  <appendix>
+    <title>Recording API model</title>
+    <para>
+      <emphasis role="bold">(Informative)</emphasis>
+    </para>
+    <section>
+      <title>Overview</title>
+      <para>A lower level VSS can have recordings that are managed in several different ways, for example it might be handled directly by the Lower VSS or it might be stored on a cameras edge storage.</para>
+      <para>Regardless of how the lower level VSS actually makes and stores its recordings, it has to model it in a way that are compatible with the ONVIF recording API model.</para>
+      <para>The ONVIF recording API allows for two different recording models. Either the recording is modeled as an edge recording done on a camera device or it is modeled as a remote recording done on a NVR device: In the edge recording case the recording source is a local ONVIF media profile and in the NVR case the recording source is an ONVIF receiver object containing a RTSP URL.</para>
+      <para>Since the ONVIF resource query is based on adding a globally unique device prefix to the device local token the recording model used by the lower level VSS will have an impact on the upper level VSS ability to understand what camera made a recording.</para>
+    </section>
+    <section>
+      <title>Lower level VSS recording API model</title>
+      <para>In the forensic example in section <xref linkend="_Ref25752452" /> the upper level VSS does a resource query for recording token within a specific geographical area. If the lower level VSS would have chosen to represent its recording according to the NVR style, it should be no problem for the upper VSS to locate the interesting recordings and actually watch them. But it would create a problem for the upper VSS if it actually would like to know what edge device made the recording. The problem mainly being how to map the RTSP URL in the receiver object to the global token prefix it knows.</para>
+      <para>Furthermore if the upper level VSS instead of using a location filter would like to use a prefix filter, see section <xref linkend="_Ref25752483" />, the NVR style recording model creates huge problem since there are no easy way to ask for recordings belonging to a specific camera device prefix.</para>
+      <para>The lower level VSS should when adopting recording specific tokens make sure that for the upper level VSS it looks like all recording is made using the ONVIF edge storage style of recoding. For an example of this see</para>
+      <para>Recording API model example</para>
+    </section>
+  </appendix>
+  <appendix>
+    <title>Bibliography</title>
+    <para>ONVIF PTZ Service Specification</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/srv/ptz/ONVIF-PTZ-Service-Spec.pdf">http://www.onvif.org/onvif/specs/srv/ptz/ONVIF-PTZ-Service-Spec.pdf</link>&gt;</para>
+    <para>ONVIF Security Configuration Specification</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/srv/security/ONVIF-Security-Service-Spec.pdf">http://www.onvif.org/onvif/specs/srv/security/ONVIF-Security-Service-Spec.pdf</link>&gt;</para>
+    <para>ONVIF Media2 Service Specification</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/srv/media/ONVIF-Media2-Service-Spec.pdf">http://www.onvif.org/onvif/specs/srv/media/ONVIF-Media2-Service-Spec.pdf</link>&gt;</para>
+    <para>ONVIF Recording Search Service Specification</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/srv/rsrch/ONVIF-RecordingSearch-Service-Spec.pdf">https://www.onvif.org/specs/srv/rsrch/ONVIF-RecordingSearch-Service-Spec.pdf</link>&gt;</para>
+    <para>ONVIF Replay Control Service Specification</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/srv/replay/ONVIF-ReplayControl-Service-Spec.pdf">https://www.onvif.org/specs/srv/replay/ONVIF-ReplayControl-Service-Spec.pdf</link>&gt;</para>
+    <para>ONVIF Streaming Specification</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/stream/ONVIF-Streaming-Spec.pdf">http://www.onvif.org/onvif/specs/stream/ONVIF-Streaming-Spec.pdf</link>&gt;</para>
+  </appendix>
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para />
+  </appendix>
+</book>

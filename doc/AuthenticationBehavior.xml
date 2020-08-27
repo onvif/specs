@@ -1,0 +1,1607 @@
+<?xml version="1.0"?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <info>
+    <title>Authentication Behavior Service Specification</title>
+    <titleabbrev>AuthenticationBehavior</titleabbrev>
+    <releaseinfo>19.12</releaseinfo>
+    <author>
+      <orgname>ONVIF™</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate>December 2019</pubdate>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="media/logo.png" contentwidth="60mm" />
+      </imageobject>
+    </mediaobject>
+    <copyright>
+      <year>2008-2020</year>
+      <holder>ONVIF™ All rights reserved.</holder>
+    </copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>18.06</revnumber>
+        <date>Jun-2018</date>
+        <author>
+          <personname>Patrik Björling Rygert</personname>
+        </author>
+        <revremark>Initial version</revremark>
+      </revision>
+      <revision>
+        <revnumber>18.12</revnumber>
+        <date>Dec-2018</date>
+        <author>
+          <personname>Hiroyuki Sano</personname>
+        </author>
+        <revremark>Change Request 2391, 2393</revremark>
+      </revision>
+      <revision>
+        <revnumber>19.06</revnumber>
+        <date>Jun-2019</date>
+        <author>
+          <personname>Hiroyuki Sano</personname>
+        </author>
+        <revremark>Change Request 2457, 2475</revremark>
+      </revision>
+      <revision>
+        <revnumber>19.12</revnumber>
+        <date>Dec-2019</date>
+        <author>
+          <personname>Hiroyuki Sano</personname>
+        </author>
+        <revremark>Change Request 2471</revremark>
+      </revision>
+    </revhistory>
+  </info>
+  <preface>
+    <title>Contributors</title>
+    <informaltable>
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="54*" />
+        <colspec colname="c2" colwidth="46*" />
+        <tbody valign="top">
+          <row>
+            <entry valign="bottom">
+              <para>ASSA ABLOY</para>
+            </entry>
+            <entry valign="bottom">
+              <para>Patrik Björling Rygert</para>
+            </entry>
+          </row>
+          <row>
+            <entry valign="bottom">
+              <para>ASSA ABLOY</para>
+            </entry>
+            <entry valign="bottom">
+              <para>Mattias Rengstedt</para>
+            </entry>
+          </row>
+          <row>
+            <entry valign="bottom">
+              <para>Axis Communications AB </para>
+            </entry>
+            <entry valign="bottom">
+              <para>Robert Rosengren</para>
+            </entry>
+          </row>
+          <row>
+            <entry valign="bottom">
+              <para>Axis Communications AB</para>
+            </entry>
+            <entry valign="bottom">
+              <para>Derek Wang</para>
+            </entry>
+          </row>
+          <row>
+            <entry align="left" valign="bottom">
+              <para>Axis Communications AB</para>
+            </entry>
+            <entry align="left" valign="bottom">
+              <para>Emil Selinder</para>
+            </entry>
+          </row>
+          <row>
+            <entry valign="bottom">
+              <para>Bosch</para>
+            </entry>
+            <entry valign="bottom">
+              <para>Dirk Schreiber</para>
+            </entry>
+          </row>
+          <row>
+            <entry valign="bottom">
+              <para>Honeywell</para>
+            </entry>
+            <entry valign="bottom">
+              <para>Uvaraj Thangarajan</para>
+            </entry>
+          </row>
+          <row>
+            <entry valign="bottom">
+              <para>Honeywell</para>
+            </entry>
+            <entry valign="bottom">
+              <para>Vinay Ghule</para>
+            </entry>
+          </row>
+          <row>
+            <entry valign="bottom">
+              <para>Siemens AG</para>
+            </entry>
+            <entry valign="bottom">
+              <para>Lokeshwar K</para>
+            </entry>
+          </row>
+          <row>
+            <entry valign="bottom">
+              <para>Siemens AG</para>
+            </entry>
+            <entry valign="bottom">
+              <para>Suresh Raman</para>
+            </entry>
+          </row>
+          <row>
+            <entry valign="bottom">
+              <para>Siemens AG</para>
+            </entry>
+            <entry valign="bottom">
+              <para>Suresh Krishnamurthy</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </preface>
+  <chapter>
+    <title>Scope</title>
+    <section>
+      <title>General</title>
+      <para>This specification defines the web service interface for interaction with ONVIF devices which support scheduled authentication behavior for access points.</para>
+      <para>Web service usage and common ONVIF functionality are outside the scope of this document. Please refer to [Core Specification] for more information.</para>
+    </section>
+    <section>
+      <title>Conventions</title>
+      <para>The key words “shall”, “shall not”, “should”, “should not”, “may”, “need not”, “can”, “cannot” in this specification are to be interpreted as described in Annex H of [ISO/IEC Directives].</para>
+    </section>
+    <section>
+      <title>Namespaces</title>
+      <para>This document references the following namespaces:</para>
+      <table>
+        <title>– Referenced namespaces (with prefix)</title>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="13*" />
+          <colspec colname="c2" colwidth="87*" />
+          <tbody valign="top">
+            <row>
+              <entry>
+                <para>
+                  <emphasis role="bold">Prefix</emphasis>
+                </para>
+              </entry>
+              <entry>
+                <para>
+                  <emphasis role="bold">Namespace URI</emphasis>
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>env</para>
+              </entry>
+              <entry>
+                <para>
+                  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.w3.org/2003/05/soap-envelope">http://www.w3.org/2003/05/soap-envelope</link>
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>ter</para>
+              </entry>
+              <entry>
+                <para>
+                  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/error">http://www.onvif.org/ver10/error</link>
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>xs </para>
+              </entry>
+              <entry>
+                <para>
+                  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.w3.org/2001/XMLSchema">http://www.w3.org/2001/XMLSchema</link>
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>tt</para>
+              </entry>
+              <entry>
+                <para>
+                  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/schema">http://www.onvif.org/ver10/schema</link>
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>pt</para>
+              </entry>
+              <entry>
+                <para>
+                  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/pacs">http://www.onvif.org/ver10/pacs</link>
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>tns1</para>
+              </entry>
+              <entry>
+                <para>
+                  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/topics">http://www.onvif.org/ver10/topics</link>
+                </para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>tab</para>
+              </entry>
+              <entry>
+                <para>
+                  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/authenticationbehavior/wsdl">http://www.onvif.org/ver10/authenticationbehavior/wsdl</link>
+                </para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Normative references</title>
+    <para>The following documents, in whole or in part, are normatively referenced in this document and are indispensable for its application. For dated references, only the edition cited applies. For undated references, the latest edition of the referenced document (including any amendments) applies.</para>
+    <para role="reference">ONVIF Core Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
+    <para>NVIF PACS Architecture and Design Considerations</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/wp/ONVIF-PACS-Architecture-and-Design-Considerations.pdf"></link>&gt;</para>
+    <para role="reference">ONVIF Schedule Service Specification</para>
+    <para role="reference"> &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/srv/sched/ONVIF-Scheduler-Service-Spec.pdf"></link>&gt;</para>
+    <para role="reference">ISO/IEC Directives, ISO/IEC Directives Part 2, Principles and rules for the structure and drafting of ISO and IEC documents, Edition 7.0, May 2016</para>
+    <para role="reference"> &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.iec.ch/members_experts/refdocs/iec/isoiecdir-2%7Bed7.0%7Den.pdf"></link>&gt;</para>
+  </chapter>
+  <chapter>
+    <title>Terms, definitions and abbreviations</title>
+    <section>
+      <title>Terms and definitions</title>
+      <para>For the purposes of this document, the following terms and definitions apply.</para>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="22*" />
+          <colspec colname="c2" colwidth="78*" />
+          <tbody valign="top">
+            <row>
+              <entry>
+                <para>
+                  <emphasis role="bold">Authentication Policy</emphasis>
+                </para>
+              </entry>
+              <entry>
+                <para>Each authentication policy associates a security level with a schedule (during which the specified security level will be required at the access point).</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <emphasis role="bold">Authentication Profile</emphasis>
+                </para>
+              </entry>
+              <entry>
+                <para>Authentication profiles are used to define authentication behavior for a type of access points. For instance, all entrance access points are configured to require Card access during office hours, Card+PIN access during nighttime, and no access during holidays.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <emphasis role="bold">Recognition</emphasis>
+                </para>
+              </entry>
+              <entry>
+                <para>Recognition is the action of identifying authorized users requesting access by the comparison of presented credential data with recorded credential data.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <emphasis role="bold">Recognition Group</emphasis>
+                </para>
+              </entry>
+              <entry>
+                <para>Recognition groups are used to define a logical OR between the recognition methods in a security level. </para>
+                <para>Example: One recognition group contains the recognition methods pt:Card and pt:Fingerprint. Another group contains the recognition methods pt:Card and pt:Face. The resulting effect is that the access point will require either Card+Fingerprint, or Card+Face.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <emphasis role="bold">Recognition Method</emphasis>
+                </para>
+              </entry>
+              <entry>
+                <para>A recognition method is either memorized, biometric or held within a physical credential.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <emphasis role="bold">Recognition Type</emphasis>
+                </para>
+              </entry>
+              <entry>
+                <para>A recognition type is either a recognition method or a physical input such as a request-to-exit button.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>
+                  <emphasis role="bold">Security Level</emphasis>
+                </para>
+              </entry>
+              <entry>
+                <para>Security Levels are defined as individual recognition methods, combinations of recognition methods (using logical AND or OR), or no recognition methods (open). Security levels are given explanatory names, such as “Card”, “Card+ PIN”, “Fingerprint or Iris”, “Open”, etc.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+    <section>
+      <title>Abbreviated terms</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="22*" />
+          <colspec colname="c2" colwidth="78*" />
+          <tbody valign="top">
+            <row>
+              <entry>
+                <para>
+                  <emphasis role="bold">PACS</emphasis>
+                </para>
+              </entry>
+              <entry valign="middle">
+                <para>Physical Access Control System</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Overview</title>
+    <section>
+      <title>General</title>
+      <para>This service offers commands to manage authentication behavior and security levels.</para>
+      <para>Authentication profiles are used to define how credential holders can be granted access to an access point by defining when different security levels are required.</para>
+    </section>
+    <section>
+      <title>Example</title>
+      <para>The following example uses a schedule (see [ONVIF Schedule Service Specification]) that defines the following:</para>
+      <itemizedlist>
+        <listitem>
+          <para>Time range of 9 AM-5 PM during regular Mondays-Fridays</para>
+        </listitem>
+        <listitem>
+          <para>No time ranges are defined for regular Saturdays and Sundays</para>
+        </listitem>
+        <listitem>
+          <para>A special day group for half-working days, with a time range of 9 AM-1 PM</para>
+        </listitem>
+        <listitem>
+          <para>A special day group for bank holidays, with a time range of 9 AM-5 PM</para>
+        </listitem>
+      </itemizedlist>
+      <para>Additionally, this service defines four security levels; “Card”, “Card+PIN”, “Dual Card” and “No access” (see section <xref linkend="_Ref505698156" />).</para>
+      <para>By using security level constraints (see section <xref linkend="_Ref505698250" />), we can map the four different schedule states to a security level and an authentication mode:</para>
+      <table>
+        <title>Schedule state mapping</title>
+        <tgroup cols="4">
+          <colspec colname="c1" colwidth="27*" />
+          <colspec colname="c2" colwidth="20*" />
+          <colspec colname="c3" colwidth="23*" />
+          <colspec colname="c4" colwidth="30*" />
+          <thead>
+            <row>
+              <entry>
+                <para>Special Day?</para>
+              </entry>
+              <entry>
+                <para>Time range active?</para>
+              </entry>
+              <entry>
+                <para>Resulting security level</para>
+              </entry>
+              <entry>
+                <para>Resulting authentication mode</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody valign="top">
+            <row>
+              <entry>
+                <para>No / Regular day</para>
+              </entry>
+              <entry>
+                <para>No</para>
+              </entry>
+              <entry>
+                <para>“Card+PIN”</para>
+              </entry>
+              <entry>
+                <para>pt:SingleCredential</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>No / Regular day</para>
+              </entry>
+              <entry>
+                <para>Yes</para>
+              </entry>
+              <entry>
+                <para>“Card”</para>
+              </entry>
+              <entry>
+                <para>pt:SingleCredential</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>“Half-working days”</para>
+              </entry>
+              <entry>
+                <para>No</para>
+              </entry>
+              <entry>
+                <para>“Card+PIN”</para>
+              </entry>
+              <entry>
+                <para>pt:SingleCredential</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>“Half-working days”</para>
+              </entry>
+              <entry>
+                <para>Yes</para>
+              </entry>
+              <entry>
+                <para>“Card”</para>
+              </entry>
+              <entry>
+                <para>pt:SingleCredential</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>“Bank holidays”</para>
+              </entry>
+              <entry>
+                <para>No</para>
+              </entry>
+              <entry>
+                <para>“No access”</para>
+              </entry>
+              <entry>
+                <para>(irrelevant)</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>“Bank holidays”</para>
+              </entry>
+              <entry>
+                <para>Yes</para>
+              </entry>
+              <entry>
+                <para>“Card”</para>
+              </entry>
+              <entry>
+                <para>pt:DualCredential</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <figure>
+        <title>– Authentication behavior example</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="media/AuthenticationBehavior/image2.svg" contentwidth="159.70mm" contentdepth="72.45mm" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Authentication behavior</title>
+    <section>
+      <title>Service capabilities</title>
+      <section>
+        <title>General</title>
+        <para>The device shall provide service capabilities in two ways:</para>
+        <orderedlist>
+          <listitem>
+            <para>With the GetServices method of Device service when IncludeCapability is true. Please refer to [Core Specification] for more details.</para>
+          </listitem>
+          <listitem>
+            <para>With the GetServiceCapabilities method.</para>
+          </listitem>
+        </orderedlist>
+      </section>
+      <section>
+        <title>Data structures</title>
+        <section>
+          <title>ServiceCapabilities</title>
+          <para>The service capabilities reflect optional functionality of a service. The information is static and does not change during device operation. The following capabilities are available:</para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                <emphasis role="bold">MaxLimit</emphasis>
+              </para>
+              <para>The maximum number of entries returned by a single Get&lt;Entity&gt;List or Get&lt;Entity&gt; request. The device shall never return more than this number of entities in a single response.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">MaxAuthenticationProfiles</emphasis>
+              </para>
+              <para>Indicates the maximum number of authentication profiles the device supports. The device shall support at least one authentication profile.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">MaxPoliciesPerAuthenticationProfile</emphasis>
+              </para>
+              <para>Indicates the maximum number of authentication policies per authentication profile supported by the device.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">MaxSecurityLevels</emphasis>
+              </para>
+              <para>Indicates the maximum number of security levels the device supports. The device shall support at least one security level.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">MaxRecognitionGroupsPerSecurityLevel</emphasis>
+              </para>
+              <para>Indicates the maximum number of recognition groups per security level supported by the device.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">MaxRecognitionMethodsPerRecognitionGroup</emphasis>
+              </para>
+              <para>Indicates the maximum number of recognition methods per recognition group supported by the device.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">ClientSuppliedTokenSupported</emphasis>
+              </para>
+              <para>Indicates that the client is allowed to supply the token when creating authentication profiles and security levels. To enable the use of the commands SetAuthenticationProfile and SetSecurityLevel, the value must be set to true.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">SupportedAuthenticationModes</emphasis>
+              </para>
+              <para>A list of supported authentication modes (including custom modes). See section <xref linkend="_Ref505698250" /> (AuthenticationMode field) for supported authentication modes. This field is optional, and when omitted, the client shall assume that the device supports “pt:SingleCredential” only.</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+      </section>
+      <section>
+        <title>GetServiceCapabilities</title>
+        <para>This operation returns the capabilities of the authentication behavior service.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This message is empty</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Capabilities [tab:ServiceCapabilities]</para>
+              <para role="text">Set of indicators for function groups as described above.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">None</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">PRE_AUTH</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
+    <section>
+      <title>Authentication profile information</title>
+      <section>
+        <title>General</title>
+        <para>Authentication profiles are used to define authentication behavior for a type of access points. For instance, all entrance access points are configured to require Card access during office hours, Card+PIN access during nighttime, and no access during holidays. </para>
+        <para>The authentication behavior of an access point type is defined by associating security levels with schedules. When the schedule is active, the specified security level is required.</para>
+        <para>If a certain point in time is not covered by any schedule, then the access point is set to the default security level.</para>
+        <para>The following figure shows an overview of the related objects of an authentication profile:</para>
+        <figure>
+          <title>– The related objects of an authentication profile</title>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="media/AuthenticationBehavior/image3.svg" contentwidth="146.22mm" contentdepth="66.10mm" />
+            </imageobject>
+          </mediaobject>
+        </figure>
+      </section>
+      <section>
+        <title>Data structures</title>
+        <section>
+          <title>AuthenticationProfileInfo</title>
+          <para>The AuthenticationProfileInfo structure contains information of a specific authentication profile instance. </para>
+          <para>The device shall provide the following fields for each AuthenticationProfileInfo instance:</para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                <emphasis role="bold">token</emphasis>
+              </para>
+              <para>A service unique identifier of the authentication profile.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">Name</emphasis>
+              </para>
+              <para>A descriptive name, such as “Entrance doors - entry”. It shall be up to 64 characters.</para>
+            </listitem>
+          </itemizedlist>
+          <para>To provide more information, the device may include the following optional fields:</para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                <emphasis role="bold">Description</emphasis>
+              </para>
+              <para>User readable description for the authentication profile. It shall be up to 1024 characters.</para>
+              <para>Note that when this optional field is omitted, the device will assume an empty value.</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+        <section>
+          <title>AuthenticationProfile</title>
+          <para>The AuthenticationProfile structure shall include all properties of the AuthenticationProfileInfo structure and also a default security level, an authentication mode, and a list of AuthenticationPolicy instances.</para>
+          <para>The device shall provide the following fields for each AuthenticationProfile instance:</para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                <emphasis role="bold">DefaultSecurityLevelToken</emphasis>
+              </para>
+              <para>The default security level is used if none of the authentication policies has a schedule covering the time of access (or if no authentication policies are defined).</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">AuthenticationPolicy</emphasis>
+              </para>
+              <para>Each authentication policy associates a security level with a schedule (during which the specified security level will be required at the access point). If no authentication policies are specified, then DefaultSecurityLevelToken will be used.</para>
+              <para>Note that when an authentication profile is updated, then any previous authentication policies are replaced with the new list.</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+        <section>
+          <title>AuthenticationPolicy</title>
+          <para>The authentication policy is an association of a security level and a schedule. It defines when a certain security level is required to grant access to a credential holder. Each security level is given a unique priority. If authentication policies have overlapping schedules, the security level with the highest priority is used.</para>
+          <para>The device shall provide the following fields for each authentication policy instance:</para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                <emphasis role="bold">ScheduleToken</emphasis>
+              </para>
+              <para>Reference to the schedule used by the authentication policy. Schedules are defined in [ONVIF Schedule Service Specification].</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">SecurityLevelConstraint</emphasis>
+              </para>
+              <para>A list of security level constraint structures defining the conditions for what security level to use.</para>
+              <para>Minimum one security level constraint must be specified.</para>
+              <para>Note that when an authentication policy is updated, then any previous security level constraints are replaced with the new list.</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+        <section xml:id="_Ref505698250">
+          <title>SecurityLevelConstraint</title>
+          <para>This structure defines what security level should be active depending on the state of the schedule. The state of a schedule has two boolean values corresponding to four different states:</para>
+          <itemizedlist>
+            <listitem>
+              <para>The standard schedule is active, and it is currently no special day</para>
+            </listitem>
+            <listitem>
+              <para>The standard schedule is inactive, and it is currently no special day</para>
+            </listitem>
+            <listitem>
+              <para>It is a special day, and a time period defined in the special days schedule is active</para>
+            </listitem>
+            <listitem>
+              <para>It is a special day, but no time periods defined in the special days schedule are active</para>
+            </listitem>
+          </itemizedlist>
+          <para>If the state of the schedule corresponds to the ActiveRegularSchedule and ActiveSpecialDaySchedule settings in this structure, then the specified security level will be used. </para>
+          <para>Please note that if the device do not support special days, the value of the field ActiveSpecialDaySchedule will be ignored.</para>
+          <para>The device shall provide the following fields for each security level constraint instance:</para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                <emphasis role="bold">ActiveRegularSchedule</emphasis>
+              </para>
+              <para>Corresponds to the Active field in the ScheduleState structure in [ONVIF Schedule Service Specification].</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">ActiveSpecialDaySchedule</emphasis>
+              </para>
+              <para>Corresponds to the SpecialDay field in the ScheduleState structure in [ONVIF Schedule Service Specification].</para>
+              <para>This field will be ignored if the device do not support special days.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">AuthenticationMode</emphasis>
+              </para>
+              <para>Defines the mode of authentication. Authentication modes starting with the prefix pt: are reserved to define ONVIF-specific authentication modes. For custom defined authentication modes, free text can be used. The following authentication modes are defined by ONVIF:</para>
+              <itemizedlist>
+                <listitem>
+                  <para>pt:SingleCredential 	Normal mode where only one credential holder is required to be granted access.</para>
+                </listitem>
+                <listitem>
+                  <para>pt:DualCredential	Two credential holders are required to be granted access.</para>
+                </listitem>
+              </itemizedlist>
+              <para>This field is optional, and if omitted, the default value “pt:SingleCredential” is assumed.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">SecurityLevelToken</emphasis>
+              </para>
+              <para>Reference to the security level used by the authentication policy.</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+      </section>
+      <section>
+        <title>GetAuthenticationProfileInfo</title>
+        <para>This <phrase>operation requests </phrase>a list of AuthenticationProfileInfo items <phrase>matching the given tokens.</phrase></para>
+        <para>The device shall ignore tokens it cannot resolve and shall return an empty list if there are no items matching the specified tokens. <phrase>The device shall not return a fault in this case.</phrase></para>
+        <para>If the number of requested items is greater than MaxLimit, a TooManyItems fault shall be returned.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Token - unbounded [pt:ReferenceToken]</para>
+              <para role="text">Tokens of AuthenticationProfileInfo items to get.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">AuthenticationProfileInfo - optional, unbounded [tab:AuthenticationProfileInfo]</para>
+              <para role="text"> List of AuthenticationProfileInfo items.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgs - ter:TooManyItems</para>
+              <para role="text">Too many items were requested, see MaxLimit capability.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>GetAuthenticationProfileInfoList</title>
+        <para>This operation requests a list of all AuthenticationProfileInfo items provided by the device.</para>
+        <para>A call to this method shall return a StartReference when not all data is returned and more data is available. The reference shall be valid for retrieving the next set of data. Please refer to section 4.8.3 in [ONVIF PACS Architecture and Design Considerations] for more details.</para>
+        <para>The number of items returned shall not be greater than the Limit parameter.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Limit - optional [xs:int]</para>
+              <para role="text">Maximum number of entries to return. If not specified, less than one
+                or higher than what the device supports, the number of items is determined by the
+                device.</para>
+              <para role="param">StartReference - optional [xs:string]</para>
+              <para role="text">Start returning entries from this start reference. If not specified, entries shall start from the beginning of the dataset</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">NextStartReference - optional [xs:string]</para>
+              <para role="text">StartReference to use in next call to get the following items. If absent, no more items to get.</para>
+              <para role="param">AuthenticationProfileInfo optional, unbounded
+                [tab:AuthenticationProfileInfo]</para>
+              <para role="text">List of AuthenticationProfileInfo items.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidStartReference</para>
+              <para role="text">StartReference is invalid or has timed out.Client needs to start fetching from the beginning.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>GetAuthenticationProfiles</title>
+        <para>This operation <phrase>requests a list of </phrase>AuthenticationProfile item matching the given tokens. </para>
+        <para>The device shall ignore tokens it cannot resolve and shall return an empty list if there are no items matching the specified tokens. The device shall not return a fault in this case.</para>
+        <para>If the number of requested items is greater than MaxLimit, a TooManyItems fault shall be returned.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Token - unbounded [pt:ReferenceToken]</para>
+              <para role="text">Tokens of AuthenticationProfile items to get.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">AuthenticationProfile - optional, unbounded [tab:AuthenticationProfile]</para>
+              <para role="text"> List of AuthenticationProfile items.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgs - ter:TooManyItems</para>
+              <para role="text">Too many items were requested, see MaxLimit capability.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>GetAuthenticationProfileList</title>
+        <para>This operation requests a list of all AuthenticationProfile items provided by the device. </para>
+        <para>A call to this method shall return a StartReference when not all data is returned and more data is available. The reference shall be valid for retrieving the next set of data. Please refer to section 4.8.3 in [ONVIF PACS Architecture and Design Considerations] for more details.</para>
+        <para>The number of items returned shall not be greater than the Limit parameter.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Limit - optional [xs:int]</para>
+              <para role="text">Maximum number of entries to return. If not specified, less than one
+                or higher than what the device supports, the number of items is determined by the evice.</para>
+              <para role="param">StartReference - optional [xs:string]</para>
+              <para role="text">Start returning entries from this start reference. If not specified, entries shall start from the beginning of the dataset</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">NextStartReference - optional [xs:string]</para>
+              <para role="text">StartReference to use in next call to get the following items. If absent, no more items to get.</para>
+              <para role="param">AuthenticationProfile optional, unbounded [tab:AuthenticationProfile]</para>
+              <para role="text">List of AuthenticationProfile items.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidStartReference</para>
+              <para role="text">StartReference is invalid or has timed out.Client needs to start fetching from the beginning.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>CreateAuthenticationProfile</title>
+        <para>This operation creates the specified authentication profile in the device. </para>
+        <para>The token field of the AuthenticationProfile structure shall be empty and the device shall allocate a token for the authentication profile. The allocated token shall be returned in the response. </para>
+        <para>If the client sends any value in the token field, the device shall return InvalidArgVal as a generic fault code.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">AuthenticationProfile [tab:AuthenticationProfile]</para>
+              <para role="text">The authentication profile to create.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Token [pt:ReferenceToken]</para>
+              <para role="text"> The token of the created authentication profile items.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Receiver - ter:CapabilityViolated - ter:MaxAuthenticationProfiles</para>
+              <para role="text">There is not enough space to add a new authentication profile, see MaxAuthenticationProfiles capability.</para>
+              <para role="param">env:Sender - ter:CapabilityViolated - ter:MaxPoliciesPerAuthenticationProfile</para>
+              <para role="text">There are too many AuthenticationPolicy entitiesreferred in this AuthenticationProfile, see MaxPoliciesPerAuthenticationProfilecapability.</para>
+              <para role="param">env:Sender - ter:InvalidArgs - ter:ReferenceNotFound</para>
+              <para role="text">A referred entity token is not found (some devices may not validate referred entities).</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+     </section>
+      <section>
+        <title>SetAuthenticationProfile</title>
+        <para>This method is used to synchronize an authentication profile in a client with the device.</para>
+        <para>If an authentication profile with the specified token does not exist in the device, the authentication profile is created. If an authentication profile with the specified token exists, then the authentication profile is modified.</para>
+        <para>A call to this method takes an AuthenticationProfile structure as input parameter. The token field of the AuthenticationProfile shall not be empty.</para>
+        <para>A device that signals support for the ClientSuppliedTokenSupported capability shall implement this command. </para>
+        <para>If no token was specified in the request, the device shall return InvalidArgs as a generic fault code.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">AuthenticationProfile [tab:AuthenticationProfile]</para>
+              <para role="text">The authentication profile to create or modify.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This message shall be empty.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Receiver - ter:CapabilityViolated - ter:ClientSuppliedTokenSupported</para>
+              <para role="text">The device does not support that the client supplies the token.</para>
+              <para role="param">env:Receiver - ter:CapabilityViolated - ter:MaxAuthenticationProfiles</para>
+              <para role="text">There is not enough space to add a new authentication profile, see MaxAuthenticationProfiles capability.</para>
+              <para role="param">env:Sender - ter:CapabilityViolated - ter:MaxPoliciesPerAuthenticationProfile</para>
+              <para role="text">There are too many AuthenticationPolicy entitiesreferred in this AuthenticationProfile, see MaxPoliciesPerAuthenticationProfilecapability.</para>
+              <para role="param">env:Sender - ter:InvalidArgs - ter:ReferenceNotFound</para>
+              <para role="text">A referred entity token is not found (some devices may not validate referred entities).</para>
+              <para role="param">env:Sender - ter:CapabilityViolated  - ter:SupportedSecurityLevels</para>
+              <para role="text">The updated authentication profile contains security levels that is not supported by an access point that is referring to this authentication profile (some devices may not validate this).</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+       </section>
+      <section>
+        <title>ModifyAuthenticationProfile</title>
+        <para>This operation modifies the specified authentication profile. </para>
+        <para>The token of the authentication profile to modify is specified in the token field of the AuthenticationProfile structure and shall not be empty. All other fields in the structure shall overwrite the fields in the specified authentication profile.</para>
+        <para>If no token was specified in the request, the device shall return InvalidArgs as a generic fault code.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">AuthenticationProfile [tab:AuthenticationProfile]</para>
+              <para role="text">The authentication profile to create or modify.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This message shall be empty.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NotFound</para>
+              <para role="text">The specified token not found.</para>
+              <para role="param">env:Sender - ter:CapabilityViolated - ter:MaxPoliciesPerAuthenticationProfile</para>
+              <para role="text">There are too many AuthenticationPolicy entitiesreferred in this AuthenticationProfile, see MaxPoliciesPerAuthenticationProfilecapability.</para>
+              <para role="param">env:Sender - ter:InvalidArgs - ter:ReferenceNotFound</para>
+              <para role="text">A referred entity token is not found (some devices may not validate referred entities).</para>
+              <para role="param">env:Sender - ter:CapabilityViolated  - ter:SupportedSecurityLevels</para>
+              <para role="text">The updated authentication profile contains security levels that is not supported by an access point that is referring to this authentication profile (some devices may not validate this).</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>DeleteAuthenticationProfile</title>
+        <para>This operation deletes the specified authentication profile. </para>
+        <para>If the authentication profile is deleted, all authentication policies associated with the authentication profile will also be deleted.</para>
+        <para>If it is associated with one or more entities some devices may not be able to delete the authentication profile, and consequently a ReferenceInUse fault shall be generated.</para>
+        <para>If no token was specified in the request, the device shall return InvalidArgs as a generic fault code.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Token [pt:ReferenceToken]</para>
+              <para role="text">The token of the AuthenticationProfile to delete.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This message shall be empty.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NotFound</para>
+              <para role="text">AuthenticationProfile token not found.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:ReferenceInUse</para>
+              <para role="text">Failed to delete, AuthenticationProfile token is in use.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
+    <section>
+      <title>Security level information</title>
+      <section>
+        <title>General</title>
+        <para>Security Levels are defined as individual recognition methods, combinations of recognition methods (using logical AND or OR), or no recognition methods (open). Security levels are given explanatory names, such as “Card”, “Card+ PIN”, “Fingerprint or Iris”, “Open”, etc.</para>
+        <para>Possible authentication factors are Card, PIN, Fingerprint, Face, Iris, Vein, Palm and REX (that is not hardwired to directly unlock, but where the device can do some action, such as taking a decision).</para>
+        <para>The following figure shows an overview of the related objects of a security level:</para>
+        <figure>
+          <title>– The related objects of a security level</title>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="media/AuthenticationBehavior/image4.svg" contentwidth="109.20mm" contentdepth="56.05mm" />
+            </imageobject>
+          </mediaobject>
+        </figure>
+      </section>
+      <section>
+        <title>Data structures</title>
+        <section>
+          <title>SecurityLevelInfo</title>
+          <para>The SecurityLevelInfo structure contains information of a specific security level instance. </para>
+          <para>The device shall provide the following fields for each SecurityLevelInfo instance:</para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                <emphasis role="bold">token</emphasis>
+              </para>
+              <para>A service-unique identifier of the security level.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">Name</emphasis>
+              </para>
+              <para>User readable name. It shall be up to 64 characters.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">Priority</emphasis>
+              </para>
+              <para>A higher number indicates that the security level is considered more secure than security levels with lower priorities. The priority is used when an authentication profile have overlapping schedules with different security levels. When an access point is accessed, the authentication policies are walked through in priority order (highest priority first). When a schedule is found covering the time of access, the associated security level is used and processing stops. Two security levels cannot have the same priority.</para>
+            </listitem>
+          </itemizedlist>
+          <para>To provide more information, the device may include the following optional fields:</para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                <emphasis role="bold">Description</emphasis>
+              </para>
+              <para>User readable description for the special days. It shall be up to 1024 characters.</para>
+              <para>Note that when this optional field is omitted, the device will assume an empty value.</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+        <section xml:id="_Ref505698156">
+          <title>SecurityLevel</title>
+          <para>The SecurityLevel structure shall include all properties of the SecurityLevelInfo structure and also a set of recognition groups. </para>
+          <para>The recognition groups are used to define a logical OR between the groups. Each recognition group consists of one or more recognition methods. </para>
+          <para>Example: One recognition group contains the recognition methods pt:Card and pt:Fingerprint. Another group contains the recognition methods pt:Card and pt:Face. The resulting effect is that the access point will require either Card+Fingerprint, or Card+Face. </para>
+          <para>The order of the requested recognition methods can be defined at the access point using the order field in the recognition method structure.</para>
+          <para>The following example shows three different security levels. The first has no recognition groups and the access point will not require any authentication when active. The second is described above. The third defines one recognition group but with no recognition methods, which has the same effect as if the access point is disabled.</para>
+          <figure>
+            <title>– Security level examples</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="media/AuthenticationBehavior/image5.png" contentwidth="155.47mm" contentdepth="93.07mm" />
+              </imageobject>
+            </mediaobject>
+          </figure>
+          <para>The device shall provide the following fields for each SecurityLevel instance:</para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                <emphasis role="bold">RecognitionGroup</emphasis>
+              </para>
+              <para>The recognition groups are used to define a logical OR between the groups. Each recognition group consists of one or more recognition methods.</para>
+              <para>No recognition groups mean that the access point is open.</para>
+              <para>Note that when a security level is updated, then any previous recognition groups are replaced with the new list.</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+        <section>
+          <title>RecognitionGroup</title>
+          <para>The device shall provide the following fields for each RecognitionGroup instance:</para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                <emphasis role="bold">RecognitionMethod</emphasis>
+              </para>
+              <para>A list of recognition methods to request for at the access point. No recognition methods mean that the access point is closed.</para>
+              <para>Note that when a recognition group is updated, then any previous recognition methods are replaced with the new list.</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+        <section>
+          <title>RecognitionMethod</title>
+          <para>Recognition is the action of identifying authorized users requesting access by the comparison of presented credential data with recorded credential data. A recognition method is either memorized, biometric or held within a physical credential. A recognition type is either a recognition method or a physical input such as a request-to-exit button. </para>
+          <para>The device shall provide the following fields for each RecognitionMethod instance:</para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                <emphasis role="bold">RecognitionType</emphasis>
+              </para>
+              <para>The requested type of recognition. Is of type text.</para>
+              <para>Recognition types starting with the prefix pt: are reserved to define ONVIF-specific types as defined in pt:RecognitionType. For custom defined identifier types, free text can be used.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">Order</emphasis>
+              </para>
+              <para>The order value defines when this recognition method will be requested in relation to the other recognition methods in the same security level. A lower number indicates that the recognition method will be requested before recognition methods with a higher number.</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+      </section>
+      <section>
+        <title>GetSecurityLevelInfo</title>
+        <para>This operation requests a list of SecurityLevelInfo items matching the given tokens. </para>
+        <para>The device shall ignore tokens it cannot resolve and shall return an empty list if there are no items matching the specified tokens. The device shall not return a fault in this case.</para>
+        <para>If the number of requested items is greater than MaxLimit, a TooManyItems fault shall be returned.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Token = unbounded [pt:ReferenceToken]</para>
+              <para role="text">The tokens of the SecurityLevelInfo to get.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">SecurityLevelInfo - optional, unbounded [tab:SecurityLevelInfo]</para>
+              <para role="text">List of SecurityLevelInfo items.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgs - ter:TooManyItems</para>
+              <para role="text">Too many items were requested, see MaxLimit capability.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>GetSecurityLevelInfoList</title>
+        <para>This operation requests a list of all SecurityLevelInfo items provided by the device.</para>
+        <para>A call to this method shall return a StartReference when not all data is returned and more data is available. The reference shall be valid for retrieving the next set of data. Please refer to section 4.8.3 in [ONVIF PACS Architecture and Design Considerations] for more details.</para>
+        <para>The number of items returned shall not be greater than the Limit parameter.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Limit - optional [xs:int]</para>
+              <para role="text">Maximum number of entries to return. If not specified, less than one
+                or higher than what the device supports, the number of items is determined by the
+                device.</para>
+              <para role="param">StartReference - optional [xs:string]</para>
+              <para role="text">Start returning entries from this start reference. If not specified, entries shall start from the beginning of the dataset</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">NextStartReference - optional [xs:string]</para>
+              <para role="text">StartReference to use in next call to get the following items. If absent, no more items to get.</para>
+              <para role="param">SecurityLevelInfo optional, unbounded
+                [tab:SecurityLevelInfo]</para>
+              <para role="text">List of SecurityLevelInfo items.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidStartReference</para>
+              <para role="text">StartReference is invalid or has timed out.Client needs to start fetching from the beginning.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>GetSecurityLevels</title>
+        <para>This operation <phrase>requests a list of </phrase>SecurityLevel items matching the given tokens. </para>
+        <para>The device shall ignore tokens it cannot resolve and shall return an empty list if there are no items matching specified tokens. The device shall not return a fault in this case.</para>
+        <para>If the number of requested items is greater than MaxLimit, a TooManyItems fault shall be returned.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Token [pt:ReferenceToken]</para>
+              <para role="text">The tokens of the SecurityLevelInfo to get.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">SecurityLevel - optional, unbounded [tab:SecurityLevel]</para>
+              <para role="text">List of SecurityLevel items.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgs - ter:TooManyItems</para>
+              <para role="text">Too many items were requested, see MaxLimit capability.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>GetSecurityLevelList</title>
+        <para>This operation requests a list of all SecurityLevel items provided by the device.</para>
+        <para>A call to this method shall return a StartReference when not all data is returned and more data is available. The reference shall be valid for retrieving the next set of data. Please refer to section 4.8.3 in [ONVIF PACS Architecture and Design Considerations] for more details.</para>
+        <para>The number of items returned shall not be greater than the Limit parameter.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Limit - optional [xs:int]</para>
+              <para role="text">Maximum number of entries to return. If not specified, less than one
+                or higher than what the device supports, the number of items is determined by the
+                device.</para>
+              <para role="param">StartReference - optional [xs:string]</para>
+              <para role="text">Start returning entries from this start reference. If not specified, entries shall start from the beginning of the dataset</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">NextStartReference - optional [xs:string]</para>
+              <para role="text">StartReference to use in next call to get the following items. If absent, no more items to get.</para>
+              <para role="param">SecurityLevel optional, unbounded [tab:SecurityLevel]</para>
+              <para role="text">List of SecurityLevelInfo items.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidStartReference</para>
+              <para role="text">StartReference is invalid or has timed out.Client needs to start fetching from the beginning.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>CreateSecurityLevel</title>
+        <para>This operation creates the specified security level in the device. </para>
+        <para>The token field of the SecurityLevel structure shall be empty and the device shall allocate a token for the security level. The allocated token shall be returned in the response. </para>
+        <para>If the client sends any value in the token field, the device shall return InvalidArgVal as a generic fault code.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">SecurityLevel [tab:SecurityLevel]</para>
+              <para role="text">The security level to create.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Token [pt:ReferenceToken]</para>
+              <para role="text">The token of created security level.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Receiver - ter:CapabilityViolated - ter:MaxSecurityLevels</para>
+              <para role="text">There is not enough space to add new SecurityLevel items, see the MaxSecurityLevels capability.</para>
+              <para role="param">env:Sender - ter:CapabilityViolated - ter:MaxRecognitionGroupsPerSecurityLevel</para>
+              <para role="text">There are too many recognition method groups in a SecurityLevel, see MaxRecognitionGroupsPerSecurityLevel capability.</para>
+              <para role="param">env:Sender - ter:CapabilityViolated - ter:MaxRecognitionMethodsPerRecognitionGroup</para>
+              <para role="text">There are too many recognition methods in a recognition group, see MaxRecognition-MethodsPerRecognitionGroup capability.</para>
+              <para role="param">env:Sender - ter:InvalidArgs - ter:DuplicatePriority</para>
+              <para role="text">The priority of the security level is already used by another security level.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>SetSecurityLevel</title>
+        <para>This method is used to synchronize a security level in a client with the device.</para>
+        <para>If a security level with the specified token does not exist in the device, the security level is created. If a security level with the specified token exists, then the security level is modified.</para>
+        <para>A call to this method takes a SecurityLevel structure as input parameter. The token field of the SecurityLevel shall not be empty.</para>
+        <para>A device that signals support for the ClientSuppliedTokenSupported capability shall implement this command. </para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">SecurityLevel [tab:SecurityLevel]</para>
+              <para role="text">The security level to create or modify.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This message shall be empty.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Receiver - ter:CapabilityViolated - ter:ClientSuppliedTokenSupported</para>
+              <para role="text">The device does not support that the client supplies the token.</para>
+              <para role="param">env:Receiver - ter:CapabilityViolated - ter:MaxSecurityLevels</para>
+              <para role="text">There is not enough space to add new SecurityLevel items, see the MaxSecurityLevels capability.</para>
+              <para role="param">env:Sender - ter:CapabilityViolated - ter:MaxRecognitionGroupsPerSecurityLevel</para>
+              <para role="text">There are too many recognition method groups in a SecurityLevel, see MaxRecognitionGroupsPerSecurityLevel capability.</para>
+              <para role="param">env:Sender - ter:CapabilityViolated - ter:MaxRecognitionMethodsPerRecognitionGroup</para>
+              <para role="text">There are too many recognition methods in a recognition group, see MaxRecognition-MethodsPerRecognitionGroup capability.</para>
+              <para role="param">env:Sender - ter:InvalidArgs - ter:DuplicatePriority</para>
+              <para role="text">The priority of the security level is already used by another security level.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:MissingToken</para>
+              <para role="text">The token of the security level item must be specified.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>ModifySecurityLevel</title>
+        <para>This operation modifies the specified security level.</para>
+        <para>The token of the security level to modify is specified in the token field of the SecurityLevel structure and shall not be empty. All other fields in the structure shall overwrite the fields in the specified security level.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">SecurityLevel [tab:SecurityLevel]</para>
+              <para role="text">The security level to modify.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This message shall be empty.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NotFound</para>
+              <para role="text">The specified token not found.</para>
+              <para role="param">env:Sender - ter:CapabilityViolated - ter:MaxRecognitionGroupsPerSecurityLevel</para>
+              <para role="text">There are too many recognition method groups in a SecurityLevel, see MaxRecognitionGroupsPerSecurityLevel capability.</para>
+              <para role="param">env:Sender - ter:CapabilityViolated - ter:MaxRecognitionMethodsPerRecognitionGroup</para>
+              <para role="text">There are too many recognition methods in a recognition group, see MaxRecognition-MethodsPerRecognitionGroup capability.</para>
+              <para role="param">env:Sender - ter:InvalidArgs - ter:DuplicatePriority</para>
+              <para role="text">The priority of the security level is already used by another security level.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>DeleteSecurityLevel</title>
+        <para>This method deletes the specified security level.</para>
+        <para>If it is associated with one or more entities some devices may not be able to delete the security level, and consequently a ReferenceInUse fault shall be generated. </para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Token [pt:ReferenceToken]</para>
+              <para role="text">The token of the security level item to delete.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This message shall be empty.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NotFound</para>
+              <para role="text">The specified token not found.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:ReferenceInUse</para>
+              <para role="text">Failed to delete, security level token is in use.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Notification topics</title>
+    <section>
+      <title>General</title>
+      <para>This section defines notification topics specific to the authentication behavior service.</para>
+    </section>
+    <section>
+      <title>Event overview (informative)</title>
+      <para>The <phrase>authentication behavior service </phrase>specifies events when <phrase>authentication </phrase>profiles or security levels are changed.</para>
+      <para>The main topics for configuration change notifications are:</para>
+      <itemizedlist>
+        <listitem>
+          <para>tns1:Configuration/AuthenticationProfile/Changed</para>
+        </listitem>
+        <listitem>
+          <para>tns1:Configuration/AuthenticationProfile/Removed</para>
+        </listitem>
+        <listitem>
+          <para>tns1:Configuration/SecurityLevel/Changed</para>
+        </listitem>
+        <listitem>
+          <para>tns1:Configuration/SecurityLevel/Removed</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+    <section>
+      <title>Configuration changes</title>
+      <section>
+        <title>General</title>
+        <para>Whenever configuration data has been changed, added or been removed, the device shall provide these events to inform subscribed clients.</para>
+      </section>
+      <section>
+        <title>Authentication profile</title>
+        <para>Whenever configuration data for an authentication profile is changed or an authentication profile is added, the device shall provide the following event:</para>
+        <programlisting><![CDATA[Topic: tns1:Configuration/AuthenticationProfile/Changed
+          
+<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="AuthenticationProfileToken" Type="pt:ReferenceToken"/>
+  </tt:Source>
+</tt:MessageDescription>
+]]></programlisting>
+        <para>Whenever an authentication profile is removed, the device shall provide the following event:</para>
+        <programlisting><![CDATA[Topic: tns1:Configuration/AuthenticationProfile/Removed
+          
+<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="AuthenticationProfileToken" Type="pt:ReferenceToken"/>
+  </tt:Source>
+</tt:MessageDescription>
+]]></programlisting>
+      </section>
+      <section>
+        <title>Security level</title>
+        <para>Whenever configuration data for a security level is changed or a security level is added, the device shall provide the following event:</para>
+        <programlisting><![CDATA[Topic: tns1:Configuration/SecurityLevel/Changed
+          
+<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="SecurityLevelToken"
+      Type="pt:ReferenceToken"/>
+  </tt:Source>
+</tt:MessageDescription>
+]]></programlisting>
+        <para>Whenever a security level is removed, the device shall provide the following event:</para>
+        <programlisting><![CDATA[Topic: tns1:Configuration/SecurityLevel/Removed
+          
+<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="SecurityLevelToken" Type="pt:ReferenceToken"/>
+  </tt:Source>
+</tt:MessageDescription>
+]]></programlisting>
+      </section>
+    </section>
+  </chapter>
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para />
+  </appendix>
+</book>

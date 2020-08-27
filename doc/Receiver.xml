@@ -1,0 +1,577 @@
+<?xml version="1.0"?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <info>
+    <title>Receiver Service Specification</title>
+    <titleabbrev>Receiver</titleabbrev>
+    <releaseinfo>18.12</releaseinfo>
+    <author>
+      <orgname>ONVIF™</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate>December, 2018</pubdate>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="media/logo.png" contentwidth="60mm" />
+      </imageobject>
+    </mediaobject>
+    <copyright>
+      <year>2008-2020</year>
+      <holder>ONVIF™ All rights reserved.</holder>
+    </copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>2.1</revnumber>
+        <date>Jul-2011</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Split from Core 2.0, Change Request 173</revremark>
+      </revision>
+      <revision>
+        <revnumber>2.1.1</revnumber>
+        <date>Jan-2012</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Change Request 535</revremark>
+      </revision>
+      <revision>
+        <revnumber>2.2</revnumber>
+        <date>May-2012</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Change Request 677</revremark>
+      </revision>
+      <revision>
+        <revnumber>2.2.1</revnumber>
+        <date>Dec-2012</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Change Request 708, 709</revremark>
+      </revision>
+      <revision>
+        <revnumber>17.06</revnumber>
+        <date>Jun 2017</date>
+        <author>
+          <personname>Stefan Andersson</personname>
+        </author>
+        <author>
+          <personname>Hiroyuki Sano</personname>
+        </author>
+        <revremark>Update method layouts, Change Request 1843, 2089
+Change Request 2125, 2126</revremark>
+      </revision>
+      <revision>
+        <revnumber>18.12</revnumber>
+        <date>Dec-2018</date>
+        <author>
+          <personname>Hiroyuki Sano</personname>
+        </author>
+        <revremark>Change Request 2378</revremark>
+      </revision>
+    </revhistory>
+  </info>
+  <chapter>
+    <title>Scope</title>
+    <para>This document defines the web service interface for configuration a network streaming receiver. The receiver is used for displaying and recording audio video streams. Additionally the associated events are defined.</para>
+    <para>Web service usage is outside of the scope of this document. Please refer to the ONVIF core specification.</para>
+  </chapter>
+  <chapter>
+    <title>Normative references</title>
+    <para>ONVIF Core Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
+    <para>ONVIF Streaming Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/stream/ONVIF-Streaming-Spec.pdf"></link>&gt;</para>
+  </chapter>
+  <chapter>
+    <title>Terms and Definitions</title>
+    <section>
+      <title>Definitions</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*" />
+          <colspec colname="c2" colwidth="76*" />
+          <tbody valign="top">
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Metadata</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>All streaming data except video and audio, including video analytics results, PTZ position data and other <phrase>metadata (such as textual data from POS applications)</phrase>.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+    <section>
+      <title>Abbreviations</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*" />
+          <colspec colname="c2" colwidth="76*" />
+          <tbody valign="top">
+            <row>
+              <entry valign="middle">
+                <para>JPEG</para>
+              </entry>
+              <entry valign="middle">
+                <para>Joint Photographic Expert Group</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>MPEG-4</para>
+              </entry>
+              <entry valign="middle">
+                <para>Moving Picture Experts Group - 4</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>RTSP</para>
+              </entry>
+              <entry valign="middle">
+                <para>Real Time Streaming Protocol</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Overview</title>
+    <para>A receiver is an object that acts as an RTSP client endpoint. Receivers are used by other services that consume media streams, such as the Display, Recording and Analytics Device services. A receiver has a configuration that determines the RTSP endpoint to which it should connect and the connection parameters it should use.</para>
+    <para>A receiver can operate in three distinct modes:</para>
+    <para>AlwaysConnect. The receiver attempts to maintain a persistent connection to the configured endpoint.</para>
+    <para>NeverConnect. The receiver does not attempt to connect.</para>
+    <para>AutoConnect. The receiver connects on demand, as required by consumers of the media streams.</para>
+    <para>A single receiver may be used by more than one consumer. For example, in order to record a stream and also perform analytics on it, both a recording job and an analytics engine could be attached to the same receiver. If the receiver uses the “Auto Connect” mode, it will connect whenever either the recording job or the analytics engine is active, and disconnect when neither of them are active.</para>
+    <para>Receivers may be created and deleted either manually, by calling the CreateReceiver and DeleteReceiver operations in the Receiver Service, or automatically by other services. For example, if a recording job is created with the “AutoCreateReceiver” option, it will automatically create and attach to a Receiver. Deleting the recording job will also delete the receiver.</para>
+    <para>WSDL for this service is specified in <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/ver10/receiver.wsdl">http://www.onvif.org/onvif/ver10/receiver.wsdl</link>.</para>
+    <table>
+      <title>Referenced namespaces (with prefix)</title>
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="13*" />
+        <colspec colname="c2" colwidth="87*" />
+        <thead>
+          <row>
+            <entry>
+              <para>Prefix</para>
+            </entry>
+            <entry>
+              <para>Namespace URI</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry>
+              <para>env</para>
+            </entry>
+            <entry>
+              <para>http://www.w3.org/2003/05/soap-envelope</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>ter</para>
+            </entry>
+            <entry>
+              <para>http://www.onvif.org/ver10/error</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>xs </para>
+            </entry>
+            <entry>
+              <para>http://www.w3.org/2001/XMLSchema </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>tt</para>
+            </entry>
+            <entry>
+              <para>http://www.onvif.org/ver10/schema</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>trv</para>
+            </entry>
+            <entry>
+              <para>http://www.onvif.org/ver10/receiver/wsdl</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <chapter>
+    <title>Service</title>
+    <para>This service offers commands to manage Receiver objects, which are used to receive media streams from other devices. A Receiver object contains the information how to setup the stream, the mode of the receiver and the Stream Uri (MediaUri).  A device shall at least support Media Uris of 128 octet length. The Receiver - MaximumRTSPURILength capability indicates the maximum length supported by the device. The Receiver Service shall be implemented by devices that can receive media streams.</para>
+    <para>The IP or DNS address in the transmit URI given to the receiver, is the address that the device hosting the receiver service will use to access the transmit device. If, for example, the client has to communicate through a NAT router to access the transmitter and the receiver, the transmitter address that the client gives the receiver (in this case a local network address) may not be the same address that the client would use to access the transmitter (in this case an external network address).</para>
+    <para>A device shall support RTP transfer via UDP and RTP transfer via RTSP/HTTP/TCP, see ONVIF Streaming Specification. A device may support other RTP transport protocols and shall indicate what it supports with the appropriate capability, see <xref linkend="_Toc267468103" />.</para>
+    <section>
+      <title>Persistence</title>
+      <para>All the objects created within the receiver service shall be persistent – i.e. they shall survive a power cycle. Likewise, all the configuration data in the objects shall be persistent.</para>
+    </section>
+    <section>
+      <title>Receiver modes</title>
+      <para>A receiver can operate in three distinct modes:</para>
+      <para>AlwaysConnect. The receiver attempts to maintain a persistent connection to the configured endpoint.</para>
+      <para>NeverConnect. The receiver does not attempt to connect.</para>
+      <para>AutoConnect. The receiver connects on demand, as required by consumers of the media streams.</para>
+    </section>
+    <section>
+      <title>Synchronization Points</title>
+      <para>Because receivers use RTSP addresses to specify the source of the stream, they do not necessarily have access to the web services interface of the transmitter. This means that they cannot use the SetSynchronizationPoint command described in the section ”Synchonization Point” of the  ONVIF Streaming Specification..</para>
+      <para>Instead, receivers should use the PLI message described in [RFC 4585] to request a synchronization point.</para>
+    </section>
+    <section>
+      <title>Receiver commands</title>
+      <para>This section describes the commands offered by the Receiver Service.</para>
+      <section>
+        <title>GetReceivers</title>
+        <para>This operation lists all receivers that currently exist on the device. The Receiver Service shall support this command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Receivers – optional, unbounded [tt:Receiver]</para>
+              <para role="text">A list of receivers.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">None</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="param">READ MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>GetReceiver</title>
+        <para>This operation retrieves the details of a specific receiver whose token is known to the client. The Receiver Service shall support this command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ReceiverToken [tt:ReferenceToken]</para>
+              <para role="text">The token of the requested receiver.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Receiver [tt:Receiver]</para>
+              <para role="text">The details of the requested receiver.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:UnknownToken</para>
+              <para role="text">The receiver indicated by ReceiverToken does not exist.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="param">READ MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>CreateReceiver</title>
+        <para>This operation creates a new receiver. The Receiver Service shall support this command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Configuration [tt:ReceiverConfiguration]</para>
+              <para role="text">The initial configuration of the receiver.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Receiver [tt:Receiver]</para>
+              <para role="text">The details of the receiver that was created.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:BadConfiguration</para>
+              <para role="text">The specified configuration is invalid.</para>
+              <para role="param">env:Receiver - ter:Action - ter:MaxReceivers</para>
+              <para role="text">The maximum supported number of receivers has been reached.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="param">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>DeleteReceiver</title>
+        <para>This operation deletes an existing receiver. A device may reject deletion of a receiver which is in use.<emphasis role="bold"></emphasis>The Receiver Service shall support this command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ReceiverToken [tt:ReferenceToken]</para>
+              <para role="text">The token of the receiver to be deleated.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:UnknownToken</para>
+              <para role="text">The receiver indicated by ReceiverToken does not exist.</para>
+              <para role="param">env: Receiver - ter:Action - ter:CannotDeleteReceiver</para>
+              <para role="text">It is not possible to delete the specified receiver, for example because it is currently in use.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="param">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>ConfigureReceiver</title>
+        <para>This operation configures a receiver. The Receiver Service shall support this command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ReceiverToken [tt:ReferenceToken]</para>
+              <para role="text">The token of the requested receiver.</para>
+              <para role="param">Configuration [tt:ReceiverConfiguration]</para>
+              <para role="text">The new configuration for the receiver.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:UnknownToken</para>
+              <para role="text">The receiver indicated by ReceiverToken does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:BadConfiguration</para>
+              <para role="text">The specified configuration is invalid.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="param">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>SetReceiverMode</title>
+        <para>This operation may be used to set the mode of the receiver independently of the rest of its configuration. The Receiver Service shall support this command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ReceiverToken [tt:ReferenceToken]</para>
+              <para role="text">The token of the requested receiver.</para>
+              <para role="param">ReceiverMode [tt:ReceiverMode]</para>
+              <para role="text">The new mode of the receiver.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:UnknownToken</para>
+              <para role="text">The receiver indicated by ReceiverToken does not exist.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="param">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>GetReceiverState</title>
+        <para>This operation determines whether the receiver is currently disconnected, connected or attempting to connect. The Receiver Service shall support this command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ReceiverToken [tt:ReferenceToken]</para>
+              <para role="text">The token of the requested receiver.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">State [tt:ReceiverState]</para>
+              <para role="text">The current state of the receiver.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:UnknownToken</para>
+              <para role="text">The receiver indicated by ReceiverToken does not exist.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="param">READ MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
+    <section xml:id="_Toc267468103">
+      <title>GetServiceCapabilitites</title>
+      <para>The capabilities reflect optional functions and functionality of a service. The information is static and does not change during device operation.</para> 
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="text">This is an empty message.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">Capabilities [trv:Capabilities]</para>
+            <para role="text">List of capabilties as defined below.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="text">None</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="param">PRE_AUTH</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>The following capabilites are available:</para>
+      <variablelist>
+        <varlistentry>
+          <term>RTP_Multicast</term>
+          <listitem><para>Indication if the device supports receiving of RTP Multicast.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>RTP_TCP</term>
+          <listitem><para>Indication if the device supports receiving of RTP over TCP.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>RTP_RTSP_TCP</term>
+          <listitem><para>Indication if the device supports receiving of RTP over RTSP over TCP.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>SupportedReceivers</term>
+          <listitem><para>The maximum number of receivers the device supports..</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>MaximumRTSPURILength</term>
+          <listitem><para>The maximum length allowed for RTSP URIs.</para></listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
+      <title>Events</title>
+      <para>The receiver service shall dispatch events through the event service. It shall be capable of generating the events listed in this chapter whenever the condition that fires the event occurs.</para>
+      <section>
+        <title>ChangeState</title>
+        <para>Whenever a receiver changes state, the device shall dispatch the following event:</para>
+        <para>Topic: tns1: Receiver/ChangeState</para>
+        <programlisting><![CDATA[
+<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="ReceiverToken" Type="tt:ReferenceToken"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription Name="NewState" Type="tt:ReceiverState"/>
+    <tt:SimpleItemDescription Name="MediaUri" Type="tt:MediaUri" minOccurs="0"/>
+  </tt:Data>
+</tt:MessageDescription>
+]]></programlisting>
+      </section>
+      <section>
+        <title>Connection Failed</title>
+        <para>If a receiver fails to establish a connection, the device shall dispatch the following event:</para>
+        <para>Topic: tns1: Receiver/ConnectionFailed</para>
+        <programlisting><![CDATA[
+<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="ReceiverToken" Type="tt:ReferenceToken"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription Name="MediaUri" Type="tt:MediaUri"/>
+  </tt:Data>
+</tt:MessageDescription>
+]]></programlisting>
+      </section>
+    </section>
+  </chapter>
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para />
+  </appendix>
+</book>

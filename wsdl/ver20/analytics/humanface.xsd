@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright (c) 2008-2019 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+
+Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
+
+THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tt="http://www.onvif.org/ver10/schema" 
+		   xmlns:fc="http://www.onvif.org/ver20/analytics/humanface" 
+		   targetNamespace="http://www.onvif.org/ver20/analytics/humanface"
+		   elementFormDefault="qualified" version="19.12">
+	<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../ver10/schema/onvif.xsd"/>
+	<!--===============================-->
+	<!--    human face    -->
+	<!--===============================-->
+	<xs:simpleType name="Gender">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Male"/>
+			<xs:enumeration value="Female"/>
+		</xs:restriction>
+	</xs:simpleType>	
+	<xs:simpleType name="Complexion">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="White"/>
+			<xs:enumeration value="Black"/>		
+			<xs:enumeration value="Asian"/>			
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="FacialShape">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Long"/>
+			<xs:enumeration value="Round"/>
+			<xs:enumeration value="Square"/>
+			<xs:enumeration value="Oval"/>	
+			<xs:enumeration value="Other"/>			
+		</xs:restriction>
+	</xs:simpleType>	
+	<xs:simpleType name="Length">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Long"/>
+			<xs:enumeration value="Medium"/>
+			<xs:enumeration value="Short"/>	
+		</xs:restriction>
+	</xs:simpleType>		
+	<xs:simpleType name="HairStyle">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Straight"/>
+			<xs:enumeration value="Wave"/>
+			<xs:enumeration value="Curly"/>
+			<xs:enumeration value="CrewCut"/>				
+			<xs:enumeration value="Bald"/>				
+			<xs:enumeration value="Ponytail"/>
+			<xs:enumeration value="Pigtail"/>
+			<xs:enumeration value="Other"/>					
+		</xs:restriction>
+	</xs:simpleType>		
+	<xs:complexType name="Hair">
+		<xs:sequence>
+			<xs:element name="Length" type="xs:string" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the length of the Hair, acceptable values are defined in fc:Length. Short usually means that the end of the hair doesn’t exceed the shoulder. 
+								Medium usually means that the end of the hair is parallel with the shoulder. Long usually means that the end of the hair exceeds the chest.
+				</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 		
+			<xs:element name="Style" type="xs:string" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the style of the Hair, acceptable values are defined in fc:HairStyle.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 				
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the color of the Hair.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 			
+			<xs:element name="Bangs" type="xs:boolean" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the bangs of the Hair</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 				
+		</xs:sequence>
+	</xs:complexType>		
+	<xs:simpleType name="EyebrowWidth">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Long"/>
+			<xs:enumeration value="Short"/>
+		</xs:restriction>
+	</xs:simpleType>	
+	<xs:simpleType name="EyebrowSpace">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Joint"/>
+			<xs:enumeration value="Separate"/>
+		</xs:restriction>
+	</xs:simpleType>		
+	<xs:complexType name="Eyebrow">
+		<xs:sequence>
+			<xs:element name="Width" type="xs:string" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the shape of the eyebrow, Short usually means that the width of eye brow is shorter than the length of eye.
+				Long usually means that the width of eye brow is equal to or longer than the length of eye.acceptable values are defined in fc:EyebrowWidth.
+				</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 	
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the Color of the eyebrow.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Space" type="xs:string" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the space of two eyebrows, acceptable values are defined in fc:EyebrowSpace.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 				
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<xs:simpleType name="EyeShape">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Almond"/>
+			<xs:enumeration value="Slitty"/>
+			<xs:enumeration value="Round"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Eyelid">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Single"/>
+			<xs:enumeration value="Double"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Eyeball">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Black"/>
+			<xs:enumeration value="Blue"/>
+			<xs:enumeration value="Brown"/>
+			<xs:enumeration value="Gray"/>
+			<xs:enumeration value="Green"/>
+			<xs:enumeration value="Pink"/>
+			<xs:enumeration value="Other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="Eye">
+		<xs:sequence>
+			<xs:element name="Shape" type="xs:string" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the shape of the eye, acceptable values are defined in fc:EyeBrowShape.</xs:documentation> 
+			</xs:annotation>
+			</xs:element> 
+			<xs:element name="Eyelid" type="xs:string" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the eyelid of the eye, acceptable values are defined in fc:Eyelid.</xs:documentation> 
+			</xs:annotation>
+			</xs:element> 	
+			<xs:element name="Eyeball" type="xs:string" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the eyeball of the eye, acceptable values are defined in fc:Eyeball.</xs:documentation> 
+			</xs:annotation>
+			</xs:element> 			
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>	
+	<xs:simpleType name="Ear">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Round"/>	
+			<xs:enumeration value="Pointed"/>	
+			<xs:enumeration value="Narrow"/>	
+			<xs:enumeration value="BroadLobe"/>
+			<xs:enumeration value="Other"/>			
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="NoseLength">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Short"/>	
+			<xs:enumeration value="Long"/>			
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="NoseBridge">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Straight"/>	
+			<xs:enumeration value="Arch"/>			
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="NoseWing">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Narrow"/>	
+			<xs:enumeration value="Broad"/>					
+		</xs:restriction>
+	</xs:simpleType>	
+	<xs:simpleType name="NoseEnd">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Snub"/>	
+			<xs:enumeration value="Turnedup"/>			
+			<xs:enumeration value="Flat"/>		
+			<xs:enumeration value="Hooked"/>	
+			<xs:enumeration value="Other"/>				
+		</xs:restriction>
+	</xs:simpleType>		
+	<xs:complexType name="Nose">
+		<xs:sequence>
+			<xs:element name="Length" type="xs:string" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the length of the nose, acceptable values are defined in fc:NoseLength. 
+				Long usually means that the length of the nose is longer than 1/3 of the length of the face.
+				short usually means that the length of the nose is shorter than 1/3 of the length of the face.
+				</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 			
+			<xs:element name="NoseBridge" type="xs:string" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the bridge of the nose, acceptable values are defined in fc:NoseBridge.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 	
+			<xs:element name="NoseWing" type="xs:string" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the wing of the nose, acceptable values are defined in fc:NoseWing.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 				
+			<xs:element name="NoseEnd" type="xs:string" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the end of the nose, acceptable values are defined in fc:NoseEnd.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 				
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>		
+	<xs:complexType name="FacialHair">
+		<xs:sequence>
+			<xs:element name="Mustache" type="xs:boolean" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe if there is mustache on the face.</xs:documentation> 
+			</xs:annotation>
+			</xs:element> 
+			<xs:element name="Beard" type="xs:boolean" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe if there are Beard on the face.</xs:documentation> 
+			</xs:annotation>
+			</xs:element> 		
+			<xs:element name="Sideburn" type="xs:boolean" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe if there are sideburns on the face.</xs:documentation> 
+			</xs:annotation>
+			</xs:element> 						
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>	
+	<xs:simpleType name="Lip">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Full"/>
+			<xs:enumeration value="Medium"/>			
+			<xs:enumeration value="Thin"/>
+		</xs:restriction>
+	</xs:simpleType>	
+	<xs:simpleType name="Chin">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Double"/>
+			<xs:enumeration value="Pointed"/>
+			<xs:enumeration value="Round"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Expression">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Natural"/>
+			<xs:enumeration value="Smile"/>
+			<xs:enumeration value="RaisedEyebrows"/>
+			<xs:enumeration value="Squint"/>
+			<xs:enumeration value="Frown"/>	
+			<xs:enumeration value="Other"/>				
+		</xs:restriction>
+	</xs:simpleType>	
+	<xs:complexType name="PoseAngle">
+		<xs:sequence>
+			<xs:element name="PoseAngles" type="tt:GeoOrientation" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the pose angle of the face.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Uncertainty" type="tt:GeoOrientation" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the expected degree of uncertainty of the pose angle yaw, pitch, and roll.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<xs:complexType name="AccessoryDescription">
+		<xs:sequence>
+			<xs:element name="Wear" type="xs:boolean" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe if the object wear a accessory .</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe the Color of the accessory.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<xs:complexType name="Accessory">
+		<xs:sequence>
+			<xs:element name="Opticals" type="fc:AccessoryDescription" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe if the object wear opticals.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 			
+			<xs:element name="Hat" type="fc:AccessoryDescription" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe if the object wear hat.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Mask" type="fc:AccessoryDescription" minOccurs="0">
+			<xs:annotation> 
+				<xs:documentation>Describe if the object wear mask.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Hijab" type="fc:AccessoryDescription" minOccurs="0">	
+			<xs:annotation> 
+				<xs:documentation>Describe if the object wear hijab.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 			
+			<xs:element name="Helmet" type="fc:AccessoryDescription" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe if the object wear Helmet.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 	
+			<xs:element name="Kerchief" type="fc:AccessoryDescription" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe if the object wear Kerchief.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 	
+			<xs:element name="RightEyePatch" type="fc:AccessoryDescription" minOccurs="0">	
+			<xs:annotation> 
+				<xs:documentation>Describe if there is a patch on the right eye.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 					
+			<xs:element name="LeftEyePatch" type="fc:AccessoryDescription" minOccurs="0">	
+			<xs:annotation> 
+				<xs:documentation>Describe if there is a patch on the left eye.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 		
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<xs:simpleType name="FrecklesType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="AroundCheek"/>
+			<xs:enumeration value="Nose"/>
+			<xs:enumeration value="forehead"/>
+			<xs:enumeration value="Other"/>				
+		</xs:restriction>
+	</xs:simpleType>	
+	<xs:complexType name="AdditionalFeatures">
+		<xs:sequence>
+			<xs:element name="Scar" type="xs:boolean" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Is there scar on the face.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Mole" type="xs:boolean" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Is there mole on the face.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 						
+			<xs:element name="Tattoo" type="xs:boolean" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Is there Tattoo on the face.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 		
+			<xs:element name="Freckles" type="xs:string" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe freckles on the face, acceptable values are defined in fc:FrecklesType.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 	
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>	
+	<xs:complexType name="HumanFace">
+		<xs:sequence>
+			<xs:element name="Age" type="tt:IntRange" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the age of the face.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Gender" type="xs:string" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the gender of the face, acceptable values are defined in fc:Gender.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 			
+			<xs:element name="Temperature" type="xs:float" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the temperature of the face, in Kelvin.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 		
+			<xs:element name="Complexion" type="xs:string" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the complexion of the face, acceptable values are defined in fc:Complexion.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="FacialShape" type="xs:string" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the FacialShape, acceptable values are defined fc:FacialShape.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Hair" type="fc:Hair" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the hair of the face. </xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Eyebrow" type="fc:Eyebrow" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the eyebrow of the face. </xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 					
+			<xs:element name="Eye" type="fc:Eye" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the eye of the face. </xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 			
+			<xs:element name="Ear" type="fc:Ear" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the Ear of the face.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 		
+			<xs:element name="Nose" type="fc:Nose" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the nose of the face.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 		
+			<xs:element name="FacialHair" type="fc:FacialHair" minOccurs="0"> 	
+			<xs:annotation> 
+				<xs:documentation>Describe the facial hair of the face.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>			
+			<xs:element name="Lip" type="xs:string" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the lip of the face, acceptable values are defined in fc:Lip.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Chin" type="xs:string" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the Chin of the face, acceptable values are defined in fc:Chin.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element>
+			<xs:element name="Expression" type="xs:string" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the expression on the face, acceptable values are defined in fc:Expression.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 			
+			<xs:element name="PoseAngle" type="fc:PoseAngle" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the pose angle of the face.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Accessory" type="fc:Accessory" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the Accessory of the face.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="AdditionalFeatures" type="fc:AdditionalFeatures" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Describe the other features, eg scar, mole etc of the face.</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 		
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>	
+</xs:schema>

@@ -1,0 +1,600 @@
+<?xml version="1.0"?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <info>
+    <title>Export File Format Specification</title>
+    <titleabbrev>ExportFileFormat</titleabbrev>
+    <releaseinfo>18.12</releaseinfo>
+    <author>
+      <orgname>ONVIF™</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate>December, 2018</pubdate>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="media/logo.png" contentwidth="60mm" />
+      </imageobject>
+    </mediaobject>
+    <copyright>
+      <year>2013-2020</year>
+      <holder>ONVIF™ All rights reserved.</holder>
+    </copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>1.0</revnumber>
+        <date>March 2013</date>
+        <author>
+          <personname>Gero Bäse</personname>
+        </author>
+        <revremark>First release</revremark>
+      </revision>
+      <revision>
+        <revnumber>1.0.1</revnumber>
+        <date>May-2014</date>
+        <author>
+          <personname>Michio Hirai</personname>
+        </author>
+        <revremark>Change Request 1330</revremark>
+      </revision>
+      <revision>
+        <revnumber>17.06</revnumber>
+        <date>Jun-2017</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <author>
+          <personname>Hiroyuki Sano</personname>
+        </author>
+        <revremark>Change Request 1843
+Change Request 2065</revremark>
+      </revision>
+      <revision>
+        <revnumber>18.06</revnumber>
+        <date>Jun-2017</date>
+        <author>
+          <personname>Stefan Andersson</personname>
+        </author>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Add cstb box
+Add suep version 1 and Annex B</revremark>
+      </revision>
+      <revision>
+        <revnumber>18.12</revnumber>
+        <date>Dec-2018</date>
+        <author>
+          <personname>Hiroyuki Sano</personname>
+        </author>
+        <revremark>Change Request 2299, 2356, 2358, 2359, 2383, 2405</revremark>
+      </revision>
+    </revhistory>
+  </info>
+  <chapter>
+    <title>Scope</title>
+    <para>This document defines the ONVIF file format for exported media. The specification defines the mechanism necessary to support interoperable verification of the authenticity by the receiving party.</para>
+  </chapter>
+  <chapter>
+    <title>Normative references</title>
+    <para>ONVIF<superscript>TM</superscript> Core Specification</para>
+    <para role="reference">&lt;​<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
+    <para>ISO/IEC 14496-12 Information technology — Coding of audiovisual objects – Part 12: ISO base media file format</para>
+    <para role="reference">&lt;​<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/obp/ui/#iso:std:iso-iec:14496:-12:ed-5:v1:en"></link>&gt;</para>
+    <para>ISO/IEC 23000-10 Information technology – Multimedia application format – Part 10: Surveillance application format</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/obp/ui/#iso:std:iso-iec:23000:-10:ed-2:v1:en"></link>&gt;</para>
+    <para>ISO/IEC 23000-10/Cor 2:2014 Information technology – Multimedia application format – Part 10: Surveillance application format - TechnicalCorrigendum 2</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/obp/ui/#iso:std:iso-iec:23000:-10:ed-2:v1:cor:2:v1:en"></link>&gt;</para>
+    <para>NIST FIPS 180-4 Secure Hash Standard</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://csrc.nist.gov/publications/detail/fips/180/4/final"></link>&gt;</para>
+    <para>ISO/IEC 14888-2 Information technology – Security techniques – Digital signatures with appendix – Part 2: Integer factorization based mechanisms</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/obp/ui/#iso:std:iso-iec:14888:-2:ed-2:v1:en"></link>&gt;</para>
+    <para>PKCS#1, v2.1 RSA Cryptographic Standard</para>
+    <para>NIST FIPS 186 Digital Signature Standard (DSS)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://csrc.nist.gov/publications/detail/fips/186/4/final"></link>&gt;</para>
+    <para>IETF RFC 3447 Public-Key Cryptography Standards (PKCS) #1: RSA Cryptography Specifications Version 2.1</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://tools.ietf.org/rfc/rfc3447.txt"></link>&gt;</para>
+    <para>ITU-T Recommendation X.690 (2008) | ISO/IEC 8825-1:2008, Information technology – ASN.1 encoding rules: Specification of Basic Encoding Rules (BER),Canonical Encoding Rules (CER)and Distinguished Encoding Rules (DER)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.itu.int/rec/T-REC-X.690-200811-S"></link>&gt;</para>
+  </chapter>
+  <chapter>
+    <title>Terms and Definitions</title>
+    <section>
+      <title>Definitions</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*" />
+          <colspec colname="c2" colwidth="76*" />
+          <tbody valign="top">
+            <row>
+              <entry align="left">
+                <para>Certificate </para>
+              </entry>
+              <entry align="left">
+                <para>A certificate as used in this specification binds a public key to a subject entity. The certificate is digitally signed by the certificate issuer to allow for verifying its authenticity </para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>Signature</para>
+              </entry>
+              <entry align="left">
+                <para>A digital signature or digital signature scheme is a mathematical scheme for demonstrating the authenticity of a digital message or document.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+    <section>
+      <title>Abbreviations</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*" />
+          <colspec colname="c2" colwidth="76*" />
+          <tbody valign="top">
+            <row>
+              <entry valign="middle">
+                <para>SHA</para>
+              </entry>
+              <entry valign="middle">
+                <para>Secure Hashing Algorithm</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Overview</title>
+    <section>
+      <title>General</title>
+      <para>This specification extends the ISO/IEC 14496-12 Base File Format in order to serve Video Surveillance requirements. </para>
+    </section>
+    <section>
+      <title>Time Information</title>
+      <para>The ISO Base File Format has been mainly designed for storing movies and music clips. It defines a media timeline relative to the beginning which is defined as time zero. For Video Surveillance purposes it is important that the file preserves the absolute time of the captured frames. This specification refers to ISO 23000-10 for storing the absolute start time. All other times can be derived using the relative time data defined in ISO/IEC 14496-12. Additional to this time information time corrections can be stored during the sealing process.</para>
+      <para>In order to improve random access the ISOM baseline requires the movie fragment table at the end of the file. This redundant information does not require the protection seal.</para>
+    </section>
+    <section>
+      <title>Sealing</title>
+      <para>All data that a user wishes to carry away separately are put into a metaphorical bag. The bag is then sealed to enable tamper detection. Anyone wanting to use the data from the bag first examines the seal. <phrase>The data in the bag are identical with the original data as long as the seal is intact.</phrase> Here, the metaphorical bag is represented by a file and the seal is represented by a signature over all data in the file.</para>
+      <para>The “bag of evidence” approach builds on procedures for media data and related metadata to be securely extracted from a trusted storage in a separate file. It defines which metadata has to be preserved in order to provide for accurate replay. Data are provided “as is” without any further assertions, whatsoever, to perpetuate evidence.</para>
+      <para>Processing power usage can be reduced by performing hash functions before signature algorithms are applied. Multiple stages of signatures might be applied to collect additional information into a single sealed file.</para>
+      <para>International state of the art standards are applied for the file structure, hash and signature algorithms. The surveillance application format and the RSA2048 signature defined by ISO/IEC as well as the SHA-256 hash algorithm approved by NIST come into operation for most widespread interoperability.</para>
+      <figure>
+        <title>Sealing and examination process in a nutshell (Source: Wikipedia)</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="media/ExportFileFormat/image2.png" contentwidth="134.85mm" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+    <section>
+      <title>Use case 1: Playback of chunked and oversize clips at remote site</title>
+      <para>An operator exports a Video clip with associated Audio from a DVR of brand A onto two DVDs, because it didn’t fit on one. The selected recording period contains gaps because the recorder did only record when motion is detected. The DVD is then sent to a second site with Software where the content of the DVDs is copied to the local hard disk. The user then plays it back in the Video Management System of brand B. The operator at the playback station wants to see the gaps in the recording and to seek to a time where Video has been exported. On playback he expects the Video to playback smoothly with lip sync Audio.</para>
+    </section>
+    <section>
+      <title>Use case 2: Forensic analysis at court</title>
+      <para>A court receives video clips from a grocery store, a street surveillance system and a metro operator. All three videos are shown in the court’s approved video player.</para>
+      <para>The judges want to see the suspect in all three video clips with exact time information. They also want to have information when the video clips have been exported and whether the video sequence is complete and authentic.</para>
+    </section>
+    <section>
+      <title>Use case 3: Playback at players not equipped according to the present specification</title>
+      <para>An authorized person receives video clips in the format defined in the present specification and wants to play back the media data on players conforming to the underlying standards definitions. Interpretation of the additional information added by the present specification is not required.</para>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Export Format</title>
+    <section>
+      <title>Required Side Information</title>
+      <para>
+        <phrase>The SurveillanceExportBox is required</phrase>. It is recommended that the SurveillanceExportBox be placed as early as possible in files, for maximum utility.</para>
+      <para>In order to be able to associate the recording with a camera/microphone and the exporting system the following information shall be placed in the box:</para>
+      <itemizedlist>
+        <listitem>
+          <para>Source – Description of the video source</para>
+          <itemizedlist>
+            <listitem>
+              <para>Name – Name of the camera</para>
+            </listitem>
+            <listitem>
+              <para>URL – Address under which the camera can be accessed</para>
+            </listitem>
+            <listitem>
+              <para>MAC – Unique physical address of the camera (examples: 08-00-27-00-0C-15, 08:00:27:00:0C:15, 080027000C15)</para>
+            </listitem>
+            <listitem>
+              <para>Line – Input line number token for multi channel devices</para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+        <listitem>
+          <para>Source – Description of the audio source</para>
+          <itemizedlist>
+            <listitem>
+              <para>Name – Name of the microphone</para>
+            </listitem>
+            <listitem>
+              <para>URL – Address under which the microphone can be accessed</para>
+            </listitem>
+            <listitem>
+              <para>MAC – Unique physical address of the microphone</para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+        <listitem>
+          <para>Export – Unit executing the export</para>
+          <itemizedlist>
+            <listitem>
+              <para>Name – Name of the exporting unit</para>
+            </listitem>
+            <listitem>
+              <para>URL – Address under which the exporting unit can be accessed</para>
+            </listitem>
+            <listitem>
+              <para>MAC – Unique physical address of the exporting unit</para>
+            </listitem>
+            <listitem>
+              <para>Time – Date and time information as to when the export was executed (start time)</para>
+            </listitem>
+            <listitem>
+              <para>Operator – Name or identification of the operator performing the export</para>
+            </listitem>
+          </itemizedlist>
+        </listitem>
+      </itemizedlist>
+      <para>
+        <emphasis role="bold">SurveillanceExportBox</emphasis>
+      </para>
+      <para>Box Type: 	‘suep’</para>
+      <para>Container: 	Meta Box (‘meta’), file level</para>
+      <para>Mandatory: 	Yes</para>
+      <para>Quantity: 	Exactly one</para>
+      <para>This box shall provide ordered information about source and export units. Media tracks are identified by their respective UUID. Information has to be available only for the type of media present but separately for each and every track. Information about the exporting unit is leading.</para>
+      <para>
+        <emphasis role="bold">Syntax</emphasis>
+      </para>
+      <programlisting><![CDATA[
+class SurveillanceExportBox
+  extends 	FullBox(‘suep’, version = 1, 0){
+  string  	ExportUnitName;
+  string  	ExportUnitURL;
+  string  	ExportUnitMAC;
+  UInt(64)  	ExportUnitTime;
+  string  	ExportOperator;
+  UInt(32) entry_count; 	
+  int i; 	
+  for (i=0; i < entry_count; i++) {
+    UInt(16)  	TrackID;
+    string  	SourceName;
+    string  	SourceURL;
+    string  	SourceMAC;
+    string  	SourceLine;
+  }
+}
+]]></programlisting>
+      <para>
+        <emphasis role="bold">Semantics</emphasis>
+      </para>
+      <para>String items are null-terminated strings in UTF-8 characters. If not applicable, <phrase>the string shall contain the null-termination only.</phrase></para>
+      <para>
+        <literal>ExportOperator </literal>is a string that gives the name or identification of the operator performing the export. This string may be empty.</para>
+      <para>
+        <literal>ExportUnitTime </literal>is an integer that provides date and time designation as defined in ISO/IEC 14496-12 of when the export operation has been started.</para>
+      <para>
+        <literal>entry_count </literal>is an integer that provides the number of tracks.</para>
+    </section>
+    <section>
+      <title>Timing</title>
+      <para>The <literal>startTime</literal> element of <literal>AFIdentificationBox</literal><footnote xml:id="__FN1__"><para>Box definitions can be found in ISO/IEC 23000-10 Information technology – Multimedia application format – Part 10: Surveillance application format.</para></footnote> shall contain the UTC based time of the first media sample in the fragment.</para>
+      <para>Each track fragment shall contain the Track Fragment Decode Time box ‘tfdt’ as defined in ISO/IEC 14496-12 to ease seeking during playback.</para>
+    </section>
+    <section>
+      <title>Correction of start time</title>
+      <para>
+        <emphasis role="bold">CorrectStartTimeBox</emphasis>
+      </para>
+      <para>Box Types:	‘cstb Container:	<phrase>Protection Scheme Information Box (‘sinf’)</phrase> Mandatory:	No Quantity:	Zero or one per signing instance</para>
+      <para>
+        <emphasis role="bold">Syntax</emphasis>
+      </para>
+      <programlisting><![CDATA[aligned(8) 
+class CorrectStartTimeBox extends Box (‘cstb’) {
+  UInt(32) entry_count;
+  for (i=0; i < entry_count; i++) {
+    unsigned int(32) track_ID;
+    unsigned int(64) startTime;
+  }
+)
+]]></programlisting>
+      <para>
+        <emphasis role="bold">Semantics	</emphasis>
+      </para>
+      <para>track_ID 	is an integer that provides a reference to another track in the presentation. track_IDs are never re-used and cannot be equal to zero.</para>
+      <para>startTime	the UTC based time represented by the number of 100-nanosecond intervals since January 1, 1601 of the first media sample in the first fragment.</para>
+    </section>
+    <section>
+      <title>Signature</title>
+      <section xml:id="_Ref341257518">
+        <title>Preparing the signature input</title>
+        <para>Inputs to the signature algorithm are all boxes of the file. These include boxes for signature creation, whose corresponding type is a string, set to a null value. The input contains signatures that are already present for repeated signing operations.</para>
+      </section>
+      <section xml:id="_Ref334195281">
+        <title>Generating the signature</title>
+        <para>Implementations of this specification shall support RSASSA-PSS signatures as specified in ISO/IEC 14888-2 and PKCS#1 v2.1 with:</para>
+        <itemizedlist>
+          <listitem>
+            <para>SHA-256 as specified in FIPS 180-4 as cryptographic hash function</para>
+          </listitem>
+          <listitem>
+            <para>an RSA modulus length of at least 2048 bits </para>
+          </listitem>
+          <listitem>
+            <para>MGF1 as specified in PKCS#1 v2.1 as mask generation algorithm with SHA-256 as cryptographic hash function</para>
+          </listitem>
+          <listitem>
+            <para>Salt length 20</para>
+          </listitem>
+          <listitem>
+            <para>Trailer field number as specified by the trailerFieldBC constant</para>
+          </listitem>
+        </itemizedlist>
+        <para>Implementations may support other digital signature algorithms, if appropriate.</para>
+        <para>The generated signature string has to be included in the SignatureBox as defined in <xref linkend="_Ref341271168" />.</para>
+        <para>Generating and maintaining parameters of the signature algorithm, particularly signature and verification keys, is outside the scope of this document. Recommendations given, e.g., in FIPS 186 should be followed where appropriate.</para>
+      </section>
+      <section xml:id="_Ref341271168">
+        <title>Include the generated signature in the file</title>
+        <para>There are no changes to the file itself or the content after the signing operation has been performed. The sole exception is the input of the signature at the appropriate place.</para>
+        <para>The following box definitions provide for signature identification and inclusion. Encryption is not required; therefore an OriginalFormatBox is not necessary.</para>
+        <para>
+          <emphasis role="bold">Item Protection Box</emphasis>
+          <footnote xml:id="__FN2__">
+            <para>Box definitions can be found in ISO/IEC 14496-12 Information technology -- Coding of audio-visual objects -- Part 12: ISO base media file format.</para>
+          </footnote>
+        </para>
+        <para>Box Type:	‘ipro’ Container:	Meta box (‘meta’) Mandatory:	Yes Quantity:	Exactly one</para>
+        <para>The <literal>protection_count</literal> shall be 1.</para>
+        <para>
+          <emphasis role="bold">Protection Scheme Info Box</emphasis>
+          <superscript>2</superscript>
+        </para>
+        <para>Box Types:	‘sinf’ Container:	Item Protection Box (‘ipro’) Mandatory:	Yes Quantity:	<phrase>O</phrase>ne per signing instance</para>
+        <para>Contains exactly one SchemeTypeBox and exactly one SchemeInformationBox.</para>
+        <para>
+          <emphasis role="bold">Scheme Type Box</emphasis>
+          <superscript>2</superscript>
+        </para>
+        <para>
+          <phrase>Box Types:</phrase>	‘schm’ <phrase>Container:</phrase>	Protection Scheme Information Box (‘sinf’) Mandatory:	Yes Quantity:	One per signing instance</para>
+        <para>The <literal>scheme_type</literal> shall be 0x6F656666 („<emphasis role="bold">O</emphasis>nvif <emphasis role="bold">E</emphasis>xport <emphasis role="bold">F</emphasis>ile <emphasis role="bold">F</emphasis>ormat‟). </para>
+        <para>The <literal>scheme_version</literal> shall be 0x00010000 (version 1). </para>
+        <para>
+          <emphasis role="bold">Scheme Information Box</emphasis>
+          <superscript>2</superscript>
+        </para>
+        <para>
+          <phrase>Box Types:</phrase>	‘schi’ <phrase>Container:</phrase>	Protection Scheme Information Box (‘sinf’) Mandatory:	Yes Quantity:	One per signing instance</para>
+        <para>Contains exactly one SignatureBoxand exactly one CertificateBox. May also contain exactly one AdditionalUserInformationBox, exactly one SignatureConfigurationBox, and one CorrectStartTimeBox<footnote xml:id="__FN3__"><para>CorrectStartTimeBox was added in version 1.1 of the ONVIF Export File Format</para></footnote>.</para>
+        <para>
+          <emphasis role="bold">SignatureBox</emphasis>
+        </para>
+        <para>Box Types:	‘sibo’ Container:	Scheme Information Box (‘schi’) Mandatory:	Yes Quantity:	One per signing instance</para>
+        <para>
+          <emphasis role="bold">Syntax</emphasis>
+        </para>
+        <programlisting><![CDATA[aligned(8) class SignatureBox
+extends Box(‘sibo’) {bit(8)  signature[];}
+]]></programlisting>
+        <para>
+          <emphasis role="bold">Semantics	</emphasis>
+        </para>
+        <para>
+          <literal>signature</literal>	binary byte array. Length depends on used RSA key length.</para>
+        <para>
+          <emphasis role="bold">CertificateBox</emphasis>
+        </para>
+        <para>Box Type: 	‘cert’</para>
+        <para>Container: 	Scheme Information Box (‘schi’)</para>
+        <para>Mandatory: 	Yes</para>
+        <para>Quantity: 	One per signing instance</para>
+        <para>
+          <emphasis role="bold">Syntax</emphasis>
+        </para>
+        <programlisting><![CDATA[aligned(8) class CertificateBox
+extends Box(‘cert’) {
+bit(8) data[];
+}
+]]></programlisting>
+        <para>
+          <emphasis role="bold">Semantics</emphasis>
+        </para>
+        <para>data        is the DER encoded binary byte array representation of the certificate for the key that should be used to verify the signature in the SignatureBox</para>
+      </section>
+    </section>
+    <section>
+      <title>Repeated signing</title>
+      <para>To add an item, for example, electronic receiving stamps, repeated signing of the file may be required.</para>
+      <para>Repeat steps defined in <xref linkend="_Ref341257518" /> and <xref linkend="_Ref334195281" /> and append another ProtectionSchemeInfoBox at the foot of the list of already existing boxes of that type as defined in <xref linkend="_Ref341271168" /> while not changing <literal>protection_count</literal> in the ItemProtectionBox. Parsers are required to check for the existence of multiple ProtectionSchemeInfoBox despite <literal>protection_count</literal> is fixed to 1, because any change of content which has already been signed would render the appropriate signature invalid. An optional AdditionalUserInformationBox might be used in order to add information.</para>
+      <para>The ‘sigC’ box shall be present when the signature algorithm applied deviates from the default.</para>
+      <para>
+        <emphasis role="bold">SignatureConfigurationBox</emphasis>
+      </para>
+      <para>Box Types:	‘sigC’ Container:	Scheme Information Box (‘schi’) Mandatory:	No Quantity:	Zero or one per signing instance  </para>
+      <para>
+        <emphasis role="bold">Syntax</emphasis>
+      </para>
+      <programlisting><![CDATA[aligned(8) 
+class SignatureConfigurationBox
+  extends Box(‘sigC’) {
+    bit(8)AlgorithmIdentifier[];
+  }
+]]></programlisting>
+      <para>
+        <emphasis role="bold">Semantics</emphasis>
+      </para>
+      <para>AlgorithmIdentifier is the signature algorithm identifier with optional parameters as defined by RFC 3280 and RFC 4055. It is encoded using the ASN.1 distinguished encoding rules (DER) and has the structure:</para>
+      <para>
+        <phrase>:</phrase>AlgorithmIdentifier  ::=  SEQUENCE  {</para>
+      <programlisting><![CDATA[
+algorithm               OBJECT IDENTIFIER,
+parameters              ANY DEFINED BY algorithm OPTIONAL  
+}
+]]></programlisting>
+      <para>In order to include optional user information, data related to an additional signature ‘auib’ box is provided.</para>
+      <para>
+        <emphasis role="bold">AdditionalUserInformationBox</emphasis>
+      </para>
+      <para>Box Types:	‘auib’ Container:	Scheme Information Box (‘schi’) Mandatory:	No Quantity:	Zero or one per signing instance  </para>
+      <para>
+        <emphasis role="bold">Syntax</emphasis>
+      </para>
+      <programlisting><![CDATA[aligned(8) 
+class AdditionalUserInformationBox
+  extends Box(‘auib’) {
+    string  UserInformation;
+  }
+]]></programlisting>
+      <para>
+        <emphasis role="bold">Semantics</emphasis>
+      </para>
+      <para>
+        <literal>UserInformation</literal> is a null terminated string in UTF-8 characters</para>
+    </section>
+  </chapter>
+  <appendix>
+    <title>Repeated Signing (informative)</title>
+    <para><xref linkend="image3" /> characterizes the box arrangement defined in the present specification for data export.</para>
+    <figure>
+      <title xml:id="image3" >Box structure with single signature</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="media/ExportFileFormat/image3.svg" contentwidth="134.85mm" />
+        </imageobject>
+      </mediaobject>
+    </figure>
+    <para><xref linkend="image4" /> characterizes the box arrangement after repeated signing.</para>
+    <figure>
+      <title xml:id="image4">Box structure with double signature</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="media/ExportFileFormat/image4.svg" contentwidth="134.85mm" />
+        </imageobject>
+      </mediaobject>
+    </figure>
+    <para>The red color represents the signature introduced at the export stage. The green color represents another signing operation happening after the export stage. The CertificateBox provides the public key for signature verification. Within the SignatureConfigurationBox information is contained describing a differing signature algorithm and its parameters. Additional information has been added in the AdditionalUserInformationBox.</para>
+    <para>
+      <phrase>In order to check validity of a signature the signature itself has to be taken from the SignatureBox and </phrase>the bit values for the signature string be set to zero. The hashing operation is performed followed by the signature operation on the hash value. Now the two signatures can be compared.</para>
+    <para>Example: Steps to check validity of the first (red) signature from above</para>
+    <itemizedlist>
+      <listitem>
+        <para>Remove the (green) boxes created for the second signing</para>
+      </listitem>
+      <listitem>
+        <para>Re-adjust box sizes of ‘ipro’ and ‘meta’ according to the size of removed ‘sinf’ box</para>
+      </listitem>
+      <listitem>
+        <para>Read the public key from the red CertificateBox (do not change the box content)</para>
+      </listitem>
+      <listitem>
+        <para>Take out the signature from the red SignatureBox</para>
+      </listitem>
+      <listitem>
+        <para>Set the bit values of the red SignatureBox to zero</para>
+      </listitem>
+      <listitem>
+        <para>Perform hash operation on the remaining file data</para>
+      </listitem>
+      <listitem>
+        <para>Perform signature operation on the obtained hash value</para>
+      </listitem>
+      <listitem>
+        <para>Compare the just generated signature with the signature taken out before</para>
+      </listitem>
+    </itemizedlist>
+  </appendix>
+  <appendix>
+    <title>Box Structure (informative)</title>
+    <para>The diagram below provides an overview on required boxes and their referencing for a Video stream with Audio. In order to simplify the example, it shows the content of a single fragment while a real file would contain numerous fragments.</para>
+<programlisting>
+<emphasis role="bold">ftyp</emphasis><superscript>1</superscript>                       File brand ‘isom’.
+<emphasis role="bold">moov</emphasis><superscript>1</superscript>                       File wide definitions
+    <emphasis role="bold">mvhd</emphasis><superscript>1</superscript>                   Movie header with creation time, timescale, duration and others
+    <emphasis role="bold">trak</emphasis><superscript>1</superscript>                   First track is expected to contain Video
+        <emphasis role="bold">tkhd</emphasis><superscript>1</superscript>               Track header with creation time, timescale, duration, track ID
+        <emphasis role="bold">mdia</emphasis><superscript>1</superscript>
+            <emphasis role="bold">mdhd</emphasis><superscript>1</superscript>           Media header with creation time, timescale, duration and others
+            <emphasis role="bold">hdlr</emphasis><superscript>1</superscript>           Signals that this is a Video track (type is 'vide')
+            <emphasis role="bold">minf</emphasis><superscript>1</superscript>           Contains creation time, timescale, duration and others
+                <emphasis role="bold">vmhd</emphasis><superscript>1</superscript>       Video color information
+                <emphasis role="bold">dinf</emphasis><superscript>1</superscript>       Data location information.
+                <emphasis role="bold">dref</emphasis><superscript>1</superscript>
+                    <emphasis role="bold">url</emphasis><superscript>1</superscript>    Data location flag in file must be set
+            <emphasis role="bold">stbl</emphasis><superscript>1</superscript>           Container with sample descriptions.
+                <emphasis role="bold">stsd</emphasis><superscript>1</superscript>       Codec information 
+                     <emphasis role="bold">avc1</emphasis><superscript>1</superscript>  H.264 codec information
+                <emphasis role="bold">stts</emphasis><superscript>1</superscript>       Sample index by time 
+                <emphasis role="bold">stsc</emphasis><superscript>1</superscript>       Sample to chunk mapping
+                <emphasis role="bold">stco</emphasis><superscript>1 </superscript>      List of Chunk offsets inside 'mdat' relative to file begin 
+            
+    <emphasis role="bold">trak</emphasis><superscript>1</superscript>                   Second track with Audio
+        <emphasis role="bold">tkhd</emphasis><superscript>1</superscript>               Track header with creation time, timescale, duration, track ID
+        <emphasis role="bold">mdia</emphasis><superscript>1</superscript>
+            <emphasis role="bold">mdhd</emphasis><superscript>1</superscript>           Media header with creation time, timescale, duration and others
+            <emphasis role="bold">hdlr</emphasis><superscript>1</superscript>           Signals that this is a Audio track (type is 'soun')
+            <emphasis role="bold">minf</emphasis><superscript>1</superscript>           Contains creation time, timescale, duration and others
+                <emphasis role="bold">mhd</emphasis><superscript>1</superscript>        Audio stereo balance information
+                <emphasis role="bold">dinf</emphasis><superscript>1</superscript>       Data location information.
+                <emphasis role="bold">dref</emphasis><superscript>1</superscript>
+                    <emphasis role="bold">url</emphasis><superscript>1</superscript>    Data location flag in file must be set
+            <emphasis role="bold">stbl</emphasis><superscript>1</superscript>           Container with sample descriptions.
+                <emphasis role="bold">stsd</emphasis><superscript>1</superscript>       Codec information 
+                    <emphasis role="bold">mp4a</emphasis><superscript>1</superscript>   Audio format information
+                <emphasis role="bold">stts</emphasis><superscript>1</superscript>       Sample index by time 
+                <emphasis role="bold">stsc</emphasis><superscript>1</superscript>       Sample to chunk mapping
+                <emphasis role="bold">stco</emphasis><superscript>1</superscript>       List of Chunk offsets inside 'mdat' relative to file begin 
+<emphasis role="bold">mdat</emphasis><superscript>1</superscript>                       Raw Video and Audio of first fragment (moov)
+<emphasis role="bold">moof</emphasis><superscript>1</superscript>                       Fragment
+    <emphasis role="bold">mfhd</emphasis><superscript>1</superscript>                   Contains creation time, timescale, duration and others
+    <emphasis role="bold">traf</emphasis><superscript>1</superscript>                   First track with Video
+        <emphasis role="bold">tfhd</emphasis><superscript>1</superscript>               Sample information
+        <emphasis role="bold">tfdt</emphasis><superscript>1</superscript>               Track fragment decode time
+        <emphasis role="bold">trun</emphasis><superscript>1</superscript>               Access to raw data in mdat box
+    <emphasis role="bold">traf</emphasis><superscript>1</superscript>                   Second track with Audio
+        <emphasis role="bold">tfhd</emphasis><superscript>1</superscript>               Sample information
+        <emphasis role="bold">tfdt</emphasis><superscript>1</superscript>               Track fragment decode time
+        <emphasis role="bold">trun</emphasis><superscript>1</superscript>               Access to raw data in mdat box
+<emphasis role="bold">mdat</emphasis><superscript>1</superscript>                       Raw Video and Audio of this 
+<emphasis role="bold">meta</emphasis><superscript>1</superscript>                       File level meta information
+    <emphasis role="bold">hdlr</emphasis><superscript>1</superscript>
+    <emphasis role="bold">sumi</emphasis><superscript>2</superscript>                   File UUIDs as well as absolute start time and duration
+    <emphasis role="bold">suep</emphasis><superscript>3</superscript>                   Export supplementary information
+    <emphasis role="bold">ipro</emphasis><superscript>1</superscript>                   File protection
+        <emphasis role="bold">sinf</emphasis><superscript>1</superscript>               File protection  information
+            <emphasis role="bold">schm</emphasis><superscript>1</superscript>           Protection scheme OEFF defined by this specification
+            <emphasis role="bold">schi</emphasis><superscript>1</superscript>
+                <emphasis role="bold">sibo</emphasis><superscript>3</superscript>       Signature of the export
+                <emphasis role="bold">cert</emphasis><superscript>3</superscript>       Certificate of the exporter
+<emphasis role="bold">mfra</emphasis><superscript>1</superscript>                       Optional movie fragment random access (must be last in file)
+    <emphasis role="bold">tfra</emphasis><superscript>1</superscript>                   Track fragment random access
+    <emphasis role="bold">mfro</emphasis><superscript>1</superscript>                    Movie fragment random access offset
+</programlisting>
+    <para>The superscripts denotes the specification that defines the box:</para>
+    <para>
+      <superscript>1</superscript> ISO/IEC 14496-12</para>
+    <para>
+      <superscript>2</superscript> ISO/IEC 23000-10</para>
+    <para>
+      <superscript>3</superscript> This specification</para>
+  </appendix>
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para />
+  </appendix>
+</book>

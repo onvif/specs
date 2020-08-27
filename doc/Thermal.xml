@@ -1,0 +1,615 @@
+<?xml version="1.0"?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <info>
+    <title>ONVIF Thermal Service Specification</title>
+    <titleabbrev>Thermal</titleabbrev>
+    <releaseinfo>17.06</releaseinfo>
+    <author>
+      <orgname>ONVIF™</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate>June, 2017</pubdate>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="media/logo.png" contentwidth="60mm" />
+      </imageobject>
+    </mediaobject>
+    <copyright>
+      <year>2008-2020</year>
+      <holder>ONVIF™ All rights reserved.</holder>
+    </copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>16.06</revnumber>
+        <date>Jun-2016</date>
+        <author>
+          <personname>Arsenio Vilallonga</personname>
+        </author>
+        <revremark>Initial version.</revremark>
+      </revision>
+      <revision>
+        <revnumber>17.06</revnumber>
+        <date>Jun-2017</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <author>
+          <personname>Hiroyuki Sano</personname>
+        </author>
+        <author>
+          <personname>Arsenio Vilallonga</personname>
+        </author>
+        <revremark>Change Request 1843
+Change Request 2058, 2115, 2141
+Added Radiometry Configuration related API and types</revremark>
+      </revision>
+    </revhistory>
+  </info>
+  <chapter>
+    <title>Scope </title>
+  </chapter>
+  <chapter>
+    <title>Normative references</title>
+    <para>ONVIF Core Specification</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/core/ONVIF-Core-Specification.pdf">http://www.onvif.org/onvif/specs/core/ONVIF-Core-Specification.pdf</link>&gt;</para>
+  </chapter>
+  <chapter>
+    <title>Terms and Definitions</title>
+    <section>
+      <title>Definitions</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*" />
+          <colspec colname="c2" colwidth="76*" />
+          <tbody valign="top">
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Thermal Imaging</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>Thermal imaging devices are capable of producing a VideoSource based on thermal differences between objects in the scene.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Color Palette</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>Thermal images can be mapped to the visible spectrum for display using different Look Up Tables, also called Color Palettes. These look up tables are used to map each pixel in the original grayscale, temperature based image from a Thermal Imager, using different color maps (e.g. Iron, Sepia, Rainbow).</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">NUC Table</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>A NUC, or Non-Uniformity Correction Table is a table of values used by Thermal Imagers to produce a uniform image, calibrating imperfections of the thermal detector (different responses to temperature from each pixel in the sensor array) and lens optical path. Thermal cameras can offer the possibility to use different NUC Tables for each ambient temperature range, optimizing sensitivity and range.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Polarity</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>The grayscale image coming from a Thermal Imaging Device can be interpreted from mapping its histogram in one direction or the other, resulting in “Black Hot” or “White Hot” polarity images. When using Black Hot polarity black pixels represent hot objects, while as white pixels represent cold objects. </para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Cooler</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>In order to increase their sensitivity (and range), the detector of  some Thermal Imaging Devices is refrigerated. This is done by a component of the device called cryo cooler, or cooler, which is a mechanicl pump requiring maintenance. In order to facilitate predictive maintenance, based on the MTBF of the thermal manufacturer, the hours of operation of the camera/cooler are usually monitored, and the cooler can be disabled in some cameras when the thermal device is not in use.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Radiometry</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>Some thermal devices are calibrated in the factory and sold as radiometric cameras. These can provide absolute temperature readings for objects in the scene. Measurement items such as Spots and Boxes are used to define measurement areas.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Overview</title>
+    <para>The thermal (imaging) service provides configuration and control data for specific properties of thermal imaging devices. WSDL is part of the framework and provided in the Thermal WSDL file.</para>
+    <para>The service includes the following operations:</para>
+    <itemizedlist>
+      <listitem>
+        <para>Get and set imaging parameters (e.g. Polarity).</para>
+      </listitem>
+      <listitem>
+        <para>Get thermal imaging configuration options (valid ranges for imaging parameters).</para>
+      </listitem>
+      <listitem>
+        <para>Get Cooler status and runtime information from cooled thermal devices.</para>
+      </listitem>
+    </itemizedlist>
+    <para>Common Imaging Settings of Thermal and Visible Video Sources, such as Brightness or Contrast, or Lens Focus operations, remain in the Imaging Service.</para>
+    <para>WSDL for this service is specified in <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/thermal/wsdl/thermal.wsdl">http://www.onvif.org/ver10/thermal/wsdl/thermal.wsdl</link>.</para>
+    <table>
+      <title>Referenced namespaces (with prefix)</title>
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="13*" />
+        <colspec colname="c2" colwidth="87*" />
+        <thead>
+          <row>
+            <entry>
+              <para>Prefix</para>
+            </entry>
+            <entry>
+              <para>Namespace URI</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry>
+              <para>env</para>
+            </entry>
+            <entry>
+              <para>
+                <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.w3.org/2003/05/soap-envelope">http://www.w3.org/2003/05/soap-envelope</link>
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>ter</para>
+            </entry>
+            <entry>
+              <para>
+                <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/error">http://www.onvif.org/ver10/error</link>
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>xs </para>
+            </entry>
+            <entry>
+              <para>
+                <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.w3.org/2001/XMLSchema">http://www.w3.org/2001/XMLSchema</link>
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>tt</para>
+            </entry>
+            <entry>
+              <para>
+                <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/schema">http://www.onvif.org/ver10/schema</link>
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>tth</para>
+            </entry>
+            <entry>
+              <para>
+                <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/thermal/wsdl">http://www.onvif.org/ver10/thermal/wsdl</link>
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>tns1</para>
+            </entry>
+            <entry>
+              <para>
+                <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/topics">http://www.onvif.org/ver10/topics</link>
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <chapter>
+    <title>Service</title>
+    <para>The thermal service provides operations used to control and configure imaging properties on a thermal imaging device. A device that has one or more video sources should support the imaging service as defined in [ONVIF Imaging WSDL]. In the same way the imaging settings are part of the VideoSource entity, the thermal imaging settings represent an extension of these, to cover thermal specific settings which are exclusive of thermal video sources. Imaging parameters affect any video source (visible or thermal), while as thermal imaging parameters affect thermal video sources specifically. Common parameters to both visible and thermal video sources remain as shared settings under the imaging service. </para>
+    <section>
+      <title>Thermal Configuration</title>
+      <para>The thermal service provides operations to get or set thermal imaging parameters and the valid ranges for those parameters. Most parameters are common to all thermal video sources, with the exception of the Cooler Options, which are specific of thermal imaging devices which contain this kind of component. The following settings are available through the thermal imaging service operations:</para>
+      <para>
+        <emphasis role="bold">Color Palette:</emphasis> Indicates the color map currently used to represent temperatures in each pixel. </para>
+      <para>
+        <emphasis role="bold">Polarity:</emphasis> Adjusts the image polarity to represent hot or cold objects in the high or low end of the histogram:</para>
+      <itemizedlist>
+        <listitem>
+          <para>White Hot:Represents hot objects on the high end of the histogram</para>
+        </listitem>
+        <listitem>
+          <para>Black Hot: Represents cold objects on the high end of the histogram</para>
+        </listitem>
+      </itemizedlist>
+      <para>
+        <emphasis role="bold">NUC Table:</emphasis> Indicates the Non Uniformity Correction Table currently loaded among the ones available in the thermal device. NUC Tables are used to compensate for non-uniformity artifacts that will show on the image as a result of the difference in the response of the sensor elements to ambient temperature. A thermal imaging device will normally be calibrated at the factory and loaded with two or three different NUC Tables to be used in different temperature ranges. This parameter indicates which of these NUC Tables is in use by the device.</para>
+      <para>
+        <emphasis role="bold">Cooler: </emphasis>For better sensitivity (range) performance, some thermal devices include a cooler. This mechanical component cools down the thermal detector, in order to improve its sensitivity to temperature differences, with a positive impact in range. Coolers are a mechanical component with a limited MTBF (usually 8.000-10.000 hours). Therefore most cooled thermal imaging devices offer settings to disable the cooler while the imager is not in use, and an indication of the runtime so that predictive maintenance can be scheduled.</para>
+      <para>Other settings of a thermal VideoSource which are common with visible VideoSources, such as Contrast, Brightness, Focus, Image Stabilization, etc, can be managed using the Imaging Service. The Thermal Service just complements these with thermal specific parameters, which are only applicable to thermal VideoSources.</para>
+      <para>The available imaging settings can be retrieved through the GetVideoSources command, part of the media service, as specified in the ONVIF Media Service Specification. The thermal imaging settings apply to those video sources that use thermal technology.</para>
+      <para>The thermal service also provides operations to get or set Radiometry parameters and the valid ranges for these parameters for those devices with the Radiometry capability. These parameters shall apply to all the Radiometry elements in the different configurations of the Video Analytics Service for the thermal device. The following Radiometry settings are available through the thermal imaging service operations:</para>
+      <para>
+        <emphasis role="bold">Radiometry Global Parameters:</emphasis> Holds default values that will be used in measurement modules when local parameters are not specified for the module. These parameters are still required for valid temperature calculations, but using these default values simplifies creation of the Analytics Modules and also offers global value functionality for those parameters that could be common to all the measurement modules of a thermal device:</para>
+      <itemizedlist>
+        <listitem>
+          <para>ReflectedAmbientTemperature: Reflected Ambient Temperature for the environment in which the thermal device and the object being measured is located.</para>
+        </listitem>
+        <listitem>
+          <para>Emissivity: Emissivity of the surface of the object on which temperature is being measured.</para>
+        </listitem>
+        <listitem>
+          <para>DistanceToObject: Distance from the thermal device to the measured object.</para>
+        </listitem>
+        <listitem>
+          <para>RelativeHumidity: Relative Humidity in the environment in which the measurement is located.</para>
+        </listitem>
+        <listitem>
+          <para>AtmosphericTemperature: Temperature of the atmosphere between the thermal device and the object being measured.</para>
+        </listitem>
+        <listitem>
+          <para>AtmosphericTransmittance: Transmittance value for the atmosphere between the thermal device and the object being measured.</para>
+        </listitem>
+        <listitem>
+          <para>ExtOpticsTemperature: Temperature of the optics elements between the thermal device and the object being measured.</para>
+        </listitem>
+        <listitem>
+          <para>ExtOpticsTransmittance: Transmittance value for the optics elements between the thermal device and the object being measured.</para>
+        </listitem>
+      </itemizedlist>
+      <section>
+        <title> Get Configuration</title>
+        <para>This operation requests the thermal imaging settings for a thermal video source on the device. A device implementing the thermal service shall support this command.</para>
+        <para>If the thermal Video Source supports any of the settings as defined by the Configuration type in the [ONVIF Thermal WSDL], then it shall be possible to retrieve the imaging settings from the device through the GetConfiguration command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">VideoSourceToken [tt:ReferenceToken]</para>
+              <para role="text">This message contains a reference to the VideoSource for which  the Configuration shall be requested.
+</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Configuration [tth:Configuration]</para>
+              <para role="text">This message contains the Configuration for the VideoSource that was requested
+</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term role="param">faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoSource</para>
+              <para role="text">The requested VideoSource does not exist. </para>
+              <para role="param">env:Receiver - ter:ActionNotSupported - ter:NoThermalForSource</para>
+              <para role="text">The requested VideoSource does not support thermal config settings. </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title> Set Configuration</title>
+        <para>This operation sets the thermal configuration for a thermal video source on a device. A device implementing the thermal service shall support this command. </para>
+        <para>If the device supports any of the thermal configuration as defined by the Configuration type in [ONVIF Thermal WSDL], then it shall be possible to configure these parameters in the device through the SetConfiguration command.</para>
+        <para>Configuration options are obtained through the command defined in Section <xref linkend="_Toc214944253" /></para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">VideoSourceToken [tt:ReferenceToken]</para>
+              <para role="text">This message shall contain a reference to the VideoSource and to the Configuration that shall be set.</para>
+              <para role="param">Configuration [tth:Configuration]</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term role="param">faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoSource</para>
+              <para role="text">The requested VideoSource does not exist.</para>
+              <para role="param">env:Receiver - ter:ActionNotSupported - ter:NoThermalForSource</para>
+              <para role="text">The requested VideoSource does not support thermal configuration. </para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidConfiguration</para>
+              <para role="text">The requested configuration is incorrect.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Toc214944253">
+        <title> Get Configuration Options</title>
+        <para>This operation gets the valid ranges for the thermal configurtion parameters that have device specific ranges. A device implementing the thermal service shall support this command. The command shall return all supported parameters and their ranges such that these can be applied to the SetConfigurationSettings command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">VideoSourceToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to the VideoSource for which the thermal configuration parameter options are requested.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">ConfigurationOptions [tth:ConfigurationOptions]</para>
+              <para role="text">This message shall contain the valid ranges for the thermal configuration parameters that are categorized as device specific.
+</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term role="param">faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoSource</para>
+              <para role="text">The requested VideoSource does not exist. </para>
+              <para role="param">env:Receiver - ter:ActionNotSupported - ter:NoThermalForSource</para>
+              <para role="text">The requested VideoSource does not support thermal settings. </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>Get Configurations</title>
+        <para>This operation requests the thermal imaging settings for all thermal video sources on the device. A device implementing the thermal service shall support this command.</para>
+        <para>If a Video Source supports any of the settings as defined by the Configuration type in the [ONVIF Thermal WSDL], then it shall be possible to retrieve the imaging settings for it through the GetConfigurations command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Configurations - optional, unbounded [tth:Configurations]</para>
+              <para role="text">This message contains a list with the Configuration for each thermal VideoSource in the Device, and its VideoSourceToken.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">Env:Receiver - ter:ActionNotSupported - ter:NoSuchService</para>
+              <para role="text">The Device does not support Thermal Service. </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title> Get Radiometry Configuration</title>
+        <para>This operation requests the global radiometry settings for a thermal video source on the device. A device implementing the thermal service and offering the Radiometry capability shall support this command.</para>
+        <para>If the thermal Video Source supports any of the Radiometry settings as defined by the RadiometryConfiguration type in the [ONVIF Thermal WSDL], then it shall be possible to retrieve the radiometry settings from the device through the GetRadiometryConfiguration command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">VideoSourceToken [tt:ReferenceToken]</para>
+              <para role="text">This message contains a reference to the VideoSource for which  the RadiometryConfiguration shall be requested.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Configuration [tth:RadiometryConfiguration]</para>
+              <para role="text">This message contains the RadiometryConfiguration for the VideoSource that was requested</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoSource</para>
+              <para role="text">The requested VideoSource does not exist.</para>
+              <para role="param">Env:Receiver - ter:ActionNotSupported - ter:NoRadiometryForSource</para>
+              <para role="text">The requested VideoSource does not support radiometry configuration. </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title> Set Radiometry Configuration</title>
+        <para>This operation sets the radiometry configuration for a thermal video source on a device. A device implementing the thermal service and offering the Radiometry capability shall support this command. </para>
+        <para>If the device supports any of the radiometry configuration as defined by the RadiometryConfiguration type in [ONVIF Thermal WSDL], then it shall be possible to configure these parameters in the device through the SetRadiometryConfiguration command.</para>
+        <para>The possible configurable radiometry configuration parameters are described in the related schema. Radiometry Configuration options are obtained through the command defined in Section <xref linkend="_Toc348870576" />.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">VideoSourceToken [tt:ReferenceToken]</para>
+              <para role="text">This message shall contain a reference to the VideoSource and to the RadiometryConfiguration that shall be set.</para>
+              <para role="param">Configuration [tth:RadiometryConfiguration]</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoSource</para>
+              <para role="text">The requested VideoSource does not exist.</para>
+              <para role="param">Env:Receiver - ter:ActionNotSupported - ter:NoRadiometryForSource</para>
+              <para role="text">The requested VideoSource does not support radiometry configuration. </para>
+              <para role="param">Env:Sender - ter:InvalidArgVal - ter:InvalidConfiguration</para>
+              <para role="text">The requested radiometry configuration is incorrect.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Toc348870576">
+        <title> Get Radiometry Configuration Options</title>
+        <para>This operation gets the valid ranges for the radiometry configuration parameters that have device specific ranges. A device implementing the thermal service and offering the Radiometry capability shall support this command. The command shall return all supported parameters and their ranges such that these can be applied to the SetRadiometryConfiguration command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">VideoSourceToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to the VideoSource for which the radiometry configuration parameter options are requested.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">ConfigurationOptions [tt:RadiometryConfigurationOptions]</para>
+              <para role="text">This message shall contain the valid ranges for the radiometry configuration parameters that are categorized as device specific.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoSource</para>
+              <para role="text">The requested VideoSource does not exist. </para>
+              <para role="param">Env:Receiver - ter:ActionNotSupported - ter:NoRadiometryForSource</para>
+              <para role="text">The requested VideoSource does not support radiometry settings. </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>Capabilities</title>
+        <para>The capabilities reflect optional functions and functionality of a service. The information is static and does not change during device operation.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">tth: Capabilities [tth:Capabilities]</para>
+              <para role="text">The capability response message contains the requested service capabilities using a hierarchical XML capability structure.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults!</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">PRE_AUTH</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+        <para>The following capabilites are available:</para>
+        <variablelist>
+          <varlistentry>
+            <term>Radiometry</term>
+            <listitem><para>Indicates support for radiometric thermal measurements and alarms.</para></listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
+    <section>
+      <title>Events</title>
+      <para>The Message structure of these events is given by the following Message Description:</para>
+      <programlisting><![CDATA[<tt:MessageDescription IsProperty="true">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="Source" Type="tt:ReferenceToken"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription Name="State" Type="xs:boolean"/>
+  </tt:Data>
+</tt:MessageDescription>
+]]></programlisting>
+      <para>The SourceToken points to the source the image is coming from. This is in case of the Analytics or Image Service a VideoSource token and in case of the Recording Service the Recording job token.</para>
+      <section>
+        <title>Radiometry Alarms</title>
+        <para>When a thermal video source has radiometry capabilities it can measure temperature. If Rules can be created to trigger temperature measurement alarms (e.g by an Analytics Service), it can inform a client using this event. This event is a basic temperature measurement alarm condition event that shall be supported by any thermal imaging devices that support radiometry.</para>
+        <para>If a device is capable of processing more complex temperature analysis algorithms it can provide additional vendor specific temperature measurement events (e.g. isotherms, temperature trending, temperature readings against ambient temperature comparisons, etc.).</para>
+        <para>If the device supports radiometry it shall provide at least the following basic event: </para>
+        <programlisting><![CDATA[Topic: tns1:VideoSource/RadiometryAlarm
+<tt:MessageDescription IsProperty=”true”>
+  <tt:Source>
+    <tt:SimpleItemDescription Name=”VideoSource” Type=”tt:ReferenceToken”/>
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription Name=”State” Type=”xs:oolean”/>
+  </tt:Data>
+</tt:MessageDescription>
+]]></programlisting>
+      </section>
+    </section>
+  </chapter>
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para />
+  </appendix>
+</book>

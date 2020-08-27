@@ -1,0 +1,525 @@
+<?xml version="1.0"?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <info>
+    <title>Provisioning Service Specification</title>
+    <titleabbrev>Provisioning</titleabbrev>
+    <releaseinfo>16.12</releaseinfo>
+    <author>
+      <orgname>ONVIF™</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate>December 2016</pubdate>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="media/logo.png" contentwidth="60mm" />
+      </imageobject>
+    </mediaobject>
+    <copyright>
+      <year>2008-2020</year>
+      <holder>ONVIF™ All rights reserved.</holder>
+    </copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>16.12</revnumber>
+        <date>Dec-2016</date>
+        <author>
+          <personname>Steve Wolf</personname>
+        </author>
+        <author>
+          <personname>Ottavio Campana</personname>
+        </author>
+        <revremark>First release</revremark>
+      </revision>
+    </revhistory>
+  </info>
+  <chapter>
+    <title>Contents </title>
+    <bridgehead renderas="sect1">Scope</bridgehead>
+    <para>This document defines the web service interface for ONVIF Provisioning features.  A provisioning feature involves limited-lifetime components such as a stepper motor, where the vendor expects the feature to be used only during device installation</para>
+    <para>Web service usage is outside of the scope of this document. Please refer to the ONVIF core specification.</para>
+  </chapter>
+  <chapter>
+    <title>Normative References</title>
+    <para>ONVIF Core Specification</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification-v261.pdf"/>&gt;</para>
+    <para>ONVIF Device I/O Specification</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/srv/io/ONVIF-DeviceIo-Service-Spec-v1606.pdf"/>&gt; </para>
+  </chapter>
+  <chapter>
+    <title>Definitions</title>
+    <informaltable>
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="27*" />
+        <colspec colname="c2" colwidth="73*" />
+        <tbody valign="top">
+          <row>
+            <entry>
+              <para>Provisioning</para>
+            </entry>
+            <entry>
+              <para>Doing something in advance to prepare for something else.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>Video Source</para>
+            </entry>
+            <entry>
+              <para>Entity defined by [ONVIF Device I/O Specification]</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>Video Source Token</para>
+            </entry>
+            <entry>
+              <para>Token referencing a Device I/O Video Source</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </chapter>
+  <chapter>
+    <title>Overview</title>
+    <para>The provisioning service allows device adjustments that are not intended for general day-to-day use.  Its methods allow the following device adjustments:</para>
+    <itemizedlist>
+      <listitem>
+        <para>Pan (left/right)</para>
+      </listitem>
+      <listitem>
+        <para>Tilt (up/down)</para>
+      </listitem>
+      <listitem>
+        <para>Zoom (wide/telephoto)</para>
+      </listitem>
+      <listitem>
+        <para>Roll (clockwise/counterclockwise, auto-level)</para>
+      </listitem>
+      <listitem>
+        <para>Focus (near/far, auto-focus)</para>
+      </listitem>
+    </itemizedlist>
+    <para>There is a <emphasis>Stop</emphasis> method to stop movement on all provisioning methods.  There is a <emphasis>GetUsage</emphasis> method to determine how much a particular movement has been used.  Finally, there is a <emphasis>GetServiceCapabilities</emphasis> method used after device discovery to determine which provisioning methods are available on the device.  The WSDL for this service is specified in &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/provisioning/wsdl/provisioning.wsdl">http://www.onvif.org/ver10/provisioning/wsdl/provisioning.wsdl</link>&gt;.</para>
+    <table>
+      <title>Referenced namespaces with prefix</title>
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="13*" />
+        <colspec colname="c2" colwidth="87*" />
+        <thead>
+          <row>
+            <entry>
+              <para>Prefix</para>
+            </entry>
+            <entry>
+              <para>Namespace URI</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry>
+              <para>env</para>
+            </entry>
+            <entry>
+              <para>http://www.w3.org/2003/05/soap-envelope</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>ter</para>
+            </entry>
+            <entry>
+              <para>http://www.onvif.org/ver10/error</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>xs </para>
+            </entry>
+            <entry>
+              <para>http://www.w3.org/2001/XMLSchema </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>tt</para>
+            </entry>
+            <entry>
+              <para>http://www.onvif.org/ver10/schema</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>tpv</para>
+            </entry>
+            <entry>
+              <para>http://www.onvif.org/ver10/provisioning/wsdl</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <para>All sections in this specification are normative unless explicitly marked as informative.</para>
+  </chapter>
+  <chapter>
+    <title>Provisioning Service</title>
+    <section>
+      <title>Move Operations</title>
+      <para>These operations continuously move the device until the requested timeout expires, the client sends a Stop command, the client sends another provisioning Move command, or the device reaches a physical limit and cannot move in the specified direction anymore.  If the request doesn’t contain a timeout duration, then the device shall stop when the default timeout expires.</para>
+      <para>A device shall accept any given value of timeout. If necessary the device may adapt this parameter value without returning an error.</para>
+      <para>For simplicity in managing timeouts on the device, a timeout expiration on any axis may result in stopping movement on all axes, emulating a <emphasis>Stop</emphasis> operation.</para>
+      <section xml:id="_Ref444868238">
+        <title>PanMove</title>
+        <para>This operation continuously moves the camera left or right.</para>
+        <para>A device indicating MaximumPanMoves capability greater than zero shall support the provisional pan through the PanMove command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">VideoSource [tt:ReferenceToken]</para>
+              <para>This message contains a request for the device to move left or right.
+</para>
+              <para role="param">Direction [tpv:PanDirection]</para>
+              <para role="param">Timeout optional [xs:Duration]</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term role="param">faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoSource</para>
+              <para role="text">The video source does not exist.</para>
+              <para role="param">env:Sender - ter:ActionNotSupported - ter:NoProvisioning</para>
+              <para role="text">Provisioning is not supported for this operation on the given video source.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Toc404708715">
+        <title>TiltMove</title>
+        <para>This operation continuously moves the camera up or down.</para>
+        <para>A device indicating MaximumTiltMoves capability greater than zero shall support the provisional tilt through the TiltMove command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">VideoSource [tt:ReferenceToken]</para>
+              <para>This message contains a request for the device to move up or down.
+</para>
+              <para role="param">Direction [tpv:TiltDirection]</para>
+              <para role="param">Timeout optional [xs:Duration]</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term role="param">faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoSource</para>
+              <para role="text">The video source does not exist.</para>
+              <para role="param">env:Sender - ter:ActionNotSupported - ter:NoProvisioning</para>
+              <para role="text">Provisioning is not supported for this operation on the given video source.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Ref444868663">
+        <title>ZoomMove</title>
+        <para>This operation continuously moves the lens focal point in or out.</para>
+        <para>A device indicating MaximumZoomMoves capability greater than zero shall support the provisional zoom through the ZoomMove command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">VideoSource [tt:ReferenceToken]</para>
+              <para>This message contains a request for the device lens to move towards wide angle or telephoto.
+</para>
+              <para role="param">Direction [tpv:ZoomDirection]</para>
+              <para role="param">Timeout optional [xs:Duration]</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term role="param">faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoSource</para>
+              <para role="text">The video source does not exist.</para>
+              <para role="param">env:Sender - ter:ActionNotSupported - ter:NoProvisioning</para>
+              <para role="text">Provisioning is not supported for this operation on the given video source.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Ref444868730">
+        <title>RollMove</title>
+        <para>This operation continuously moves the camera clockwise or counterclockwise.</para>
+        <para>A device indicating MaximumRollMoves capability greater than zero shall support the provisional roll through the RollMove command.</para>
+        <para>If a device supports the AutoLevel capability, the direction may be <emphasis>Auto</emphasis>.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">VideoSource [tt:ReferenceToken]</para>
+              <para>This message contains a request for the device to roll clockwise or counterclockwise, or to auto-level.
+</para>
+              <para role="param">Direction [tpv:RollDirection]</para>
+              <para role="param">Timeout optional [xs:Duration]</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term role="param">faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoSource</para>
+              <para role="text">The video source does not exist.</para>
+              <para role="param">env:Sender - ter:ActionNotSupported - ter:NoProvisioning</para>
+              <para role="text">Provisioning is not supported for this operation on the given video source.</para>
+              <para role="param">env:Sender - ter:ActionNotSupported - ter:NoAutoMode</para>
+              <para role="text">Cannot set position automatically.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Ref444868977">
+        <title>FocusMove</title>
+        <para>This operation continuously moves the camera lens in or out.</para>
+        <para>A device indicating MaximumFocusMoves capability greater than zero shall support the provisional focus through the FocusMove command.</para>
+        <para>If a device supports the AutoFocus capability, the direction may be <emphasis>Auto</emphasis>.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">VideoSource [tt:ReferenceToken]</para>
+              <para>This message contains a request for the device lens to focus near or far, or to auto-focus.
+</para>
+              <para role="param">Direction [tpv:FocusDirection]</para>
+              <para role="param">Timeout optional [xs:Duration]</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term role="param">faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoSource</para>
+              <para role="text">The video source does not exist.</para>
+              <para role="param">env:Sender - ter:ActionNotSupported - ter:NoProvisioning</para>
+              <para role="text">Provisioning is not supported for this operation on the given video source.</para>
+              <para role="param">env:Sender - ter:ActionNotSupported - ter:NoAutoMode</para>
+              <para role="text">Cannot set position automatically.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>Stop</title>
+        <para>This operation immediately stops movement on all axes.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">VideoSource [tt:ReferenceToken]</para>
+              <para>This message contains a request to stop all movement.
+</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term role="param">faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoSource</para>
+              <para role="text">The video source does not exist.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
+    <section>
+      <title>GetUsage</title>
+      <para>This operation returns information about how many provisioning operations have been performed on each axis.  These values can be compared to the lifetime limits from <emphasis>GetServiceCapabilities</emphasis> to determine how close to (or past) vendor defined life limits the device is.  The values shall survive a <emphasis>SetSystemFactoryDefault</emphasis> operation.</para>
+      <para>A single provisioning operation may increase the corresponding usage number by more than 1.  For example, pan usage may increment by the number of steps the stepper motor has moved, which can be multiple steps per operation.</para>
+      <para>If a particular provisioning axis is not supported, the corresponding usage value may be omitted from the response.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">VideoSource [tt:ReferenceToken]</para>
+            <para>This message contains a request for the number of operations performed on each axis.
+</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">Usage [tpv:Usage]</para>
+            <para>This message contains the number of operations that have been performed on each axis over the life of the device.
+</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term role="param">faults</term>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:NoSource</para>
+            <para role="text">The video source does not exist.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="access">READ_SYSTEM</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
+      <title>GetServiceCapabilities</title>
+      <para>The capabilities reflect optional functions and functionality of a service. The information is static and does not change during device operation.</para>
+      <para>There is one global capability:</para>
+      <variablelist>
+        <varlistentry>
+          <term>DefaultTimeout</term>
+          <listitem><para>Device-defined timeout after which movement stops.</para></listitem>
+        </varlistentry>
+      </variablelist>
+      <para>The rest of the capabilities is related to a specific video source and returned in a separate element (tpv:SourceCapabilities) containing the following properties:</para>
+      <variablelist>
+        <varlistentry>
+          <term>VideoSourceToken</term>
+          <listitem><para>The identifier of the video source, a device shall supply this value.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>MaximumPanMoves</term>
+          <listitem><para>Lifetime limit for pan moves on this video source; indication of pan move support as described in Section <xref linkend="_Ref444868238" />.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>MaximumTiltMoves</term>
+          <listitem><para>Lifetime limit for tilt moves on this video source; indication of tilt move support as described in Section <xref linkend="_Ref444868238" /><xref linkend="_Toc404708715" />.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>MaximumZoomMoves</term>
+          <listitem><para>Lifetime limit for zoom moves on this video source; indication of zoom move support as described in Section <xref linkend="_Ref444868663" />.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>MaximumRollMoves</term>
+          <listitem><para>Lifetime limit for roll moves on this video source; indication of roll move support as described in Section <xref linkend="_Ref444868730" />.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>AutoLevel</term>
+          <listitem><para>Indication of an auto-level option in a roll move as described in Section <xref linkend="_Ref444868730" />.  If <emphasis>MaximumRollMoves</emphasis> is not defined, <emphasis>AutoLevel</emphasis> is ignored.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>MaximumFocusMoves</term>
+          <listitem><para>Lifetime limit for focus moves on this video source; indication of focus move support as described in Section <xref linkend="_Ref444868977" />.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>AutoFocus</term>
+          <listitem><para>Indication of an auto-focus option in a focus move as described in Section <xref linkend="_Ref444868977" />.  If <emphasis>MaximumFocusMoves</emphasis> is not defined, <emphasis>AutoFocus</emphasis> is ignored.</para></listitem>
+        </varlistentry>
+      </variablelist>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="text">This is an empty message.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">Capabilities [tpv:Capabilities]</para>
+            <para>The capability response message contains the requested service 
+capabilities using a hierarchical XML capability structure 
+</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term role="param">faults</term>
+          <listitem>
+            <para role="param" />
+            <para role="text">No command-specific fault codes.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="access">PRE_AUTH</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+  </chapter>
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para />
+  </appendix>
+</book>

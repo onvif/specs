@@ -1,0 +1,266 @@
+<?xml version="1.0"?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <info>
+    <title>ONVIF Uplink Service Specification</title>
+    <titleabbrev>Uplink</titleabbrev>
+    <releaseinfo>18.12</releaseinfo>
+    <author>
+      <orgname>ONVIF™</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate> December, 2018</pubdate>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="media/logo.png" contentwidth="60mm" />
+      </imageobject>
+    </mediaobject>
+    <copyright>
+      <year>2008-2020</year>
+      <holder>ONVIF™ All rights reserved.</holder>
+    </copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>18.12</revnumber>
+        <date>Dec 2018</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>First release</revremark>
+      </revision>
+    </revhistory>
+  </info>
+  <chapter>
+    <title>Scope </title>
+    <para>This document defines the connection protocol for connecting a web service behind a firewall to a client reachable in the internet.</para>
+  </chapter>
+  <chapter>
+    <title>Normative references</title>
+    <para>IETF RFC 5246 - The Transport Layer Security (TLS) Protocol, Version 1.2</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://tools.ietf.org/html/rfc5246"></link>&gt;</para>
+    <para>IETF RFC 6125 - Representation and Verification of Domain-Based Application Service</para>
+    <para> 	Identity within Internet Public Key Infrastructure Using X.509 (PKIX)</para>
+    <para>	Certificates in the Context of Transport Layer Security (TLS)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://tools.ietf.org/html/rfc6125"></link>&gt; </para>
+    <para>IETF RFC 7540 - Hypertext Transfer Protocol Version 2 (HTTP/2)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://tools.ietf.org/html/rfc7540"></link>&gt; </para>
+    <para>ONVIF Core Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
+  </chapter>
+  <chapter>
+    <title>Terms and Definitions</title>
+    <section>
+      <title>Definitions</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*" />
+          <colspec colname="c2" colwidth="76*" />
+          <tbody valign="top">
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Local Service</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>A service to be used by a client behind a firewall.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Remote Client</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>A client that wants to access a service that is located behind a firewall.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Uplink</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>The connection establish by the local service to the remote client.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+    <section>
+      <title>Abbreviations</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*" />
+          <colspec colname="c2" colwidth="76*" />
+          <tbody valign="top">
+            <row>
+              <entry valign="middle">
+                <para>HTTP</para>
+              </entry>
+              <entry valign="middle">
+                <para>Hypertext Transfer Protocol</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>TLS</para>
+              </entry>
+              <entry valign="middle">
+                <para>Transport Layer Security</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Overview</title>
+    <para>The ONVIF connection protocols base on the standard web service model where the client initiates a connection to a device as depicted in <xref linkend="_Ref493258796" />..</para>
+    <figure>
+      <title xml:id="_Ref493258796">Standard connection initiated from the client</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="media/Uplink/image2.svg" contentwidth="94.13mm" />
+        </imageobject>
+      </mediaobject>
+    </figure>
+    <figure>
+      <title xml:id="_Ref486253450">Connection initiation from the device</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="media/Uplink/image3.svg" contentwidth="124.27mm" />
+        </imageobject>
+      </mediaobject>
+    </figure>
+    <para>This document specifies a solution that allows a camera to use an uplink to facilitate existing web server and RTSP server functionality using the http/2 protocol.</para>
+  </chapter>
+  <chapter>
+    <title>Uplink</title>
+    <section>
+      <title>Connection Establishment</title>
+      <para>The device initiates the connection to the cloud service. <xref linkend="_Ref505091745" /> shows the three phases. In the first phase the device acts as TLS client that connects to the cloud service. Please note that the figure only shows the most relevant packets. Details of the TCP and TLS exchange are out of scope of this specification. The second phase includes the connection upgrade to HTTP/2 which is confirmed by the cloud service with a 101 HTTP response. The third phase of the connection than fully complies to an HTTP2 connection as if it were initiated from the cloud service.</para>
+      <figure>
+        <title xml:id="_Ref505091745">Connection initiation from the device</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="media/Uplink/image4.svg" contentwidth="128mm" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+    <section>
+      <title>Connection Management</title>
+      <para>A local service that is offered to a remote client for utilization is responsible for maintaining an operational communication channel. Since the connection needs to be established from the service to the remote client this connection is called uplink. The uplink shall be secured via TLS. </para>
+      <para>The service shall monitor whether the remote client is able to communicate via the uplink. It may use the HTTP/2 ping mechanism to check whether a link is still operational if no packets have been received for a longer period of time.</para>
+      <para>A local service shall close and reconnect the uplink whenever no packets have been received from the remote client for more than 30 seconds. Each camera shall use an individual ascending interval strategy to avoid that all cameras connect at the same time.</para>
+      <para>The following example shows patterns chosen by two cameras A and B:</para>
+      <itemizedlist>
+        <listitem>
+          <para>Camera A: 3s, 6s, 12s, 24s, 30s, 30s, 30s ...</para>
+        </listitem>
+        <listitem>
+          <para>Camera B: 2s, 4s, 8s, 16s, 30s, 30s, 30s ...</para>
+        </listitem>
+      </itemizedlist>
+      <para>If the uplink list contains multiple entries the device shall try to establish all connections in parallel. </para>
+      <para>Note that this specification assumes that scenarios with multiple clients are designed such that they do not interfere with each other. The coordination between such multiple clients is outside of the scope of the specification.</para>
+    </section>
+    <section>
+      <title>Authentication</title>
+      <para>Note that for the following discussion the roles of client and server are swapped.</para>
+      <para>The remote client shall authenticate itself using a valid server certificate. The service shall verify the validity of the remote certificate according to RFC 6125. </para>
+      <para>The service shall authenticate itself at the remote client using TLS client authentication according to RFC 5246 or subsequent specifications.</para>
+      <para>To uniquely identify local service on remote client, it is recommended to have a unique client certificate installed on each local service. For example, CN field or Serial number of installed certificate could be used to uniquely identify the local service.</para>
+    </section>
+    <section>
+      <title>HTTP/2 Frames</title>
+      <para>Once an http/2 connection has been established the communication parameters are negotiated as specified by RFC 7540 so that the uplink can be used to exchange frames between the remote client and the local service.</para>
+    </section>
+    <section>
+      <title>HTTP Transactions</title>
+      <para>The uplink shall be used in reverse direction for http requests and responses. The remote client shall send requests that are served in a standard http manner by the local service.</para>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Configuration Interface</title>
+    <section>
+      <title>Configuration parameters</title>
+      <itemizedlist>
+        <listitem>
+          <para>RemoteAddress Uniform resource locator by which the remote client can be reached.</para>
+        </listitem>
+        <listitem>
+          <para>CertificateID	ID of the certificate to be used for client authentication.</para>
+        </listitem>
+        <listitem>
+          <para>UserLevel	Authorization level that will be assigned to the uplink connection</para>
+        </listitem>
+        <listitem>
+          <para>Status	Current connection status</para>
+        </listitem>
+      </itemizedlist>
+      <para>Field RemoteAddress is used as key of the list of uplink configurations.</para>
+    </section>
+    <section>
+      <title>GetUplinks</title>
+      <para>A device supporting uplinks shall support this command to retrieve the configured uplink configurations. The Status field shall signal whether a connection is Offline, Connecting or Online.</para>
+      <para>REQUEST</para>
+      <para>&lt;empty&gt;</para>
+      <para>RESPONSE</para>
+      <itemizedlist>
+        <listitem>
+          <para>Configuration – optional, unbounded [Configuration]</para>
+          <para>List of configurations</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+    <section>
+      <title>SetUplink</title>
+      <para>A device supporting uplinks shall support this command to add or modify an uplink configuration. The Status property of the UplinkConfiguration shall be ignored by the device. A device shall use the field RemoteAddress to decide whether to update an existing entry or create a new entry.</para>
+      <para>REQUEST</para>
+      <itemizedlist>
+        <listitem>
+          <para>Configuration – [UplinkConfiguration]</para>
+          <para>Configuration to be added or modified.</para>
+        </listitem>
+      </itemizedlist>
+      <para>RESPONSE</para>
+      <para>&lt;empty&gt;</para>
+    </section>
+    <section>
+      <title>DeleteUplink</title>
+      <para>A device supporting uplinks shall support this command to remove an uplink configuration. </para>
+      <para>REQUEST</para>
+      <itemizedlist>
+        <listitem>
+          <para>RemoteAddress – [xs:anyURI]</para>
+          <para>Configuration to be deleted.</para>
+        </listitem>
+      </itemizedlist>
+      <para>RESPONSE</para>
+      <para>&lt;empty&gt;</para>
+    </section>
+    <section>
+      <title>Capabilities</title>
+      <variablelist>
+        <varlistentry>
+          <term>MaxUplinks</term>
+          <listitem><para>Maximum number of uplink connections that can be configured</para></listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+  </chapter>
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para />
+  </appendix>
+</book>

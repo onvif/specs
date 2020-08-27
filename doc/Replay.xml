@@ -1,0 +1,405 @@
+<?xml version="1.0"?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <info>
+    <title>Replay Control Service Specification</title>
+    <titleabbrev>Replay Control</titleabbrev>
+    <releaseinfo>17.06</releaseinfo>
+    <author>
+      <orgname>ONVIF™</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate>June 2017</pubdate>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="media/logo.png" contentwidth="60mm" />
+      </imageobject>
+    </mediaobject>
+    <copyright>
+      <year>2008-2020</year>
+      <holder>ONVIF™ All rights reserved.</holder>
+    </copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>2.1</revnumber>
+        <date>Jul-2011</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Split from Core 2.0 without change of content.</revremark>
+      </revision>
+      <revision>
+        <revnumber>2.1.1</revnumber>
+        <date>Jan-2012</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Change Requests 287, 342, 535</revremark>
+      </revision>
+      <revision>
+        <revnumber>2.2</revnumber>
+        <date>May-2012</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Change Requests 608, 677</revremark>
+      </revision>
+      <revision>
+        <revnumber>2.2.1</revnumber>
+        <date>Dec-2012</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Change Requests 708, 742, 743</revremark>
+      </revision>
+      <revision>
+        <revnumber>16.12</revnumber>
+        <date>Dec-2016</date>
+        <author>
+          <personname>Sujith Raman</personname>
+        </author>
+        <revremark>Added RTSP over WebSocket</revremark>
+      </revision>
+      <revision>
+        <revnumber>17.06</revnumber>
+        <date>Jun-2017</date>
+        <author>
+          <personname>Stefan Andersson</personname>
+        </author>
+        <author>
+          <personname>Hiroyuki Sano</personname>
+        </author>
+        <revremark>Update method layouts
+Change Request 1843
+Change Request 2054, 2065</revremark>
+      </revision>
+    </revhistory>
+  </info>
+  <chapter>
+    <title>Scope</title>
+    <para>This document defines the web service interface for the control of a replay of recorded Video, Audio and Metadata. Additionally the associated events are defined.</para>
+    <para>For a definition of the storage model see the ONVIF Recording Control Specification.</para>
+    <para>Web service usage is outside of the scope of this document. Please refer to the ONVIF core specification.</para>
+  </chapter>
+  <chapter>
+    <title>Normative references</title>
+    <para>ONVIF Core Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
+    <para>ONVIF Recording Control Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/srv/rec/ONVIF-RecordingControl-Service-Spec.pdf"></link>&gt;</para>
+    <para>ONVIF Streaming  Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/stream/ONVIF-Streaming-Spec.pdf"></link>&gt;</para>
+  </chapter>
+  <chapter>
+    <title>Terms and Definitions</title>
+    <section>
+      <title>Definitions</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*" />
+          <colspec colname="c2" colwidth="76*" />
+          <tbody valign="top">
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Metadata</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>All streaming data except video and audio, including video analytics results, PTZ position data and other <phrase>metadata (such as textual data from POS applications)</phrase>.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Recording</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>A container for a set of audio, video and metadata tracks. A recording can hold one or more tracks. A track is viewed as an infinite timeline that holds data at certain times.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Recording Event</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>An event associated with a Recording, represented by a notification message in the APIs</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Recording Job</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>A job performs the transfer of data from a data source to a particular recording using a particular configuration</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Track</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>An individual data channel consisting of video, audio, or metadata. This definition is consistent with the definition of track in [RFC 2326]</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Video Analytics</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>Algorithms or programs used to analyze video data and to generate data describing object location and behaviour.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Overview</title>
+    <para>The replay service provides a mechanism for replay of stored video, audio and metadata. This mechanism may also be used to download data from the storage device so that export functionality can be provided.</para>
+    <para>The replay protocol is based on RTSP [RFC 2326]. However because RTSP does not directly support all of the requirements for replay, several extensions have been added to the protocol. In particular, an RTP header extension is defined to allow an absolute timestamp to be associated with each access unit (e.g. video frame), and to convey information about stream continuity.</para>
+    <para>The GetReplayUri command in the replay service returns the RTSP URL of a recording to allow it to be replayed using RTSP.</para>
+    <para>WSDL for this service is specified in <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/replay.wsdl">http://www.onvif.org/ver10/replay.wsdl</link>. The following table  shows the namespace prefix mapping used throughout this specification.</para>
+    <table>
+      <title>Referenced namespaces (with prefix)</title>
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="13*" />
+        <colspec colname="c2" colwidth="87*" />
+        <thead>
+          <row>
+            <entry>
+              <para>Prefix</para>
+            </entry>
+            <entry>
+              <para>Namespace URI</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry>
+              <para>env</para>
+            </entry>
+            <entry>
+              <para>http://www.w3.org/2003/05/soap-envelope</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>ter</para>
+            </entry>
+            <entry>
+              <para>http://www.onvif.org/ver10/error</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>xs </para>
+            </entry>
+            <entry>
+              <para>http://www.w3.org/2001/XMLSchema </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>tt</para>
+            </entry>
+            <entry>
+              <para>http://www.onvif.org/ver10/schema</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>trp</para>
+            </entry>
+            <entry>
+              <para>http://www.onvif.org/ver10/replay/wsdl</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <chapter>
+    <title>Replay Control</title>
+    <para>This section defines a service for mapping replay endpoints to URI for use in RTSP.</para>
+    <section>
+      <title>Request replay URI</title>
+      <para>GetReplayUri requests a URI that can be used to initiate playback of a recorded stream using RTSP as the control protocol. The URI is valid only as it is specified in the response. All implementations of the Replay Service shall support the GetReplayUri command.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">StreamSetup [tt:StreamSetup]</para>
+            <para role="text">The StreamSetup element contains two parts. StreamType defines if a unicast or multicast media stream is requested. Transport specifies a chain of transport protocols defining the tunnelling of the media stream over different network protocols.</para>
+            <para role="param">RecordingToken [tt:RefernceToken]</para>
+            <para role="text">Indicates the recording to be streamed.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">Uri [xs:anyURI]</para>
+            <para role="text">Contains the Uri to be used for requesting the media stream.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidStreamSetup</para>
+            <para role="text">Specification of StreamType or Transport part in StreamSetup is not supported.</para>
+            <para role="param">env:Sender - ter:OperationProhibited - ter:StreamConflict</para>
+            <para role="text">Specification of StreamType or Transport part in StreamSetup causes conflict with other streams.</para>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:NoRecording</para>
+            <para role="text">The recording does not exist.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="param">READ_MEDIA</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
+      <title>ReplayConfiguration</title>
+      <para>The ReplayConfiguration provides optional configuration information. Currently it only contains the deprecated RTSP SessionTimeout which can be controlled via the RTSP layer.</para>
+    </section>
+    <section>
+      <title>SetReplayConfiguration</title>
+      <para>SetReplayConfiguration changes the configuration of the replay service. The replay service shall allow its configuration to be changed using this command.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">Configuration [tt:ReplayConfiguration]</para>
+            <para role="text">Holds the new configuration for the replay service.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="text">This is an empty message.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:ConfigModify</para>
+            <para role="text">The values in the configuration cannot be set.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="param">ACTUATE</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
+      <title>GetReplayConfiguration</title>
+      <para>GetReplayConfiguration returns the current configuration of the replay service. The replay service shall allow its configuration to be retrieved using this command.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="text">This is an empty message.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">Configuration [tt:ReplayConfiguration]</para>
+            <para role="text">Holds the current configuration for the replay service.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="text">None</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="param">READ_MEDIA</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
+      <title>GetServiceCapabilities</title>
+      <para>The capabilities reflect optional functions and functionality of a service. The information is static and does not change during device operation. </para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="text">This is an empty message.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">Capabilities [trp:Capabilities]</para>
+            <para role="text">Contains the requested service capabilities using a hierarchical XML capability structure.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="text">None</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="param">PRE_AUTH</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>The following capabilites are available:</para>
+      <variablelist>
+        <varlistentry>
+          <term>ReversePlayback</term>
+          <listitem><para>Indicator that the Device supports reverse playback as defined in the ONVIF Streaming Specification.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>SessionTimeoutRange</term>
+          <listitem><para>Lists the upper and lower bound of the supported range for the
+            session timeout. This capability defaults to the RTSP default value.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>RTP_RTSP_TCP</term>
+          <listitem><para>Indication if the device supports RTP/RTSP/TCP transport, see Section
+            5.1.1.3 of the ONVIF Streaming Specificiation.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>RTSPOverWebSocket</term>
+          <listitem><para>Indicates if the device supports RTSP/RTP Playback Streaming support
+            over WebSocket and provides the WebSocket URI for replay as described in the ONVIF Streaming
+            Specification section 5.1.1.5.</para></listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+  </chapter>
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para />
+  </appendix>
+</book>
