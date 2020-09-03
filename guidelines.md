@@ -40,6 +40,13 @@ ONVIF will maintain the following active branches:
 
 * exp-xx.yy - Closed development branch pending for IPR review.  
   Implementers may use this branch. However in the unlikely case of IPR notices indiviual changes may be revoked.
+  
+Beside the above branches the following temporary branches may be established:
+  
+* issue-XX-YYYYY - Change request for issue XX with short title YYYY.  
+  Note that these branches may be deleted once the pull request has been approved.
+
+* feature-XXXX/YYYY - Feature branch for group XXXX with short title YYYY.  
 
 ## Feature Development Process
 
