@@ -131,7 +131,7 @@ margin: 3mm 3mm 3mm 3mm;
         <xsl:element name="div">
             <xsl:attribute name="class">figure</xsl:attribute>
             <xsl:apply-templates select="@xml:id"/>
-            Table <xsl:number count="db:table" format="1"/>: <xsl:value-of select="db:title"/>
+            Table <xsl:number count="db:table" level="any" format="1"/>: <xsl:value-of select="db:title"/>
         </xsl:element>
     </xsl:template>
     <xsl:template match="db:row">
@@ -162,11 +162,11 @@ margin: 3mm 3mm 3mm 3mm;
                 <xsl:attribute name="style">width:<xsl:value-of select="db:mediaobject/db:imageobject/db:imagedata/@contentwidth"/></xsl:attribute>
             </xsl:element>
         </div>
-        <xsl:element name="div">
-            <xsl:attribute name="class">figure</xsl:attribute>
-            <xsl:apply-templates select="@xml:id"/>
-            Figure <xsl:number count="db:figure" format="1"/>: <xsl:value-of select="db:title"/>
-        </xsl:element>
+        <xsl:variable name="no"><xsl:number count="db:figure" format="1"/></xsl:variable>
+        <xsl:variable name="id"><xsl:value-of select="@xml:id"/></xsl:variable>
+        <div class="figure" id="$id">
+            Figure <xsl:number count="db:figure" level="any" format="1"/>: <xsl:value-of select="db:title"/>
+        </div>        
     </xsl:template>    
 
     <xsl:template match="@xml:id">
