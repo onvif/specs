@@ -163,10 +163,14 @@ margin: 3mm 3mm 3mm 3mm;
         </tr>        
     </xsl:template>
     <xsl:template match="db:entry">
-        <td>
+        <xsl:element name="td">
+            <xsl:if test="@morerows">
+                <xsl:attribute name="rowspan"><xsl:value-of select="@morerows + 1"/></xsl:attribute>
+            </xsl:if>
             <xsl:apply-templates select="db:para" mode="plain"/>
-        </td>        
+        </xsl:element>
     </xsl:template>
+
     <xsl:template match="db:para" mode="plain">
         <xsl:apply-templates/>
     </xsl:template>
