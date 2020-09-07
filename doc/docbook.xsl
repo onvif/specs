@@ -26,8 +26,13 @@ pre {
 font-size:9pt;
 }
 .heading {
-font-size:16pt;
-font-weight: bold;
+font-size:20pt;
+text-align: center;
+margin-left: auto;
+margin-right: auto;
+}
+.version {
+font-size:12pt;
 text-align: center;
 margin-left: auto;
 margin-right: auto;
@@ -70,7 +75,7 @@ margin: 3mm 3mm 3mm 3mm;
             </head>
             <body>
                 <div class="page">
-                    <div class="pages" width="210mm">
+                    <div class="pages">
                         <xsl:apply-templates/>
                     </div>  
                 </div>
@@ -81,7 +86,9 @@ margin: 3mm 3mm 3mm 3mm;
     <xsl:template match="db:book">
         <div class='heading'><xsl:value-of select="db:info/db:author/db:orgname"/></div>
         <div class='heading'><xsl:value-of select="db:info/db:title"/></div>
-        <div class='heading'><img src="media/logo.png" style="width:60mm"/></div>
+        <div class='version'>Working Draft <xsl:value-of select="db:info/db:releaseinfo"/></div>
+        <div class='version'><xsl:value-of select="db:info/db:pubdate"/></div>
+        <div class='version'><img src="media/logo.png" style="width:60mm"/></div>
         <div><xsl:value-of select="db:info/db:legalnotice"/></div>
         <xsl:apply-templates select="db:chapter|db:appendix" />
     </xsl:template>
