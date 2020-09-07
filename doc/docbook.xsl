@@ -17,7 +17,7 @@ margin-right: auto;
 }
 .pages {
 text-align: left;
-margin: 30mm 30mm 30mm 30mm; 
+padding: 30mm 30mm 30mm 30mm; 
 }
 div {
 margin-top: 5mm;
