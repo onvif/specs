@@ -4,14 +4,26 @@
     
     <xsl:variable name="css">
 body{
+background-color: #d0d0d0;
+} 
+.page {
+background-color: #ffffff;
 font-family:Arial,Helvetica;
 font-size:10pt;
 width: 21cm;
-height: 29.7cm;
-margin: 30mm 45mm 30mm 45mm; 
-} 
+text-align: center;
+margin-left: auto;
+margin-right: auto;
+}
+.pages {
+text-align: left;
+margin: 30mm 30mm 30mm 30mm; 
+}
 div {
 margin-top: 5mm;
+}
+pre {
+font-size:9pt;
 }
 .heading {
 font-size:16pt;
@@ -56,8 +68,12 @@ margin: 3mm 3mm 3mm 3mm;
                     <xsl:value-of select="$css" disable-output-escaping="yes"/>
                 </style>
             </head>
-            <body width="210mm">
-                <xsl:apply-templates/>
+            <body>
+                <div class="page">
+                    <div class="pages" width="210mm">
+                        <xsl:apply-templates/>
+                    </div>  
+                </div>
             </body>
         </html>
     </xsl:template>
