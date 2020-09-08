@@ -1,3 +1,9 @@
+# Document preview
+
+The links below to preview the documents. The document preview is using a simplified html stylesheet with similar rendering than the published pdf files.
+
+Note that the target does not change on branching or forking. As altnertive you may serve the files using a local web server. Rendering files does not activate the necessary stylesheets and hence do not show the resulting layout.
+
 <table width="100%">
 <tbody>
 <tr>
