@@ -109,6 +109,23 @@ padding: 1mm 3mm 1mm 3mm;
     <xsl:template match="db:appendix">
         <div style="margin-top:30mm; text-align:center"><h2><xsl:number level="multiple" count="db:appendix" format="A.1 "/> <xsl:value-of select="db:title"/></h2></div>
         <xsl:apply-templates />
+        <xsl:if test="@role='revhistory'">
+            <div class='table'><table><thead>
+                <tr>
+                    <th>Rev.</th><th>Date</th><th>Author</th><th>Changes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <xsl:for-each select="/db:book/db:info/db:revhistory/db:revision">
+                    <tr>
+                        <td><xsl:value-of select="db:revnumber"/></td>
+                        <td><xsl:value-of select="db:date"/></td>
+                        <td><xsl:value-of select="db:author"/></td>
+                        <td><xsl:value-of select="db:revremark"/></td>
+                    </tr>
+                </xsl:for-each>
+            </tbody></table></div>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template match="db:section[ancestor::db:appendix]">
