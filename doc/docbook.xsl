@@ -62,9 +62,10 @@ text-transform: uppercase;
 text-align: center;
 }
 .table>table, .table>table>thead>tr>th, .table>table>tbody>tr>td {
+text-align: left;
 border: 1px solid black;
 border-collapse: collapse;
-margin: 3mm 3mm 3mm 3mm;
+padding: 1mm 3mm 1mm 3mm;
 }    </xsl:variable>
     <xsl:template match="/">
         <html>
@@ -96,7 +97,8 @@ margin: 3mm 3mm 3mm 3mm;
     <xsl:template match="db:info|db:title">
     </xsl:template>
     
-    <xsl:template match="db:chapter|db:section">
+<!-- Headings   -->
+    <xsl:template match="db:chapter|db:section[ancestor::db:chapter]">
         <xsl:element name="div">
             <xsl:apply-templates select="@xml:id"/>
             <h2><xsl:number level="multiple" count="db:chapter|db:section" format="1.1 "/> <xsl:value-of select="db:title"/></h2>
@@ -104,11 +106,17 @@ margin: 3mm 3mm 3mm 3mm;
         <xsl:apply-templates />
     </xsl:template>
 
-    <xsl:template match="db:appendix|db:seciont[ancestor::db:appendix]">
-        <div style="margin-top:30mm"><h2><xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> <xsl:value-of select="db:title"/></h2></div>
-        <xsl:apply-templates select="db:para|db:section"/>
+    <xsl:template match="db:appendix">
+        <div style="margin-top:30mm; text-align:center"><h2><xsl:number level="multiple" count="db:appendix" format="A.1 "/> <xsl:value-of select="db:title"/></h2></div>
+        <xsl:apply-templates />
     </xsl:template>
     
+    <xsl:template match="db:section[ancestor::db:appendix]">
+        <div style="margin-top:30mm"><h2><xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> <xsl:value-of select="db:title"/></h2></div>
+        <xsl:apply-templates />
+    </xsl:template>
+
+    <!-- Paragraph -->
     <xsl:template match="db:emphasis[@role='bold']">
         <b><xsl:value-of select="."/></b>
     </xsl:template>
@@ -127,6 +135,16 @@ margin: 3mm 3mm 3mm 3mm;
         </xsl:element>
     </xsl:template>
     
+    <xsl:template match="db:variablelist[not(@role)]">
+        <table><tbody>
+            <xsl:for-each select="db:varlistentry">
+                <tr>
+                    <td class='param'><xsl:value-of select="db:term"/></td>
+                    <td><xsl:apply-templates select="db:listitem"/></td>
+                </tr>
+            </xsl:for-each>
+        </tbody></table>
+    </xsl:template>
     
 <!-- Tables -->    
     <xsl:template match="db:informaltable">
