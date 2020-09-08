@@ -136,7 +136,7 @@ Note that the target does not change on branching or forking. As altnertive you 
 </tr>
 <tr>
 <td></td>
-<td><a href="https://onvif.github.io/specs/doc/ReplayControl.xml">Replay Control</a></td>
+<td><a href="https://onvif.github.io/specs/doc/Replay.xml">Replay Control</a></td>
 <td><a href="/ver10/replay.wsdl">replay.wsdl</a></td>
 </tr>
 <tr>
@@ -145,7 +145,7 @@ Note that the target does not change on branching or forking. As altnertive you 
 </tr>
 <tr>
 <td></td>
-<td><a href="https://onvif.github.io/specs/doc/Scheduler.xml">Schedule</a></td>
+<td><a href="https://onvif.github.io/specs/doc/Schedule.xml">Schedule</a></td>
 <td><a href="../wsdl/ver10/schedule/wsdl/schedule.wsdl">schedule.wsdl</a></td>
 </tr>
 <tr>
