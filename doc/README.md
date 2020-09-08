@@ -121,12 +121,12 @@ Note that the target does not change on branching or forking. As altnertive you 
 </tr>
 <tr>
 <td></td>
-<td><a href="Receiver.xml">Receiver</a></td>
+<td><a href="https://onvif.github.io/specs/doc/Receiver.xml">Receiver</a></td>
 <td><a href="../wsdl/ver10/receiver.wsdl">receiver.wsdl</a></td>
 </tr>
 <tr>
 <td></td>
-<td><a href="RecordingControl.xml">Recording Control</a></td>
+<td><a href="https://onvif.github.io/specs/doc/RecordingControl.xml">Recording Control</a></td>
 <td><a href="../wsdl/ver10/recording.wsdl">recording.wsdl</a></td>
 </tr>
 <tr>
