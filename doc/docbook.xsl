@@ -107,7 +107,7 @@ padding: 1mm 3mm 1mm 3mm;
     </xsl:template>
 
     <xsl:template match="db:appendix">
-        <div style="margin-top:30mm; text-align:center"><h2><xsl:number level="multiple" count="db:appendix" format="A.1 "/> <xsl:value-of select="db:title"/></h2></div>
+        <div style="margin-top:30mm; text-align:center"><h2>Annex <xsl:number level="multiple" count="db:appendix" format="A.1 "/> <xsl:value-of select="db:title"/></h2></div>
         <xsl:apply-templates />
         <xsl:if test="@role='revhistory'">
             <div class='table'><table><thead>
