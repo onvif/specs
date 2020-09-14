@@ -696,6 +696,55 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+            <xs:element name="MoveAndStartTracking"> 
+                <xs:complexType> 
+                    <xs:sequence> 
+                        <xs:element name="ProfileToken" type="tt:ReferenceToken"> 
+                            <xs:annotation> 
+                                <xs:documentation>A reference to the MediaProfile where the operation should take place. 
+                                </xs:documentation> 
+                            </xs:annotation> 
+                        </xs:element> 
+                        <xs:element name="PresetToken" type="tt:ReferenceToken" minOccurs="0"> 
+                            <xs:annotation> 
+                                <xs:documentation>A preset token. 
+                                </xs:documentation> 
+                            </xs:annotation> 
+                        </xs:element> 
+                        <xs:element name="GeoLocation" type="tt:GeoLocation" minOccurs="0"> 
+                            <xs:annotation> 
+                                <xs:documentation>The geolocation of the target position. 
+                                </xs:documentation> 
+                            </xs:annotation> 
+                        </xs:element> 
+                        <xs:element name="TargetPosition" type="tt:PTZVector" minOccurs="0"> 
+                            <xs:annotation> 
+                                <xs:documentation>A Position vector specifying the absolute target position. 
+                                </xs:documentation> 
+                            </xs:annotation> 
+                        </xs:element> 
+                        <xs:element name="Speed" type="tt:PTZSpeed" minOccurs="0"> 
+                            <xs:annotation> 
+                                <xs:documentation>Speed vector specifying the velocity of pan, tilt and zoom. 
+                                </xs:documentation> 
+                            </xs:annotation> 
+                        </xs:element> 
+                        <xs:element name="ObjectID" type="tt:ObjectId" minOccurs="0"> 
+                            <xs:annotation> 
+                                <xs:documentation>Object ID of the object to track. 
+                                </xs:documentation> 
+                            </xs:annotation> 
+                        </xs:element> 
+                        <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/> 
+                    </xs:sequence> 
+                </xs:complexType> 
+            </xs:element> 
+            <xs:element name="MoveAndStartTrackingResponse"> 
+                <xs:complexType> 
+                    <xs:sequence/> 
+                </xs:complexType> 
+            </xs:element> 
+            <!--===============================--> 
 		</xs:schema>
 	</wsdl:types>
 	<wsdl:message name="GetServiceCapabilitiesRequest">
@@ -866,6 +915,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="GetCompatibleConfigurationsResponse">
 		<wsdl:part name="parameters" element="tptz:GetCompatibleConfigurationsResponse"/>
 	</wsdl:message>
+    <wsdl:message name="MoveAndStartTrackingRequest"> 
+        <wsdl:part name="parameters" element="tptz:MoveAndStartTracking"/> 
+    </wsdl:message> 
+    <wsdl:message name="MoveAndStartTrackingResponse"> 
+        <wsdl:part name="parameters" element="tptz:MoveAndStartTrackingResponse"/> 
+    </wsdl:message> 
 	<wsdl:portType name="PTZ">
 		<wsdl:operation name="GetServiceCapabilities">
 			<wsdl:documentation>Returns the capabilities of the PTZ service. The result is returned in a typed answer.</wsdl:documentation>
@@ -1110,6 +1165,11 @@ If no stop argument for pan, tilt or zoom is set, the device will stop all ongoi
 			<wsdl:input message="tptz:GetCompatibleConfigurationsRequest"/>
 			<wsdl:output message="tptz:GetCompatibleConfigurationsResponse"/>
 		</wsdl:operation>
+        <wsdl:operation name="MoveAndStartTracking"> 
+            <wsdl:documentation>Documentation TODO...</wsdl:documentation> 
+            <wsdl:input message="tptz:MoveAndStartTrackingRequest"/> 
+            <wsdl:output message="tptz:MoveAndStartTrackingResponse"/> 
+        </wsdl:operation> 
 	</wsdl:portType>
 	<wsdl:binding name="PTZBinding" type="tptz:PTZ">
 		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
@@ -1366,5 +1426,15 @@ If no stop argument for pan, tilt or zoom is set, the device will stop all ongoi
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
+        <wsdl:operation name="MoveAndStartTracking"> 
+            <soap:operation 
+                    soapAction="http://www.onvif.org/ver20/ptz/wsdl/MoveAndStartTracking"/> 
+            <wsdl:input> 
+                <soap:body use="literal"/> 
+            </wsdl:input> 
+            <wsdl:output> 
+                <soap:body use="literal"/> 
+            </wsdl:output> 
+        </wsdl:operation> 
 	</wsdl:binding>
 </wsdl:definitions>
