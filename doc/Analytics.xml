@@ -3107,9 +3107,10 @@ Added Recognition rule engines</revremark>
   </chapter>
   <appendix>
     <title>Specified Rules (informative)</title>
-    <para>The following rules apply to static cameras. In case of a PTZ device, image-based rules should contain an additional ElementItem. The ElementItem identifies the position of the device for which the rule has been setup. The corresponding ElementItemDescription resembles the following:</para>
-    <programlisting><![CDATA[<tt:ElementItemDescription Name="PTZStatus" Type="tt:PTZStatus">
-]]></programlisting>
+    <para>This Annex defines a set of generic rules. The rules are mainly designed for static
+      cameras since the graphical primitives are provided using bounds based normalized coordinates.
+      For usage with PTZ devices see <xref xmlns:xlink="http://www.w3.org/1999/xlink"
+        linkend="Annex-Rules-PTZ"/>.</para>
     <section>
       <title>LineDetector</title>
       <para>LineDetector is defined by a non-intersecting simple polyline. If an object crosses the polyline in the specified direction, the rule engine sends a Crossed event containing the name of the LineDetector and a reference to the object which has crossed the line. As directions, one can select between Left, Right, and Any, where directions Left and Right refer to the direction walking along the line from the first point to the second point and are the prohibited directions. The specific definition of the Left and Right direction can refer to the following <xref linkend="_Ref529526650" />, A is the first point and B is the second point.</para>
@@ -3685,6 +3686,20 @@ Added Recognition rule engines</revremark>
           </tbody>
         </tgroup>
       </table>
+    </section>
+    <section>
+      <title xml:id="Annex-Rules-PTZ">Moving cameras</title>
+      <para>PTZ devices supporting these kind of rules should remap the graphical prmitives based on
+        the current view port resulting from pan, title and zoom values so that these can be used
+        independt from the view port. Of course rules with graphical elements located fully outside
+        of the current view port will not be able to trigger any events.</para>
+      <para>As alternative the rules may include an element item called "PTZStatus" that acts as a
+        filter for activating the rule only when the view port matches the given values.The
+        ElementItem identifies the position of the device for which the rule has been setup. The
+        corresponding ElementItemDescription resembles the following:</para>
+      <programlisting><![CDATA[<tt:ElementItemDescription Name="PTZStatus" Type="tt:PTZStatus">]]></programlisting>
+      <para>Note that tolerances for matching are outside of the scope of this specification.
+        However devices should strive to tolerate and compensate for small deviations.</para>
     </section>
   </appendix>
   <appendix>
