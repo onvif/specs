@@ -212,6 +212,14 @@ Add GeoLocation event</revremark>
         </author>
         <revremark>Change Request 2558</revremark>
       </revision>
+      <revision>
+        <revnumber>20.06</revnumber>
+        <date>Jun-2020</date>
+        <author>
+          <personname>Fredrik Svensson</personname>
+        </author>
+        <revremark>Add section on Event Broker</revremark>
+      </revision>
     </revhistory>
   </info>
   <preface>
@@ -7128,18 +7136,40 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
     <section xml:id="_Toc213144732">
       <title>Capabilities</title>
       <para>The capabilities reflect optional functions and functionality of a service. The information is static and does not change during device operation. The following capabilites are available:</para>
-      <para>
-        <emphasis role="bold">WSSubscriptionPolicySupport:	</emphasis>Indication if the device supports the WS Subscription policy according to Section <xref linkend="_Toc214944387" /></para>
-      <para>
-        <emphasis role="bold">WSPullPointSupport:	</emphasis>Indication if the device supports the WS Pull Point according to Section <xref linkend="_Toc214944387" /></para>
-      <para>
-        <emphasis role="bold">WSPausableSubscriptionManagerInterfaceSupport:	 </emphasis>Indication if the device supports the WS Pausable Subscription Manager Interface according to Section <xref linkend="_Toc214944387" /></para>
-      <para>
-        <emphasis role="bold">MaxNotificationProducers:</emphasis>	Maximum number of supported notification producers as defined by WS-BaseNotification.</para>
-      <para>
-        <emphasis role="bold">MaxPullPoints:</emphasis>	Maximum supported number of notification pull points</para>
-      <para>
-        <emphasis role="bold">PersistenNotificationStorage:</emphasis>	Indication if the device supports persistent notification storage according to Section <xref linkend="_Toc384114228" />. </para>
+      <variablelist>
+        <varlistentry>
+          <term>WSSubscriptionPolicySupport</term>
+          <listitem><para>Indication if the device supports the WS Subscription policy according to Section <xref linkend="_Toc214944387" /></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>WSPullPointSupport</term>
+          <listitem><para>Indication if the device supports the WS Pull Point according to Section <xref linkend="_Toc214944387"/></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>WSPausableSubscriptionManagerInterfaceSupport</term>
+          <listitem><para>Indication if the device supports the WS Pausable Subscription Manager Interface according to Section <xref linkend="_Toc214944387"/></para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>MaxNotificationProducers</term>
+          <listitem><para>Maximum number of supported notification producers as defined by WS-BaseNotification.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>MaxPullPoints</term>
+          <listitem><para>Maximum supported number of notification pull points</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>PersistenNotificationStorage</term>
+          <listitem><para>Indication if the device supports persistent notification storage according to Section <xref linkend="_Toc384114228"/>. </para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>EventBrokerProtocols</term>
+          <listitem><para>A space separated list of supported event broker protocols as defined by the datatype tev:EventBrokerProtocol.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>MaxEventBrokers</term>
+          <listitem><para> Maxiumum number of event broker configurations that can be added to the device.</para></listitem>
+        </varlistentry>
+      </variablelist>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -7356,7 +7386,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
 ]]></programlisting>
       </section>
       <section>
-        <title>PullMessagesResponse</title>
+        <title xml:id="ev_PullMessageResp">PullMessagesResponse</title>
         <para>The following PullMessageResponse contains two notifications which match the subscription. The Response informs the client that two objects have crossed lines corresponding to rules “MyImportantFence1” and “MyImportantFence2”.</para>
         <programlisting><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
   <SOAP-ENV:Envelope
@@ -7472,6 +7502,290 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
         <programlisting><![CDATA[Topic: tns1:EventBuffer/Begin
 <tt:MessageDescription IsProperty=”false”/>
 ]]></programlisting>
+      </section>
+    </section>
+    <section>
+      <title>Event Broker</title>
+      <para>Events can be bridged from an ONVIF device to an MQTT broker. This section describes the event broker configuration interface, how ONVIF topics are mapped to MQTT topics and how the payload is conveyed.</para>
+      <para>A device that signals the capability MaxEventBrokers &gt; 0 shall support the AddEventBroker, DeleteEventBroker and GetEventBroker commands.</para>
+      <section>
+        <title>Data structures</title>
+        <section>
+          <title>EventBrokerConfig</title>
+          <itemizedlist>
+            <listitem>
+              <para>
+                <emphasis role="bold">Address</emphasis>
+              </para>
+              <para>Event broker address in the format scheme://host:port, where scheme can be "mqtt", "mqtts", "ws" or "wss". The supported schemes shall be returned by the EventBrokerProtocols capability. The Address must be unique.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">TopicPrefix</emphasis>
+              </para>
+              <para>Prefix that will be prepended to all topics before they are published. This is used to make published topics unique for each device. TopicPrefix is not allowed to be empty.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">UserName</emphasis>
+              </para>
+              <para>User name for the event broker.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">Password</emphasis>
+              </para>
+              <para>Password for the event broker. Password shall not be included when returned with GetEventBrokers.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">CertificateID</emphasis>
+              </para>
+              <para>Optional certificate ID in the key store pointing to a client certificate to be used for authenticating the device at the message broker.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">PublishFilter</emphasis>
+              </para>
+              <para>Concrete Topic Expression to select specific topics to publish, see section <xref linkend="_Ref210199558" />.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">QoS</emphasis>
+              </para>
+              <para>Quality of service level to use when publishing. This defines the guarantee of delivery for a specific message: 0 = At most once, 1 = At least once, 2 = Exactly once.</para>
+            </listitem>
+            <listitem>
+              <para>
+                <emphasis role="bold">Status</emphasis>
+              </para>
+              <para>Current connection status (see tev:ConnectionStatus for possible values).</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+      </section>
+      <section>
+        <title>Add Event Broker</title>
+        <para>The AddEventBroker command allows an ONVIF client to add an event broker configuration to device to enable ONVIF events to be transferred to an event broker. If an existing event broker configuration already exists with the same Address, the existing configuration shall be modified.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">EventBroker [tev:EventBrokerConfig]</para>
+              <para role="text">The event broker definition to be added or modified.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Receiver - ter:Action - ter:TooManyEventBrokers</para>
+              <para role="text">The device doesn’t support adding more event broker configurations.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidAddress</para>
+              <para role="text">The event broker address is not supported.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidProtocol</para>
+              <para role="text">The event broker protocol is not supported.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidFilter</para>
+              <para role="text">The topic filter was not understood.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>Delete Event Broker</title>
+        <para>The DeleteEventBroker allows an ONVIF client to delete an event broker configuration from an ONVIF device.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Address [xs:anyURI]</para>
+              <para role="text">The uri of the event broker to be removed.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidAddress</para>
+              <para role="text">The event broker address was not found.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>Get Event Brokers</title>
+        <para>The GetEventBrokers command lets a client retrieve event broker configurations from the device. If Address is specified one event broker configuration shall be returned, if the Address is found, otherwise a fault is returned. If no Address is specified all event broker configurations shall be returned.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Address - optional [xs:anyURI]</para>
+              <para role="text">Optional address filter.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">EventBroker - optional, unbounded [tev:EventBrokerConfig]</para>
+              <para role="text">List of configured event broker definitions.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidAddress</para>
+              <para role="text">The event broker address was not found.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>Topic Structure</title>
+        <para>Topics are published according to the following structure:</para>
+        <para>&lt;TopicPrefix&gt;/&lt;PayloadPrefix&gt;/&lt;LocalTopic&gt;[/&amp;&lt;Source&gt;[/&lt;Key&gt;]]</para>
+        <para>ONVIF topics are are only locally unique within the device so they must be prefixed with a TopicPrefix to become globally unique. The TopicPrefix is configurable through the AddEventBroker command. The TopicPrefix shall not be empty. The PayloadPrefix signals what kind of data that is published. The following prefixes are defined.</para>
+        <informaltable>
+          <tgroup cols="2">
+            <colspec colname="c1" colwidth="15*" />
+            <colspec colname="c2" colwidth="85*" />
+            <tbody valign="top">
+              <row>
+                <entry>
+                  <para>
+                    <emphasis role="bold">Prefix</emphasis>
+                  </para>
+                </entry>
+                <entry>
+                  <para>
+                    <emphasis role="bold">Description</emphasis>
+                  </para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>onvif-ej</para>
+                </entry>
+                <entry>
+                  <para>ONVIF event with JSON payload</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>
+        <para>The LocalTopic is the same as the ONVIF topic, but because MQTT does not support namespaces, the namespace prefix for ONVIF topics shall be dropped, so that for example, “tns1:Device/HardwareFailure/StorageFailure” becomes “Device/HardwareFailure/StorageFailure”. This means that the default topic namespace is ONVIF, i.e. “​http://www.onvif.org/ver10/topics”. If an event uses another topic namespace this should be signalled using the syntax: "tns:{namespace-alias}/&lt;topic&gt;". Vendor specific extensions should choose a suitable namespace alias to avoid name clashes. As an example, consider the ONVIF topic "tns1:Device/HardwareFailure/acme:LensFailure" where tns1="​http://www.onvif.org/ver10/topics" and acme="​http://www.acme.com/topics". This should be translated to the MQTT topic "Device/HardwareFailure/tns:acme/LensFailure".</para>
+        <para>The Source and Key are taken from the payload, preceded by a '&amp;' character. For property events, they are added to the topic to make it unique so that they can be cached by the broker individually. For each SimpleItem name/value pair in the Source/Key a ‘/’ character plus the value shall be appended to the topic. The values shall be added in the same order as they are listed in the response to GetEventProperties. Note that special characters like, ‘/’, ‘#’ and ‘+’ shall be omitted from the topic. For an example, see section <xref linkend="_Ref19678957" />.</para>
+      </section>
+      <section>
+        <title>JSON Event Payload</title>
+        <para>This section describes how an ONVIF event is mapped to the JSON data format when published using the “onvif-ej” payload definition. <phrase>Mapping definition from XML to JSON according to RFC 5234:</phrase></para>
+        <para>MESSAGE ::= “{“ TIMEINFO *(“,” ITEM) “}”</para>
+        <para>TIMEINFO ::= DQUOTE “UtcTime” DQUOTE “:” TIMESTAMP </para>
+        <para>ITEM ::= SIMPLEITEM / ELEMENTITEM</para>
+        <para>SIMPLEITEM ::= DQUOTE SNAME DQUOTE ”:” DQUOTE  SVALUE DQUOTE</para>
+        <para>ELEMENTITEM ::= DQUOTE ENAME DQUOTE “:  {“ [ TYPE *(“,” TYPE)] “}”</para>
+        <para>TYPE ::= ATTRIBUTE  / SIMPLETYPE / COMPLEXTYPE</para>
+        <para>ATTRIBUTE ::= DQUOTE ANAME DQUOTE ”: ” DQUOTE AVALUE DQUOTE</para>
+        <para>SIMPLETYPE ::= DQUOTE  NAME DQUOTE ”: ” DQUOTE VALUE DQUOTE</para>
+        <para>COMPLEXTYPE ::= DQUOTE NAME DQUOTE ”: {“ [TYPE *(“,” TYPE)] “}”</para>
+        <para>with </para>
+        <itemizedlist>
+          <listitem>
+            <para>TIMESTAMP being the double quoted UTC timestamp of the XML Message UtcTime element</para>
+          </listitem>
+          <listitem>
+            <para>SNAME being the value of the “Name” attribute of the SimpleItem</para>
+          </listitem>
+          <listitem>
+            <para>SVALUE being the value of the “Value” attribute of the SimpleItem</para>
+          </listitem>
+          <listitem>
+            <para>ENAME being the value of the “Name” attribute of the ElementItem</para>
+          </listitem>
+          <listitem>
+            <para>ANAME being the name of the attribute of the corresponding XML attribute</para>
+          </listitem>
+          <listitem>
+            <para>AVALUE being the value of the attribute of the corresponding XML attribute</para>
+          </listitem>
+          <listitem>
+            <para>SIMPLETYPE being the XML attribute currently parsed</para>
+          </listitem>
+          <listitem>
+            <para>NAME being the name of the corresponding XML element</para>
+          </listitem>
+          <listitem>
+            <para>VALUE being the value of the corresponding XML element</para>
+          </listitem>
+        </itemizedlist>
+        <para>The parser shall parse the elements recursively in the order they are present in the XML representation.</para>
+        <para>The output shall be generated according above described rules.</para>
+        <section xml:id="_Ref19678957">
+          <title>Example</title>
+          <para>The XML example response from PullMessages listed in Section <xref linkend="ev_PullMessageResp" /> contains two messages which are mapped to the following corresponding MQTT topics and JSON payload:</para>
+          <para>
+            <emphasis role="bold">Topic: </emphasis>
+            <literal>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed/&amp;1/2/MyImportantFence1</literal>
+          </para>
+          <para>
+            <emphasis role="bold">Payload: </emphasis>
+            <literal>{ 	"UtcTime": "2008-10-10T12:24:57.321Z", 	"Source": { 		"VideoSourceConfigurationToken": "1", 		"VideoAnalyticsConfigurationToken": "2", 		"Rule": "MyImportantFence1" 	}, 	"Data": { 		"ObjectId": "15" 	} }</literal>
+          </para>
+          <para>
+            <emphasis role="bold">Topic: </emphasis>
+            <literal>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed/&amp;1/2/MyImportantFence2</literal>
+          </para>
+          <para>
+            <emphasis role="bold">Payload:</emphasis>
+            <literal>{</literal>
+            <literal> 	"UtcTime": "2008-10-10T12:24:57.789Z</literal>
+            <literal>",</literal>
+            <literal> 	"Source": { 		"VideoSourceConfigurationToken": "1", 		"VideoAnalyticsConfigurationToken": "2", 		"Rule": "MyImportantFence2" 	}, 	"Data": { 		"ObjectId": "19" 	} }</literal>
+          </para>
+        </section>
+      </section>
+      <section>
+        <title>Property events</title>
+        <para>For property events, the PropertyOperation shall not be included in the message payload.</para>
+        <section>
+          <title>Retained flag</title>
+          <para>For property events, the device shall set the retained flag when sending the messages to the broker.</para>
+        </section>
+        <section>
+          <title>Payload for deleted properties</title>
+          <para>For property events, ONVIF compatible devices shall send a notification with PropertyOperation=Deleted when a property is deleted as explained in section <xref linkend="_Ref507651613" />. To achieve same behavior, the device shall send a zero byte payload to the MQTT event broker. This will delete any retained messages in the broker for that specific topic.</para>
+        </section>
+      </section>
+      <section>
+        <title>SetSynchronizationPoint behavior</title>
+        <para>If a client sends a SetSynchronizationPoint request, property events shall not be repubilished to the event broker.</para>
       </section>
     </section>
   </chapter>
