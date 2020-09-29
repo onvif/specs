@@ -17,11 +17,11 @@ Changes should fall into the following three categories:
 
 The change process depends on both the size and impact of the change proposal: 
 
-Each change request (CR) affecting more than three lines of code shall be submitted as pull request. The comment of a pull request shall include the following information:
+Each change request (CR) shall be submitted as pull request. The comment of a pull request shall include the following information:
 * Reason: containing a problem description and a description of the solution proposal.
 * Compatibility analysis: An analysis describing possible impact on forward and or backward compatibility. 
 
-As an exception to the above very small changes affecting no more than three consective lines may be filed as Issue including a reference to the affected code lines. Best create such issues by clicking on the affected code line or select those lines and use the "Reference in new issue" drop down menu left to the selection.
+Typically any such pull request shall be available for review by any interested party for commenting.
 
 For larger additions affecting more than a simple type please see section "Feature Development Process" below.
 
@@ -37,13 +37,17 @@ ONVIF will maintain the following active branches:
   Implementers may use this branch. However in the unlikely case of IPR notices indiviual changes may be revoked.
 
 * xx.oo - Development branch for version after next version  
-  Feature requests shall be submitted to this branch. Note that this branch will be frozen after about half a year for ONVIF IPR review.
+  Feature requests shall be submitted to this branch.
+
+A pull request to any of the development branches shall be reviewed by at least two TC member companies before being merged. 
+Note that a pull request typically also needs to await the 14 day review period.
 
 Beside the above branches the following temporary branches may be established:  
 * issue-xx-yyyyy - Change request for issue XX with short title YYYY.  
   Note that these branches may be deleted once the pull request has been approved.
 
-* xxxx-yyyy - Feature branch for group xxxx with short title yyyyy.  
+* xxxx/yyyy - Feature branch for group xxxx with short title yyyyy.  
+
 
 ## Feature Development Process
 

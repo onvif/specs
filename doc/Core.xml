@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<?xml-stylesheet href="docbook.xsl" type="text/xsl" ?>
 <book xmlns="http://docbook.org/ns/docbook" version="5.0">
   <info>
     <title>ONVIF Core Specification</title>
@@ -3207,7 +3208,7 @@ onvif://www.onvif.org/name/ARV-453
                   </entry>
                 </row>
                 <row>
-                  <entry morerows="13">
+                  <entry morerows="15">
                     <para>System</para>
                   </entry>
                   <entry>
@@ -3320,6 +3321,16 @@ onvif://www.onvif.org/name/ARV-453
                   <entry>
                     <para>Enumerates the supported StorageTypes.</para>
                   </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>NetworkConfigNotSupported</para>
+                  </entry>
+                  <entry>Indicates no support for network configuration.</entry>
+                </row>
+                <row>
+                  <entry>UserConfigNotSupported</entry>
+                  <entry>Indicates no support for user configuration.</entry>
                 </row>
                 <row>
                   <entry morerows="13">
@@ -3492,6 +3503,7 @@ onvif://www.onvif.org/name/ARV-453
     </section>
     <section xml:id="_Toc278964059">
       <title>Network</title>
+	  <para> A device shall support the commands defined in this section unless the NetworkNotSupported capability is signalled as 'True' confirming it doesn’t support network configuration. </para>
       <section>
         <title>Get hostname</title>
         <para>This operation is used by an endpoint to get the hostname from a device. The device shall return its hostname configurations through the GetHostname command.</para>
@@ -5495,7 +5507,7 @@ onvif://www.onvif.org/name/ARV-453
       </section>
       <section>
         <title>Get users</title>
-        <para>This operation lists the registered users and along with their user levels. The device shall support retrieval of registered device users through the GetUsers command.</para>
+        <para>This operation lists the registered users and along with their user levels. A device shall support this command unless support signalled via the UserConfigNotSupported capability is ‘True’. The device shall support retrieval of registered device users through the GetUsers command.</para>
         <para>Furthermore a device shall not return the credentials (password) in the reply.</para>
         <variablelist role="op">
           <varlistentry>
@@ -5527,7 +5539,7 @@ onvif://www.onvif.org/name/ARV-453
       </section>
       <section>
         <title>Create users</title>
-        <para>This operation creates new device users and corresponding credentials on a device for authentication, see Section <xref linkend="_Ref208379139" /> for details. The device shall support creation of device users and their credentials for authentication through the CreateUsers command as long as the number of existing users does not exceed the capability value MaxUsers. Either all users are created successfully or a fault message shall be returned without creating any user.</para>
+        <para>This operation creates new device users and corresponding credentials on a device for authentication, see Section <xref linkend="_Ref208379139" /> for details.  A device shall support this command unless support signalled via the UserConfigNotSupported capability is ‘True’. The device shall support creation of device users and their credentials for authentication through the CreateUsers command as long as the number of existing users does not exceed the capability value MaxUsers. Either all users are created successfully or a fault message shall be returned without creating any user.</para>
         <para>ONVIF compliant devices are recommended to support password length of at least 28 bytes.</para>
         <variablelist role="op">
           <varlistentry>
@@ -5572,7 +5584,7 @@ onvif://www.onvif.org/name/ARV-453
       </section>
       <section>
         <title>Delete users</title>
-        <para>This operation deletes users on a device. The device shall support deletion of device users and their credentials for authentication through the DeleteUsers command. A device may have one or more fixed users that cannot be deleted to ensure access to the unit. Either all users are deleted successfully or a fault message shall be returned and no users be deleted.</para>
+        <para>This operation deletes users on a device.  A device shall support this command unless support signalled via the UserConfigNotSupported capability is ‘True’. The device shall support deletion of device users and their credentials for authentication through the DeleteUsers command. A device may have one or more fixed users that cannot be deleted to ensure access to the unit. Either all users are deleted successfully or a fault message shall be returned and no users be deleted.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -5607,7 +5619,7 @@ onvif://www.onvif.org/name/ARV-453
       </section>
       <section>
         <title>Set users settings</title>
-        <para>This operation updates the settings for one or several users on a device for authentication, see Sect. <xref linkend="_Ref208379139" /> for details. The device shall support update of device users and their credentials through the SetUser command. Either all change requests are processed successfully or a fault message shall be returned and no change requests be processed.</para>
+        <para>This operation updates the settings for one or several users on a device for authentication, see Sect. <xref linkend="_Ref208379139" /> for details. The device shall support update of device users and their credentials through the SetUser command.  A device shall support this command unless support signalled via the UserConfigNotSupported capability is ‘True’. Either all change requests are processed successfully or a fault message shall be returned and no change requests be processed.</para>
         <para>In case the optional password value is omitted the device will consider to clear the password. If the device can not accept the password of zero length, the fault message of "ter:PasswordTooWeak" will be returned.</para>
         <variablelist role="op">
           <varlistentry>
@@ -6359,7 +6371,7 @@ tns1:Device/OperationMode/UploadInitiated
 Event description:
 <tt:MessageDescription IsProperty="true“>
   <tt:source>
-    <tt:ElementItemDescription Name=“DeviceEntity“ Type=“tt:DeviceEntity"/>
+    <tt:SimpleItemDescription Name="Token" Type="tt:ReferenceToken"/>
   </tt:source>
   <tt:Data>
     <tt:ElementItemDescription Name="CurrentLocation" Type=“tt:GeoLocation"/>
