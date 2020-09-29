@@ -1,3 +1,7 @@
+# Branch for developing CR11
+
+CR #11 - Backward compatible way of handling network interfaces and user handling
+
 # ONVIF Technical Specification Development
 This repository is dedicated to future extensions of the ONVIF Network Interface Specifications which include
 
