@@ -43,10 +43,12 @@ font-size:14pt;
 .param {
 font-weight: bold;
 margin-left: 15mm;
+margin-top: 1.5mm;
 }
 .text {
 margin-left: 15mm;
 margin-top: 0mm;
+margin-bottom: 3mm;
 }
 .reference {
 margin-top: 0mm;
@@ -129,7 +131,7 @@ padding: 1mm 3mm 1mm 3mm;
     </xsl:template>
     
     <xsl:template match="db:section[ancestor::db:appendix]">
-        <div style="margin-top:30mm"><h2><xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> <xsl:value-of select="db:title"/></h2></div>
+        <h2><xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> <xsl:value-of select="db:title"/></h2>
         <xsl:apply-templates />
     </xsl:template>
 
