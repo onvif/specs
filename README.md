@@ -1,7 +1,3 @@
-# Branch for issue CR27
-
-CR #27 - FixedRules fault missing for CreateRules command in the Analytics service spec
-
 # ONVIF Technical Specification Development
 This repository is dedicated to future extensions of the ONVIF Network Interface Specifications which include
 
