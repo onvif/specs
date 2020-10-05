@@ -22,6 +22,9 @@ padding: 30mm 30mm 30mm 30mm;
 div {
 margin-top: 5mm;
 }
+li {
+margin-top: 2.5mm;
+}
 pre {
 font-size:9pt;
 }
@@ -147,6 +150,7 @@ padding: 1mm 3mm 1mm 3mm;
         <div class='op'><xsl:value-of select="."/>:</div>
     </xsl:template>
 
+    <!-- Lists -->
     <xsl:template match="db:para[@role]">
         <xsl:element name="div">
             <xsl:attribute name="class"><xsl:value-of select="@role"/></xsl:attribute>
@@ -163,6 +167,16 @@ padding: 1mm 3mm 1mm 3mm;
                 </tr>
             </xsl:for-each>
         </tbody></table>
+    </xsl:template>
+    
+    <xsl:template match="db:itemizedlist">
+        <ul>
+            <xsl:for-each select="db:listitem">
+				<li>
+                   <xsl:value-of select="db:para"/>
+                </li>
+            </xsl:for-each>
+        </ul>
     </xsl:template>
     
 <!-- Tables -->    
