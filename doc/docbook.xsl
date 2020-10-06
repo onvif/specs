@@ -103,10 +103,17 @@ padding: 1mm 3mm 1mm 3mm;
     </xsl:template>
     
 <!-- Headings   -->
-    <xsl:template match="db:chapter|db:section[ancestor::db:chapter]">
+    <xsl:template match="db:chapter|db:section">
         <xsl:element name="div">
             <xsl:apply-templates select="@xml:id"/>
-            <h2><xsl:number level="multiple" count="db:chapter|db:section" format="1.1 "/> <xsl:value-of select="db:title"/></h2>
+            <xsl:choose>
+                <xsl:when test="ancestor::db:chapter">
+                    <h2><xsl:number level="multiple" count="db:chapter|db:section" format="1.1 "/> <xsl:value-of select="db:title"/></h2>
+                </xsl:when>
+                <xsl:otherwise>
+                    <h2><xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> <xsl:value-of select="db:title"/></h2>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:element>
         <xsl:apply-templates />
     </xsl:template>
@@ -133,11 +140,6 @@ padding: 1mm 3mm 1mm 3mm;
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="db:section[ancestor::db:appendix]">
-        <h2><xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> <xsl:value-of select="db:title"/></h2>
-        <xsl:apply-templates />
-    </xsl:template>
-
     <!-- Paragraph -->
     <xsl:template match="db:emphasis[@role='bold']">
         <b><xsl:value-of select="."/></b>
@@ -231,7 +233,6 @@ padding: 1mm 3mm 1mm 3mm;
             <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
-    
     <!-- Figures-->
     <xsl:template match="db:figure">
         <div class="figure">
