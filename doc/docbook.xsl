@@ -105,15 +105,17 @@ padding: 1mm 3mm 1mm 3mm;
 <!-- Headings   -->
     <xsl:template match="db:chapter|db:section">
         <xsl:element name="div">
-            <xsl:apply-templates select="@xml:id"/>
-            <xsl:choose>
-                <xsl:when test="ancestor::db:chapter">
-                    <h2><xsl:number level="multiple" count="db:chapter|db:section" format="1.1 "/> <xsl:value-of select="db:title"/></h2>
-                </xsl:when>
-                <xsl:otherwise>
-                    <h2><xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> <xsl:value-of select="db:title"/></h2>
-                </xsl:otherwise>
-            </xsl:choose>
+			<h2>
+				<xsl:apply-templates select="@xml:id"/>
+				<xsl:choose>
+					<xsl:when test="ancestor::db:appendix">
+						<xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> 
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:number level="multiple" count="db:chapter|db:section" format="1.1 "/>
+					</xsl:otherwise>
+				</xsl:choose>
+			<xsl:value-of select="db:title"/></h2>
         </xsl:element>
         <xsl:apply-templates />
     </xsl:template>
