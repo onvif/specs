@@ -70,6 +70,8 @@ All documents are designed such that they can be edited by any text editor. Bett
     Be careful when using this editor because it tends to reformat the complete document. Usage for creating snippets is ok.
 
 For text documents DocBook5 is used. For details on DocBook editing and formatting see https://docbook.org/ .
+
+For instructions regarding document and wsdl preview see [link](doc/README.md).
 ## Maintainers
 
 The elected ONVIF Technical Committee members act as change control board and maintainers of this repository. Typically any change proposals is kept pending for at least two weeks to collect comments. Decisions on pull requests and issues will be documented in place. 
