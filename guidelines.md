@@ -44,9 +44,8 @@ Note that a pull request typically also needs to await the 14 day review period.
 
 Beside the above branches the following temporary branches may be established:  
 * issue-xx-yyyyy - Change request for issue XX with short title YYYY.  
-  Note that these branches may be deleted once the pull request has been approved.
 
-* xxxx/yyyy - Feature branch for group xxxx with short title yyyyy.  
+* xxxx/yyyy-zzzz - Feature branch for group xxxx with short title yyyy-zzzz.  
 
 
 ## Feature Development Process
