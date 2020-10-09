@@ -13,40 +13,38 @@ Changes should fall into the following three categories:
 
 * New functionality. The proposal adds one or more features to the specifications.
 
-## Specification Change Process
-
-The change process depends on both the size and impact of the change proposal: 
-
-Each change request (CR) shall be submitted as pull request. The comment of a pull request shall include the following information:
-* Reason: containing a problem description and a description of the solution proposal.
-* Compatibility analysis: An analysis describing possible impact on forward and or backward compatibility. 
-
-Typically any such pull request shall be available for review by any interested party for commenting.
-
-For larger additions affecting more than a simple type please see section "Feature Development Process" below.
-
-## Specification workflow
+## Repository branches
 
 ONVIF will maintain the following active branches:
 
-* master - Current stable version.  
-  No CRs are accepted directly to modify the specification.
+* master - Current stable version reflecting the released specifications.  
+  Update from development branches only.
 
 * xx.nn - Development branch for next version  
-  Change requests for clarifications and consistency may be submitted to this branch.
+  Change requests for clarifications and consistency should be submitted to this branch. Minimal additions or features in 
+  IPR review may be submitted to this branch.
   Implementers may use this branch. However in the unlikely case of IPR notices indiviual changes may be revoked.
 
 * xx.oo - Development branch for version after next version  
-  Feature requests shall be submitted to this branch.
-
-A pull request to any of the development branches shall be reviewed by at least two TC member companies before being merged. 
-Note that a pull request typically also needs to await the 14 day review period.
+  Feature requests pending for IPR review shall be submitted to this branch.
 
 Beside the above branches the following temporary branches may be established:  
 * issue-xx-yyyyy - Change request for issue XX with short title YYYY.  
 
-* xxxx/yyyy-zzzz - Feature branch for group xxxx with short title yyyy-zzzz.  
+* xxxx/yyyy-zzzz - Feature branch for group xxxx with short title yyyy-zzzz.  ## Specification Change Process
 
+## Specification change workflow
+
+Any party may file a change request. A change request must include a complete change proposal and be 
+submitted as pull request to one of the development branches. 
+The comment of a pull request shall include the following information:  
+* Reason: containing a problem description and a description of the solution proposal.
+* Compatibility analysis: An analysis describing possible impact on forward and or backward compatibility. 
+
+A pull request to any of the development branches shall be reviewed by at least two TC member companies before being merged. 
+Note that a pull request typically also needs to await a 14 day review period in order to enable any interested party to review or comment.
+
+For larger additions affecting more than a simple type please see section "Feature Development Process" below. 
 
 ## Feature Development Process
 
