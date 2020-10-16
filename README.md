@@ -1,7 +1,3 @@
-# Branch for issue CR32
-
-CR #32 - CreateRules missing requirement about rule creation with empty parameters
-
 # ONVIF Technical Specification Development
 This repository is dedicated to future extensions of the ONVIF Network Interface Specifications which include
 
