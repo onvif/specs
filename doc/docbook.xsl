@@ -229,6 +229,18 @@ padding: 1mm 3mm 1mm 3mm;
     <xsl:template match="db:para" mode="plain">
         <xsl:apply-templates/>
     </xsl:template>
+
+    <xsl:template match="db:superscript">
+		<sup>
+			<xsl:apply-templates/>
+		</sup>
+    </xsl:template>
+    
+    <xsl:template match="db:emphasis[@role=bold]">
+		<b>
+			<xsl:apply-templates/>
+		</b>
+    </xsl:template>
     
     <xsl:template match="@* | node()">
         <xsl:copy>
@@ -266,7 +278,7 @@ padding: 1mm 3mm 1mm 3mm;
  
     <xsl:template match="db:programlisting">
         <pre>
-            <xsl:value-of select="."/>
+            <xsl:apply-templates/>
         </pre>
     </xsl:template>
  
