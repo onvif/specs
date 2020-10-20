@@ -20,13 +20,16 @@ text-align: left;
 padding: 30mm 30mm 30mm 30mm; 
 }
 div {
-margin-top: 5mm;
+margin-bottom: 5mm;
 }
 li {
 margin-top: 2.5mm;
 }
 pre {
 font-size:9pt;
+}
+td {
+vertical-align: top
 }
 .heading {
 font-size:20pt;
@@ -47,6 +50,7 @@ font-size:14pt;
 font-weight: bold;
 margin-left: 15mm;
 margin-top: 1.5mm;
+margin-bottom: 1mm;
 }
 .text {
 margin-left: 15mm;
@@ -62,6 +66,7 @@ text-align: center;
 }
 .op {
 text-transform: uppercase;
+margin-bottom: 0mm;
 }
 .table {
 text-align: center;
