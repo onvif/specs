@@ -3123,10 +3123,116 @@
   </chapter>
   <appendix>
     <title>Specified Rules (informative)</title>
-    <para>This Annex defines a set of generic rules. The rules are mainly designed for static
-      cameras since the graphical primitives are provided using bounds based normalized coordinates.
-      For usage with PTZ devices see <xref xmlns:xlink="http://www.w3.org/1999/xlink"
-        linkend="Annex-Rules-PTZ"/>.</para>
+    <section>
+      <title>Overview</title>
+      <para>This Annex defines a set of generic rules. Rules are mainly designed for static cameras
+        since the graphical primitives are provided using bounds based normalized coordinates. For
+        usage with PTZ devices see <xref xmlns:xlink="http://www.w3.org/1999/xlink"
+          linkend="Annex-Rules-PTZ"/>.</para>
+      <section xml:id='_msgSource'>
+        <title>Message format</title>
+        <para>Whenever a rule triggers it generates a message according to the core specification
+          message defition. The topic identifies the rule type while the source items identify the
+          originating input and rule. Most events signal their status via data values.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>Topic</term>
+            <listitem><para role="text">Topic of the rule related event.</para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Source</term>
+            <listitem>
+              <para role="param">VideoSource [tt:ReferenceToken]</para>
+              <para role="text">The token of the video source.</para>
+              <para role="param">AnalyticsConfiguration - optional [tt:ReferenceToken]</para>
+              <para role="text">Optional token of the analytics configuration.</para>
+              <para role="param">Rule [xs:string]</para>
+              <para role="text">Name of the Rule.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Data</term>
+            <listitem>
+              <para role="text">Data items are rule specific. For property events any change of the data values items must be signaled with a changed event.
+              Non-property events may have no data items at all.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+        <para>The data section contains the rule specific state or event information.</para>
+        <programlisting><![CDATA[<tt:Messages>
+  <tt:Source>
+    <tt:SimpleItemDescription Name="VideoSource" Type="tt:ReferenceToken"/>
+    <tt:SimpleItemDescription Name="AnalyticsConfiguration" Type="tt:ReferenceToken"/>
+    <tt:SimpleItemDescription Name="Rule" Type="xs:string"/>
+  </tt:Source>
+  <tt:Data>
+    ...
+  </tt:Data>
+  <tt:ParentTopic>tns1:RuleEngine/Xxxx</tt:ParentTopic>
+</tt:Messages>]]></programlisting>
+      </section>
+      <section>
+        <title>Parameters</title>
+        <para>Generally parameters are rule specific. Implementations may extend the ONVIF defined
+          rules by providing additional parameters for e.g. object or other constraints. Note that
+          these additional parameters are optional. Vendors should check the availability of ONVIF
+          defined parameters like the class filter before defining own items.</para>
+        <section>
+          <title>Generic parameters</title>
+          <para>The following section is reserved for ONVIF defined generic parameters.</para>
+          <para>A device signals via GetSupportedRules which parameters may be applied to its various rules. For all parameters a device should also signal their valid ranges via GetRuleOptions whether a rule supports these.</para>
+        </section>
+      <section xml:id="_objectClass">
+        <title>Object Classification</title>
+        <para>Object classification can be utilized in rules to restrict generation of events to objects of one or more types. Items should be selected from the ObjectType enumeration. Examples for object types are</para>
+        <itemizedlist>
+          <listitem>
+            <para>Animal</para>
+          </listitem>
+          <listitem>
+            <para>HumanFace</para>
+          </listitem>
+          <listitem>
+            <para>Human</para>
+          </listitem>
+          <listitem>
+            <para>Bicycle</para>
+          </listitem>
+          <listitem>
+            <para>Vehicle</para>
+          </listitem>
+          <listitem>
+            <para>LicensePlate</para>
+          </listitem>
+        </itemizedlist>
+        <para>The following example shows how to apply the ClassFilter to the line detector rule description.</para>
+        <programlisting><![CDATA[<tt:RuleDescription Name="tt:LineDetector">
+  <tt:Parameters>
+    <tt:SimpleItemDescription Name="Direction" Type="tt:Direction"/>
+    <tt:SimpleItemDescription Name="ClassFilter" Type="tt:StringList"/>
+    <tt:ElementItemDescription Name="Segments" Type="tt:Polyline"/>
+  </tt:Parameters>
+  ...
+</tt:Messages>
+</tt:RuleDescription>]]></programlisting>
+        <para>Note that the order of parameters is arbitrary as long as the simple items are listed before the complex element items.</para>
+      </section>
+    </section>
+      <section>
+        <title xml:id="Annex-Rules-PTZ">Moving cameras</title>
+        <para>PTZ devices supporting these kind of rules should remap the graphical primitives based on
+          the current view port resulting from pan, title and zoom values so that these can be used
+          independently from the view port. Of course rules with graphical elements located fully outside
+          of the current view port will not be able to trigger any events.</para>
+        <para>As alternative the rules may include an element item called "PTZStatus" that acts as a
+          filter for activating the rule only when the view port matches the given values.The
+          ElementItem identifies the position of the device for which the rule has been setup. The
+          corresponding ElementItemDescription resembles the following:</para>
+        <programlisting><![CDATA[<tt:ElementItemDescription Name="PTZStatus" Type="tt:PTZStatus">]]></programlisting>
+        <para>Note that tolerances for matching are outside of the scope of this specification.
+          However devices should strive to tolerate and compensate for small deviations.</para>
+      </section>
+    </section>
     <section>
       <title>LineDetector</title>
       <para>LineDetector is defined by a non-intersecting simple polyline. If an object crosses the polyline in the specified direction, the rule engine sends a Crossed event containing the name of the LineDetector and a reference to the object which has crossed the line. As directions, one can select between Left, Right, and Any, where directions Left and Right refer to the direction walking along the line from the first point to the second point and are the prohibited directions. The specific definition of the Left and Right direction can refer to the following <xref linkend="_Ref529526650" />, A is the first point and B is the second point.</para>
@@ -3600,122 +3706,6 @@
   </tan:RuleOptions>
 </tan:GetRuleOptionsResponse>
 ]]></programlisting>
-    </section>
-    <section>
-      <title>Object Classification</title>
-      <para>Object classification can be utizlied in rules to restrict generation of events to objects of one or more types. Items should be selected from the ObjectType enumeration. Examples for object types are</para>
-      <itemizedlist>
-        <listitem>
-          <para>Animal</para>
-        </listitem>
-        <listitem>
-          <para>HumanFace</para>
-        </listitem>
-        <listitem>
-          <para>Human</para>
-        </listitem>
-        <listitem>
-          <para>Bicycle</para>
-        </listitem>
-        <listitem>
-          <para>Vehicle</para>
-        </listitem>
-        <listitem>
-          <para>LicensePlate</para>
-        </listitem>
-      </itemizedlist>
-      <para>Note, that the actually supported object types can be notified using the description language parameter options defined in <xref linkend="_Toc529533198" />.</para>
-      <para>The following example shows a RuleDescription including<literal></literal>ClassFilter in the parameter description.</para>
-      <programlisting><![CDATA[<tt:RuleDescription Name="tt:XXXDetector">
-  <tt:Parameters>
-    <tt:SimpleItemDescription Name="Direction" Type="tt:Direction"/>
-    <tt:ElementItemDescription Name="Segments" Type="tt:Polyline"/>
-    <tt:SimpleItemDescription Name="ClassFilter" Type="tt:StringList"/>
-  </tt:Parameters>
-  ...
-</tt:Messages>
-</tt:RuleDescription>
-]]></programlisting>
-    </section>
-    <section>
-      <title>Query rule</title>
-      <para>The query rule allows a client to define a query on streamed metadata of multimedia streams. The client subscribes to the topic associated with the rule to receive notifications from a device.</para>
-      <programlisting><![CDATA[<tt:RuleDescription Name="tt:QueryRule">
-  <tt:Parameters>
-    <tt:ElementItemDescription Name="Query" Type="tt:MetadataFilter"/>
-    <tt:SimpleItemDescription Name="VideoSource" Type="tt:ReferenceTokenList"/>
-  </tt:Parameters>
-  <tt:Messages>
-    <tt:Source>
-      <tt:SimpleItemDescription Name="VideoSourceConfigurationToken"
-        Type="tt:ReferenceToken"/>
-      <tt:SimpleItemDescription Name="VideoAnalyticsConfigurationToken"
-        Type="tt:ReferenceToken"/>
-      <tt:SimpleItemDescription Name="Rule" Type="xs:string"/>
-    </tt:Source>
-    <tt:Data>
-      <tt:ElementItemDescription Name="Result" Type="xs:any"/>
-    </tt:Data>
-    <tt:ParentTopic>
-      tns1:RuleEngine/QueryRule
-    </tt:ParentTopic>
-  </tt:Messages>
-</tt:RuleDescription>
-]]></programlisting>
-      <para>The topic is tns1:RuleEngine/QueryRule and the value of "Rule” in the notification event wll indicate which Query Rule instance generated the event. The client should subscribe the topic with the proper rule name to receive the events from the specific query rule. The configuration parameters are given in <xref linkend="_Ref522787081" />.</para>
-      <table>
-        <title xml:id="_Ref522787081">Query Rule configuration parameters</title>
-        <tgroup cols="2">
-          <colspec colname="c1" colwidth="22*" />
-          <colspec colname="c2" colwidth="78*" />
-          <thead>
-            <row>
-              <entry>
-                <para>
-                  <emphasis role="bold">Parameter Name</emphasis>
-                </para>
-              </entry>
-              <entry>
-                <para>
-                  <emphasis role="bold">Description</emphasis>
-                </para>
-              </entry>
-            </row>
-          </thead>
-          <tbody valign="top">
-            <row>
-              <entry>
-                <para>Query</para>
-              </entry>
-              <entry>
-                <para>Contains the query definition</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>VideoSource</para>
-              </entry>
-              <entry>
-                <para>Selects which video source or sources the query will execute on</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-    </section>
-    <section>
-      <title xml:id="Annex-Rules-PTZ">Moving cameras</title>
-      <para>PTZ devices supporting these kind of rules should remap the graphical prmitives based on
-        the current view port resulting from pan, title and zoom values so that these can be used
-        independt from the view port. Of course rules with graphical elements located fully outside
-        of the current view port will not be able to trigger any events.</para>
-      <para>As alternative the rules may include an element item called "PTZStatus" that acts as a
-        filter for activating the rule only when the view port matches the given values.The
-        ElementItem identifies the position of the device for which the rule has been setup. The
-        corresponding ElementItemDescription resembles the following:</para>
-      <programlisting><![CDATA[<tt:ElementItemDescription Name="PTZStatus" Type="tt:PTZStatus">]]></programlisting>
-      <para>Note that tolerances for matching are outside of the scope of this specification.
-        However devices should strive to tolerate and compensate for small deviations.</para>
     </section>
   </appendix>
   <appendix>
