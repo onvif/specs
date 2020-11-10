@@ -22,6 +22,9 @@ padding: 30mm 30mm 30mm 30mm;
 div {
 margin-top: 5mm;
 }
+li {
+margin-top: 2.5mm;
+}
 pre {
 font-size:9pt;
 }
@@ -43,10 +46,12 @@ font-size:14pt;
 .param {
 font-weight: bold;
 margin-left: 15mm;
+margin-top: 1.5mm;
 }
 .text {
 margin-left: 15mm;
 margin-top: 0mm;
+margin-bottom: 3mm;
 }
 .reference {
 margin-top: 0mm;
@@ -98,10 +103,19 @@ padding: 1mm 3mm 1mm 3mm;
     </xsl:template>
     
 <!-- Headings   -->
-    <xsl:template match="db:chapter|db:section[ancestor::db:chapter]">
+    <xsl:template match="db:chapter|db:section">
         <xsl:element name="div">
-            <xsl:apply-templates select="@xml:id"/>
-            <h2><xsl:number level="multiple" count="db:chapter|db:section" format="1.1 "/> <xsl:value-of select="db:title"/></h2>
+			<h2>
+				<xsl:apply-templates select="@xml:id"/>
+				<xsl:choose>
+					<xsl:when test="ancestor::db:appendix">
+						<xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> 
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:number level="multiple" count="db:chapter|db:section" format="1.1 "/>
+					</xsl:otherwise>
+				</xsl:choose>
+			<xsl:value-of select="db:title"/></h2>
         </xsl:element>
         <xsl:apply-templates />
     </xsl:template>
@@ -128,11 +142,6 @@ padding: 1mm 3mm 1mm 3mm;
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="db:section[ancestor::db:appendix]">
-        <div style="margin-top:30mm"><h2><xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> <xsl:value-of select="db:title"/></h2></div>
-        <xsl:apply-templates />
-    </xsl:template>
-
     <!-- Paragraph -->
     <xsl:template match="db:emphasis[@role='bold']">
         <b><xsl:value-of select="."/></b>
@@ -145,6 +154,7 @@ padding: 1mm 3mm 1mm 3mm;
         <div class='op'><xsl:value-of select="."/>:</div>
     </xsl:template>
 
+    <!-- Lists -->
     <xsl:template match="db:para[@role]">
         <xsl:element name="div">
             <xsl:attribute name="class"><xsl:value-of select="@role"/></xsl:attribute>
@@ -161,6 +171,16 @@ padding: 1mm 3mm 1mm 3mm;
                 </tr>
             </xsl:for-each>
         </tbody></table>
+    </xsl:template>
+    
+    <xsl:template match="db:itemizedlist">
+        <ul>
+            <xsl:for-each select="db:listitem">
+				<li>
+                   <xsl:value-of select="db:para"/>
+                </li>
+            </xsl:for-each>
+        </ul>
     </xsl:template>
     
 <!-- Tables -->    
@@ -215,7 +235,6 @@ padding: 1mm 3mm 1mm 3mm;
             <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
-    
     <!-- Figures-->
     <xsl:template match="db:figure">
         <div class="figure">
