@@ -3229,7 +3229,37 @@ Added Recognition rule engines</revremark>
           </imageobject>
         </mediaobject>
       </figure>
-      <para>The LineDetector resembles the following code using the rule description language, detailed in the previous section:</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>Parameters</term>
+          <listitem>
+            <para role="param">Direction - optional [tt:Direction]</para>
+            <para role="text">Optional restriction of direction sensitivity. Default is any.</para>
+            <para role="param">Segments [tt:Polyline]</para>
+            <para role="text">Graphical line definition in normalized coordinates.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Topic</term>
+          <listitem>
+            <para role="param">tns1:RuleEngine/LineDetector/Crossed</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem>
+            <para role="text">See <xref linkend="_msgSource"/></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Data</term>
+          <listitem>
+            <para role="param">ObjectID - optional [xs:integer]</para>
+            <para role="text">ID of the passing object that triggered the event.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>The following snippet shows the rule definition:</para>
       <programlisting><![CDATA[<tt:RuleDescription Name="tt:LineDetector">
   <tt:Parameters>
     <tt:SimpleItemDescription Name="Direction" Type="tt:Direction"/>
@@ -3237,11 +3267,7 @@ Added Recognition rule engines</revremark>
   </tt:Parameters>
   <tt:Messages>
     <tt:Source>
-      <tt:SimpleItemDescription Name="VideoSourceConfigurationToken"
-        Type="tt:ReferenceToken"/>
-      <tt:SimpleItemDescription Name="VideoAnalyticsConfigurationToken"
-        Type="tt:ReferenceToken"/>
-      <tt:SimpleItemDescription Name="Rule" Type="xs:string"/>
+      ...
     </tt:Source>
     <tt:Data>
       <tt:SimpleItemDescription Name="ObjectId" Type="xs:integer"/>
@@ -3250,29 +3276,53 @@ Added Recognition rule engines</revremark>
   </tt:Messages>
 </tt:RuleDescription>
 ]]></programlisting>
-      <para>The code above defines two parameters, Segments and Direction, and produces one event attached to the topic tns1:RuleEngine/LineDetector/Crossed.</para>
     </section>
     <section>
       <title>Field Detector</title>
       <para>A FieldDetector is defined by a simple non-intersecting polygon. The FieldDetector determines if each object in the scene inside or outside the polygon. This information is put into a property.</para>
-      <para>FieldDetector resembles the following code, using the Rule Description Language detailed in the previous section:</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>Parameters</term>
+          <listitem>
+            <para role="param">Field [tt:Polygon]</para>
+            <para role="text">Graphical field definition in normalized coordinates.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Topic</term>
+          <listitem>
+            <para role="param">tns1:RuleEngine/FieldDetector/ObjectsInside</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem>
+            <para role="text">See <xref linkend="_msgSource"/></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Data</term>
+          <listitem>
+            <para role="param">IsInside [xs:boolean]</para>
+            <para role="text">True if one or more objects matching the parameters are inside.</para>
+            <para role="param">ObjectID - optional [tt:StringList]</para>
+            <para role="text">Optional list of objects triggering this rule.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>Note: a device signaling ObjectID shall emit changed events whenever the list of objects changes.</para>
+      <para>See below example for a FieldDetector definition:</para>
       <programlisting><![CDATA[<tt:RuleDescription Name="tt:FieldDetector">
   <tt:Parameters>
     <tt:ElementItemDescription Name="Field" Type="tt:Polygon"/>
   </tt:Parameters>
   <tt:Messages IsProperty="true">
     <tt:Source>
-      <tt:SimpleItemDescription Name="VideoSourceConfigurationToken"
-        Type="tt:ReferenceToken"/>
-      <tt:SimpleItemDescription Name="VideoAnalyticsConfigurationToken"
-        Type="tt:ReferenceToken"/>
-      <tt:SimpleItemDescription Name="Rule" Type="xs:string"/>
+      ...
     </tt:Source>
-    <tt:Key>
-      <tt:SimpleItemDescription Name="ObjectId" Type="xs:integer"/>
-    </tt:Key>
     <tt:Data>
       <tt:SimpleItemDescription Name="IsInside" Type="xs:boolean"/>
+      <tt:SimpleItemDescription Name="ObjectId" Type="tt:StringList"/>
     </tt:Data >
     <tt:ParentTopic>
       tns1:RuleEngine/FieldDetector/ObjectsInside
@@ -3280,35 +3330,59 @@ Added Recognition rule engines</revremark>
   </tt:Messages>
 </tt:RuleDescription>
 ]]></programlisting>
-      <para>From the Inside property, a client can derive the Entering and the Leaving parameters of the detector. A client can simulate Entering and Leaving events by adding a MessageContent Filter to the subscription, which lets only ObjectsInside messages pass, where the IsInside Item is set to true resp. false.</para>
     </section>
     <section>
       <title>Loitering Detector</title>
-      <para>A LoiteringDetector is defined by a simple non-intersecting polygon as an area of interest and threshold loitering interval. The LoiteringDetector determines if each object in the scene inside the polygon longer than the given time threshold value. It publishes when the object started loitering.</para>
-      <para>LoiteringDetector defined by the following code using the rule description language:</para>
+      <para>A LoiteringDetector is defined by a simple non-intersecting polygon as an area of
+        interest and threshold loitering interval. The LoiteringDetector determines if each object
+        in the scene inside the polygon longer than the given time threshold value. It publishes
+        when the object started loitering.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>Parameters</term>
+          <listitem>
+            <para role="param">Field - optional [tt:Polygon]</para>
+            <para role="text">Optional graphical field restricting the detection area.</para>
+            <para role="param">TimeThreshold - [xs:duration]</para>
+            <para role="text">Maximum duration before an object is judged to be loitering.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Topic</term>
+          <listitem>
+            <para role="param">tns1:RuleEngine/LoiteringDetector/ObjectIsLoitering</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem>
+            <para role="text">See <xref linkend="_msgSource"/></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Data</term>
+          <listitem>
+            <para role="param">ObjectID - optional [xs:StringList]</para>
+            <para role="text">One or more IDs of objects in loitering state.</para>
+            <para role="param">Since [xs:dateTime]</para>
+            <para role="text">Since when this object is loitering.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>LoiteringDetector defined by the following code using the rule description
+        language:</para>
       <programlisting><![CDATA[<tt:RuleDescription Name="tt:LoiteringDetector">
   <tt:Parameters>
-    <tt:ElementItemDescription Name="Field"
-      Type="tt:PolygonConfiguration"/>
-    <tt:SimpleItemDescription  Name="TimeThreshold"
-      Type="xs:nonNegativeInteger"/>
-    <tt:SimpleItemDescription  Name="isPeriodicNotify" Type="xs:boolean"/>
-    <tt:SimpleItemDescription  Name="TimeInterval"     Type="xs:duration"/>
+    <tt:SimpleItemDescription  Name="TimeThreshold" Type="xs:duration"/>
+    <tt:ElementItemDescription Name="Field" Type="tt:Polygon"/>
   </tt:Parameters>
   <tt:Messages IsProperty="true">
     <tt:Source>
-      <tt:SimpleItemDescription Name="VideoSourceConfigurationToken"
-        Type="tt:ReferenceToken"/>
-      <tt:SimpleItemDescription Name="VideoAnalyticsConfigurationToken"
-        Type="tt:ReferenceToken"/>
-      <tt:SimpleItemDescription Name="Rule" Type="xs:string"/>
+      ...
     </tt:Source>
-    <tt:Key>
-      <tt:SimpleItemDescription Name="ObjectId" Type="xs:integer"/>
-    </tt:Key>
     <tt:Data>
-      <tt:SimpleItemDescription Name="Since"     Type="xs:dateTime"/>
-      <tt:SimpleItemDescription Name="TimeStamp" Type="xs:dateTime"/>
+      <tt:SimpleItemDescription Name="ObjectId" Type="tt:StringList"/>
+      <tt:SimpleItemDescription Name="Since" Type="xs:dateTime"/>
     </tt:Data >
     <tt:ParentTopic>
       tns1:RuleEngine/LoiteringDetector/ObjectIsLoitering
@@ -3316,216 +3390,6 @@ Added Recognition rule engines</revremark>
   </tt:Messages>
 </tt:RuleDescription>
 ]]></programlisting>
-      <para>The above rule definition defines that a rule instance produces an event attached to the topic tns1:RuleEngine/LoiteringDetector/ObjectIsLoitering, and the configuration parameters are given in <xref linkend="_Ref522786801" />.</para>
-      <table>
-        <title xml:id="_Ref522786801">Loitering Detector rule configuration paramaters</title>
-        <tgroup cols="2">
-          <colspec colname="c1" colwidth="22*" />
-          <colspec colname="c2" colwidth="78*" />
-          <thead>
-            <row>
-              <entry>
-                <para>Parameter Name</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody valign="top">
-            <row>
-              <entry>
-                <para>Field</para>
-              </entry>
-              <entry>
-                <para>Area in camera field of view to detect object loitering </para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>TimeThreshold</para>
-              </entry>
-              <entry>
-                <para>Maximum time threshold to judge that object is loitering</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>isPeriodicNotify</para>
-              </entry>
-              <entry>
-                <para>Whether continue to generate periodic events for loitering object</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>TimeInterval</para>
-              </entry>
-              <entry>
-                <para>Periodic time interval to continue to send loitering events for loitering object</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <para>The event contains the fields given in <xref linkend="_Ref522786825" />.</para>
-      <table>
-        <title xml:id="_Ref522786825">Description of loitering event fields</title>
-        <tgroup cols="2">
-          <colspec colname="c1" colwidth="22*" />
-          <colspec colname="c2" colwidth="78*" />
-          <thead>
-            <row>
-              <entry>
-                <para>
-                  <emphasis role="bold">Parameter Name</emphasis>
-                </para>
-              </entry>
-              <entry>
-                <para>
-                  <emphasis role="bold">Description</emphasis>
-                </para>
-              </entry>
-            </row>
-          </thead>
-          <tbody valign="top">
-            <row>
-              <entry>
-                <para>ObjectId</para>
-              </entry>
-              <entry>
-                <para>Object Identifier</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>Since</para>
-              </entry>
-              <entry>
-                <para>Since when this object is loitering</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>TimeStamp</para>
-              </entry>
-              <entry>
-                <para>Timestamp of last object sample triggering generation of rule’s event</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-    </section>
-    <section>
-      <title>Declarative motion detector</title>
-      <para>Declarative motion detector detects the object motion against the specified motion attributes. The rule is active within an area (region of interest) and time interval. The condition is defined against the frame/object element in scene descriptor.  </para>
-      <programlisting><![CDATA[<tt:RuleDescription Name="tt:DeclarativeMotionDetector">
-  <tt:Parameters>
-    <tt:ElementItemDescription Name="Field"     Type="tt:PolygonConfiguration"/>
-    <tt:ElementItemDescription Name="MotionExpression"
-      Type="tt:MotionExpressionConfiguration"/>
-  </tt:Parameters>
-  <tt:Messages IsProperty="true">
-    <tt:Source>
-      <tt:SimpleItemDescription Name="VideoSourceConfigurationToken"
-        Type="tt:ReferenceToken"/>
-      <tt:SimpleItemDescription Name="VideoAnalyticsConfigurationToken"
-        Type="tt:ReferenceToken"/>
-      <tt:SimpleItemDescription Name="Rule" Type="xs:string"/>
-    </tt:Source>
-    <tt:Key>
-      <tt:SimpleItemDescription Name="ObjectId" Type="xs:integer"/>
-    </tt:Key>
-    <tt:Data>
-      <tt:SimpleItemDescription Name="TimeStamp" Type="xs:dateTime"/>
-    </tt:Data >
-    <tt:ParentTopic>
-      tns1:RuleEngine/DeclarativeMotionDetector/MotionMatched
-    </tt:ParentTopic>
-  </tt:Messages>
-</tt:RuleDescription>
-]]></programlisting>
-      <para>The above rule description defines that a rule instance produces event attached to the topic tns1:RuleEngine/DeclarativeMotionDetector/MotionMatched, and the configuration parameters given in <xref linkend="_Ref522786880" />.</para>
-      <table>
-        <title xml:id="_Ref522786880">Declarative Motion Detector rule configuration parameters</title>
-        <tgroup cols="2">
-          <colspec colname="c1" colwidth="22*" />
-          <colspec colname="c2" colwidth="78*" />
-          <thead>
-            <row>
-              <entry>
-                <para>
-                  <emphasis role="bold">Parameter Name</emphasis>
-                </para>
-              </entry>
-              <entry>
-                <para>
-                  <emphasis role="bold">Description</emphasis>
-                </para>
-              </entry>
-            </row>
-          </thead>
-          <tbody valign="top">
-            <row>
-              <entry>
-                <para>Field</para>
-              </entry>
-              <entry>
-                <para>Defines an area in camera field of view, the motion matching query is applied in this area for detected object. </para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>MotionExpression</para>
-              </entry>
-              <entry>
-                <para>Motion Expression for frame/object elements in Scene Descriptor schema</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <para>The event contains the fields given in <xref linkend="_Ref522786921" />.</para>
-      <table>
-        <title xml:id="_Ref522786921">Description of declarative motion event fields</title>
-        <tgroup cols="2">
-          <colspec colname="c1" colwidth="22*" />
-          <colspec colname="c2" colwidth="78*" />
-          <thead>
-            <row>
-              <entry>
-                <para>
-                  <emphasis role="bold">Parameter Name</emphasis>
-                </para>
-              </entry>
-              <entry>
-                <para>
-                  <emphasis role="bold">Description</emphasis>
-                </para>
-              </entry>
-            </row>
-          </thead>
-          <tbody valign="top">
-            <row>
-              <entry>
-                <para>ObjectId</para>
-              </entry>
-              <entry>
-                <para>Object Identifier</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>TimeStamp</para>
-              </entry>
-              <entry>
-                <para>Timestamp of detected motion</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
     </section>
     <section>
       <title>Counting rule</title>
@@ -3550,7 +3414,7 @@ Added Recognition rule engines</revremark>
       <tt:SimpleItemDescription Name="ObjectId" Type="xs:integer"/>
     </tt:Key>
     <tt:Data>
-      <tt:SimpleItemDescription Name="Count"    Type="xs:nonNegativeInteger"/>
+      <tt:SimpleItemDescription Name="Count" Type="xs:nonNegativeInteger"/>
     </tt:Data >
     <tt:ParentTopic>
       tns1:RuleEngine/CountAggregation/Counter
@@ -3654,6 +3518,39 @@ Added Recognition rule engines</revremark>
     <section>
       <title>Object Detection</title>
       <para>The object detection rule generates events when any of the configured object types are detected in the field of view. Whenever there is change in the detected object types, a new event is notified, if none of the objects from the configured list is detected, an event with empty object list is notified.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>Parameters</term>
+          <listitem>
+            <para role="param">ClassFilter [tt:StringList]</para>
+            <para role="text">List of classes to be detected.</para>
+            <para role="param">ConfidenceLevel - optional [xs:float]</para>
+            <para role="text">Minimum confidence level for accepting a classification. </para>
+            <para role="param">DwellTime - optional [xs:duration]</para>
+            <para role="text">Duration an object must be visible before accepting a classification.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Topic</term>
+          <listitem>
+            <para role="param">tns1:RuleEngine/LoiteringDetector/ObjectDetection/Object</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem>
+            <para role="text">See <xref linkend="_msgSource"/></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Data</term>
+          <listitem>
+            <para role="param">ClassTypes [tt:StringList]</para>
+            <para role="text">Matching class associations of the detected objects.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>Description of an object detector defined by the following code using the rule description language:</para>
       <programlisting><![CDATA[<tt:RuleDescription Name=“tt:ObjectDetection">
   <tt:Parameters>
     <tt:SimpleItemDescription Name="ClassFilter" Type=" tt:StringList"/>
@@ -3662,8 +3559,7 @@ Added Recognition rule engines</revremark>
   </tt:Parameters>
   <tt:Messages>
     <tt:Source>
-      <tt:SimpleItemDescription Type="tt:ReferenceToken" Name="VideoSource"/>
-      <tt:SimpleItemDescription Type="xs:string“ Name=" RuleName" />
+      ...
     </tt:Source>
     <tt:Data>
       <tt:SimpleItemDescription Type=“tt:StringList" Name=“ClassTypes"/>
