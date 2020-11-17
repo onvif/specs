@@ -933,6 +933,70 @@ Add GeoMove</revremark>
         </variablelist>
       </section>
       <section>
+        <title>MoveAndStartTracking</title>
+        <para>A device signaling MoveAndTrack in one of its PTZ nodes shall support this command. The purpose of this action is to send an an atomic command to the device: move the camera to a wanted position and then delegate the PTZ control to the tracking algorithm. With the atomic command the latency is minimized. The move position is optional and can be set in three different modes:</para>
+		<para>By GeoLocation coordinates</para>
+		<para>By a preset token</para>
+		<para>By a PTZVector position</para>
+		<para>An existing Speed argument overrides DefaultSpeed of the corresponding PTZ configuration during movement to the requested position. If spaces are referenced within the Speed argument, they shall be speed spaces supported by the PTZ node.</para> 
+		<para>If the detection and the tracking are done in the same device, an ObjectID reference can be passed as an argument, in order to specify which object should be tracked.</para>
+		<para>The operation shall fail if the requested absolute position is not reachable.</para> 
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ProfileToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to an existing media profile.</para>
+              <para role="param">GeoLocation – optional [tt:GeoLocation]</para>
+              <para role="text">Optional target coordinates</para>
+              <para role="param">PresetToken – optional [tt:ReferenceToken]</para>
+              <para role="text">Optional reference to an existing preset token.</para>
+              <para role="param">TargetPosition – optional [tt:PTZVector]</para>
+              <para role="text">Optional Vector specifying the absolute target position.</para>
+              <para role="param">Speed - optional [tt:PTZSpeed]</para>
+              <para role="text">Optional speed vector.</para>
+              <para role="param">ObjectID - optional [tt:ObjectId]</para>
+              <para role="text">Optional object ID of the object to track.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
+              <para role="text">The requested profile token ProfileToken does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPTZProfile</para>
+              <para role="text">The requested profile token does not reference a PTZ configuration.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:SpaceNotSupported</para>
+              <para role="text">A space is referenced that is not supported by the PTZ node.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidPosition</para>
+              <para role="text">The requested position is out of bounds.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidSpeed</para>
+              <para role="text">The requested speed is out of bounds.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:GeoMoveNotSupported</para>
+              <para role="text">The device does not support geo move.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:UnreachablePosition</para>
+              <para role="text">The requested translation is out of bounds.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:GeoLocationUnknown</para>
+              <para role="text">The unit is not able to perform GeoMove because its geolocation is not configured or available.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoToken</para>
+              <para role="text">The requested preset token does not exist.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
         <title>GetStatus</title>
         <para>A PTZ-capable device shall be able to report its PTZ status through the GetStatus command. The PTZ status contains the following information:</para>
         <itemizedlist>
