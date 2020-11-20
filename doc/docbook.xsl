@@ -71,7 +71,11 @@ text-align: left;
 border: 1px solid black;
 border-collapse: collapse;
 padding: 1mm 3mm 1mm 3mm;
-}    </xsl:variable>
+}
+.table>table>thead>tr>th {
+background-color: #d0d0d0;
+font-weight: bold;
+}</xsl:variable>
     <xsl:template match="/">
         <html>
             <head>
@@ -193,13 +197,7 @@ padding: 1mm 3mm 1mm 3mm;
         <div class="table">
             <table>
                 <thead>
-                <xsl:for-each select="db:tgroup/db:thead/db:row">
-                    <tr>
-                        <xsl:for-each select="db:entry">
-                            <th><xsl:value-of select="."/></th>
-                        </xsl:for-each>
-                    </tr>
-                </xsl:for-each>
+                    <xsl:apply-templates select="db:tgroup/db:thead/db:row"><xsl:with-param name="header" select="'1'"/></xsl:apply-templates>
                 </thead>
                 <tbody>
                     <xsl:apply-templates select="db:tgroup/db:tbody/db:row"/>
@@ -213,14 +211,27 @@ padding: 1mm 3mm 1mm 3mm;
         </xsl:element>
     </xsl:template>
     <xsl:template match="db:row">
+        <xsl:param name="header"/>
         <tr>
-            <xsl:apply-templates select="db:entry"/>
+            <xsl:apply-templates select="db:entry"><xsl:with-param name="header" select="$header"></xsl:with-param></xsl:apply-templates>
         </tr>        
     </xsl:template>
     <xsl:template match="db:entry">
-        <xsl:element name="td">
+        <xsl:param name="header"/>
+        <xsl:variable name="cell"><xsl:choose>
+            <xsl:when test="$header='1'">th</xsl:when>
+            <xsl:otherwise>td</xsl:otherwise>
+        </xsl:choose></xsl:variable>
+        <xsl:element name="{$cell}">
             <xsl:if test="@morerows">
                 <xsl:attribute name="rowspan"><xsl:value-of select="@morerows + 1"/></xsl:attribute>
+            </xsl:if>
+            <xsl:variable name="colspan" select="1 + number(substring(@nameend, 2)) - number(substring(@namest, 2))"/>
+            <xsl:if test="$colspan > 1">
+                <xsl:attribute name="colspan"><xsl:value-of select="$colspan"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="@align">
+                <xsl:attribute name="style"><xsl:value-of select="concat('text-align:', @align)"/></xsl:attribute>
             </xsl:if>
             <xsl:apply-templates select="db:para" mode="plain"/>
         </xsl:element>
