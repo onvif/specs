@@ -37,6 +37,9 @@ text-align: center;
 margin-left: auto;
 margin-right: auto;
 }
+.plaindiv {
+margin-bottom: 0mm;
+}
 .version {
 font-size:12pt;
 text-align: center;
@@ -186,10 +189,14 @@ font-weight: bold;
         <ul>
             <xsl:for-each select="db:listitem">
 				<li>
-                   <xsl:value-of select="db:para"/>
+				    <xsl:apply-templates select="db:para" mode="plaindiv"/>
                 </li>
             </xsl:for-each>
         </ul>
+    </xsl:template>
+    
+    <xsl:template match="db:para" mode="plaindiv">
+        <div class="plaindiv"><xsl:apply-templates/></div>
     </xsl:template>
     
 <!-- Tables -->    
