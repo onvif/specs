@@ -49,7 +49,7 @@ margin-right: auto;
 .h2 {
 font-size:14pt;
 }
-.param {
+.param, .access {
 font-weight: bold;
 margin-left: 15mm;
 margin-top: 1.5mm;
