@@ -223,7 +223,7 @@ font-weight: bold;
         </div>
         <xsl:element name="div">
             <xsl:attribute name="class">figure</xsl:attribute>
-            <xsl:apply-templates select="@xml:id"/>
+            <xsl:apply-templates select="db:title/@xml:id|@xml:id"/>
             Table <xsl:number count="db:table" level="any" format="1"/>: <xsl:value-of select="db:title"/>
         </xsl:element>
     </xsl:template>
