@@ -118,8 +118,8 @@ font-weight: bold;
     <xsl:template match="db:chapter|db:section">
         <xsl:element name="div">
 			<h2>
-				<xsl:apply-templates select="@xml:id"/>
-				<xsl:choose>
+			    <xsl:apply-templates select="@xml:id|db:title/@xml:id"/>
+			    <xsl:choose>
 					<xsl:when test="ancestor::db:appendix">
 						<xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> 
 					</xsl:when>
@@ -133,7 +133,12 @@ font-weight: bold;
     </xsl:template>
 
     <xsl:template match="db:appendix">
-        <div style="margin-top:30mm; text-align:center"><h2>Annex <xsl:number level="multiple" count="db:appendix" format="A.1 "/> <xsl:value-of select="db:title"/></h2></div>
+        <xsl:apply-templates select="@xml:id|db:title/@xml:id"/>
+        <xsl:element name="div">
+            <xsl:apply-templates select="@xml:id|db:title/@xml:id"/>
+            <xsl:attribute name="style">margin-top:30mm; text-align:center</xsl:attribute>
+            <h2>Annex <xsl:number level="multiple" count="db:appendix" format="A.1 "/> <xsl:value-of select="db:title"/></h2>
+        </xsl:element>    
         <xsl:apply-templates />
         <xsl:if test="@role='revhistory'">
             <div class='table'><table><thead>
@@ -274,6 +279,7 @@ font-weight: bold;
     <xsl:template match="db:figure">
         <div class="figure">
             <xsl:element name="img">
+                <xsl:apply-templates select="db:title/@xml:id|@xml:id"/>
                 <xsl:attribute name="src"><xsl:value-of select="db:mediaobject/db:imageobject/db:imagedata/@fileref"/></xsl:attribute>
                 <xsl:attribute name="style">width:<xsl:value-of select="db:mediaobject/db:imageobject/db:imagedata/@contentwidth"/></xsl:attribute>
             </xsl:element>
@@ -311,8 +317,9 @@ font-weight: bold;
         <xsl:element name="a">
             <xsl:attribute name="href">#<xsl:copy-of select="$id"/></xsl:attribute>
             <xsl:choose>
-                <xsl:when test="$target/@name='title'"><xsl:value-of select="$target"/></xsl:when>
+                <xsl:when test="name($target)='title'"><xsl:value-of select="$target"/></xsl:when>
                 <xsl:when test="$target/db:title"><xsl:value-of select="$target/db:title"/></xsl:when>
+                <xsl:otherwise>link</xsl:otherwise>
             </xsl:choose>
         </xsl:element>
     </xsl:template>
