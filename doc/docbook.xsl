@@ -284,9 +284,7 @@ font-weight: bold;
                 <xsl:attribute name="style">width:<xsl:value-of select="db:mediaobject/db:imageobject/db:imagedata/@contentwidth"/></xsl:attribute>
             </xsl:element>
         </div>
-        <xsl:variable name="no"><xsl:number count="db:figure" format="1"/></xsl:variable>
-        <xsl:variable name="id"><xsl:value-of select="@xml:id"/></xsl:variable>
-        <div class="figure" id="$id">
+        <div class="figure">
             Figure <xsl:number count="db:figure" level="any" format="1"/>: <xsl:value-of select="db:title"/>
         </div>        
     </xsl:template>    
