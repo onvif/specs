@@ -117,25 +117,19 @@ font-weight: bold;
 <!-- Headings   -->
     <xsl:template match="db:chapter|db:section">
         <xsl:element name="div">
-			<h2>
-			    <xsl:apply-templates select="@xml:id|db:title/@xml:id"/>
-			    <xsl:choose>
-					<xsl:when test="ancestor::db:appendix">
-						<xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> 
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:number level="multiple" count="db:chapter|db:section" format="1.1 "/>
-					</xsl:otherwise>
-				</xsl:choose>
-			<xsl:value-of select="db:title"/></h2>
+		  <h2>
+		      <xsl:apply-templates select="@xml:id"/>
+			  <xsl:apply-templates select="." mode="ref"/>
+			  <xsl:value-of select="db:title"/>
+		  </h2>
         </xsl:element>
         <xsl:apply-templates />
     </xsl:template>
 
     <xsl:template match="db:appendix">
-        <xsl:apply-templates select="@xml:id|db:title/@xml:id"/>
+        <xsl:apply-templates select="@xml:id"/>
         <xsl:element name="div">
-            <xsl:apply-templates select="@xml:id|db:title/@xml:id"/>
+            <xsl:apply-templates select="@xml:id"/>
             <xsl:attribute name="style">margin-top:30mm; text-align:center</xsl:attribute>
             <h2>Annex <xsl:number level="multiple" count="db:appendix" format="A.1 "/> <xsl:value-of select="db:title"/></h2>
         </xsl:element>    
@@ -211,19 +205,20 @@ font-weight: bold;
         </table>        
     </xsl:template>
     <xsl:template match="db:table">
-        <div class="table">
-            <table>
-                <thead>
+        <xsl:element name="div">
+            <xsl:attribute name="class">table</xsl:attribute>
+            <xsl:apply-templates select="@xml:id"/>
+            <xsl:element name="table">
+                <xsl:element name="thead">
                     <xsl:apply-templates select="db:tgroup/db:thead/db:row"><xsl:with-param name="header" select="'1'"/></xsl:apply-templates>
-                </thead>
-                <tbody>
+                </xsl:element>
+                <xsl:element name="tbody">
                     <xsl:apply-templates select="db:tgroup/db:tbody/db:row"/>
-                </tbody>
-            </table>
-        </div>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
         <xsl:element name="div">
             <xsl:attribute name="class">figure</xsl:attribute>
-            <xsl:apply-templates select="db:title/@xml:id|@xml:id"/>
             Table <xsl:number count="db:table" level="any" format="1"/>: <xsl:value-of select="db:title"/>
         </xsl:element>
     </xsl:template>
@@ -279,7 +274,7 @@ font-weight: bold;
     <xsl:template match="db:figure">
         <div class="figure">
             <xsl:element name="img">
-                <xsl:apply-templates select="db:title/@xml:id|@xml:id"/>
+                <xsl:apply-templates select="@xml:id"/>
                 <xsl:attribute name="src"><xsl:value-of select="db:mediaobject/db:imageobject/db:imagedata/@fileref"/></xsl:attribute>
                 <xsl:attribute name="style">width:<xsl:value-of select="db:mediaobject/db:imageobject/db:imagedata/@contentwidth"/></xsl:attribute>
             </xsl:element>
@@ -308,18 +303,38 @@ font-weight: bold;
             <xsl:apply-templates/>
         </pre>
     </xsl:template>
- 
+
+ <!-- References -->
     <xsl:template match="db:xref">
         <xsl:variable name="id"><xsl:value-of select="@linkend"/></xsl:variable>
         <xsl:variable name="target" select="//*[@xml:id=$id]"/>
         <xsl:element name="a">
             <xsl:attribute name="href">#<xsl:copy-of select="$id"/></xsl:attribute>
             <xsl:choose>
-                <xsl:when test="name($target)='title'"><xsl:value-of select="$target"/></xsl:when>
-                <xsl:when test="$target/db:title"><xsl:value-of select="$target/db:title"/></xsl:when>
-                <xsl:otherwise>link</xsl:otherwise>
+                <xsl:when test="name($target)='table'"><xsl:apply-templates mode="ref" select="$target"/></xsl:when>
+                <xsl:when test="name($target)='figure'"><xsl:apply-templates mode="ref" select="$target"/></xsl:when>
+                <xsl:otherwise> <xsl:apply-templates mode="ref" select="$target"/></xsl:otherwise>
             </xsl:choose>
         </xsl:element>
+    </xsl:template>
+    
+    <xsl:template match="db:section|db:chapter|db:appendix" mode="ref">
+        <xsl:choose>
+            <xsl:when test="ancestor::db:appendix">
+                <xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> 
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:number level="multiple" count="db:chapter|db:section" format="1.1 "/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template match="db:table" mode="ref">
+        Table <xsl:number count="db:table" level="any" format="1"/>
+    </xsl:template>
+    
+    <xsl:template match="db:figure" mode="ref">
+        Figure <xsl:number count="db:figure" level="any" format="1"/>
     </xsl:template>
     
     <xsl:template match="db:link">
