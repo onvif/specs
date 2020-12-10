@@ -4,12 +4,12 @@
   <info>
     <title>PTZ Service Specification</title>
     <titleabbrev>Ptz</titleabbrev>
-    <releaseinfo>18.12</releaseinfo>
+    <releaseinfo>20.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>December, 2018</pubdate>
+    <pubdate>December, 2020</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm" />
@@ -146,6 +146,14 @@ Add GeoMove</revremark>
           <personname>Hiroyuki Sano</personname>
         </author>
         <revremark>Change Request 2362, 2379, 2380, 2381</revremark>
+      </revision>
+      <revision>
+        <revnumber>20.12</revnumber>
+        <date>Dec-2020</date>
+        <author>
+          <personname>Davide Cristanelli</personname>
+        </author>
+        <revremark>Add MoveAndStartTracking</revremark>
       </revision>
     </revhistory>
   </info>
@@ -933,6 +941,70 @@ Add GeoMove</revremark>
         </variablelist>
       </section>
       <section>
+        <title>MoveAndStartTracking</title>
+        <para>A device signaling MoveAndTrack in one of its PTZ nodes shall support this command. The purpose of this action is to send an an atomic command to the device: move the camera to a wanted position and then delegate the PTZ control to the tracking algorithm. With the atomic command the latency is minimized. The move position is optional and can be set in three different modes:</para>
+		<para>By GeoLocation coordinates</para>
+		<para>By a preset token</para>
+		<para>By a PTZVector position</para>
+		<para>An existing Speed argument overrides DefaultSpeed of the corresponding PTZ configuration during movement to the requested position. If spaces are referenced within the Speed argument, they shall be speed spaces supported by the PTZ node.</para> 
+		<para>If the detection and the tracking are done in the same device, an ObjectID reference can be passed as an argument, in order to specify which object should be tracked.</para>
+		<para>The operation shall fail if the requested absolute position is not reachable.</para> 
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ProfileToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to an existing media profile.</para>
+              <para role="param">GeoLocation – optional [tt:GeoLocation]</para>
+              <para role="text">Optional target coordinates</para>
+              <para role="param">PresetToken – optional [tt:ReferenceToken]</para>
+              <para role="text">Optional reference to an existing preset token.</para>
+              <para role="param">TargetPosition – optional [tt:PTZVector]</para>
+              <para role="text">Optional Vector specifying the absolute target position.</para>
+              <para role="param">Speed - optional [tt:PTZSpeed]</para>
+              <para role="text">Optional speed vector.</para>
+              <para role="param">ObjectID - optional [tt:ObjectId]</para>
+              <para role="text">Optional object ID of the object to track.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
+              <para role="text">The requested profile token ProfileToken does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPTZProfile</para>
+              <para role="text">The requested profile token does not reference a PTZ configuration.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:SpaceNotSupported</para>
+              <para role="text">A space is referenced that is not supported by the PTZ node.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidPosition</para>
+              <para role="text">The requested position is out of bounds.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidSpeed</para>
+              <para role="text">The requested speed is out of bounds.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:GeoMoveNotSupported</para>
+              <para role="text">The device does not support geo move.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:UnreachablePosition</para>
+              <para role="text">The requested translation is out of bounds.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:GeoLocationUnknown</para>
+              <para role="text">The unit is not able to perform GeoMove because its geolocation is not configured or available.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoToken</para>
+              <para role="text">The requested preset token does not exist.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
         <title>GetStatus</title>
         <para>A PTZ-capable device shall be able to report its PTZ status through the GetStatus command. The PTZ status contains the following information:</para>
         <itemizedlist>
@@ -1324,8 +1396,8 @@ Add GeoMove</revremark>
           <para>The angles describing the rotation around pan and tilt axis are referred to as pan and tilt angles, where pan is represented by the X coordinate of the position vector and tilt is represented by the Y coordinate of the position vector. Both angles are specified in degrees. The initial position of this coordinate system is when the direction of the camera lens is parallel to the ceiling. The pan and tilt angles in this initial direction are zero (0,0).</para>
           <para>When starting from the initial direction and increasing the pan angle, objects that have previously been in the centre of the image will move towards the left of the image. When starting from the initial direction and increasing the tilt angle, objects which have been previously in the middle of the image move towards the bottom of the image.</para>
           <para>The maximum range for pan and tilt angles are between -180 and +180 degrees <footnote xml:id="__FN1__"><para>-180 and +180 is the same pan position in the space and the camera can choose to represent the pan position using any of them</para></footnote>. The device can restrict the tilt range arbitrarily. The tilt angle of a camera can change its direction in the space of a hemisphere like a dome camera that is typically bounded from 0 to -90 degrees. If a device cannot pan the full range, it may limit the pan range to an appropriate interval.</para>
-          <figure>
-            <title xml:id="_Ref469303432">Spherical pan/tilt position space in degrees for a camera mounted on the ceiling.</title>
+          <figure xml:id="_Ref469303432">
+            <title>Spherical pan/tilt position space in degrees for a camera mounted on the ceiling.</title>
             <mediaobject>
               <imageobject>
                 <imagedata fileref="media/Ptz/image2.svg" contentwidth="80mm" />
@@ -2036,8 +2108,8 @@ Add GeoMove</revremark>
       <para>
         <xref linkend="_Ref298916952" /> following shows an example how the control directions of pan/tilt are changed by E-Flip feature and Reverse feature. </para>
       <para>Example of changes of pan/tilt Control Direction by E-Flip and Reverse</para>
-      <figure>
-        <title  xml:id="_Ref298916952">Normal pan/tilt control direction</title>
+      <figure  xml:id="_Ref298916952">
+        <title>Normal pan/tilt control direction</title>
         <mediaobject>
           <imageobject>
             <imagedata fileref="media/Ptz/image5.svg" contentwidth="151.77mm" contentdepth="64.52mm" />
@@ -2242,8 +2314,8 @@ tns1:PTZController/PTZPresets/Left
       <section xml:id="_Ref469301844">
         <title>Pan/tilt Translation Space in FOV</title>
         <para>The Relative pan/tilt Translation Space in FOV is introduced to simplify the navigation with dome cameras in graphical user interfaces. When the user wants to center the camera on a certain position in the current camera view, the user requests a movement with respect to the current FOV. Due to the mechanics of a dome, the image content may rotate (see <xref linkend="_Ref469303432" />). <xref linkend="_Ref474431249" /> shows a rectangle representing the image content. The relative pan/tilt Translation Space in FOV  has  its  origin  in  the  centre  of  the  image.  The  upper  right  corner  corresponds  to  the normalized coordinate (1,1). This Space shall not be available in profiles without a VideoSourceConfiguration. The Space does not assume a certain dome model and can therefore be implemented on digital and mechanical domes.</para>
-        <figure>
-          <title xml:id="_Ref474431249">Relative pan/tilt Translation Space in FOV for a mechanical dome.</title>
+        <figure xml:id="_Ref474431249">
+          <title>Relative pan/tilt Translation Space in FOV for a mechanical dome.</title>
           <mediaobject>
             <imageobject>
               <imagedata fileref="media/Ptz/transSpace.svg" contentwidth="100mm" />
@@ -2270,8 +2342,8 @@ tns1:PTZController/PTZPresets/Left
         <title>Digital pan/tilt Translation Space</title>
         <para>The  Digital  pan/tilt  Translation  Space  is  derived  from  the  Absolute  Digital  pan/tilt  Position Space (see section <xref linkend="_Ref469302927" />). Instead of an absolute position space where the reference position is fixed, the relative space specifies the reference position as the camera’s current position at all times. Thereby, the pan/tilt translation is expressed as the coordinate difference from the current position to the target position. If a client wants to move the window area of the Video Source Configuration by a tenth of the sensor width horizontally, it can use this relative spherical space and set the X coordinate of the direction to 0.1 and the Y coordinate to 0. This Space shall not be available in profiles without a VideoSourceConfiguration.</para>
         <para>The following <xref linkend="_Ref474431409" /> shows the space description of this Digital pan/tilt Translation coordinate system. The outer box represents the image sensor, the dotted inner box the cropped area, and the  arrow  demonstrates  a  translation  request  of  the  cropped  area  with  a  pan/tilt  vector  of (0.1,-0.2).</para>
-        <figure>
-          <title xml:id="_Ref474431409">Relative Digital pan/tilt Translation Space.</title>
+        <figure xml:id="_Ref474431409">
+          <title>Relative Digital pan/tilt Translation Space.</title>
           <mediaobject>
             <imageobject>
               <imagedata fileref="media/Ptz/digitalSpace.svg" contentwidth="100mm" />
