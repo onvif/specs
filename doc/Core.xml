@@ -3081,7 +3081,7 @@ onvif://www.onvif.org/name/ARV-453
       <title>Network</title>
 	  <para> A device shall support the commands defined in this section unless the NetworkConfigNotSupported capability is signalled as 'True' confirming it doesn’t support network configuration. </para>
       <section>
-        <title>Get hostname</title>
+        <title>GetHostname</title>
         <para>This operation is used by an endpoint to get the hostname from a device. The device shall return its hostname configurations through the GetHostname command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -3094,7 +3094,9 @@ onvif://www.onvif.org/name/ARV-453
             <term>response</term>
             <listitem>
               <para role="param">FromDHCP [xs:boolean]</para>
-              <para role="text">True if the hostname is obtained via DHCP</para>
+              <para role="text">Signals whether the hostname is obtained via DHCP</para>
+              <para role="param">Name [xs:token]</para>
+              <para role="text">The host name. In case of DHCP the host name has been obtained from the DHCP server.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -3112,7 +3114,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title> Set hostname</title>
+        <title>SetHostname</title>
         <para>This operation sets the hostname on a device. It shall be possible to set the device hostname configurations through the SetHostname command. Attention: a call to SetDNS may result in overriding a previously set hostname.</para>
         <para>A device shall accept strings formated according to RFC 1123 section 2.1 or alternatively to RFC 952, other string shall be considered as invalid strings.</para>
         <para>A device shall try to retrieve the name via DHCP when the HostnameFromDHCP capability is set and an empty name string is provided. </para>
@@ -3146,7 +3148,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Set hostname from DHCP</title>
+        <title>SetHostnameFromDHCP</title>
         <para>This operation controls whether the hostname shall be retrieved from DHCP. </para>
         <para>A device shall support this command if support is signalled via the HostnameFromDHCP capability. Depending on the device implementation the change may only become effective after a device reboot. A device shall accept the command independent whether it is currently using DHCP to retrieve its IPv4 address or not. Note that the device is not required to retrieve its hostname via DHCP while the device is not using DHCP for retrieving its IP address. In the latter case the device may fall back to the statically set hostname.</para>
         <variablelist role="op">
@@ -3182,7 +3184,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Get DNS settings</title>
+        <title>GetDNS</title>
         <para>This operation gets the DNS settings from a device. The device shall return its DNS configurations through the GetDNS command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -3196,8 +3198,13 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">FromDHCP [xs:boolean]</para>
               <para role="text">True if the DNS servers are obtained via DHCP.</para>
-              <para role="param">xs:token SearchDomain [0][unbounded] tt:IPAddress DNSFromDHCP [0][unbounded] tt:IPAddress DNSManual [0][unbounded]</para>
+              <para role="param">SearchDomain - optional, unbounded [xs:token]</para>
               <para role="text">The domain(s) to search if the hostname is not fully qualified.</para>
+              <para role="param">DNSFromDHCP - optional, unbounded [tt:IPAddress]</para>
+              <para role="text"> A list of DNS servers obtained via DHCP in case FromDHCP is equal to true. This means that the resolved
+                addresses in the field DNSFromDHCP are coming from DHCP and describes the configuration status.</para>
+              <para role="param">DNSManual - optional, unbounded [tt:IPAddress]</para>
+              <para role="text">A list of manually given DNS servers.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -3215,7 +3222,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Set DNS settings</title>
+        <title>SetDNS</title>
         <para>This operation sets the DNS settings on a device. It shall be possible to set the device DNS configurations through the SetDNS command. </para>
         <para>It is valid to set the FromDHCP flag while the device is not using DHCP to retrieve its IPv4 address.</para>
         <variablelist role="op">
@@ -3224,8 +3231,10 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">FromDHCP [xs:boolean]</para>
               <para role="text">True if the DNS servers are obtained via DHCP</para>
-              <para role="param">xs:token SearchDomain [0][unbounded] tt:IPAddress DNSManual [0][unbounded]</para>
+              <para role="param">SearchDomain - optional, unbounded [xs:token]</para>
               <para role="text">The domain(s) to search if the hostname is not fully qualified.</para>
+              <para role="param">DNSManual - optional, unbounded [tt:IPAddress]</para>
+              <para role="text">A list of manually given DNS servers.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -3252,7 +3261,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title> Get NTP settings</title>
+        <title>GetNTP</title>
         <para>This operation gets the NTP settings from a device. If the device supports NTP, it shall be possible to get the NTP server settings through the GetNTP command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -3266,8 +3275,10 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">FromDHCP [xs:boolean]</para>
               <para role="text">True if the NTP servers are obtained via DHCP.</para>
-              <para role="param">tt:NetworkHost NTPFromDHCP [0][unbounded] tt:NetworkHost NTPManual [0][unbounded]</para>
+              <para role="param">NTPFromDHCP - optional [tt:NetworkHost]</para>
               <para role="text">A list of NTP servers obtained via DHCP in case FromDHCP is equal to true. This means that the NTP server addresses in the field NTPFromDHCP are coming from DHCP and describes the current configuration status.</para>
+              <para role="param">NTPManual - optional [tt:NetworkHost]</para>
+              <para role="text">A list of manually given NTP servers.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -3285,7 +3296,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title> Set NTP settings </title>
+        <title>SetNTP</title>
         <para>This operation sets the NTP settings on a device. If support for NTP is signalled via the NTP capability, it shall be possible to set the NTP server settings through the SetNTP command.</para>
         <para>A device shall accept string formated according to RFC 1123 section 2.1, other string shall be considered as invalid strings. It is valid to set the FromDHCP flag while the device is not using DHCP to retrieve its IPv4 address.</para>
         <para>Changes to the NTP server list shall not affect the clock mode DateTimeType. Use SetSystemDateAndTime to activate NTP operation.</para>
@@ -3327,7 +3338,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Toc213907645">
-        <title> Get dynamic DNS settings</title>
+        <title>GetDynamicDNS</title>
         <para>This operation gets the dynamic DNS settings from a device. If the device supports dynamic DNS as specified in [RFC 2136] and [RFC 4702], it shall be possible to get the type, name and TTL through the GetDynamicDNS command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -3341,8 +3352,10 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">Type [tt:DynamicDNSType]</para>
               <para role="text">The type of update. There are three possible types: the device desires no update (NoUpdate), the device wants the DHCP server to update (ServerUpdates) and the device does the update itself (ClientUpdates).</para>
-              <para role="param">tt:DNSName Name [0][1] xs:duration TTL [0][1]</para>
+              <para role="param">Name - optional [tt:DNSName]</para>
               <para role="text">The DNS name in case of the device does the update.</para>
+              <para role="param">TTL - optional [xs:duration]</para>
+              <para role="text">Time to live.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -3360,7 +3373,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Toc214944184">
-        <title>Set dynamic DNS settings</title>
+        <title>SetDynamicDNS</title>
         <para>This operation sets the dynamic DNS settings on a device. If the device supports dynamic DNS as specified in [RFC 2136] and [RFC 4702], it shall be possible to set the type, name and TTL through the SetDynamicDNS command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -3368,8 +3381,10 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">Type [tt:DynamicDNSType]</para>
               <para role="text">The type of update. There are three possible types: the device desires no update (NoUpdate), the device wants the DHCP server to update (ServerUpdates) and the device does the update itself (ClientUpdates).</para>
-              <para role="param">tt:DNSName Name [0][1] xs:duration TTL [0][1]</para>
+              <para role="param">Name - optional [tt:DNSName] xs:duration TTL [0][1]</para>
               <para role="text">The DNS name in case of the device does the update.</para>
+              <para role="param">TTL - optional [xs:duration]</para>
+              <para role="text">Time to live.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -3393,7 +3408,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title> Get network interface configuration</title>
+        <title>GetNetworkInterfaces</title>
         <para>This operation gets the network interface configuration from a device. The device shall support return of network interface configuration settings as defined by the NetworkInterface type through the GetNetworkInterfaces command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -3406,6 +3421,7 @@ onvif://www.onvif.org/name/ARV-453
             <term>response</term>
             <listitem>
               <para role="param">NetworkInterfaces - optional, unbounded [tt:NetworkInterface]</para>
+              <para role="text">This message contains an array of device network interfaces.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -3423,7 +3439,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title> Set network interface configuration</title>
+        <title>SetNetworkInterfaces</title>
         <para>This operation sets the network interface configuration on a device. The device shall support network configuration of supported network interfaces through the SetNetworkInterfaces command.</para>
         <para>If a device responds with RebootNeeded set to false, the device can be reached via the new IP address without further action. A client should be aware that a device may not be responsive for a short period of time until it signals availability at the new address via the discovery Hello messages as defined in <xref linkend="_Ref200273614" />.</para>
         <para>If a device responds with RebootNeeded set to true, it will be further available under its previous IP address. The settings will only be activated when the device is rebooted via the SystemReboot command.</para>
@@ -3432,8 +3448,10 @@ onvif://www.onvif.org/name/ARV-453
           <varlistentry>
             <term>request</term>
             <listitem>
-              <para role="param">tt:ReferenceToken InterfaceToken [1][1]tt:NetworkInterfaceSetConfiguration NetworkInterface [1][1]</para>
+              <para role="param">InterfaceToken [tt:ReferenceToken]</para>
               <para role="text">The token of the network interface to operate on.</para>
+              <para role="param">NetworkInterface [tt:NetworkInterfaceSetConfiguration]</para>
+              <para role="text">The configuration to be applied to the network interface.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -3485,8 +3503,10 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Get network protocols</title>
+        <title>GetNetworkProtocols</title>
         <para>This operation gets defined network protocols from a device. The device shall support the GetNetworkProtocols command returning configured network protocols.</para>
+        <para>This message returns an array of defined protocols supported by the device. There are three protocols defined, HTTP, HTTPS and RTSP. 
+          For each protocol the parameters Port and Enable/Disable can be retrieved.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -3516,8 +3536,10 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title> Set network protocols</title>
+        <title>SetNetworkProtocols</title>
         <para>This operation configures defined network protocols on a device. The device shall support configuration of defined network protocols through the SetNetworkProtocols command.</para>
+        <para>This message configures one or more defined network protocols supported by the device. There are currently three protocols defined, HTTP, HTTPS and RTSP. 
+          For each protocol the parameters Port and Enable/Disable can be configured.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -3552,7 +3574,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title> Get default gateway</title>
+        <title>GetNetworkDefaultGateway</title>
         <para>This operation gets the default gateway settings from a device. The device shall support the GetNetworkDefaultGateway command returning manually configured default gateway <emphasis>address(es)</emphasis>.</para>
         <variablelist role="op">
           <varlistentry>
@@ -3585,7 +3607,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title> Set default gateway</title>
+        <title>SetNetworkDefaultGateway</title>
         <para>This operation sets the default gateway settings on a device. The device shall support configuration of default gateway through the SetNetworkDefaultGateway command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -3623,7 +3645,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Toc213907653">
-        <title>Get zero configuration</title>
+        <title>GetZeroConfiguration</title>
         <para>This operation gets the zero-configuration from a device. If the device supports dynamic IP configuration according to [RFC3927], it shall support the return of IPv4 zero configuration address and status through the GetZeroConfiguration command</para>
         <variablelist role="op">
           <varlistentry>
@@ -3640,7 +3662,7 @@ onvif://www.onvif.org/name/ARV-453
               <para role="param">Enabled [xs:boolean]</para>
               <para role="text">If zero configuration is enabled or not.</para>
               <para role="param">Address - optional, unbounded [tt:IPv4Addresses]</para>
-              <para role="text">”: The IPv4 zero configuration address(es).</para>
+              <para role="text">The IPv4 zero configuration address(es).</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -3658,7 +3680,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Toc213907654">
-        <title> Set zero configuration</title>
+        <title>SetZeroConfiguration</title>
         <para>This operation sets the zero-configuration on the device. If the device supports dynamic IP configuration according to [RFC 3927], it shall support the configuration of IPv4 zero configuration address and status through the SetZeroConfiguration command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -3692,7 +3714,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Toc213907655">
-        <title>Get IP address filter</title>
+        <title>GetIPAddressFilter</title>
         <para>This operation gets the IP address filter settings from a device. If the device supports device access control based on IP filtering rules (denied or accepted ranges of IP addresses), the device shall support the GetIPAddressFilter command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -3727,7 +3749,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Toc213907656">
-        <title> Set IP address filter</title>
+        <title>SetIPAddressFilter</title>
         <para>This operation sets the IP address filter settings on a device. If the device supports device access control based on IP filtering rules (denied or accepted ranges of IP addresses), the device shall support configuration of IP filtering rules through the SetIPAddressFilter command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -3765,7 +3787,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Toc213907657">
-        <title> Add an IP filter address</title>
+        <title>AddIPAddressFilter</title>
         <para>This operation adds an IP filter address to a device. If the device supports device access control based on IP filtering rules (denied or accepted ranges of IP addresses), the device shall support adding of IP filtering addresses through the AddIPAddressFilter command.</para>
         <para>The value of the Type field shall be ignored by the device. Use SetIPAddressFilter to set the type.</para>
         <variablelist role="op">
@@ -3806,7 +3828,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Toc213907658">
-        <title> Remove an IP filter address</title>
+        <title>RemoveIPAddressFilter</title>
         <para>This operation deletes an IP filter address from a device. If the device supports device access control based on IP filtering rules (denied or accepted ranges of IP addresses), the device shall support deletion of IP filtering addresses through the RemoveIPAddressFilter command.</para>
         <para>The value of the Type field shall be ignored by the device.</para>
         <variablelist role="op">
@@ -3944,7 +3966,7 @@ onvif://www.onvif.org/name/ARV-453
           </section>
         </section>
         <section>
-          <title>Get Dot11 capabilities</title>
+          <title>GetDot11Capabilities</title>
           <para>This operation returns the IEEE802.11 capabilities, see <xref linkend="_Ref247058935" />. The device shall support this operation.</para>
           <variablelist role="op">
             <varlistentry>
@@ -4034,7 +4056,7 @@ onvif://www.onvif.org/name/ARV-453
           </table>
         </section>
         <section>
-          <title>Get IEEE 802.11 Status</title>
+          <title>GetDot11Status</title>
           <para>This operation returns the status of a wireless network interface. The device shall support this command. The following status can be returned:</para>
           <itemizedlist>
             <listitem>
@@ -4091,7 +4113,7 @@ onvif://www.onvif.org/name/ARV-453
           </variablelist>
         </section>
         <section>
-          <title>Scan Available IEEE 802.11 Networks</title>
+          <title>ScanAvailableDot11Networks</title>
           <para>This operation returns a lists of the wireless networks in range of the device. A device should support this operation. The following status can be returned for each network:</para>
           <itemizedlist>
             <listitem>
@@ -4152,7 +4174,7 @@ onvif://www.onvif.org/name/ARV-453
     <section xml:id="_Ref266885799">
       <title>System</title>
       <section>
-        <title>Device Information</title>
+        <title>GetDeviceInformation</title>
         <para>This operation gets device information, such as manufacturer, model and firmware version from a device. The device shall support the return of device information through the GetDeviceInformation command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -4165,8 +4187,6 @@ onvif://www.onvif.org/name/ARV-453
             <term>response</term>
             <listitem>
               <para role="param">Manufacturer [xs:string]</para>
-              <para role="text">The get device information response message returns following device information:
-</para>
               <para role="param">Model [xs:string]</para>
               <para role="param">FirmwareVersion [xs:string]</para>
               <para role="param">SerialNumber [xs:string]</para>
@@ -4188,7 +4208,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Toc213907661">
-        <title>Get System URIs</title>
+        <title>GetSystemUris</title>
         <para>This operation is used to retrieve URIs from which system information may be downloaded using HTTP. URIs may be returned for the following system information:</para>
         <para>System Logs. Multiple system logs may be returned, of different types. The exact format of the system logs is outside the scope of this specification.</para>
         <para>Support Information. This consists of arbitrary device diagnostics information from a device. The exact format of the diagnostic information is outside the scope of this specification.</para>
@@ -4204,11 +4224,11 @@ onvif://www.onvif.org/name/ARV-453
           <varlistentry>
             <term>response</term>
             <listitem>
-              <para role="param">SystemLogUris optional [tt:SystemLogUriList]</para>
+              <para role="param">SystemLogUris - optional [tt:SystemLogUriList]</para>
               <para role="text">This message contains the URIs from which the various system information components may be downloaded.
 </para>
-              <para role="param">SupportInfoUri optional [xs:anyURI]</para>
-              <para role="param">SystemBackupUri optional [xs:anyURI]</para>
+              <para role="param">SupportInfoUri - optional [xs:anyURI]</para>
+              <para role="param">SystemBackupUri - optional [xs:anyURI]</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -4226,7 +4246,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Ref276040129">
-        <title>Backup</title>
+        <title>GetSystemBackup</title>
         <para>This interface has been deprecated. A device shall implement this command if the capability SystemBackup  is signaled. For a replacement method see section <xref linkend="_Toc213907661" /> and <xref linkend="_Toc213907663" />.</para>
         <para>This operation retrieves system backup configuration file(s) from a device. The backup is returned with reference to a name and mime-type together with binary data. The format of the backup configuration data is vendor specific. It is expected that after completion of the restore operation the device is working on the same configuration as that of the time the configuration was backed up. Note that the configuration of static IP addresses may differ.</para>
         <para>Device vendors may put restrictions on the functionality to be restored. The detailed behavior is outside the scope of this specification.</para>
@@ -4261,7 +4281,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Restore</title>
+        <title>RestoreSystem</title>
         <para>This interface has been deprecated. A device shall implement this command if the capability SystemBackup  is signaled. For a replacement method see section <xref linkend="_Toc213907661" /> and <xref linkend="_Toc213907663" />.</para>
         <para>This operation restores the system backup configuration files(s) previously retrieved from a device. The exact format of the backup configuration file(s) is <emphasis>outside the scope </emphasis>of this standard. If the command is supported, it shall accept backup files returned by the GetSystemBackup command.</para>
         <para>The back up configuration file(s) are transmitted through MTOM [MTOM].</para>
@@ -4296,7 +4316,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Toc213907663">
-        <title>Start system restore</title>
+        <title>StartSystemRestore</title>
         <para>This operation initiates a system restore from backed up configuration data using the HTTP POST mechanism. The response to the command includes an HTTP URL to which the backup file may be uploaded. The actual restore takes place as soon as the HTTP POST operation has completed. Devices should support system restore through the StartSystemRestore command. The exact format of the backup configuration data is outside the scope of this specification.</para>
         <para>System restore over HTTP may be achieved using the following steps:</para>
         <orderedlist>
@@ -4327,7 +4347,7 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">UploadUri [xs:anyURI]</para>
               <para role="text">A URL to which the system configuration file may be uploaded.</para>
-              <para role="param">ExpectedDownTime optional [xs:duration]</para>
+              <para role="param">ExpectedDownTime - optional [xs:duration]</para>
               <para role="text">An optional duration that indicates how long the device expects to be unavailable after the upload is complete.</para>
             </listitem>
           </varlistentry>
@@ -4347,7 +4367,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Get system date and time</title>
+        <title>GetSystemDateAndTime</title>
         <para>This operation gets the device system date and time. The device shall support the return of the daylight saving setting and of the manual system date and time (if applicable) or indication of NTP time (if applicable) through the GetSystemDateAndTime command.</para>
         <para>A device shall provide the UTCDateTime information although the item is marked as optional to ensure backward compatibility.</para>
         <variablelist role="op">
@@ -4364,11 +4384,11 @@ onvif://www.onvif.org/name/ARV-453
               <para role="text">If the system time and date are set manually or by NTP</para>
               <para role="param">DayLightSavings [xs:boolean]</para>
               <para role="text">“DaylightSavings”: Daylight savings on or off</para>
-              <para role="param">TimeZone optional [tt:TimeZone]</para>
+              <para role="param">TimeZone - optional [tt:TimeZone]</para>
               <para role="text">The time zone as it is defined in POSIX 1003.1 section 8.3</para>
-              <para role="param">UTCDateTime optional [tt:DateTime]</para>
+              <para role="param">UTCDateTime - optional [tt:DateTime]</para>
               <para role="text">The time and date in UTC.</para>
-              <para role="param">LocalDateTime optional [tt:DateTime]</para>
+              <para role="param">LocalDateTime - optional [tt:DateTime]</para>
               <para role="text">The local time and date of the device</para>
             </listitem>
           </varlistentry>
@@ -4387,7 +4407,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Set system date and time</title>
+        <title>SetSystemDateAndTime</title>
         <para>This operation sets the device system date and time. The device shall support the configuration of the daylight saving setting and of the manual system date and time (if applicable) or indication of NTP time (if applicable) through the SetSystemDateAndTime command. A device shall consider a Timezone which is not formed according to the rules of [IEEE 1003.1] section 8.3 as invalid.</para>
         <para>The DayLightSavings flag should be set to true to activate any DST settings of the TimeZone string. Clear the DayLightSavings flag if the DST portion of the TimeZone settings should be ignored.</para>
         <variablelist role="op">
@@ -4398,9 +4418,9 @@ onvif://www.onvif.org/name/ARV-453
               <para role="text">If the system time and date are set manually or by NTP</para>
               <para role="param">DayLightSavings [xs:boolean]</para>
               <para role="text">“DaylightSavings”: Automatically adjust Daylight savings if defined in TimeZone.</para>
-              <para role="param">TimeZone optional [tt:TimeZone]</para>
+              <para role="param">TimeZone - optional [tt:TimeZone]</para>
               <para role="text">The time zone is defined in POSIX 1003.1 section 8.3</para>
-              <para role="param">UTCDateTime optional [tt:DateTime]</para>
+              <para role="param">UTCDateTime - optional [tt:DateTime]</para>
               <para role="text">The time and date in UTC. If DateTimeType is NTP, UTCDateTime has no meaning.</para>
             </listitem>
           </varlistentry>
@@ -4430,14 +4450,24 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Factory default</title>
-        <para>This operation reloads parameters of a device to their factory default values. The device shall support hard and soft factory default through the SetSystemFactoryDefault command. The meaning of <emphasis>soft factory default</emphasis> is device product-specific and vendor-specific. The effect of a <emphasis>soft factory default</emphasis> operation is not fully defined. However, it shall be guaranteed that after a soft reset the device is reachable on the same IP address as used before the reset. This means that basic network settings like IP address, subnet and gateway or DHCP settings are kept unchanged by the soft reset.</para>
+        <title>SetSystemFactoryDefault</title>
+        <para>This operation reloads parameters of a device to their factory default values. The device shall support hard and soft factory default through the SetSystemFactoryDefault command.</para> 
+        <variablelist>
+          <varlistentry>
+            <term>Hard</term>
+            <listitem><para>All parameters are set to their factory default value.</para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Soft</term>
+            <listitem><para>The meaning of soft factory default is device product-specific and vendor-specific. The effect of a soft factory default operation is not fully defined. However, it shall be guaranteed that after a soft reset the device is reachable on the same IP address as used before the reset. This means that basic network settings like IP address, subnet and gateway or DHCP settings are kept unchanged by the soft reset.</para></listitem>
+          </varlistentry>
+        </variablelist>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
             <listitem>
               <para role="param">FactoryDefault [tt:FactoryDefaultType]</para>
-              <para role="text">“Hard”: All parameters are set to their factory default value</para>
+              <para role="text">Mode Hard or Soft.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -4461,7 +4491,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Toc213907666">
-        <title>Firmware upgrade</title>
+        <title>UpgradeSystemFirmware</title>
         <para>This interface has been deprecated. A device shall implement this command if the capability FirmwareUpgrade is signaled. For a replacement method see the next section.</para>
         <para>This operation upgrades a device firmware version. After a successful upgrade the response message is sent before the device reboots. The exact format of the firmware data is <emphasis>outside the scope </emphasis>of this standard.</para>
         <para>After applying a firmware upgrade the device shall keep the basic network configuration like IP address, subnet mask and gateway or DHCP settings unchanged. Additionally a firmware upgrade shall not change user credentials.</para>
@@ -4501,7 +4531,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Start firmware upgrade</title>
+        <title>StartFirmwareUpgrade</title>
         <para>This operation initiates a firmware upgrade using the HTTP POST mechanism. The response to the command includes an HTTP URL to which the upgrade file may be uploaded. The actual upgrade takes place as soon as the HTTP POST operation has completed. The device should support firmware upgrade through the StartFirmwareUpgrade command. The exact format of the firmware data is outside the scope of this specification.</para>
         <para>Firmware upgrade over HTTP may be achieved using the following steps:</para>
         <orderedlist>
@@ -4559,7 +4589,7 @@ onvif://www.onvif.org/name/ARV-453
         <para xml:id="_Ref276040029">In case it is not possible to provide exact figures for either UploadDelay or ExpectedDownTime, the device shall provide best-effort estimates.</para>
       </section>
       <section xml:id="_Ref482093370">
-        <title>Get system logs</title>
+        <title>GetSystemLog</title>
         <para>This operation gets a system log from a device. The device should support system log information retrieval through the GetSystemLog command. The exact format of the system logs is <emphasis>outside the scope </emphasis>of this standard.</para>
         <para>The system log information is transmitted through MTOM [MTOM] or as a string.</para>
         <variablelist role="op">
@@ -4567,16 +4597,16 @@ onvif://www.onvif.org/name/ARV-453
             <term>request</term>
             <listitem>
               <para role="param">LogType [tt:SystemLogType]</para>
-              <para role="text">“System”: The system log</para>
+              <para role="text">System (the system log) or Access (the client access log)</para>
             </listitem>
           </varlistentry>
           <varlistentry>
             <term>response</term>
             <listitem>
-              <para role="param">Binary optional [tt:AttachmentData]</para>
-              <para role="text">This message contains the requested system log information. The device can choose if it wants to return the system log information as binary data in an attachment or as a common string.
-</para>
-              <para role="param">String optional [xs:string]</para>
+              <para role="param">Binary - optional [tt:AttachmentData]</para>
+              <para role="text">Binary encoded response.</para>
+              <para role="param">String - optional [xs:string]</para>
+              <para role="text">UTF-8 encoded information.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -4597,7 +4627,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Get support information</title>
+        <title>GetSystemSupportInformation</title>
         <para>This operation gets arbitrary device diagnostics information from a device. The device may support retrieval of diagnostics information through the GetSystemSupportInformation command. The exact format of the diagnostic information is <emphasis>outside the scope </emphasis>of this standard.</para>
         <para>The diagnostics information is transmitted as an attachment through MTOM [MTOM] or as string.</para>
         <variablelist role="op">
@@ -4610,10 +4640,10 @@ onvif://www.onvif.org/name/ARV-453
           <varlistentry>
             <term>response</term>
             <listitem>
-              <para role="param">BinaryFormat optional [tt:AttachmentData]</para>
+              <para role="param">BinaryFormat - optional [tt:AttachmentData]</para>
               <para role="text">The message contains the support information. The device can choose if it wants to return the support information as binary data or as a common string.
 </para>
-              <para role="param">StringFormat optional [xs:string]</para>
+              <para role="param">StringFormat - optional [xs:string]</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -4632,7 +4662,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Reboot</title>
+        <title>SystemReboot</title>
         <para>This operation reboots a device. Before the device reboots the response message shall be sent. The device shall support reboot through the SystemReboot command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -4663,7 +4693,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Get scope parameters</title>
+        <title>GetScopes</title>
         <para>This operation <emphasis>requests</emphasis> the scope parameters of a device. The scope parameters are used in the device discovery to match a probe message, see Section <xref linkend="_Ref199745942" />. The Scope parameters are of two different types:</para>
         <itemizedlist>
           <listitem>
@@ -4705,7 +4735,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Set scope parameters</title>
+        <title>SetScopes</title>
         <para>This operation <emphasis>sets</emphasis> the scope parameters of a device. The scope parameters are used in the device discovery to match a probe message, see Section <xref linkend="_Ref199745942" />.</para>
         <para>This operation <emphasis>replaces </emphasis>all existing configurable scope parameters (not fixed parameters). If this shall be avoided, one should use the scope add command instead. The device shall support configuration of discovery scope parameters through the SetScopes command.</para>
         <variablelist role="op">
@@ -4739,7 +4769,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Add scope parameters</title>
+        <title>AddScopes</title>
         <para>This operation <emphasis>adds</emphasis> new configurable scope parameters to a device. The scope parameters are used in the device discovery to match a probe message, see Section <xref linkend="_Ref199745942" />. The device shall support addition of discovery scope parameters through the AddScopes command. </para>
         <variablelist role="op">
           <varlistentry>
@@ -4772,7 +4802,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Remove scope parameters</title>
+        <title>RemoveScopes</title>
         <para>This operation <emphasis>deletes</emphasis> scope-configurable scope parameters from a device. The scope parameters are used in the device discovery to match a probe message, see Section <xref linkend="_Ref199745942" />. The device shall support deletion of discovery scope parameters through the RemoveScopes command.</para>
         <para>Note that the response message always will match the request or an error will be returned. The use of the response is for that reason deprecated.</para>
         <variablelist role="op">
@@ -4810,7 +4840,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section>
-        <title>Get discovery mode</title>
+        <title>GetDiscoveryMode</title>
         <para>This operation gets the discovery mode of a device. See Section <xref linkend="_Toc204774611" /> for the definition of the different device discovery modes. The device shall support retrieval of the discovery mode setting through the GetDiscoveryMode command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -4842,7 +4872,7 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Toc213907675">
-        <title>Set discovery mode</title>
+        <title>SetDiscoveryMode</title>
         <para>This operation sets the discovery mode operation of a device. See Section <xref linkend="_Toc204774611" /> for the definition of the different device discovery modes. The device shall support configuration of the discovery mode setting through the SetDiscoveryMode command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -5281,7 +5311,7 @@ onvif://www.onvif.org/name/ARV-453
           <varlistentry>
             <term>request</term>
             <listitem>
-              <para role="param">RemoteUser optional [tt:RemoteUser]</para>
+              <para role="param">RemoteUser - optional [tt:RemoteUser]</para>
               <para role="text">Name, password information.</para>
             </listitem>
           </varlistentry>
@@ -5504,7 +5534,7 @@ onvif://www.onvif.org/name/ARV-453
         <varlistentry>
           <term>response</term>
           <listitem>
-            <para role="param">AuxiliaryCommandResponse optional [tt:AuxiliaryData]</para>
+            <para role="param">AuxiliaryCommandResponse - optional [tt:AuxiliaryData]</para>
             <para role="text">The response contains the auxiliary response.
 </para>
           </listitem>
@@ -6143,8 +6173,8 @@ Event description:
             <listitem>
               <para role="param">Timestamp [xs:dateTime]</para>
               <para role="text">The pull point reference is invalid</para>
-              <para role="param">Originator optional [wsa:EndpointReferenceType]</para>
-              <para role="param">ErrorCode optional [xs:any]</para>
+              <para role="param">Originator - optional [wsa:EndpointReferenceType]</para>
+              <para role="param">ErrorCode - optional [xs:any]</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -6152,8 +6182,8 @@ Event description:
             <listitem>
               <para role="param">Timestamp [xs:dateTime]</para>
               <para role="text">The Timeout exceeds the upper limit supported by the device. </para>
-              <para role="param">Originator optional [wsa:EndpointReferenceType]</para>
-              <para role="param">ErrorCode optional [xs:any]</para>
+              <para role="param">Originator - optional [wsa:EndpointReferenceType]</para>
+              <para role="param">ErrorCode - optional [xs:any]</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -6230,7 +6260,7 @@ Event description:
               <para role="param">UtcTime [xs:datetime]</para>
               <para role="text">This message shall be addressed to a PullPoint in order to readjust the pull position:
 </para>
-              <para role="param">Reverse optional [xs:bool]</para>
+              <para role="param">Reverse - optional [xs:bool]</para>
             </listitem>
           </varlistentry>
           <varlistentry>
