@@ -111,7 +111,7 @@ font-weight: bold;
         <xsl:apply-templates select="db:chapter|db:appendix" />
     </xsl:template>
 
-    <xsl:template match="db:info|db:title">
+    <xsl:template match="db:info|db:title[parent::db:section|parent::db:chapter|parent::db:appendix]">
     </xsl:template>
     
 <!-- Headings   -->
@@ -280,7 +280,7 @@ font-weight: bold;
             </xsl:element>
         </div>
         <div class="figure">
-            Figure <xsl:number count="db:figure" level="any" format="1"/>: <xsl:value-of select="db:title"/>
+            Figure <xsl:number count="db:figure" level="any" format="1"/>: <xsl:apply-templates select="db:title"/>
         </div>        
     </xsl:template>    
 
@@ -302,6 +302,12 @@ font-weight: bold;
         <pre>
             <xsl:apply-templates/>
         </pre>
+    </xsl:template>
+    
+    <xsl:template match="db:footnote">
+        <xsl:element name="abbr">
+            <xsl:attribute name="title"><xsl:value-of select="."/></xsl:attribute><sup><xsl:number count="db:footnote" level="any" format="1"/></sup>
+        </xsl:element>
     </xsl:template>
 
  <!-- References -->
