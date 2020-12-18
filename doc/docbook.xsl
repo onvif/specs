@@ -322,18 +322,14 @@ font-weight: bold;
         <xsl:variable name="target" select="//*[@xml:id=$id]"/>
         <xsl:element name="a">
             <xsl:attribute name="href">#<xsl:copy-of select="$id"/></xsl:attribute>
-            <xsl:choose>
-                <xsl:when test="name($target)='table'"><xsl:apply-templates mode="ref" select="$target"/></xsl:when>
-                <xsl:when test="name($target)='figure'"><xsl:apply-templates mode="ref" select="$target"/></xsl:when>
-                <xsl:otherwise> <xsl:apply-templates mode="ref" select="$target"/></xsl:otherwise>
-            </xsl:choose>
+            <xsl:apply-templates mode="ref" select="$target"/>
         </xsl:element>
     </xsl:template>
     
     <xsl:template match="db:section|db:chapter|db:appendix" mode="ref">
         <xsl:choose>
-            <xsl:when test="ancestor::db:appendix">
-                <xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> 
+            <xsl:when test="ancestor-or-self::db:appendix">
+                Annex <xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> 
             </xsl:when>
             <xsl:otherwise>
                 <xsl:number level="multiple" count="db:chapter|db:section" format="1.1 "/>
