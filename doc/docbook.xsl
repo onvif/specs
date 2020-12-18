@@ -127,7 +127,6 @@ font-weight: bold;
     </xsl:template>
 
     <xsl:template match="db:appendix">
-        <xsl:apply-templates select="@xml:id"/>
         <xsl:element name="div">
             <xsl:apply-templates select="@xml:id"/>
             <xsl:attribute name="style">margin-top:30mm; text-align:center</xsl:attribute>
