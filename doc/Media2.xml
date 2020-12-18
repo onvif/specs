@@ -619,11 +619,11 @@ Added Multitrack Streaming</revremark>
       </section>
       <section>
         <title>GetProfiles</title>
-        <para>An endpoint can ask for the <emphasis>existing </emphasis>media profiles of a device using the GetProfiles command. Both pre-configured and dynamically created profiles can be retrieved using this command.</para>
+        <para>An endpoint can ask for the existing media profiles of a device using the GetProfiles command. Both pre-configured and dynamically created profiles can be retrieved using this command.</para>
         <para> The token parameter controls which profiles are returned:</para>
         <itemizedlist>
           <listitem>
-            <para>If no Token is provided this command lists all<emphasis></emphasis>configured profiles of a device. </para>
+            <para>If no Token is provided this command lists all configured profiles of a device. </para>
           </listitem>
           <listitem>
             <para>If a Token is provided the command either lists the referenced profile or responds with an error.</para>
@@ -685,7 +685,7 @@ Added Multitrack Streaming</revremark>
               <para role="param">ProfileToken [tt:ReferenceToken]</para>
               <para role="text">Token of an existing profile.</para>
               <para role="param">Name - optional [tt:Name]</para>
-              <para role="text">The device shall update the name of the profile whenthis option is provided.</para>
+              <para role="text">The device shall update the name of the profile when this option is provided.</para>
               <para role="param">Configuration - optional, unbounded [tr2:ConfigurationRef]</para>
               <para role="text">Optional list of configurations to be added to the profile. List entries with tr2:ConfigurationEnumeration value "All" shall be ignored.</para>
             </listitem>
@@ -974,17 +974,20 @@ Added Multitrack Streaming</revremark>
       <section>
         <title>Audio output configuration</title>
         <para>The audio output configuration contains the following parameters:</para>
-        <itemizedlist>
-          <listitem>
-            <para>SourceToken: a reference to an existing audio output. </para>
-          </listitem>
-          <listitem>
-            <para>OutputLevel:   a parameter to configure the output volume</para>
-          </listitem>
-          <listitem>
-            <para>SendPrimacy: a parameter that can be used for devices with a half duplex audio in/output to configure the active transmission direction (see Section <xref linkend="_Toc245780504" />).</para>
-          </listitem>
-        </itemizedlist>
+        <variablelist>
+          <varlistentry>
+            <term>SourceToken</term>
+            <listitem><para>A reference to an existing audio output. </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>OutputLevel</term>
+            <listitem><para>A parameter to configure the output volume</para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>SendPrimacy</term>
+            <listitem><para>A parameter that can be used for devices with a half duplex audio in/output to configure the active transmission direction (see Section <xref linkend="_Toc245780504" />).</para></listitem>
+          </varlistentry>
+        </variablelist>
         <section xml:id="_Toc245780504">
           <title>Audio channel modes</title>
           <para>An audio channel MAY support different types of audio transmission. While for full duplex operation no special handling is required, in half duplex operation the transmission direction needs to be switched.</para>
@@ -992,13 +995,16 @@ Added Multitrack Streaming</revremark>
           <para>The following modes for the Send-Primacy are defined:</para>
           <itemizedlist>
             <listitem>
-              <para>www.onvif.org/ver20/HalfDuplex/Server The server is allowed to send audio data to the client. The client shall not send audio data via the backchannel to the device in this mode. </para>
+              <para>www.onvif.org/ver20/HalfDuplex/Server</para>
+              <para>The server is allowed to send audio data to the client. The client shall not send audio data via the backchannel to the device in this mode. </para>
             </listitem>
             <listitem>
-              <para>www.onvif.org/ver20/HalfDuplex/Client The client is allowed to send audio data via the backchannel to the server. The device shall not send audio data to the client in this mode. </para>
+              <para>www.onvif.org/ver20/HalfDuplex/Client</para>
+              <para>The client is allowed to send audio data via the backchannel to the server. The device shall not send audio data to the client in this mode. </para>
             </listitem>
             <listitem>
-              <para>www.onvif.org/ver20/HalfDuplex/Auto It is up to the device how to deal with sending and receiving audio data. </para>
+              <para>www.onvif.org/ver20/HalfDuplex/Auto</para>
+              <para>It is up to the device how to deal with sending and receiving audio data. </para>
             </listitem>
           </itemizedlist>
           <para>Acoustic echo cancellation is out of ONVIF scope.</para>
@@ -1147,14 +1153,16 @@ Added Multitrack Streaming</revremark>
           concurrently for a VideoSourceConfiguration. A device signaling support for VideoEncoder
           via the ConfigurationsSupported capability shall support this command. </para>
         <para>The Info response contains the following information:</para>
-        <itemizedlist>
-          <listitem>
-            <para>Total	Total number of encoder instances independent of the codec,</para>
-          </listitem>
-          <listitem>
-            <para>Codec	Number of encoder instances for each supported codec .</para>
-          </listitem>
-        </itemizedlist>
+        <variablelist>
+          <varlistentry>
+            <term>Total</term>
+            <listitem><para>Total number of encoder instances independent of the codec,</para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Codec</term>
+            <listitem><para>Number of encoder instances for each supported codec .</para></listitem>
+          </varlistentry>
+        </variablelist>
         <para>A device shall guarantee to instantiate the indicated number of instances concurrently. If a device limits the number of instances of each particular video encoding type, the response shall contain information per video codec. For each video source, there shall be at least one video source configuration for which the GetVideoEncoderInstances shall return a Total greater than 0.</para>
         <para>The total sum of video encoder instances over all video source configurations of a device shall not exceed the value signaled via MaximumNumberOfProfiles.</para>
         <para>For example, if a device has two VideoSourceConfigurations and if the first allows a total of two concurrent instances and the second allows only one instance, this device shall allow creation of at least three media profiles.</para>
@@ -1170,6 +1178,7 @@ Added Multitrack Streaming</revremark>
             <term>response</term>
             <listitem>
               <para role="param">Info [tr2:EncoderInstanceInfo]</para>
+              <para role="text">This message contains the minimum guaranteed total number of encoder instances (applications) per VideoSourceConfiguration. </para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -1186,7 +1195,6 @@ Added Multitrack Streaming</revremark>
             </listitem>
           </varlistentry>
         </variablelist>
-        <para>This message contains the minimum guaranteed total number of encoder instances (applications) per VideoSourceConfiguration. </para>
       </section>
     </section>
     <section xml:id="_Toc214944317">
@@ -2081,7 +2089,8 @@ Added Multitrack Streaming</revremark>
         <programlisting><![CDATA[Topic: tns1:Media/ConfigurationChanged
 <tt:MessageDescription>
   <tt:Source>
-    <tt:SimpleItemDescription Name="Token" Type="tt:ReferenceToken"/>     <tt:SimpleItemDescription Name="Type" Type="xs:string"/>
+    <tt:SimpleItemDescription Name="Token" Type="tt:ReferenceToken"/>
+    <tt:SimpleItemDescription Name="Type" Type="xs:string"/>
   </tt:Source>
 </tt:MessageDescription>
 ]]></programlisting>
@@ -2092,7 +2101,8 @@ Added Multitrack Streaming</revremark>
         <para>Topic: tns1:Monitoring/Profile/ActiveConnections</para>
         <programlisting><![CDATA[<xs:complexType name="ProfileStatus">
   <xs:sequence>
-    <xs:element name="ActiveConnections" type="tt:ActiveConnection" minOccurs="0"  	maxOccurs="unbounded"/>
+    <xs:element name="ActiveConnections" type="tt:ActiveConnection" minOccurs="0"
+       maxOccurs="unbounded"/>
     <xs:element name="Extension" type="tt:ProfileStatusExtension" minOccurs="0" />
   </xs:sequence>
 </xs:complexType>
@@ -2100,7 +2110,7 @@ Added Multitrack Streaming</revremark>
   <xs:sequence>
     <xs:element name="CurrentBitrate" type="xs:float"/>
     <xs:element name="CurrentFps" type="xs:float"/>
-    <xs:any namespace="##any" processContents="lax" minOccurs="0"  	maxOccurs="unbounded"/>
+    <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
   </xs:sequence>
 </xs:complexType>
 <tt:MessageDescription IsProperty="true">
@@ -2186,8 +2196,8 @@ Topics: tns1:Monitoring/ActiveSessions/VideoEncoder
   </chapter>
   <appendix xml:id="_Ref425842742">
     <title>Efficient XML Interchange (EXI) (Normative)</title>
-    <para>EXI encoding allows for a more compact representation of XML metadata. Provision is signalled if the CompressionType returned via GetMetadataConfigurationOptions contains "EXI". <phrase>The ONVIF defined EXI configuration (see </phrase><xref linkend="_Ref425842742" /><phrase> and </phrase><xref linkend="_Ref425842707" /><phrase>) shall be supported by all devices signalling support for EXI compression.</phrase>   The EXI header shall only be transmitted if a setting different then the ONVIF defined configuration is used. Except for the setting of the two elements “Presence Bit” and “EXI Options” the ONVIF defined EXI header settings (see <xref linkend="_Ref425842742" /><phrase>) shall always be used.</phrase></para>
-    <table>
+    <para>EXI encoding allows for a more compact representation of XML metadata. Provision is signalled if the CompressionType returned via GetMetadataConfigurationOptions contains "EXI". <phrase>The ONVIF defined EXI configuration (see </phrase><xref linkend="_exiHdr" /><phrase> and </phrase><xref linkend="_Ref425842707" /><phrase>) shall be supported by all devices signalling support for EXI compression.</phrase>   The EXI header shall only be transmitted if a setting different then the ONVIF defined configuration is used. Except for the setting of the two elements “Presence Bit” and “EXI Options” the ONVIF defined EXI header settings (see <xref linkend="_exiHdr" /><phrase>) shall always be used.</phrase></para>
+    <table xml:id="_exiHdr">
       <title>ONVIF defined EXI header settings</title>
       <tgroup cols="2">
         <colspec colname="c1" colwidth="33*" />
