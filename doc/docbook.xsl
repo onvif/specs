@@ -252,6 +252,10 @@ font-weight: bold;
         <xsl:apply-templates/>
     </xsl:template>
 
+    <xsl:template match="db:title[parent::db:table|parent::db:figure]">
+        <xsl:apply-templates/>
+    </xsl:template>
+    
     <xsl:template match="db:superscript">
 		<sup>
 			<xsl:apply-templates/>
