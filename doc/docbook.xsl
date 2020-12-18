@@ -67,6 +67,9 @@ margin-top: 0mm;
 font-weight: bold;
 text-align: center;
 }
+abbr[title] {
+text-decoration: none;
+}
 .op {
 text-transform: uppercase;
 margin-bottom: 0mm;
