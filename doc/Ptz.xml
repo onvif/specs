@@ -701,7 +701,7 @@ Add GeoMove</revremark>
     </section>
     <section>
       <title>Move Operations</title>
-      <para>This section describes three operations to move the PTZ unit absolutely, relatively or continuously. All operations require a ProfileToken<emphasis></emphasis>referencing a Media Profile that includes a PTZConfiguration.</para>
+      <para>This section describes three operations to move the PTZ unit absolutely, relatively or continuously. All operations require a profile token referencing a Media Profile that includes a PTZConfiguration.</para>
       <para>All move commands shall be implemented non-blocking, meaning they shall not wait until the requested move operation has finished. The last move operation can be overwritten by sending another move request.</para>
       <para>Due to the wide range of physical devices this specification addressescovers, the specification does not require a specific response time to PTZ move operations is not required. However, a device shall strive for minimal latency regarding PTZ move command request-to-response time. Note that the device does not have full control of the lag from PTZ control input and device movement. Network delays and client delays can further increase lag. Implementations should minimize device lag as much as possible.</para>
       <section>
@@ -943,9 +943,11 @@ Add GeoMove</revremark>
       <section>
         <title>MoveAndStartTracking</title>
         <para>A device signaling MoveAndTrack in one of its PTZ nodes shall support this command. The purpose of this action is to send an an atomic command to the device: move the camera to a wanted position and then delegate the PTZ control to the tracking algorithm. With the atomic command the latency is minimized. The move position is optional and can be set in three different modes:</para>
-		<para>By GeoLocation coordinates</para>
-		<para>By a preset token</para>
-		<para>By a PTZVector position</para>
+        <itemizedlist>
+          <listitem><para>By GeoLocation coordinates</para></listitem>
+          <listitem><para>By a preset token</para></listitem>
+          <listitem><para>By a PTZVector position</para></listitem>
+        </itemizedlist>
 		<para>An existing Speed argument overrides DefaultSpeed of the corresponding PTZ configuration during movement to the requested position. If spaces are referenced within the Speed argument, they shall be speed spaces supported by the PTZ node.</para> 
 		<para>If the detection and the tracking are done in the same device, an ObjectID reference can be passed as an argument, in order to specify which object should be tracked.</para>
 		<para>The operation shall fail if the requested absolute position is not reachable.</para> 
@@ -1058,7 +1060,7 @@ Add GeoMove</revremark>
     </section>
     <section>
       <title>Preset operations</title>
-      <para>This section describes operations that manage the presets of a PTZ node. These operations shall be implemented for PTZ nodes supporting presets. All operations require a ProfileToken<emphasis></emphasis>referencing a media profile that includes a PTZConfiguration.</para>
+      <para>This section describes operations that manage the presets of a PTZ node. These operations shall be implemented for PTZ nodes supporting presets. All operations require a profile token referencing a media profile that includes a PTZConfiguration.</para>
       <section>
         <title>SetPreset</title>
         <para>The SetPreset command saves the current device position parameters so that the device can move to the saved preset position through the GotoPreset operation.</para>
@@ -1242,7 +1244,7 @@ Add GeoMove</revremark>
     </section>
     <section>
       <title>Home position operations</title>
-      <para>This section describes operations used to manage the home position of a PTZ node. These operations shall be implemented for PTZ nodes supporting home positions. All operations require a <emphasis>ProfileToken </emphasis>referencing a media profile including a PTZConfiguration.</para>
+      <para>This section describes operations used to manage the home position of a PTZ node. These operations shall be implemented for PTZ nodes supporting home positions. All operations require a profile token referencing a media profile including a PTZConfiguration.</para>
       <para>The “home” position MAY be set by the SetHome operation or is a fix position of the PTZ unit.</para>
       <section>
         <title>GotoHomePosition</title>
@@ -1286,7 +1288,7 @@ Add GeoMove</revremark>
       </section>
       <section>
         <title>SetHomePosition</title>
-        <para>The SetHome operation saves the <emphasis>current</emphasis> position parameters as the home position, so that the GotoHome operation can request that the device move to the home position.</para>
+        <para>The SetHome operation saves the current position parameters as the home position, so that the GotoHome operation can request that the device move to the home position.</para>
         <para>The SetHomePosition command shall return with a failure if the “home” position is fixed and cannot be overwritten. If the SetHomePosition is successful, it shall be possible to recall the home position with the GotoHomePosition command.</para>
         <variablelist role="op">
           <varlistentry>
@@ -1325,10 +1327,10 @@ Add GeoMove</revremark>
     <section>
       <title>Auxiliary operations</title>
       <para>This section describes operations to manage auxiliary commands of a PTZ node, such as an infrared (IR) lamp, a heater or a wiper.</para>
-      <para>These operations shall be implemented for PTZ nodes indicating auxiliary commands in the node properties. All operations require a ProfileToken<emphasis></emphasis>referencing a media profile that includes a PTZConfiguration.</para>
+      <para>These operations shall be implemented for PTZ nodes indicating auxiliary commands in the node properties. All operations require a profile token referencing a media profile that includes a PTZConfiguration.</para>
       <section>
         <title>SendAuxiliaryCommand</title>
-        <para>This operation is used to call an auxiliary operation on the device<emphasis>. </emphasis>The supported commands can be retrieved via the PTZ node properties. The auxiliary command should match the supported command listed in the PTZ node; no other syntax is supported. If the PTZ node lists the tt:IRLamp command, then the parameter of AuxiliaryCommand command shall conform to the syntax specified in Section 8.6 Auxiliary operation of ONVIF Core Specification.<emphasis></emphasis>The SendAuxiliaryCommand shall be implemented when the PTZ node supports auxiliary commands.</para>
+        <para>This operation is used to call an auxiliary operation on the device. The supported commands can be retrieved via the PTZ node properties. The auxiliary command should match the supported command listed in the PTZ node; no other syntax is supported. If the PTZ node lists the tt:IRLamp command, then the parameter of AuxiliaryCommand command shall conform to the syntax specified in Section 8.6 Auxiliary operation of ONVIF Core Specification. The SendAuxiliaryCommand shall be implemented when the PTZ node supports auxiliary commands.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -1367,7 +1369,7 @@ Add GeoMove</revremark>
     <section xml:id="_Toc214944449">
       <title>Predefined PTZ Spaces</title>
       <para>Spaces are used to specify absolute, relative and continuous movements. Whereas absolute movements require an absolute position, relative movements are specified by a position translation. Continuous movements require the specification of a velocity (relative movement over time). For these three cases, different coordinate systems are used describing the desired movement. The generic spaces do not absolutely specify the underlying PTZ model, so that it can be applied to any PTZ hardware. </para>
-      <para>Note: this document includes additional non-normative spaces defined in Annex A.</para>
+      <para>Note: this document includes additional non-normative spaces defined in <xref linkend="_additionalSpaces"/>.</para>
       <section>
         <title>Absolute position spaces</title>
         <para>The absolute position spaces are used when the client wants to move the camera to a certain position.  The  absolute  movement from  current  position  A  to  an  arbitrarily chosen  position  B doesn’t have to follow a specific path. Instead, the PTZ device may choose the shortest path in order to reach the target destination.</para>
@@ -1717,7 +1719,7 @@ Add GeoMove</revremark>
     <section>
       <title>Preset Tour Operations</title>
       <para>Preset tour is a feature for PTZ-capable devices, enabling the PTZ unit to move on specified presets sequentially at some  interval.</para>
-      <para>This section describes operations that manage the preset tours. These operations shall be implemented when a PTZ node in the PTZ service indicates support of preset tours with MaximumNumberOfPresetTours&gt;0 capability value, All operations require a ProfileToken<emphasis></emphasis>referencing a Media Profile including a PTZConfiguration. All operations for preset tours shall always be persistent.</para>
+      <para>This section describes operations that manage the preset tours. These operations shall be implemented when a PTZ node in the PTZ service indicates support of preset tours with MaximumNumberOfPresetTours&gt;0 capability value, All operations require a profile token referencing a Media Profile including a PTZConfiguration. All operations for preset tours shall always be persistent.</para>
       <para>PresetTours can have forward and backward directions, and in case direction is omitted, it is assumed to be forward. However, it is possible to specify random execution by setting the RandomPresetOrder attribute. In case RandomPresetOrder is set to true and Direction is also present, Direction will be ignored and presets of the Tour will be recalled randomly.</para>
       <section>
         <title>GetPresetTours</title>
@@ -1914,7 +1916,7 @@ Add GeoMove</revremark>
       <section>
         <title>OperatePresetTour</title>
         <para>A device supporting preset tours shall allow starting, stopping, or pausing a preset tour through OperatePresetTour.</para>
-        <para>Preset tour can be operated with the <emphasis>PresetTourOperation</emphasis> parameter of OperatePresetTour command. </para>
+        <para>Preset tour can be operated with the PresetTourOperation parameter of OperatePresetTour command. </para>
         <itemizedlist>
           <listitem>
             <para>Start: indicates starting the preset tour or re-starting the paused preset tour. </para>
@@ -2106,8 +2108,7 @@ Add GeoMove</revremark>
       </orderedlist>
       <para>The Reverse parameter is for switching the positive and negative positions of the pan/tilt control direction. This feature can be used to configure appropriate control direction of pan/tilt based on directions that the device is mounted, for example, in the ceiling downwards or on the surface upwards.</para>
       <para>
-        <xref linkend="_Ref298916952" /> following shows an example how the control directions of pan/tilt are changed by E-Flip feature and Reverse feature. </para>
-      <para>Example of changes of pan/tilt Control Direction by E-Flip and Reverse</para>
+        <xref linkend="_Ref298916952" /> to <xref linkend="_Ref298916952d" /> show an example how the control directions of pan/tilt are changed by E-Flip feature and Reverse feature. </para>
       <figure  xml:id="_Ref298916952">
         <title>Normal pan/tilt control direction</title>
         <mediaobject>
@@ -2132,7 +2133,7 @@ Add GeoMove</revremark>
           </imageobject>
         </mediaobject>
       </figure>
-      <figure>
+      <figure  xml:id="_Ref298916952d">
         <title>Reversed pan/tilt control direction with E-Flip activated</title>
         <mediaobject>
           <imageobject>
@@ -2244,7 +2245,7 @@ tns1:PTZController/PTZPresets/Left
       </section>
     </section>
   </chapter>
-  <appendix>
+  <appendix xml:id="_additionalSpaces">
     <title>Additional PTZ Spaces (Informative)</title>
       <section>
         <title>Introduction</title>
@@ -2265,9 +2266,6 @@ tns1:PTZController/PTZPresets/Left
           </mediaobject>
         </figure>
         <para>The Digital pan/tilt Position space is defined as follows:</para>
-      </section>
-      <section>
-        <title>Example: Positions of a window on sensor</title>
         <programlisting><![CDATA[<tt:AbsolutePanTiltPositionSpace>
   <tt:SpaceURI>
     http://www.onvif.org/ver10/tptz/PanTiltSpaces/DigitalPositionSpace
@@ -2282,6 +2280,9 @@ tns1:PTZController/PTZPresets/Left
   </tt:YRange>
 </tt:AbsolutePanTiltPositionSpace>
 ]]></programlisting>
+      </section>
+      <section>
+        <title>Example: Positions of a window on sensor</title>
         <para>A window with VGA resolution (640x480) that is natively mapped to the same number of pixels of a cropped area on a 3MP (2048x1536) sensor, would have the pan and tilt range of:</para>
         <figure>
           <title>As long as the aspect ratio of the window and the sensor are identical, the same ranges for pan and tilt are expected. The device will automatically adjust the ranges based on the amount of source pixels represented in the window of interest (its width and height configured in the VideoSourceConfiguration of the requested profile).</title>
@@ -2372,7 +2373,7 @@ tns1:PTZController/PTZPresets/Left
       </section>
       <section xml:id="_Ref469303001">
         <title>Zoom Translation Space In Millimeter</title>
-        <para>The Zoom Translation Space In Millimeter derives from the Absolute Zoom Position Space In Millimeter specified in section <xref linkend="_Ref469302989" /><emphasis role="bold"></emphasis>and specifies the translation of the focal length in the camera optics. If the device supports absolute zoom movements using the Absolute Zoom Position Space In Millimeter, the maximum negative and positive translation is given by the difference of the maximum and minimum position in Millimeter.</para>
+        <para>The Zoom Translation Space In Millimeter derives from the Absolute Zoom Position Space In Millimeter specified in section <xref linkend="_Ref469302989" /> and specifies the translation of the focal length in the camera optics. If the device supports absolute zoom movements using the Absolute Zoom Position Space In Millimeter, the maximum negative and positive translation is given by the difference of the maximum and minimum position in Millimeter.</para>
         <para>The Zoom Translation Space In Millimeter is defined as follows: <footnote xml:id="__FN10__"><para>The particular device should reference the proposed name space but the actual range is device specific. The range indicated in the definition shall be interpreted as the maximum and minimum range limits for the space.</para></footnote></para>
         <programlisting><![CDATA[<tt:RelativeZoomTranslationSpace>
   <tt:SpaceURI>
@@ -2387,7 +2388,7 @@ tns1:PTZController/PTZPresets/Left
       </section>
       <section xml:id="_Ref469303011">
         <title>Normalized digital zoom Translation Space</title>
-        <para>The normalized digital zoom Translation Space derives from the Absolute normalized digital zoom  Position  Space  specified  in  section  <xref linkend="_Ref469302658" /> and  specifies  the  translation of  the  mapping between the width of a window on a sensor and the width of the full sensor. A translation change in positive direction would make the window smaller in percentage of the sensor and thereby decreasing the field of view and increasing the zoom factor. This space requires a MediaProfile that includes a VideoEncoderConfiguration and a VideoSourceConfiguration.</para>
+        <para>The normalized digital zoom Translation Space derives from the Absolute normalized digital zoom Position Space specified in section <xref linkend="_Ref469302658" /> specifies the translation of the mapping between the width of a window on a sensor and the width of the full sensor. A translation change in positive direction would make the window smaller in percentage of the sensor and thereby decreasing the field of view and increasing the zoom factor. This space requires a MediaProfile that includes a VideoEncoderConfiguration and a VideoSourceConfiguration.</para>
         <para>Notice that a translation operation that uses this space will affect the width and height of the crop window that is configured in the VideoSourceConfiguration of the requested profile.</para>
         <para>The normalized digital zoom Translation Space is defined as follows: <footnote xml:id="__FN11__"><para>The particular device should reference the proposed name space but the actual range is device specific. The range indicated in the definition shall be interpreted as the maximum and minimum range limits for the space.</para></footnote></para>
         <programlisting><![CDATA[<tt:RelativeZoomTranslationSpace>
