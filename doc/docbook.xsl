@@ -122,13 +122,24 @@ font-weight: bold;
         <xsl:element name="div">
 		  <h2>
 		      <xsl:apply-templates select="@xml:id"/>
-			  <xsl:apply-templates select="." mode="ref"/>
+			  <xsl:apply-templates select="." mode="number"/>
 			  <xsl:value-of select="db:title"/>
 		  </h2>
         </xsl:element>
         <xsl:apply-templates />
     </xsl:template>
-
+    <xsl:template match="db:section|db:chapter|db:appendix" mode="number">
+        <xsl:choose>
+            <xsl:when test="ancestor-or-self::db:appendix">
+                <xsl:number level="multiple" count="db:appendix|db:section" format="A.1 "/> 
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:number level="multiple" count="db:chapter|db:section" format="1.1 "/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    
     <xsl:template match="db:appendix">
         <xsl:element name="div">
             <xsl:apply-templates select="@xml:id"/>
