@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="../../util/onvif-wsdl-viewer.xsl"?>
 <!--
-	Copyright (c) 2008-2019 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+	Copyright (c) 2008-2020 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 	
 	Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 	
@@ -10,7 +10,7 @@
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tan="http://www.onvif.org/ver20/analytics/wsdl" targetNamespace="http://www.onvif.org/ver20/analytics/wsdl">
 	<wsdl:types>
-		<xs:schema targetNamespace="http://www.onvif.org/ver20/analytics/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="20.06">
+		<xs:schema targetNamespace="http://www.onvif.org/ver20/analytics/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="20.12">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../../ver10/schema/onvif.xsd"/>
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../../ver10/schema/metadatastream.xsd"/>
 			<!--  Message Request/Responses elements  -->
@@ -237,6 +237,20 @@
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="minOccurs" type="xs:int">
+					<xs:annotation>
+						<xs:documentation>
+							Minimal number of occurrences. Defaults to one.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="maxOccurs" type="xs:int">
+					<xs:annotation>
+						<xs:documentation>
+							Maximum number of occurrences. Defaults to one.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			
@@ -364,7 +378,7 @@
 					<xs:sequence>
 						<xs:element name="Type" type="xs:QName" minOccurs="0">
 							<xs:annotation>
-								<xs:documentation>Optional reference to an AnalyticsModule Type returned from GetAnalyticsModules.</xs:documentation>
+								<xs:documentation>Optional reference to an AnalyticsModule Type returned from GetSupportedAnalyticsModules.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -558,9 +572,10 @@
 				where the Name of the supported AnalyticsModules correspond to the type of an AnalyticsModule instance.<br/>
 				Pass unique module names which can be later used as reference. The Parameters of the analytics module must match those of the corresponding AnalyticsModuleDescription.
 				<br/>
-				Although this method is mandatory a device implementation must not support adding modules. 
-				Instead it can provide a fixed set of predefined configurations via the media service function 
-				<a href="media.wsdl#op.GetCompatibleVideoAnalyticsConfigurations">GetCompatibleVideoAnalyticsConfigurations</a>.
+				Although this method is mandatory a device implementation may not support adding modules. 
+				Instead it can provide a fixed set of predefined configurations via the media service functions 
+				<a href="../../../ver10/media/wsdl/media.wsdl#op.GetCompatibleVideoAnalyticsConfigurations">GetCompatibleVideoAnalyticsConfigurations</a> and 
+				<a href="../../media/wsdl/media.wsdl#op.GetAnalyticsConfigurations">GetAnalyticsConfigurations</a>.
 				<br/>
 				The device shall ensure that a corresponding analytics engine starts operation when a client
 				subscribes directly or indirectly for events produced by the analytics or rule engine or when a
