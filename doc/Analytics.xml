@@ -3430,11 +3430,11 @@
 ]]></programlisting>
     </section>
     <section>
-      <title>Counting rule</title>
-      <para>Counting rule counts the number of objects passing through a set of line segments
-        (barriers) with an optional direction. The configuration parameters also include the time
-        interval to report the events and time interval to reset its counter.
-      </para>
+      <title>Line counting rule</title>
+      <para>The line counting rule counts the number of objects crossing a set of line segments.
+        Optionally the line segments may only trigger counting when passed in a specific direction.
+        The configuration parameters also include the time interval to report the events and time
+        interval to reset its counter. </para>
       <variablelist role="op">
         <varlistentry>
           <term>Parameters</term>
@@ -3443,12 +3443,9 @@
             <para role="text">One or more polylines used for detection. </para>
             <para role="param">PassAllPolylines - optional [xs:boolean]</para>
             <para role="text">Signals that an object must pass all polylines before being counted. By default any polyline passing counts separately.</para>
-            <para role="param">Mode - optional [xs:string]</para>
-            <para role="text">Optional direction sensitivity and count mode. See definition in <xref
-              xmlns:xlink="http://www.w3.org/1999/xlink" linkend="_Ref529526650"/> for the
-              definition of left and right. If Direction is set to UpDown, Left will increment and
-              Right will decrement the counter. If value is set to Any, both directions shall
-              increment the count. Default is Any.</para>
+            <para role="param">Direction - optional [tt:Direction]</para>
+            <para role="text">Optional restriction of direction sensitivity. Default is any. See definition in <xref
+              xmlns:xlink="http://www.w3.org/1999/xlink" linkend="_Ref529526650"/> </para>
             <para role="param">ReportTimeInterval - optional [xs:duration]</para>
             <para role="text">Optional time interval to reduce number of reported changes by reporting aggregated values.</para>
             <para role="param">ResetTime - optional, unbounded [xs:time]</para>
@@ -3477,12 +3474,13 @@
         </varlistentry>
       </variablelist>
       <para>CountAggregation defined by the following code using the rule description language: </para>
-      <programlisting><![CDATA[<tt:RuleDescription Name="tt:CountAggregation">
+      <programlisting><![CDATA[<tt:RuleDescription Name="tt:LineCounting">
   <tt:Parameters>
     <tt:ElementItemDescription Name="Segments" Type="tt:Polyline"/>
     <tt:SimpleItemDescription Name="ReportTimeInterval" Type="xs:duration"/>
-    <tt:SimpleItemDescription Name="ResetTimeInterval" Type="xs:duration"/>
+    <tt:SimpleItemDescription Name="ResetTime" Type="xs:time"/>
     <tt:SimpleItemDescription Name="Direction" Type="tt:Direction"/>
+    <tt:SimpleItemDescription Name="PassAllPolylines" Type="xs:boolean"/>
   </tt:Parameters>
   <tt:Messages IsProperty="true">
     <tt:Source>
@@ -3493,6 +3491,69 @@
     </tt:Data >
     <tt:ParentTopic>
       tns1:RuleEngine/CountAggregation/Counter
+    </tt:ParentTopic>
+  </tt:Messages>
+</tt:RuleDescription>
+]]></programlisting>
+    </section>
+    <section>
+      <title>Occupancy Counting rule</title>
+      <para>The occupancy counting rule counts the number of objects inside an enclosure by counting
+        objects passing in and out of a set of line segments (barriers). The counter increments when
+        objects pass from left to right and decrements when objects pass from right to left.</para>
+      <para>The configuration parameters also include the time interval to report the events and 
+        time interval to reset its counter.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>Parameters</term>
+          <listitem>
+            <para role="param">Segments - unbounded [tt:Polyline]</para>
+            <para role="text">One or more polylines used for detection. </para>
+            <para role="param">ReportTimeInterval - optional [xs:duration]</para>
+            <para role="text">Optional time interval to reduce number of reported changes by
+              reporting aggregated values.</para>
+            <para role="param">ResetTime - optional, unbounded [xs:time]</para>
+            <para role="text">Time or times of the day when the counter should be reset.
+                <emphasis>Question: localtime or utc?</emphasis></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Topic</term>
+          <listitem>
+            <para role="param">tns1:RuleEngine/CountAggregation/OccupancyCounter</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem>
+            <para role="text">See <xref linkend="_msgSource"/></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Data</term>
+          <listitem>
+            <para role="param">Count [xs:int]</para>
+            <para role="text">Number of objects counted since last reset.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>CountAggregation defined by the following code using the rule description language: </para>
+      <programlisting><![CDATA[<tt:RuleDescription Name="tt:OccupancyCounting">
+  <tt:Parameters>
+    <tt:ElementItemDescription Name="Segments" Type="tt:Polyline"/>
+    <tt:SimpleItemDescription Name="ReportTimeInterval" Type="xs:duration"/>
+    <tt:SimpleItemDescription Name="ResetTime" Type="xs:time"/>
+    <tt:SimpleItemDescription Name="Direction" Type="tt:Direction"/>
+  </tt:Parameters>
+  <tt:Messages IsProperty="true">
+    <tt:Source>
+      ...
+    </tt:Source>
+    <tt:Data>
+      <tt:SimpleItemDescription Name="Count" Type="xs:int"/>
+    </tt:Data >
+    <tt:ParentTopic>
+      tns1:RuleEngine/CountAggregation/OccupancyCounter
     </tt:ParentTopic>
   </tt:Messages>
 </tt:RuleDescription>
