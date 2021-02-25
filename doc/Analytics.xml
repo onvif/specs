@@ -3136,6 +3136,9 @@
     <para>The following rules apply to static cameras. In case of a PTZ device, image-based rules should contain an additional ElementItem. The ElementItem identifies the position of the device for which the rule has been setup. The corresponding ElementItemDescription resembles the following:</para>
     <programlisting><![CDATA[<tt:ElementItemDescription Name="PTZStatus" Type="tt:PTZStatus">
 ]]></programlisting>
+    <para>In case of setting up any region based detection rule for event trigger (e.g. Field Detector, Loitering Detector, Declarative motion detector, Object Detection) rule should contain a parameter 'Field' ElementItem. The ElementItem identifies the region usually defined by a polygon for which the rule has been setup. The corresponding ElementItemDescription resembles the following:</para>
+    <programlisting><![CDATA[<tt:ElementItemDescription Name="Field" Type="tt:Polygon">
+]]></programlisting>
     <section>
       <title>LineDetector</title>
       <para>LineDetector is defined by a non-intersecting simple polyline. If an object crosses the polyline in the specified direction, the rule engine sends a Crossed event containing the name of the LineDetector and a reference to the object which has crossed the line. As directions, one can select between Left, Right, and Any, where directions Left and Right refer to the direction walking along the line from the first point to the second point and are the prohibited directions. The specific definition of the Left and Right direction can refer to the following <xref linkend="_Ref529526650" />, A is the first point and B is the second point.</para>
@@ -3206,8 +3209,7 @@
       <para>LoiteringDetector defined by the following code using the rule description language:</para>
       <programlisting><![CDATA[<tt:RuleDescription Name="tt:LoiteringDetector">
   <tt:Parameters>
-    <tt:ElementItemDescription Name="Field"
-      Type="tt:PolygonConfiguration"/>
+    <tt:ElementItemDescription Name="Field" Type="tt:Polygon"/>
     <tt:SimpleItemDescription  Name="TimeThreshold"
       Type="xs:nonNegativeInteger"/>
     <tt:SimpleItemDescription  Name="isPeriodicNotify" Type="xs:boolean"/>
@@ -3340,7 +3342,7 @@
       <para>Declarative motion detector detects the object motion against the specified motion attributes. The rule is active within an area (region of interest) and time interval. The condition is defined against the frame/object element in scene descriptor.  </para>
       <programlisting><![CDATA[<tt:RuleDescription Name="tt:DeclarativeMotionDetector">
   <tt:Parameters>
-    <tt:ElementItemDescription Name="Field"     Type="tt:PolygonConfiguration"/>
+    <tt:ElementItemDescription Name="Field"     Type="tt:Polygon"/>
     <tt:ElementItemDescription Name="MotionExpression"
       Type="tt:MotionExpressionConfiguration"/>
   </tt:Parameters>
@@ -3577,6 +3579,7 @@
     <tt:SimpleItemDescription Name="ClassFilter" Type=" tt:StringList"/>
     <tt:SimpleItemDescription Name=“ConfidenceLevel" Type="xs:float"/>
     <tt:SimpleItemDescription Name=“DwellTime" Type="xs:duration"/>
+    <tt:ElementItemDescription Name="Field" Type="tt:Polygon"/>
   </tt:Parameters>
   <tt:Messages>
     <tt:Source>
