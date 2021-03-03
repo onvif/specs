@@ -340,39 +340,52 @@ class CorrectStartTimeBox extends Box (‘cstb’) {
         <title>Include the generated signature in the file</title>
         <para>There are no changes to the file itself or the content after the signing operation has been performed. The sole exception is the input of the signature at the appropriate place.</para>
         <para>The following box definitions provide for signature identification and inclusion. Encryption is not required; therefore an OriginalFormatBox is not necessary.</para>
-        <para>
-          <emphasis role="bold">Item Protection Box</emphasis>
-          <footnote xml:id="__FN2__">
+        <section>
+          <title>Item Protection Box</title>
+          <programlisting>Box Type: 'ipro'<footnote xml:id="__FN2__">
             <para>Box definitions can be found in ISO/IEC 14496-12 Information technology -- Coding of audio-visual objects -- Part 12: ISO base media file format.</para>
           </footnote>
-        </para>
-        <para>Box Type:	‘ipro’ Container:	Meta box (‘meta’) Mandatory:	Yes Quantity:	Exactly one</para>
+Container: Meta box (‘meta’)
+Mandatory: Yes
+Quantity:  Exactly one
+        </programlisting>
         <para>The <literal>protection_count</literal> shall be 1.</para>
-        <para>
-          <emphasis role="bold">Protection Scheme Info Box</emphasis>
-          <superscript>2</superscript>
-        </para>
-        <para>Box Types:	‘sinf’ Container:	Item Protection Box (‘ipro’) Mandatory:	Yes Quantity:	<phrase>O</phrase>ne per signing instance</para>
+        </section>
+        <section>
+          <title>Protection Scheme Info Box</title>
+          <programlisting>Box Type: 'sinf'<superscript>2</superscript>
+Container: Item Protection Box (‘ipro’)
+Mandatory: Yes
+Quantity:  One per signing instance
+        </programlisting>
         <para>Contains exactly one SchemeTypeBox and exactly one SchemeInformationBox.</para>
-        <para>
-          <emphasis role="bold">Scheme Type Box</emphasis>
-          <superscript>2</superscript>
-        </para>
-        <para>
-          <phrase>Box Types:</phrase>	‘schm’ <phrase>Container:</phrase>	Protection Scheme Information Box (‘sinf’) Mandatory:	Yes Quantity:	One per signing instance</para>
+        </section>
+        <section>
+          <title>Scheme Type Box</title>
+          <programlisting>Box Type: 'schm'<superscript>2</superscript>
+Container: Protection Scheme Information Box (‘sinf’)
+Mandatory: Yes
+Quantity:  One per signing instance
+        </programlisting>
         <para>The <literal>scheme_type</literal> shall be 0x6F656666 („<emphasis role="bold">O</emphasis>nvif <emphasis role="bold">E</emphasis>xport <emphasis role="bold">F</emphasis>ile <emphasis role="bold">F</emphasis>ormat‟). </para>
         <para>The <literal>scheme_version</literal> shall be 0x00010000 (version 1). </para>
-        <para>
-          <emphasis role="bold">Scheme Information Box</emphasis>
-          <superscript>2</superscript>
-        </para>
-        <para>
-          <phrase>Box Types:</phrase>	‘schi’ <phrase>Container:</phrase>	Protection Scheme Information Box (‘sinf’) Mandatory:	Yes Quantity:	One per signing instance</para>
+        </section>
+        <section>
+          <title>Scheme Information Box</title>
+          <programlisting>Box Type: 'schi'<superscript>2</superscript>
+Container: Protection Scheme Information Box (‘sinf’)
+Mandatory: Yes
+Quantity:  One per signing instance
+        </programlisting>
         <para>Contains exactly one SignatureBoxand exactly one CertificateBox. May also contain exactly one AdditionalUserInformationBox, exactly one SignatureConfigurationBox, and one CorrectStartTimeBox<footnote xml:id="__FN3__"><para>CorrectStartTimeBox was added in version 1.1 of the ONVIF Export File Format</para></footnote>.</para>
-        <para>
-          <emphasis role="bold">SignatureBox</emphasis>
-        </para>
-        <para>Box Types:	‘sibo’ Container:	Scheme Information Box (‘schi’) Mandatory:	Yes Quantity:	One per signing instance</para>
+        </section>
+        <section>
+          <title>Signature Box</title>
+          <programlisting>Box Type: 'sibo'
+Container: Scheme Information Box (‘schi’)
+Mandatory: Yes
+Quantity:  One per signing instance
+        </programlisting>
         <para>
           <emphasis role="bold">Syntax</emphasis>
         </para>
@@ -384,13 +397,14 @@ extends Box(‘sibo’) {bit(8)  signature[];}
         </para>
         <para>
           <literal>signature</literal>	binary byte array. Length depends on used RSA key length.</para>
-        <para>
-          <emphasis role="bold">CertificateBox</emphasis>
-        </para>
-        <para>Box Type: 	‘cert’</para>
-        <para>Container: 	Scheme Information Box (‘schi’)</para>
-        <para>Mandatory: 	Yes</para>
-        <para>Quantity: 	One per signing instance</para>
+        </section>
+        <section>
+          <title>Certificate Box</title>
+          <programlisting>Box Type: 'cert'
+Container: Scheme Information Box (‘schi’)
+Mandatory: Yes
+Quantity:  One per signing instance
+        </programlisting>
         <para>
           <emphasis role="bold">Syntax</emphasis>
         </para>
@@ -403,42 +417,55 @@ bit(8) data[];
           <emphasis role="bold">Semantics</emphasis>
         </para>
         <para>data        is the DER encoded binary byte array representation of the certificate for the key that should be used to verify the signature in the SignatureBox</para>
-      </section>
-    </section>
-    <section>
-      <title>Repeated signing</title>
-      <para>To add an item, for example, electronic receiving stamps, repeated signing of the file may be required.</para>
-      <para>Repeat steps defined in <xref linkend="_Ref341257518" /> and <xref linkend="_Ref334195281" /> and append another ProtectionSchemeInfoBox at the foot of the list of already existing boxes of that type as defined in <xref linkend="_Ref341271168" /> while not changing <literal>protection_count</literal> in the ItemProtectionBox. Parsers are required to check for the existence of multiple ProtectionSchemeInfoBox despite <literal>protection_count</literal> is fixed to 1, because any change of content which has already been signed would render the appropriate signature invalid. An optional AdditionalUserInformationBox might be used in order to add information.</para>
-      <para>The ‘sigC’ box shall be present when the signature algorithm applied deviates from the default.</para>
-      <para>
-        <emphasis role="bold">SignatureConfigurationBox</emphasis>
-      </para>
-      <para>Box Types:	‘sigC’ Container:	Scheme Information Box (‘schi’) Mandatory:	No Quantity:	Zero or one per signing instance  </para>
-      <para>
-        <emphasis role="bold">Syntax</emphasis>
-      </para>
-      <programlisting><![CDATA[aligned(8) 
+        </section>
+        <section>
+          <title>Signature Configuration Box</title>
+          <programlisting>Box Type: 'sigC'
+Container: Scheme Information Box (‘schi’)
+Mandatory: No
+Quantity:  Zero or one per signing instance
+        </programlisting>
+        <para>
+          <emphasis role="bold">Syntax</emphasis>
+        </para>
+        <programlisting><![CDATA[aligned(8) 
 class SignatureConfigurationBox
   extends Box(‘sigC’) {
     bit(8)AlgorithmIdentifier[];
   }
 ]]></programlisting>
-      <para>
-        <emphasis role="bold">Semantics</emphasis>
-      </para>
-      <para>AlgorithmIdentifier is the signature algorithm identifier with optional parameters as defined by RFC 3280 and RFC 4055. It is encoded using the ASN.1 distinguished encoding rules (DER) and has the structure:</para>
-      <para>
-        <phrase>:</phrase>AlgorithmIdentifier  ::=  SEQUENCE  {</para>
-      <programlisting><![CDATA[
+        <para>
+          <emphasis role="bold">Semantics</emphasis>
+        </para>
+        <para>The ‘sigC’ box shall be present when the signature algorithm deviates from the
+          default defined in <xref linkend="_Ref334195281"/>. Its AlgorithmIdentifier is the signature algorithm identifier with optional
+          parameters as defined by RFC 3280 and RFC 4055. It is encoded using the ASN.1
+          distinguished encoding rules (DER) and has the structure:</para>
+        <para>
+          <phrase>:</phrase>AlgorithmIdentifier ::= SEQUENCE {</para>
+        <programlisting><![CDATA[
 algorithm               OBJECT IDENTIFIER,
 parameters              ANY DEFINED BY algorithm OPTIONAL  
 }
 ]]></programlisting>
+        </section> 
+      </section>
+    </section>
+    <section>
+      <title>Repeated signing</title>
+      <section>
+        <title>Procedure</title>
+      <para>To add an item, for example, electronic receiving stamps, repeated signing of the file may be required.</para>
+      <para>Repeat steps defined in <xref linkend="_Ref341257518" /> and <xref linkend="_Ref334195281" /> and append another ProtectionSchemeInfoBox at the foot of the list of already existing boxes of that type as defined in <xref linkend="_Ref341271168" /> while not changing <literal>protection_count</literal> in the ItemProtectionBox. Parsers are required to check for the existence of multiple ProtectionSchemeInfoBox despite <literal>protection_count</literal> is fixed to 1, because any change of content which has already been signed would render the appropriate signature invalid. An optional AdditionalUserInformationBox might be used in order to add information.</para>
       <para>In order to include optional user information, data related to an additional signature ‘auib’ box is provided.</para>
-      <para>
-        <emphasis role="bold">AdditionalUserInformationBox</emphasis>
-      </para>
-      <para>Box Types:	‘auib’ Container:	Scheme Information Box (‘schi’) Mandatory:	No Quantity:	Zero or one per signing instance  </para>
+      </section>
+      <section>
+        <title>Additional User Information Box</title>
+        <programlisting>Box Type: 'auib'
+Container: Scheme Information Box (‘schi’)
+Mandatory: No
+Quantity:  Zero or one per signing instance
+        </programlisting>
       <para>
         <emphasis role="bold">Syntax</emphasis>
       </para>
@@ -453,6 +480,7 @@ class AdditionalUserInformationBox
       </para>
       <para>
         <literal>UserInformation</literal> is a null terminated string in UTF-8 characters</para>
+      </section>
     </section>
   </chapter>
   <appendix>
