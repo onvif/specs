@@ -252,6 +252,21 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>Maximum number of characters supported for the password by CreateUsers and SetUser.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="PasswordPolicySupported" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indication if the device supports the password policy.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="MaxPasswordHistoryLen" type="xs:int">
+					<xs:annotation>
+						<xs:documentation>Maximum length of the password history. This should be 0 or not present if the device does not support the password history.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="AuthFailureWarningSupported" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indication if the device supports the authentication failure warning.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
@@ -891,6 +906,163 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="WsdlUrl" type="xs:anyURI"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="ModifyUserPassword">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CurrentPass" type="xs:string" minOccurs="1">
+							<xs:annotation>
+								<xs:documentation>The password of the currently authenticated user.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="NewPass" type="xs:string" minOccurs="1">
+							<xs:annotation>
+								<xs:documentation>The new password.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="ModifyUserPasswordResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetPasswordComplexityOptions">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetPasswordComplexityOptionsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="MinLenRange" type="tt:IntRange" minOccurs="0"/>
+						<xs:element name="UppercaseRange" type="tt:IntRange" minOccurs="0"/>
+						<xs:element name="NumberRange" type="tt:IntRange" minOccurs="0"/>
+						<xs:element name="SpecialCharsRange" type="tt:IntRange" minOccurs="0"/>
+						<xs:element name="BlockUsernameOccurrenceSupported" type="xs:boolean" minOccurs="0"/>
+						<xs:element name="LockPolicySupported" type="xs:boolean" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetPasswordComplexityConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetPasswordComplexityConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="MinLen" type="xs:int" minOccurs="0"/>
+						<xs:element name="Uppercase" type="xs:int" minOccurs="0"/>
+						<xs:element name="Number" type="xs:int" minOccurs="0"/>
+						<xs:element name="SpecialChars" type="xs:int" minOccurs="0"/>
+						<xs:element name="BlockUsernameOccurrence" type="xs:boolean" minOccurs="0"/>
+						<xs:element name="LockPasswordPolicy" type="xs:boolean" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetPasswordComplexityConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="MinLen" type="xs:int" minOccurs="0"/>
+						<xs:element name="Uppercase" type="xs:int" minOccurs="0"/>
+						<xs:element name="Number" type="xs:int" minOccurs="0"/>
+						<xs:element name="SpecialChars" type="xs:int" minOccurs="0"/>
+						<xs:element name="BlockUsernameOccurrence" type="xs:boolean" minOccurs="0"/>
+						<xs:element name="LockPasswordPolicy" type="xs:boolean" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetPasswordComplexityConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetPasswordHistoryConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetPasswordHistoryConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Enabled" type="xs:boolean"/>
+						<xs:element name="Length" type="xs:int"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetPasswordHistoryConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Enabled" type="xs:boolean"/>
+						<xs:element name="Length" type="xs:int"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetPasswordHistoryConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetAuthFailureWarningOptions">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetAuthFailureWarningOptionsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="MonitorPeriodRange" type="tt:IntRange"/>
+						<xs:element name="AuthFailureRange" type="tt:IntRange"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetAuthFailureWarningConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetAuthFailureWarningConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Enabled" type="xs:boolean"/>
+						<xs:element name="MonitorPeriod" type="xs:int"/>
+						<xs:element name="MaxAuthFailures" type="xs:int"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetAuthFailureWarningConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Enabled" type="xs:boolean"/>
+						<xs:element name="MonitorPeriod" type="xs:int"/>
+						<xs:element name="MaxAuthFailures" type="xs:int"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetAuthFailureWarningConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
@@ -2301,6 +2473,60 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="GetWsdlUrlResponse">
 		<wsdl:part name="parameters" element="tds:GetWsdlUrlResponse"/>
 	</wsdl:message>
+	<wsdl:message name="ModifyUserPasswordRequest">
+		<wsdl:part name="parameters" element="tds:ModifyUserPassword"/>
+	</wsdl:message>
+	<wsdl:message name="ModifyUserPasswordResponse">
+		<wsdl:part name="parameters" element="tds:ModifyUserPasswordResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetPasswordComplexityOptionsRequest">
+		<wsdl:part name="parameters" element="tds:GetPasswordComplexityOptions"/>
+	</wsdl:message>
+	<wsdl:message name="GetPasswordComplexityOptionsResponse">
+		<wsdl:part name="parameters" element="tds:GetPasswordComplexityOptionsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetPasswordComplexityConfigurationRequest">
+		<wsdl:part name="parameters" element="tds:GetPasswordComplexityConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="GetPasswordComplexityConfigurationResponse">
+		<wsdl:part name="parameters" element="tds:GetPasswordComplexityConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetPasswordComplexityConfigurationRequest">
+		<wsdl:part name="parameters" element="tds:SetPasswordComplexityConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetPasswordComplexityConfigurationResponse">
+		<wsdl:part name="parameters" element="tds:SetPasswordComplexityConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetPasswordHistoryConfigurationRequest">
+		<wsdl:part name="parameters" element="tds:GetPasswordHistoryConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="GetPasswordHistoryConfigurationResponse">
+		<wsdl:part name="parameters" element="tds:GetPasswordHistoryConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetPasswordHistoryConfigurationRequest">
+		<wsdl:part name="parameters" element="tds:SetPasswordHistoryConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetPasswordHistoryConfigurationResponse">
+		<wsdl:part name="parameters" element="tds:SetPasswordHistoryConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetAuthFailureWarningOptionsRequest">
+		<wsdl:part name="parameters" element="tds:GetAuthFailureWarningOptions"/>
+	</wsdl:message>
+	<wsdl:message name="GetAuthFailureWarningOptionsResponse">
+		<wsdl:part name="parameters" element="tds:GetAuthFailureWarningOptionsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetAuthFailureWarningConfigurationRequest">
+		<wsdl:part name="parameters" element="tds:GetAuthFailureWarningConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="GetAuthFailureWarningConfigurationResponse">
+		<wsdl:part name="parameters" element="tds:GetAuthFailureWarningConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetAuthFailureWarningConfigurationRequest">
+		<wsdl:part name="parameters" element="tds:SetAuthFailureWarningConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetAuthFailureWarningConfigurationResponse">
+		<wsdl:part name="parameters" element="tds:SetAuthFailureWarningConfigurationResponse"/>
+	</wsdl:message>
 	<wsdl:message name="GetCapabilitiesRequest">
 		<wsdl:part name="parameters" element="tds:GetCapabilities"/>
 	</wsdl:message>
@@ -2892,6 +3118,51 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<wsdl:documentation>This method allows to provide a URL where product specific WSDL and schema definitions can be retrieved. This method is deprecated.</wsdl:documentation>
 			<wsdl:input message="tds:GetWsdlUrlRequest"/>
 			<wsdl:output message="tds:GetWsdlUrlResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="ModifyUserPassword">
+			<wsdl:documentation>This operation allows the currently authenticated user to modify his own password.</wsdl:documentation>
+			<wsdl:input message="tds:ModifyUserPasswordRequest"/>
+			<wsdl:output message="tds:ModifyUserPasswordResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetPasswordComplexityOptions">
+			<wsdl:documentation>This method allows to retrieve all the available parameters and their valid ranges for the password complexity configuration.</wsdl:documentation>
+			<wsdl:input message="tds:GetPasswordComplexityOptionsRequest"/>
+			<wsdl:output message="tds:GetPasswordComplexityOptionsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetPasswordComplexityConfiguration">
+			<wsdl:documentation>This method allows to get the current password complexity configuration settings.</wsdl:documentation>
+			<wsdl:input message="tds:GetPasswordComplexityConfigurationRequest"/>
+			<wsdl:output message="tds:GetPasswordComplexityConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetPasswordComplexityConfiguration">
+			<wsdl:documentation>This method allows to set the password complexity configuration.</wsdl:documentation>
+			<wsdl:input message="tds:SetPasswordComplexityConfigurationRequest"/>
+			<wsdl:output message="tds:SetPasswordComplexityConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetPasswordHistoryConfiguration">
+			<wsdl:documentation>This method allows to get the current password history configuration settings.</wsdl:documentation>
+			<wsdl:input message="tds:GetPasswordHistoryConfigurationRequest"/>
+			<wsdl:output message="tds:GetPasswordHistoryConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetPasswordHistoryConfiguration">
+			<wsdl:documentation>This method allows to set the password history configuration.</wsdl:documentation>
+			<wsdl:input message="tds:SetPasswordHistoryConfigurationRequest"/>
+			<wsdl:output message="tds:SetPasswordHistoryConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetAuthFailureWarningOptions">
+			<wsdl:documentation>This method allows to retrieve all the available parameters and their valid ranges for the auhentication failure warning configuration.</wsdl:documentation>
+			<wsdl:input message="tds:GetAuthFailureWarningOptionsRequest"/>
+			<wsdl:output message="tds:GetAuthFailureWarningOptionsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetAuthFailureWarningConfiguration">
+			<wsdl:documentation>This method allows to get the current auhentication failure warning configuration settings.</wsdl:documentation>
+			<wsdl:input message="tds:GetAuthFailureWarningConfigurationRequest"/>
+			<wsdl:output message="tds:GetAuthFailureWarningConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetAuthFailureWarningConfiguration">
+			<wsdl:documentation>This method allows to set the auhentication failure warning configuration.</wsdl:documentation>
+			<wsdl:input message="tds:SetAuthFailureWarningConfigurationRequest"/>
+			<wsdl:output message="tds:SetAuthFailureWarningConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="GetCapabilities">
 			<wsdl:documentation>This method has been replaced by the more generic GetServices method.
@@ -3572,6 +3843,87 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="GetWsdlUrl">
 			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetWsdlUrl"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ModifyUserPassword">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/ModifyUserPassword"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetPasswordComplexityOptions">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetPasswordComplexityOptions"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetPasswordComplexityConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetPasswordComplexityConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetPasswordComplexityConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/SetPasswordComplexityConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetPasswordHistoryConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetPasswordHistoryConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetPasswordHistoryConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/SetPasswordHistoryConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+        	<wsdl:operation name="GetAuthFailureWarningOptions">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetAuthFailureWarningOptions"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetAuthFailureWarningConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetAuthFailureWarningConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetAuthFailureWarningConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/SetAuthFailureWarningConfiguration"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
