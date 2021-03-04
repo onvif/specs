@@ -2941,7 +2941,7 @@ onvif://www.onvif.org/name/ARV-453
                   <entry>Indicates no support for user configuration.</entry>
                 </row>
                 <row>
-                  <entry morerows="14">
+                  <entry morerows="16">
                     <para>Security</para>
                   </entry>
                   <entry>
@@ -5412,6 +5412,384 @@ onvif://www.onvif.org/name/ARV-453
           </varlistentry>
         </variablelist>
       </section>
+    </section>
+    <section xml:id="_Ref1614781087">
+      <title>Security Policies</title>
+      <para>This section describes a set of commands that can be used by the administrators to enforce some security policies. 
+      If the device supports any of these policies, it can be signaled through the capabilites described in section <xref linkend="_Ref468447902"/>
+      The operations for the configuration of the following policies are described:</para>
+        <itemizedlist>
+          <listitem>
+            <para>Password complexity: a configurable set of rules that a password must respect like minimum length, minimum number of uppercase chars, etc.</para>
+          </listitem>
+          <listitem>
+            <para>Password history: the device prevents the reuse of an already used password.</para>
+          </listitem>
+          <listitem>
+            <para>Authentication Failure Warning: the device monitors the number of authentication failures in a period of time to detect intrusion attempts performed by an attacker.</para>
+            <para>If the number of failed attempts in the MonitorPeriod is greater than MaxAuthFailures the device will emit the following event:</para>
+          </listitem>
+        </itemizedlist>
+            <programlisting><![CDATA[Topic: tns1:Device/SecurityPolicy/AuthFailed
+<tt:MessageDescription>
+  <tt:Source>
+    <tt:SimpleItemDescription Name="NetworkInterface" Type="tt:ReferenceToken"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription minOccurs=”0” Name="SourceIPv4" Type="tt:IPv4Address"/>
+    <tt:SimpleItemDescription minOccurs=”0” Name="SourceIPv6" Type="tt:IPv6Address"/>
+  </tt:Data>
+</tt:MessageDescription>
+]]></programlisting>
+      <section>
+        <title>GetPasswordComplexityOptions</title>
+        <para>A device signaling support for modifying the password complexity policy via the PasswordComplexitySupported capability shall support this operation to retrieve all the available parameters and their valid ranges for the Password Complexity configuration.</para>
+        <para>If any of the optional parameters is not specified, the corresponding policy is not supported.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">MinLenRange - optional [tt:IntRange]</para>
+              <para role="text">Range for "MinLen" policy [1, MaxPasswordLength]</para>
+            </listitem>
+            <listitem>
+              <para role="param">UppercaseRange - optional [tt:IntRange]</para>
+              <para role="text">Range for "Uppercase" policy [0, MaxPasswordLength]</para>
+            </listitem>
+            <listitem>
+              <para role="param">NumberRange - optional [tt:IntRange]</para>
+              <para role="text">Range for "Number" policy [0, MaxPasswordLength]</para>
+            </listitem>
+            <listitem>
+              <para role="param">SpecialCharsRange - optional [tt:IntRange]</para>
+              <para role="text">Range for "SpecialChars" policy [0, MaxPasswordLength]</para>
+            </listitem>
+            <listitem>
+              <para role="param">BlockUsernameOccurrenceSupported [xs:boolean]</para>
+              <para role="text">True if this policy is supported</para>
+            </listitem>
+            <listitem>
+              <para role="param">LockPolicySupported [xs:boolean]</para>
+              <para role="text">True if the locking of the password policy is supported</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+
+      <section>
+        <title>GetPasswordComplexityConfiguration</title>
+        <para>A device signaling support for the password complexity policy via the PasswordComplexitySupported capability shall support this operation to get the current password complexity configuration settings.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">MinLen - optional [xs:integer]</para>
+              <para role="text">Minimum password length</para>
+            </listitem>
+            <listitem>
+              <para role="param">Uppercase - optional [xs:integer]</para>
+              <para role="text">Minimum number of uppercase characters</para>
+            </listitem>
+            <listitem>
+              <para role="param">Number - optional [xs:integer]</para>
+              <para role="text">Minimum number of numeric characters</para>
+            </listitem>
+            <listitem>
+              <para role="param">SpecialChars - optional [xs:integer]</para>
+              <para role="text">Minimum number of special characters</para>
+            </listitem>
+            <listitem>
+              <para role="param">BlockUsernameOccurrence - optional [xs:boolean]</para>
+              <para role="text">Blocks the use of the username in the password</para>
+            </listitem>
+            <listitem>
+              <para role="param">LockPasswordPolicy - optional [xs:boolean]</para>
+              <para role="text">Prevent future update of the policy until the next factory default</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      
+      <section>
+        <title>SetPasswordComplexityConfiguration</title>
+        <para>A device signaling support for modifying the password complexity policy via the PasswordComplexitySupported capability shall support this operation to set the password policy configuration. If LockPasswordPolicy is supported and is set to true, the current configuration will be locked and will be unlocked only via factory default reset.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">MinLen - optional [xs:integer]</para>
+              <para role="text">Minimum password length</para>
+            </listitem>
+            <listitem>
+              <para role="param">Uppercase - optional [xs:integer]</para>
+              <para role="text">Minimum number of uppercase characters</para>
+            </listitem>
+            <listitem>
+              <para role="param">Number - optional [xs:integer]</para>
+              <para role="text">Minimum number of numeric characters</para>
+            </listitem>
+            <listitem>
+              <para role="param">SpecialChars - optional [xs:integer]</para>
+              <para role="text">Minimum number of special characters</para>
+            </listitem>
+            <listitem>
+              <para role="param">BlockUsernameOccurrence - optional [xs:boolean]</para>
+              <para role="text">Blocks the use of the username in the password</para>
+            </listitem>
+            <listitem>
+              <para role="param">LockPasswordPolicy - optional [xs:boolean]</para>
+              <para role="text">Prevent future update of the policy until the next factory default</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:ServiceNotSupported</para>
+              <para role="text">The requested security policy is not supported</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+        
+      <section>
+        <title>GetPasswordHistoryConfiguration</title>
+        <para>A device signaling support for the password history via the MaxPasswordHistoryLen capability shall support this operation to get the current password history settings.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Enabled [xs:boolean]</para>
+              <para role="text">If true the password history is enabled</para>
+            </listitem>
+            <listitem>
+              <para role="param">Length [xs:integer]</para>
+              <para role="text">The length of the password history, [1, MaxPasswordHistoryLen]</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      
+      <section>
+        <title>SetPasswordHistoryConfiguration</title>
+        <para>A device signaling support for modifying the password history via the MaxPasswordHistoryLen capability shall support this operation to set the password history configuration.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Enabled [xs:boolean]</para>
+              <para role="text">Used to enable/disable the password history</para>
+            </listitem>
+            <listitem>
+              <para role="param">Length [xs:integer]</para>
+              <para role="text">The length of the password history, [1, MaxPasswordHistoryLen]</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:ServiceNotSupported</para>
+              <para role="text">The requested security policy is not supported</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      
+      <section>
+        <title>GetAuthFailureWarningOptions</title>
+        <para>A device signaling support for the authentication failure warning via the AuthFailureWarningSupported capability shall support this operation to retrieve all the available parameters and their valid ranges.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">MonitorPeriodRange [tt:IntRange]</para>
+              <para role="text">Range for "MonitorPeriod"</para>
+            </listitem>
+            <listitem>
+              <para role="param">AuthFailureRange [tt:IntRange]</para>
+              <para role="text">Range for "MaxAuthFailures"</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>GetAuthFailureWarningConfiguration</title>
+        <para>A device signaling support for the authentication failure warning via the AuthFailureWarningSupported capability 
+        shall support this operation to get the current authentication failure warning settings.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Enabled [xs:boolean]</para>
+              <para role="text">Indicates if the authentication failure warning is enabled or disabled</para>
+            </listitem>
+            <listitem>
+              <para role="param">MonitorPeriod [xs:integer]</para>
+              <para role="text">The amount of seconds that will be monitored after the first authentication failure</para>
+            </listitem>
+            <listitem>
+              <para role="param">MaxAuthFailures [xs:integer]</para>
+              <para role="text">Maximum number allowed of authentication failures before reporting the intrusion attempt</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      
+      <section>
+        <title>SetAuthFailureWarningConfiguration</title>
+        <para>A device signaling support for the authentication failure warning via the AuthFailureWarningSupported capability 
+        shall support this operation to set the authentication failure warning configuration.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Enabled [xs:boolean]</para>
+              <para role="text">Used to enable/disable the authentication failure warning</para>
+            </listitem>
+            <listitem>
+              <para role="param">MonitorPeriod [xs:integer]</para>
+              <para role="text">The amount of seconds that will be monitored after the first authentication failure</para>
+            </listitem>
+            <listitem>
+              <para role="param">MaxAuthFailures [xs:integer]</para>
+              <para role="text">Maximum number allowed of authentication failures before reporting the intrusion attempt</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:ServiceNotSupported</para>
+              <para role="text">The requested security policy is not supported</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      
     </section>
     <section>
       <title>Input/Output (I/O)</title>
