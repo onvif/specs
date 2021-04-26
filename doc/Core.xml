@@ -7365,29 +7365,31 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
       </section>
       <section>
         <title>JSON Event Payload</title>
-        <para>This section describes how an ONVIF event is mapped to the JSON data format when published using the “onvif-ej” payload definition. <phrase>Mapping definition from XML to JSON according to RFC 5234:</phrase></para>
-        <para>MESSAGE ::= “{“ TIMEINFO *(“,” ITEM) “}”</para>
-        <para>TIMEINFO ::= DQUOTE “UtcTime” DQUOTE “:” TIMESTAMP </para>
+        <para>This section describes how an ONVIF event is mapped to the JSON data format when published using the "onvif-ej" payload definition. <phrase>Mapping definition from XML to JSON according to RFC 5234:</phrase></para>
+        <para>MESSAGE ::= "{" TIMEINFO "," SOURCE ["," DATA ] "}"</para>
+        <para>TIMEINFO ::= DQUOTE "UtcTime" DQUOTE ":" TIMESTAMP </para>
+        <para>SOURCE ::= DQUOTE "Source" DQUOTE ":" "{" *(ITEM) "}"</para>
+        <para>DATA ::= DQUOTE "Data" DQUOTE ":" "{" *(ITEM) "}"</para>
         <para>ITEM ::= SIMPLEITEM / ELEMENTITEM</para>
-        <para>SIMPLEITEM ::= DQUOTE SNAME DQUOTE ”:” DQUOTE  SVALUE DQUOTE</para>
-        <para>ELEMENTITEM ::= DQUOTE ENAME DQUOTE “:  {“ [ TYPE *(“,” TYPE)] “}”</para>
+        <para>SIMPLEITEM ::= DQUOTE SNAME DQUOTE ":" DQUOTE  SVALUE DQUOTE</para>
+        <para>ELEMENTITEM ::= DQUOTE ENAME DQUOTE ":  {" [ TYPE *("," TYPE)] "}"</para>
         <para>TYPE ::= ATTRIBUTE  / SIMPLETYPE / COMPLEXTYPE</para>
-        <para>ATTRIBUTE ::= DQUOTE ANAME DQUOTE ”: ” DQUOTE AVALUE DQUOTE</para>
-        <para>SIMPLETYPE ::= DQUOTE  NAME DQUOTE ”: ” DQUOTE VALUE DQUOTE</para>
-        <para>COMPLEXTYPE ::= DQUOTE NAME DQUOTE ”: {“ [TYPE *(“,” TYPE)] “}”</para>
+        <para>ATTRIBUTE ::= DQUOTE ANAME DQUOTE ": " DQUOTE AVALUE DQUOTE</para>
+        <para>SIMPLETYPE ::= DQUOTE  NAME DQUOTE ": " DQUOTE VALUE DQUOTE</para>
+        <para>COMPLEXTYPE ::= DQUOTE NAME DQUOTE ": {" [TYPE *("," TYPE)] "}"</para>
         <para>with </para>
         <itemizedlist>
           <listitem>
             <para>TIMESTAMP being the double quoted UTC timestamp of the XML Message UtcTime element</para>
           </listitem>
           <listitem>
-            <para>SNAME being the value of the “Name” attribute of the SimpleItem</para>
+            <para>SNAME being the value of the Name attribute of the SimpleItem</para>
           </listitem>
           <listitem>
-            <para>SVALUE being the value of the “Value” attribute of the SimpleItem</para>
+            <para>SVALUE being the value of the Value attribute of the SimpleItem</para>
           </listitem>
           <listitem>
-            <para>ENAME being the value of the “Name” attribute of the ElementItem</para>
+            <para>ENAME being the value of the Name attribute of the ElementItem</para>
           </listitem>
           <listitem>
             <para>ANAME being the name of the attribute of the corresponding XML attribute</para>
@@ -7416,26 +7418,28 @@ Payload:
 {
   "UtcTime": "2008-10-10T12:24:57.321Z", 	
   "Source": {
-    "VideoSourceConfigurationToken": "1",
-    "VideoAnalyticsConfigurationToken": "2",
+    "VideoSource": "1",
+    "AnalyticsConfiguration": "2",
     "Rule": "MyImportantFence1"
     },
   "Data": {
-    "ObjectId": "15" 	} 
-}}
+    "ObjectId": "15"
+  }
+}
+
 Topic:
   MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed/&amp;1/2/MyImportantFence2Payload:
 Payload:
 {
   "UtcTime": "2008-10-10T12:24:57.789Z
   "Source": {
-    "VideoSourceConfigurationToken": "1",
-    "VideoAnalyticsConfigurationToken": "2",
+    "VideoSource": "1",
     "Rule": "MyImportantFence2"
     },
   "Data": {
     "ObjectId": "19" 	
-} }
+  }
+}
           </programlisting>
         </section>
       </section>
