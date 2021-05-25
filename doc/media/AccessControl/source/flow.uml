@@ -1,0 +1,66 @@
+@startuml
+actor      "Outside user"  as Outside
+entity     "AccessPoint\nProfile D device" as Reader
+entity     "Door\nProfile C or D device"   as Door
+entity     "Controller\nProfile D client,\nProfile A or C device"  as Controller
+database   "Event\nLogger"  as Logger
+actor      "Inside user"  as Inside
+
+note over Reader : Idle
+/note over Door : DoorLocked
+/note over Controller : Idle
+activate Inside
+note over Inside : Approaches door\nand pushes REX button
+Inside -> Controller : Internal REX
+activate Controller
+note over Controller : Grant access
+Controller -> Logger : AccessControl/AccessGranted/Anonymous
+Controller ->Door : AccessDoor()
+activate Door
+Controller ->Reader : Feedback(DoorUnlocked)
+Door -> Controller : Door/DoorMode=Accessed
+note over Inside : Does not open the door\nand goes away
+destroy Inside
+note over Door : Access times out
+Door -> Controller : Door/DoorMode=DoorLocked
+destroy Door
+
+note over Controller : Access not taken
+Controller -> Logger : AccessControl/AccessNotTaken/Anonymous
+Controller ->Reader : Feedback(DoorLocked)
+destroy Controller
+
+activate Outside
+note over Outside : User approaches\nand presents his card
+Outside -> Reader : Card presented
+Reader -> Controller : AccessControl/Request/Identifier (pt:Card)
+activate Controller
+note over Controller : PIN required
+Controller ->Reader : Feedback(RequireIdentifier, pt:PIN)
+
+note over Outside : User enters PIN
+Outside -> Reader : PIN presented
+Reader -> Controller : AccessControl/Request/Identifier (pt:PIN)
+note over Controller : Grant access
+Controller -> Logger : AccessControl/AccessGranted/Credential
+
+Controller -> Door : AccessDoor()
+activate Door
+Door -> Controller : Door/DoorMode=Accessed
+Controller ->Reader : ExternalAuthorization(Decision=Granted)
+Controller ->Reader : Feedback(AccessGranted)
+
+note over Outside : User opens door and enters
+Outside -> Door : Open door
+Door -> Controller : Door/DoorPhysicalState=DoorOpen
+
+note over Controller : Access taken
+destroy Outside
+Controller -> Logger : AccessControl/AccessNotTaken/Credential
+Controller ->Reader : Feedback(DoorUnlocked)
+Door -> Controller : Door/DoorPhysicalState=DoorClosed
+Door -> Controller : Door/DoorMode=DoorLocked
+destroy Door
+Controller ->Reader : Feedback(DoorLocked)
+destroy Controller
+@enduml
