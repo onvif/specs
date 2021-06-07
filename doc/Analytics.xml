@@ -4092,10 +4092,10 @@
     <para>This specification covers the two most common measurement modules offered by radiometric devices today: Spots and Boxes.</para>
     <para>A <emphasis role="bold">Spot Measurement Module</emphasis> shall provide the absolute temperature value for a point on the image (this could be a pixel, or small pixel cluster, depending on the lens/resolution of the device).</para>
     <para>A <emphasis role="bold">Box Measurement Module</emphasis> provides a number of different temperature values which are calculated based on the temperature values of the points contained in a rectangular area of the image. These <emphasis role="bold">BoxTemperatureTypes</emphasis> can be, for example, the Maximum temperature value for the points contained in the rectangular area, or the Minimum value, Average, Median, etc.</para>
-	<para>A <emphasis role="bold">Temperature Measurement Module</emphasis> provides a generic configuration for both Spot and Box measurement using the generic description language defined in section <xref linkend="_Ref515972960"/> </para>
+	<para>A <emphasis role="bold">Temperature Measurement Module</emphasis> provides a generic configuration for Spot, Box and BodyTemperature measurement using the generic description language defined in section <xref linkend="_Ref515972960"/> </para>
     <para>
       <emphasis role="bold">Radiometry Rules</emphasis> can be defined using the Rules Engine. These Rules trigger alarms based on <emphasis role="bold">TemperatureConditions</emphasis> of the output of their associated Analytics Module. Temperature Conditions supported by Devices can include, for example, LessThan (threshold), MoreThan, EqualTo, etc.</para>
-    <para>This specification describes a very simple rule, the <emphasis role="bold">RadiometryTemperatureRule</emphasis> and a generic measurement rule, the <emphasis role="bold">TemperatureMeasurementRule</emphasis>. Both these rules are based on a single Measurement Analytics Module output. These rules shall provide an Event when the TemperatureCondition is met by the selected output (Temperature Value) of the Analytics Module on which they are defined.</para>
+    <para>This specification describes three very simple rules, the <emphasis role="bold">RadiometryTemperatureRule</emphasis>, a generic measurement rule <emphasis role="bold">TemperatureMeasurementRule</emphasis> and the <emphasis role="bold">BodyTemperatureRule</emphasis>. All these three rules are based on a single Measurement Analytics Module output. These rules shall provide an Event when the TemperatureCondition is met by the selected output (Temperature Value) of the Analytics Module on which they are defined.</para>
     <para>
       <emphasis role="bold">Radiometry Analytics Module Options</emphasis> are provided by the GetAnalyticsModuleOptions Response, as described in the Analytics Service. Options and Types are described in the <emphasis role="bold">Radiometry Schema</emphasis>, (radiometry.xsd), under /Analytics.</para>
     <para>
@@ -4547,7 +4547,7 @@
                 <para>Mode</para>
               </entry>
               <entry>
-                <para>Operating mode, eg., it can either operate as Spot or Box modes,  actual supported modes would be listed in options</para>
+                <para>Operating mode, eg., it can either operate as Spot, Box or BodyTemperature  modes,  actual supported modes would be listed in options</para>
               </entry>
               <entry>
                 <para>Mandatory</para>
@@ -5004,6 +5004,172 @@
                 </entry>
                 <entry>
                   <para>Geo Location of the measurement triggering the Alarm (if available)</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+	  </section>
+	   <section>
+	  <title>BodyTemperatureRule</title>
+		  <para>BodyTemperatureRule rule works on the output of Temperature Measurement Module (<xref linkend="_refTempMeasurementModule"/>), when the mode is configured as BodyTemperature.</para>
+		  <para>BodyTemperatureRule and options follows the generic description language defined in <xref linkend="_Ref515972960" />. For description of parameters refer <xref linkend="_RefBodMeasurementRuleTable" />.</para>
+		   <programlisting><![CDATA[
+<tt:RuleDescription Name="tt:BodyTemperatureAlarm">
+<tt:Parameters>
+  <tt:SimpleItemDescription Name="ThresholdTemperature" Type="xs:float"/>
+  <tt:SimpleItemDescription Name="RuleCondition" Type="xs:string"/>
+  <tt:SimpleItemDescription Name="Duration" Type="xs:duration"/>
+  <tt:SimpleItemDescription Name="TemperatureMeasurementModule" Type="xs:string"/>   
+</tt:Parameters>
+<tt:Messages>
+  <tt:Source>
+    <tt:SimpleItemDescription Type="tt:ReferenceToken" Name="VideoSource"/>
+    <tt:SimpleItemDescription Type="xs:string“ Name="RuleName" />
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription Type="xs:boolean" Name="State"/>
+    <tt:SimpleItemDescription Type="xs:integer" Name="ObjectId"/>
+    <tt:SimpleItemDescription Type="xs:float" Name="Temperature"/>
+    <tt:SimpleItemDescription Type="xs:anyURI" Name="ImageUri"/>
+    <tt:SimpleItemDescription Type="xs:anyURI" Name="SceneImageUri"/>
+    <tt:ElementItemDescription Type="xs:base64Binary" Name="Image"/>
+    <tt:ElementItemDescription Type="xs:base64Binary" Name="SceneImage"/>
+    <tt:ElementItemDescription Type="tt:Rectangle" Name="BoundingBox"/>
+  </tt:Data>
+  <tt:ParentTopic>tns1:RuleEngine/Radiometry/BodyTemperatureAlarm</tt:ParentTopic>
+</tt:Messages> 
+]]>
+		 </programlisting> 
+		  <table xml:id="_RefBodMeasurementRuleTable">
+        <title>BodyTemperatureRule configuration parameters </title>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="22*" />
+          <colspec colname="c2" colwidth="78*" />
+          <thead>
+            <row>
+              <entry>
+                <para>Parameter Name</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody valign="top">
+			<row>
+              <entry>
+                <para>ThresholdTemperature</para>
+              </entry>
+              <entry>
+                <para>Indicates the temperature reference value the rule shall be checked against. In Kelvin.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>RuleCondition</para>
+              </entry>
+              <entry>
+                <para>Configures the condition to check eg, LessThan, EqualTo etc., Actual supported values would be provided in options.</para>
+              </entry>
+            </row>			
+            <row>
+              <entry>
+                <para>Duration</para>
+              </entry>
+              <entry>
+                <para>How long the configured condition should stay in same state to generate the event.</para>
+              </entry>
+            </row>
+			<row>
+              <entry>
+                <para>TemperatureMeasurementModule</para>
+              </entry>
+              <entry>
+                <para>Name of the analytics module providing the temperature on which rule is defined.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+	   <table>
+          <title>Description of the BodyTemperature event fields</title>
+          <tgroup cols="2">
+            <colspec colname="c1" colwidth="22*" />
+            <colspec colname="c2" colwidth="78*" />
+            <thead>
+              <row>
+                <entry>
+                  <para>Parameter Name</para>
+                </entry>
+                <entry>
+                  <para>Description</para>
+                </entry>
+              </row>
+            </thead>
+            <tbody valign="top">
+              <row>
+                <entry>
+                  <para>State</para>
+                </entry>
+                <entry>
+                  <para>True (temperature condition is met) or False (condition not met)</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>ObjectID</para>
+                </entry>
+                <entry>
+                  <para>Optional Object ID of the person, whose temperature met the condition</para>
+                </entry>
+              </row>
+			  <row>
+                <entry>
+                  <para>Temperature</para>
+                </entry>
+                <entry>
+                  <para>Optional temperatue of the object in Kelvin</para>
+                </entry>
+              </row>
+			   <row>
+                <entry>
+                  <para>ImageUri</para>
+                </entry>
+                <entry>
+                  <para>Optional , uri of the object image </para>
+                </entry>
+              </row>
+			  <row>
+                <entry>
+                  <para>SceneImageUri</para>
+                </entry>
+                <entry>
+                  <para>Optional , uri of the full scene image </para>
+                </entry>
+              </row>
+			   <row>
+                <entry>
+                  <para>Image</para>
+                </entry>
+                <entry>
+                  <para>Optional , base64encoded object image </para>
+                </entry>
+              </row>
+			   <row>
+                <entry>
+                  <para>SceneImage</para>
+                </entry>
+                <entry>
+                  <para>Optional , base64encoded scene image </para>
+                </entry>
+              </row>
+			  <row>
+                <entry>
+                  <para>BoundingBox</para>
+                </entry>
+                <entry>
+                  <para>Optional , bounding box information of the object as normalized screen coordinates (-1.0, 1.0) </para>
                 </entry>
               </row>
             </tbody>
