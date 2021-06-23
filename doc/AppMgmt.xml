@@ -3,26 +3,41 @@
 <book xmlns="http://docbook.org/ns/docbook" version="5.0">
   <info>
     <title>Applicaton Management Service Specification</title>
-    <titleabbrev>AppMgmtSrv</titleabbrev>
-    <releaseinfo>19.12</releaseinfo>
+    <titleabbrev>App Mgmt</titleabbrev>
+    <releaseinfo>21.06</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate> December, 2019</pubdate>
+    <pubdate> June, 2021</pubdate>
     <mediaobject>
       <imageobject>
-        <imagedata fileref="media/logo.png" contentwidth="60mm" />
+        <imagedata fileref="media/logo.png" contentwidth="60mm"/>
       </imageobject>
     </mediaobject>
     <copyright>
-      <year>2008-2020</year>
+      <year>2008-2021</year>
       <holder>ONVIF™ All rights reserved.</holder>
     </copyright>
     <legalnotice>
-      <para>Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.</para>
-      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.</para>
-      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.</para>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so
+        long as this copyright notice, license and disclaimer are retained with all copies of the
+        document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR
+        AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+        LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+        NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE;
+        OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS,
+        TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY
+        DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR
+        RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION,
+        MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2)
+        SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR
+        DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT
+        APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR
+        RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF
+        THE CORPORATION.</para>
     </legalnotice>
     <revhistory>
       <revision>
@@ -32,6 +47,14 @@
           <personname>Hans Busch</personname>
         </author>
         <revremark>Initial release</revremark>
+      </revision>
+      <revision>
+        <revnumber>21.06</revnumber>
+        <date>Jun-2021</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Update backup and restore. Add configuration URI.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -149,19 +172,24 @@
         <para>When posting an image to one of the URIs, the following HTML status codes may be returned, depending on success or failure:</para>
         <itemizedlist>
           <listitem>
-            <para>200 OK image file was successfully uploaded </para>
+            <para>200 OK</para>
+            <para>Image file was successfully uploaded.</para>
           </listitem>
           <listitem>
-            <para>401 Unauthorized attempted POST without authentication credentials at the WRITE_SYSTEM access policy level</para>
+            <para>401 Unauthorized</para>
+            <para>Attempted POST without authentication credentials at the WRITE_SYSTEM access policy level</para>
           </listitem>
           <listitem>
-            <para>408 Request Timeout POST took too long to upload</para>
+            <para>408 Request Timeout</para>
+            <para>POST took too long to upload</para>
           </listitem>
           <listitem>
-            <para>411 Length Required POST does not include Content-Length header</para>
+            <para>411 Length Required</para>
+            <para>POST does not include Content-Length header</para>
           </listitem>
           <listitem>
-            <para>415 Unsupported Media Type  POST does not include Content-Type header, or file MIME type does not match any type in the FormatsSupported attribute's list</para>
+            <para>415 Unsupported Media Type</para>
+            <para>POST does not include Content-Type header, or file MIME type does not match any type in the FormatsSupported attribute's list</para>
           </listitem>
         </itemizedlist>
         <para>Note that the installation may not be completed when the upload has finished. </para>
@@ -268,62 +296,122 @@
           </varlistentry>
         </variablelist>
       </section>
+      <section>
+        <title>Backup and Restore</title>
+        <para>A device signals support for backup and restore of individual applications by
+          providing the Configuration URI in the application information items (see <xref
+            linkend="_AppInfo"/>). Clients can retrieve and backup the current configuration via the
+          http GET method. Note that the configuration itself is an opaque blob. A backed-up
+          configuration may be restored at a later time by uploading it to the device via the http
+          POST method. Refer to the individual application documentation regarding support for
+          restoring of configurations across devices and versions. For general error behavior of the
+          restore function see <xref linkend="_Ref4595104"/>. Additionally an application may generate 
+          the following error response</para>
+        <itemizedlist>
+          <listitem>
+            <para>521 Version mismatch The application cannot restore the provided configuration.</para>
+          </listitem>
+        </itemizedlist>
+      </section>
+      <section>
+        <title>Application Interface</title>
+        <para>A device should provide an interface description for applications providing a programming API 
+          for configuration and monitoring purposes. For these applications a device should provide a
+          link via the InterfaceDescription information item as defined in <xref linkend="_AppInfo"/>. It allows
+          clients to easily integrate application configuration and information retrieval. Examples for 
+        interface description languages are JSON or YAML descriptions according to OpenAPI.</para>
+      </section>
     </section>
-    <section>
+    <section xml:id="_AppInfo">
       <title>Application Information</title>
       <section>
         <title>Information Items</title>
         <para>The following items may be associated to each application and can be queried either via the GetInstalledApps method or the GetAppInfo method.</para>
-        <itemizedlist>
-          <listitem>
-            <para>
-              <emphasis role="bold">AppID</emphasis>	Unique identifier of an application</para>
-          </listitem>
-          <listitem>
-            <para>
-              <emphasis role="bold">Name	</emphasis>User readable name of the application</para>
-          </listitem>
-          <listitem>
-            <para>
-              <emphasis role="bold">Version	</emphasis>Version string assigned by the application vendor</para>
-          </listitem>
-          <listitem>
-            <para>
-              <emphasis role="bold">Licenses	</emphasis>Licenses associated with the application</para>
-          </listitem>
-          <listitem>
-            <para>
-              <emphasis role="bold">Privileges	</emphasis>Privileges assigned to the application</para>
-          </listitem>
-          <listitem>
-            <para>
-              <emphasis role="bold">InstallationDate	</emphasis>Date when the application was installed</para>
-          </listitem>
-          <listitem>
-            <para>
-              <emphasis role="bold">LastUpdate	</emphasis>Date when the application was last updated</para>
-          </listitem>
-          <listitem>
-            <para>
-              <emphasis role="bold">State	</emphasis>Information whether the application is currently Installing, Active,   	Inactive or Uninstalling (see <xref linkend="_Ref469303432" />). </para>
-          </listitem>
-          <listitem>
-            <para>
-              <emphasis role="bold">Status</emphasis>	Textual description of the state. In error cases this shall contain the  	error reason. </para>
-          </listitem>
-          <listitem>
-            <para>
-              <emphasis role="bold">Autostart	</emphasis>Indication whether the application automatically starts on system boot.</para>
-          </listitem>
-          <listitem>
-            <para>
-              <emphasis role="bold">Website	</emphasis>Link to an internal or external website providing supplementary   	information about the application or its vendor.</para>
-          </listitem>
-          <listitem>
-            <para>
-              <emphasis role="bold">OpenSource</emphasis>	Optional link to a listing of related open source licenses.</para>
-          </listitem>
-        </itemizedlist>
+        <variablelist>
+          <varlistentry>
+            <term>AppID</term>
+            <listitem>
+              <para>Unique identifier of an application</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Name</term>
+            <listitem>
+              <para>User readable name of the application</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Version</term>
+            <listitem>
+              <para>Version string assigned by the application vendor</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Licenses</term>
+            <listitem><para>Licenses associated with the application</para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Privileges</term>
+            <listitem>
+              <para>Privileges assigned to the application</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>InstallationDate</term>
+            <listitem>
+              <para>Date when the application was installed</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>LastUpdate</term>
+            <listitem>
+              <para>Date when the application was last updated</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>State</term>
+            <listitem>
+              <para>
+              Information whether the application is currently Installing, Active,   	Inactive or Uninstalling (see <xref linkend="_Ref469303432" />). </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Status</term>
+            <listitem>
+              <para>Textual description of the state. In error cases this shall contain the  	error reason. </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Autostart</term>
+            <listitem>
+              <para>Indication whether the application automatically starts on system boot.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Website</term>
+            <listitem>
+              <para>Link to an internal or external website providing supplementary   	information about the application or its vendor.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Configuration</term>
+            <listitem>
+              <para>Optional Uri for backup and restore of the application configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>InterfaceDescription</term>
+            <listitem>
+              <para>Optional reference to the applications interface definition.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>OpenSource</term>
+            <listitem>
+              <para>Optional link to a listing of related open source licenses.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
       </section>
       <section>
         <title>GetInstalledApps</title>
@@ -441,7 +529,7 @@
         <varlistentry>
           <term>response</term>
           <listitem>
-            <para role="param">Capabilities [timg:Capabilities]</para>
+            <para role="param">Capabilities [Capabilities]</para>
             <para role="text">Set of indicators for function groups as described above.</para>
           </listitem>
         </varlistentry>
@@ -497,7 +585,7 @@
         <title>Application state chart.</title>
         <mediaobject>
           <imageobject>
-            <imagedata fileref="media/AppMgmtSrv/states.svg" contentwidth="149.8mm" contentdepth="93.2mm" />
+            <imagedata fileref="media/AppMgmt/states.svg" contentwidth="110mm"/>
           </imageobject>
         </mediaobject>
       </figure> 

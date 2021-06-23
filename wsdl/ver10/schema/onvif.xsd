@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--<?xml-stylesheet type="text/xsl" href="onvif-schema-viewer.xsl"?>-->
 <!--
-Copyright (c) 2008-2020 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2021 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
 THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
 IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.
 -->
-<xs:schema xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="20.12">
+<xs:schema xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="21.06">
 	<xs:include schemaLocation="common.xsd"/>
 	<xs:import namespace="http://www.w3.org/2005/05/xmlmime" schemaLocation="http://www.w3.org/2005/05/xmlmime"/>
 	<xs:import namespace="http://www.w3.org/2003/05/soap-envelope" schemaLocation="http://www.w3.org/2003/05/soap-envelope"/>
@@ -104,11 +104,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:sequence>
 	</xs:complexType>
 	<!--===============================-->
-	<xs:simpleType name="IntAttrList">
+	<xs:simpleType name="IntList">
 		<xs:list itemType="xs:int"/>
 	</xs:simpleType>
 	<!--===============================-->
-	<xs:simpleType name="FloatAttrList">
+	<xs:simpleType name="FloatList">
 		<xs:list itemType="xs:float"/>
 	</xs:simpleType>
 	<!--===============================-->
@@ -139,9 +139,9 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</xs:element>
 	<xs:element name="StringList" type="tt:StringList"/>
 	<xs:element name="IntRange" type="tt:IntRange"/>
-	<xs:element name="IntList" type="tt:IntAttrList"/>
+	<xs:element name="IntList" type="tt:IntList"/>
 	<xs:element name="FloatRange" type="tt:FloatRange"/>
-	<xs:element name="FloatList" type="tt:FloatAttrList"/>
+	<xs:element name="FloatList" type="tt:FloatList"/>
 	<xs:element name="DurationRange" type="tt:DurationRange"/>
 	<xs:element name="IntRectangleRange" type="tt:IntRectangleRange"/>
 	<!--===============================-->
@@ -1148,12 +1148,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 		</xs:sequence>
-		<xs:attribute name="GovLengthRange" type="tt:IntAttrList">
+		<xs:attribute name="GovLengthRange" type="tt:IntList">
 			<xs:annotation>
 				<xs:documentation>Exactly two values, which define the Lower and Upper bounds for the supported group of Video frames length. These values typically correspond to the I-Frame distance.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
-		<xs:attribute name="FrameRatesSupported" type="tt:FloatAttrList">
+		<xs:attribute name="FrameRatesSupported" type="tt:FloatList">
 			<xs:annotation>
 				<xs:documentation>List of supported target frame rates in fps (frames per second). The list shall be sorted with highest values first.</xs:documentation>
 			</xs:annotation>
@@ -4423,7 +4423,7 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			</xs:element>
 			<xs:element name="Extension" type="tt:PTZConfigurationOptions2" minOccurs="0"/>
 		</xs:sequence>
-		<xs:attribute name="PTZRamps" type="tt:IntAttrList">
+		<xs:attribute name="PTZRamps" type="tt:IntList">
 			<xs:annotation>
 				<xs:documentation>
 					The list of acceleration ramps supported by the device. The
@@ -6563,12 +6563,6 @@ If set to 0.0, infinity will be used.</xs:documentation>
 	</xs:complexType>
 	<!--===============================-->
 	<xs:complexType name="ItemList">
-		<xs:annotation>
-			<xs:documentation>
-			List of parameters according to the corresponding ItemListDescription.
-			Each item in the list shall have a unique name.
-		</xs:documentation>
-		</xs:annotation>
 		<xs:sequence>
 			<xs:element name="SimpleItem" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
@@ -6756,7 +6750,7 @@ If set to 0.0, infinity will be used.</xs:documentation>
 		<xs:sequence>
 			<xs:element name="Parameters" type="tt:ItemList">
 				<xs:annotation>
-					<xs:documentation>List of configuration parameters as defined in the correspding description.</xs:documentation>
+					<xs:documentation>List of configuration parameters as defined in the corresponding description.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
@@ -8385,7 +8379,12 @@ and sample rate. </xs:documentation>
 		   gun_shot, scream, glass_breaking, tire_screech   
 		</xs:documentation>
 		</xs:annotation>
-	<xs:restriction base="xs:string"/>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="gun_shot"/>
+			<xs:enumeration value="scream"/>
+			<xs:enumeration value="glass_breaking"/>
+			<xs:enumeration value="tire_screech"/>
+		</xs:restriction>
 	</xs:simpleType>
 
 	<xs:complexType name="AudioClassCandidate">

@@ -4,25 +4,40 @@
   <info>
     <title>Export File Format Specification</title>
     <titleabbrev>ExportFileFormat</titleabbrev>
-    <releaseinfo>18.12</releaseinfo>
+    <releaseinfo>21.06</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>December, 2018</pubdate>
+    <pubdate>June, 2021</pubdate>
     <mediaobject>
       <imageobject>
-        <imagedata fileref="media/logo.png" contentwidth="60mm" />
+        <imagedata fileref="media/logo.png" contentwidth="60mm"/>
       </imageobject>
     </mediaobject>
     <copyright>
-      <year>2013-2020</year>
+      <year>2013-2021</year>
       <holder>ONVIF™ All rights reserved.</holder>
     </copyright>
     <legalnotice>
-      <para>Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.</para>
-      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.</para>
-      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.</para>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so
+        long as this copyright notice, license and disclaimer are retained with all copies of the
+        document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR
+        AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+        LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+        NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE;
+        OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS,
+        TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY
+        DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR
+        RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION,
+        MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2)
+        SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR
+        DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT
+        APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR
+        RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF
+        THE CORPORATION.</para>
     </legalnotice>
     <revhistory>
       <revision>
@@ -50,8 +65,7 @@
         <author>
           <personname>Hiroyuki Sano</personname>
         </author>
-        <revremark>Change Request 1843
-Change Request 2065</revremark>
+        <revremark>Change Request 1843 Change Request 2065</revremark>
       </revision>
       <revision>
         <revnumber>18.06</revnumber>
@@ -62,8 +76,7 @@ Change Request 2065</revremark>
         <author>
           <personname>Hans Busch</personname>
         </author>
-        <revremark>Add cstb box
-Add suep version 1 and Annex B</revremark>
+        <revremark>Add cstb box Add suep version 1 and Annex B</revremark>
       </revision>
       <revision>
         <revnumber>18.12</revnumber>
@@ -72,6 +85,14 @@ Add suep version 1 and Annex B</revremark>
           <personname>Hiroyuki Sano</personname>
         </author>
         <revremark>Change Request 2299, 2356, 2358, 2359, 2383, 2405</revremark>
+      </revision>
+      <revision>
+        <revnumber>21.06</revnumber>
+        <date>Jun-2021</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Move sigC definition to 5.4. Remove obsolete UUID notion.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -239,11 +260,11 @@ Add suep version 1 and Annex B</revremark>
       <para>
         <emphasis role="bold">SurveillanceExportBox</emphasis>
       </para>
-      <para>Box Type: 	‘suep’</para>
-      <para>Container: 	Meta Box (‘meta’), file level</para>
-      <para>Mandatory: 	Yes</para>
-      <para>Quantity: 	Exactly one</para>
-      <para>This box shall provide ordered information about source and export units. Media tracks are identified by their respective UUID. Information has to be available only for the type of media present but separately for each and every track. Information about the exporting unit is leading.</para>
+      <programlisting>Box Type:  ‘suep’
+Container: Meta Box (‘meta’), file level
+Mandatory: Yes
+Quantity:  Exactly one</programlisting>
+      <para>This box shall contain information for all available tracks.</para>
       <para>
         <emphasis role="bold">Syntax</emphasis>
       </para>
@@ -287,7 +308,10 @@ class SurveillanceExportBox
       <para>
         <emphasis role="bold">CorrectStartTimeBox</emphasis>
       </para>
-      <para>Box Types:	‘cstb Container:	<phrase>Protection Scheme Information Box (‘sinf’)</phrase> Mandatory:	No Quantity:	Zero or one per signing instance</para>
+      <programlisting>Box Types: 'cstb' 
+Container: Protection Scheme Information Box (‘sinf’)
+Mandatory: No 
+Quantity:  Zero or one per signing instance</programlisting>
       <para>
         <emphasis role="bold">Syntax</emphasis>
       </para>
@@ -303,8 +327,16 @@ class CorrectStartTimeBox extends Box (‘cstb’) {
       <para>
         <emphasis role="bold">Semantics	</emphasis>
       </para>
-      <para>track_ID 	is an integer that provides a reference to another track in the presentation. track_IDs are never re-used and cannot be equal to zero.</para>
-      <para>startTime	the UTC based time represented by the number of 100-nanosecond intervals since January 1, 1601 of the first media sample in the first fragment.</para>
+      <variablelist>
+        <varlistentry>
+          <term>track_ID</term>
+          <listitem><para>An integer that provides a reference to another track in the presentation. track_IDs are never re-used and cannot be equal to zero.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>startTime</term>
+          <listitem><para>The UTC based time represented by the number of 100-nanosecond intervals since January 1, 1601 of the first media sample in the first fragment.</para></listitem>
+        </varlistentry>
+      </variablelist>
     </section>
     <section>
       <title>Signature</title>
@@ -340,39 +372,52 @@ class CorrectStartTimeBox extends Box (‘cstb’) {
         <title>Include the generated signature in the file</title>
         <para>There are no changes to the file itself or the content after the signing operation has been performed. The sole exception is the input of the signature at the appropriate place.</para>
         <para>The following box definitions provide for signature identification and inclusion. Encryption is not required; therefore an OriginalFormatBox is not necessary.</para>
-        <para>
-          <emphasis role="bold">Item Protection Box</emphasis>
-          <footnote xml:id="__FN2__">
+        <section>
+          <title>Item Protection Box</title>
+          <programlisting>Box Type: 'ipro'<footnote xml:id="__FN2__">
             <para>Box definitions can be found in ISO/IEC 14496-12 Information technology -- Coding of audio-visual objects -- Part 12: ISO base media file format.</para>
           </footnote>
-        </para>
-        <para>Box Type:	‘ipro’ Container:	Meta box (‘meta’) Mandatory:	Yes Quantity:	Exactly one</para>
+Container: Meta box (‘meta’)
+Mandatory: Yes
+Quantity:  Exactly one
+        </programlisting>
         <para>The <literal>protection_count</literal> shall be 1.</para>
-        <para>
-          <emphasis role="bold">Protection Scheme Info Box</emphasis>
-          <superscript>2</superscript>
-        </para>
-        <para>Box Types:	‘sinf’ Container:	Item Protection Box (‘ipro’) Mandatory:	Yes Quantity:	<phrase>O</phrase>ne per signing instance</para>
+        </section>
+        <section>
+          <title>Protection Scheme Info Box</title>
+          <programlisting>Box Type: 'sinf'<superscript>2</superscript>
+Container: Item Protection Box (‘ipro’)
+Mandatory: Yes
+Quantity:  One per signing instance
+        </programlisting>
         <para>Contains exactly one SchemeTypeBox and exactly one SchemeInformationBox.</para>
-        <para>
-          <emphasis role="bold">Scheme Type Box</emphasis>
-          <superscript>2</superscript>
-        </para>
-        <para>
-          <phrase>Box Types:</phrase>	‘schm’ <phrase>Container:</phrase>	Protection Scheme Information Box (‘sinf’) Mandatory:	Yes Quantity:	One per signing instance</para>
+        </section>
+        <section>
+          <title>Scheme Type Box</title>
+          <programlisting>Box Type: 'schm'<superscript>2</superscript>
+Container: Protection Scheme Information Box (‘sinf’)
+Mandatory: Yes
+Quantity:  One per signing instance
+        </programlisting>
         <para>The <literal>scheme_type</literal> shall be 0x6F656666 („<emphasis role="bold">O</emphasis>nvif <emphasis role="bold">E</emphasis>xport <emphasis role="bold">F</emphasis>ile <emphasis role="bold">F</emphasis>ormat‟). </para>
         <para>The <literal>scheme_version</literal> shall be 0x00010000 (version 1). </para>
-        <para>
-          <emphasis role="bold">Scheme Information Box</emphasis>
-          <superscript>2</superscript>
-        </para>
-        <para>
-          <phrase>Box Types:</phrase>	‘schi’ <phrase>Container:</phrase>	Protection Scheme Information Box (‘sinf’) Mandatory:	Yes Quantity:	One per signing instance</para>
+        </section>
+        <section>
+          <title>Scheme Information Box</title>
+          <programlisting>Box Type: 'schi'<superscript>2</superscript>
+Container: Protection Scheme Information Box (‘sinf’)
+Mandatory: Yes
+Quantity:  One per signing instance
+        </programlisting>
         <para>Contains exactly one SignatureBoxand exactly one CertificateBox. May also contain exactly one AdditionalUserInformationBox, exactly one SignatureConfigurationBox, and one CorrectStartTimeBox<footnote xml:id="__FN3__"><para>CorrectStartTimeBox was added in version 1.1 of the ONVIF Export File Format</para></footnote>.</para>
-        <para>
-          <emphasis role="bold">SignatureBox</emphasis>
-        </para>
-        <para>Box Types:	‘sibo’ Container:	Scheme Information Box (‘schi’) Mandatory:	Yes Quantity:	One per signing instance</para>
+        </section>
+        <section>
+          <title>Signature Box</title>
+          <programlisting>Box Type: 'sibo'
+Container: Scheme Information Box (‘schi’)
+Mandatory: Yes
+Quantity:  One per signing instance
+        </programlisting>
         <para>
           <emphasis role="bold">Syntax</emphasis>
         </para>
@@ -384,13 +429,14 @@ extends Box(‘sibo’) {bit(8)  signature[];}
         </para>
         <para>
           <literal>signature</literal>	binary byte array. Length depends on used RSA key length.</para>
-        <para>
-          <emphasis role="bold">CertificateBox</emphasis>
-        </para>
-        <para>Box Type: 	‘cert’</para>
-        <para>Container: 	Scheme Information Box (‘schi’)</para>
-        <para>Mandatory: 	Yes</para>
-        <para>Quantity: 	One per signing instance</para>
+        </section>
+        <section>
+          <title>Certificate Box</title>
+          <programlisting>Box Type: 'cert'
+Container: Scheme Information Box (‘schi’)
+Mandatory: Yes
+Quantity:  One per signing instance
+        </programlisting>
         <para>
           <emphasis role="bold">Syntax</emphasis>
         </para>
@@ -403,42 +449,55 @@ bit(8) data[];
           <emphasis role="bold">Semantics</emphasis>
         </para>
         <para>data        is the DER encoded binary byte array representation of the certificate for the key that should be used to verify the signature in the SignatureBox</para>
-      </section>
-    </section>
-    <section>
-      <title>Repeated signing</title>
-      <para>To add an item, for example, electronic receiving stamps, repeated signing of the file may be required.</para>
-      <para>Repeat steps defined in <xref linkend="_Ref341257518" /> and <xref linkend="_Ref334195281" /> and append another ProtectionSchemeInfoBox at the foot of the list of already existing boxes of that type as defined in <xref linkend="_Ref341271168" /> while not changing <literal>protection_count</literal> in the ItemProtectionBox. Parsers are required to check for the existence of multiple ProtectionSchemeInfoBox despite <literal>protection_count</literal> is fixed to 1, because any change of content which has already been signed would render the appropriate signature invalid. An optional AdditionalUserInformationBox might be used in order to add information.</para>
-      <para>The ‘sigC’ box shall be present when the signature algorithm applied deviates from the default.</para>
-      <para>
-        <emphasis role="bold">SignatureConfigurationBox</emphasis>
-      </para>
-      <para>Box Types:	‘sigC’ Container:	Scheme Information Box (‘schi’) Mandatory:	No Quantity:	Zero or one per signing instance  </para>
-      <para>
-        <emphasis role="bold">Syntax</emphasis>
-      </para>
-      <programlisting><![CDATA[aligned(8) 
+        </section>
+        <section>
+          <title>Signature Configuration Box</title>
+          <programlisting>Box Type: 'sigC'
+Container: Scheme Information Box (‘schi’)
+Mandatory: No
+Quantity:  Zero or one per signing instance
+        </programlisting>
+        <para>
+          <emphasis role="bold">Syntax</emphasis>
+        </para>
+        <programlisting><![CDATA[aligned(8) 
 class SignatureConfigurationBox
   extends Box(‘sigC’) {
     bit(8)AlgorithmIdentifier[];
   }
 ]]></programlisting>
-      <para>
-        <emphasis role="bold">Semantics</emphasis>
-      </para>
-      <para>AlgorithmIdentifier is the signature algorithm identifier with optional parameters as defined by RFC 3280 and RFC 4055. It is encoded using the ASN.1 distinguished encoding rules (DER) and has the structure:</para>
-      <para>
-        <phrase>:</phrase>AlgorithmIdentifier  ::=  SEQUENCE  {</para>
-      <programlisting><![CDATA[
+        <para>
+          <emphasis role="bold">Semantics</emphasis>
+        </para>
+        <para>The ‘sigC’ box shall be present when the signature algorithm deviates from the
+          default defined in <xref linkend="_Ref334195281"/>. Its AlgorithmIdentifier is the signature algorithm identifier with optional
+          parameters as defined by RFC 3280 and RFC 4055. It is encoded using the ASN.1
+          distinguished encoding rules (DER) and has the structure:</para>
+        <para>
+          <phrase>:</phrase>AlgorithmIdentifier ::= SEQUENCE {</para>
+        <programlisting><![CDATA[
 algorithm               OBJECT IDENTIFIER,
 parameters              ANY DEFINED BY algorithm OPTIONAL  
 }
 ]]></programlisting>
+        </section> 
+      </section>
+    </section>
+    <section>
+      <title>Repeated signing</title>
+      <section>
+        <title>Procedure</title>
+      <para>To add an item, for example, electronic receiving stamps, repeated signing of the file may be required.</para>
+      <para>Repeat steps defined in <xref linkend="_Ref341257518" /> and <xref linkend="_Ref334195281" /> and append another ProtectionSchemeInfoBox at the foot of the list of already existing boxes of that type as defined in <xref linkend="_Ref341271168" /> while not changing <literal>protection_count</literal> in the ItemProtectionBox. Parsers are required to check for the existence of multiple ProtectionSchemeInfoBox despite <literal>protection_count</literal> is fixed to 1, because any change of content which has already been signed would render the appropriate signature invalid. An optional AdditionalUserInformationBox might be used in order to add information.</para>
       <para>In order to include optional user information, data related to an additional signature ‘auib’ box is provided.</para>
-      <para>
-        <emphasis role="bold">AdditionalUserInformationBox</emphasis>
-      </para>
-      <para>Box Types:	‘auib’ Container:	Scheme Information Box (‘schi’) Mandatory:	No Quantity:	Zero or one per signing instance  </para>
+      </section>
+      <section>
+        <title>Additional User Information Box</title>
+        <programlisting>Box Type: 'auib'
+Container: Scheme Information Box (‘schi’)
+Mandatory: No
+Quantity:  Zero or one per signing instance
+        </programlisting>
       <para>
         <emphasis role="bold">Syntax</emphasis>
       </para>
@@ -453,6 +512,7 @@ class AdditionalUserInformationBox
       </para>
       <para>
         <literal>UserInformation</literal> is a null terminated string in UTF-8 characters</para>
+      </section>
     </section>
   </chapter>
   <appendix>
@@ -475,7 +535,7 @@ class AdditionalUserInformationBox
         </imageobject>
       </mediaobject>
     </figure>
-    <para>The red color represents the signature introduced at the export stage. The green color represents another signing operation happening after the export stage. The CertificateBox provides the public key for signature verification. Within the SignatureConfigurationBox information is contained describing a differing signature algorithm and its parameters. Additional information has been added in the AdditionalUserInformationBox.</para>
+    <para>The red color represents the signature introduced at the export stage. The green color represents another signing operation happening after the export stage. The CertificateBox provides the public key for signature verification. Within the SignatureConfigurationBox information is contained describing a nondefault signature algorithm and its parameters. Additional information has been added in the AdditionalUserInformationBox.</para>
     <para>
       <phrase>In order to check validity of a signature the signature itself has to be taken from the SignatureBox and </phrase>the bit values for the signature string be set to zero. The hashing operation is performed followed by the signature operation on the hash value. Now the two signatures can be compared.</para>
     <para>Example: Steps to check validity of the first (red) signature from above</para>
