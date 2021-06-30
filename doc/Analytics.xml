@@ -614,7 +614,7 @@
   </xs:complexType>
 ]]></programlisting>
           <para>The object node has two placeholders for appearance and behaviour information. The appearance node starts with an optional transformation node which can be used to change from a frame-centric coordinate system to an object-centric coordinate system. Next, the Shape of an object can be specified. If an object is detected in a frame, the shape information should be present in the appearance description. The analytics algorithm may add object nodes for currently not visible objects, if it is able to infer information for this object otherwise. In such cases, the shape description may be omitted.</para>
-          <para>Object features such as shape (see <xref linkend="_Ref208821074" />), colour (see <xref linkend="_Toc214944464" />) and object class (see <xref linkend="_Ref485906999" />) can be added to the appearance node. </para>
+          <para>Object features such as shape (see <xref linkend="_Ref208821074" />), color (see <xref linkend="_Toc214944464" />) and object class (see <xref linkend="_Ref485906999" />) can be added to the appearance node. </para>
           <para>This specification defines two standard behaviours for objects: Removed or Idle. These behaviours shall be listed as child nodes of the behaviour node of an object. The presence of a removed or idle node does not automatically delete the corresponding ObjectID, making it possible to reuse the same ObjectID when the object starts moving again.</para>
           <para>An object marked with the removed behaviour specifies the place from where the real object was removed. The marker should not be used as the behaviour of the removed object. It is possible to detect the removal even if the action of taking away the object was not detected.</para>
           <para>Objects previously in motion can be marked as Idle to indicate that the object stopped moving. As long as such objects don’t change, they will not be listed in the scene description anymore. When an Idle object appears again in the Scene Description, the Idle flag is removed automatically. </para>
@@ -813,10 +813,10 @@
 ]]></programlisting>
         </section>
         <section xml:id="_Toc214944464">
-          <title>Colour descriptor</title>
-          <para>A colour descriptor is defined as an optional element of the appearance node of an object node. The colour descriptor is defined by a list of colour clusters, each consisting of a colour value, an optional weight and an optional covariance matrix. The colour descriptor does not specify, how the colour clusters are created. They can represent bins of a colour histogram or the result of a clustering algorithm.</para>
-          <para>Colours are represented by three-dimensional vectors. Additionally, the colourspace of each colour vector can be specified by a colourspace attribute. If the colourspace attribute is missing, the YcbCr colourspace is assumed. It refers to the 'sRGB' gamut with the RGB to YcbCr transformation as of ISO/IEC 10918-1 (Information technology -- Digital compression and coding of continuous-tone still images: Requirements and guidelines), a.k.a. JPEG. The Colourspace URI for the YcbCr colourspace is <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/colorspace/YCbCr"/>.</para>
-          <para>An example metadata containing colour information of the detected object is given below.  </para>
+          <title>Color descriptor</title>
+          <para>A color descriptor is defined as an optional element of the appearance node of an object node. The color descriptor is defined by a list of color clusters, each consisting of a color value, an optional weight and an optional covariance matrix. The color descriptor does not specify, how the color clusters are created. They can represent bins of a color histogram or the result of a clustering algorithm.</para>
+          <para>Colors are represented by three-dimensional vectors. Additionally, the color space of each color vector can be specified by a Colorspace attribute. If the Colorspace attribute is missing, the YCbCr color space is assumed. It refers to the 'sRGB' gamut with the RGB to YcbCr transformation as of ISO/IEC 10918-1 (Information technology -- Digital compression and coding of continuous-tone still images: Requirements and guidelines), a.k.a. JPEG. The Colorspace URI for the YCbCr color space is <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/colorspace/YCbCr"/>.</para>
+          <para>An example metadata containing color information of the detected object is given below.  </para>
           <programlisting><![CDATA[<tt:Frame UtcTime="2010-09-10T12:24:57.721">
   <tt:Transformation>
     <tt:Translate x="-1.0" y="-1.0"/>
@@ -844,9 +844,9 @@
   </tt:Object>
 </tt:Frame>
 ]]></programlisting>
-          <para>Colour descriptor contains the representative colours in detected object/region. The representative colours are computed from image of detected object/region each time. Each representative colour value is a vector of specified colour space. The representative colour weight (Weight) denotes the fraction of pixels assigned to the representative colour. Colour covariance describes the variation of colour values around the representative colour value in colour space thus representative colour denotes a region in colour space. The following table lists the acceptable values for Colourspace attribute</para>
+          <para>Color descriptor contains the representative colors in detected object/region. The representative colors are computed from image of detected object/region each time. Each representative color value is a vector of specified color space. The representative color weight (Weight) denotes the fraction of pixels assigned to the representative color. Color covariance describes the variation of color values around the representative color value in color space thus representative color denotes a region in color space. The following table lists the acceptable values for Colorspace attribute.</para>
           <table>
-            <title>Colourspace namespace values</title>
+            <title>Colorspace namespace values</title>
             <tgroup cols="2">
               <colspec colname="c1" colwidth="60*" />
               <colspec colname="c2" colwidth="40*" />
@@ -863,37 +863,45 @@
               <tbody valign="top">
                 <row>
                   <entry>
-                    <para>http://www.onvif.org/ver10/colorspace/YcbCr</para>
+                    <para>http://www.onvif.org/ver10/colorspace/YCbCr</para>
                   </entry>
                   <entry>
-                    <para>YcbCr colourspace</para>
+                    <para>YCbCr color space</para>
                   </entry>
                 </row>
                 <row>
                   <entry>
-                    <para>http://www.onvif.org/ver10/colorspace/CIELUV</para>
+                    <para>http://www.onvif.org/ver10/colorspace/RGB</para>
                   </entry>
                   <entry>
-                    <para>CIE LUV</para>
+                    <para>RGB color space</para>
                   </entry>
                 </row>
                 <row>
                   <entry>
-                    <para>http://www.onvif.org/ver10/colorspace/CIELAB</para>
+                   <para>http://www.onvif.org/ver10/colorspace/CIELUV</para>
                   </entry>
                   <entry>
-                    <para>CIE 1976 (L*a*b*)</para>
+                   <para><emphasis role="bold">Deprecated</emphasis> CIE LUV</para>
+                 </entry>
+               </row>
+               <row>
+                 <entry>
+                   <para>http://www.onvif.org/ver10/colorspace/CIELAB</para>
+                 </entry>
+                 <entry>
+                   <para><emphasis role="bold">Deprecated</emphasis> CIE 1976 (L*a*b*)</para>
+                 </entry>
+               </row>
+               <row>
+                 <entry>
+                   <para>http://www.onvif.org/ver10/colorspace/HSV</para>
+                 </entry>
+                 <entry>
+                   <para><emphasis role="bold">Deprecated</emphasis> HSV color space</para>
                   </entry>
                 </row>
-                <row>
-                  <entry>
-                    <para>http://www.onvif.org/ver10/colorspace/HSV</para>
-                  </entry>
-                  <entry>
-                    <para>HSV colourspace</para>
-                  </entry>
-                </row>
-              </tbody>
+             </tbody>
             </tgroup>
           </table>
         </section>
