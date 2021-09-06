@@ -114,6 +114,8 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://csrc.nist.gov/publications/detail/fips/180/4/final"></link>&gt;</para>
     <para>ISO/IEC 14888-2 Information technology – Security techniques – Digital signatures with appendix – Part 2: Integer factorization based mechanisms</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/obp/ui/#iso:std:iso-iec:14888:-2:ed-2:v1:en"></link>&gt;</para>
+    <para>ETSI TS 126 244 3GPP file format </para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.etsi.org/deliver/etsi_ts/126200_126299/126244/16.01.00_60/ts_126244v160100p.pdf"></link>&gt;</para>
     <para>PKCS#1, v2.1 RSA Cryptographic Standard</para>
     <para>NIST FIPS 186 Digital Signature Standard (DSS)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://csrc.nist.gov/publications/detail/fips/186/4/final"></link>&gt;</para>
@@ -167,6 +169,30 @@
       <title>Time Information</title>
       <para>The ISO Base File Format has been mainly designed for storing movies and music clips. It defines a media timeline relative to the beginning which is defined as time zero. For Video Surveillance purposes it is important that the file preserves the absolute time of the captured frames. This specification refers to ISO 23000-10 for storing the absolute start time. All other times can be derived using the relative time data defined in ISO/IEC 14496-12. Additional to this time information time corrections can be stored during the sealing process.</para>
       <para>In order to improve random access the ISOM baseline requires the movie fragment table at the end of the file. This redundant information does not require the protection seal.</para>
+    </section>
+    <section>
+      <title>Location</title>
+      <para>Three mechanism for storing location information are defined for MP4 files by the mobile
+        industry.</para>
+      <para>This specification refers to the ETSI standard which has defined means for textual and
+        spherical representation using the so called 'loci' box. </para>
+      <para>Beside the ETSI standard two defacto standards exist for Android and iOS based mobile
+        phones:</para>
+      <itemizedlist>
+        <listitem>
+            <para>Android phones use the '©xyz' box holding an alphanumeric string with lon and lat
+              degrees.</para></listitem>
+        <listitem>
+            <para>Mobile phones based on iOS store similar information in sub atoms of the meta box.
+              Note that this meta box is incompatible with the ISO Base File Format
+              specification.</para>
+        </listitem>
+      </itemizedlist>
+      <para>The location information is designated to provide a best effort for the video location
+        in order to be able to geo-locate the video. For fixed cameras the location should
+        approximate to the intersection of the camera axis with the ground location. For moving
+        cameras such an appoach may not be feasible and a fallback to the camera location may be
+        more suitable.</para>
     </section>
     <section>
       <title>Sealing</title>
@@ -335,6 +361,52 @@ class CorrectStartTimeBox extends Box (‘cstb’) {
         <varlistentry>
           <term>startTime</term>
           <listitem><para>The UTC based time represented by the number of 100-nanosecond intervals since January 1, 1601 of the first media sample in the first fragment.</para></listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
+      <title>Location information</title>
+      <para>When available, the location of the camera view shall be provided as 'loci' box
+        according to ETSI TS 126 244. See below informal repetition of the definition.</para>
+      <para>
+        <emphasis role="bold">Location Box</emphasis>
+      </para>
+      <programlisting>Box Types: 'loci' 
+Container: User Data Box (‘udta’)
+Mandatory: No 
+Quantity:  Zero or one</programlisting>
+      <para>
+        <emphasis role="bold">Syntax</emphasis>
+      </para>
+      <programlisting><![CDATA[aligned(8) 
+class  LocationInformationBox extends FullBox (‘loci’) {
+  UInt(16) language;
+  String Name;
+  UInt(8) Role;
+  UInt(32) Logitude;
+  UInt(32) Latitude;
+  UInt(32) Altitude;
+  String AstronomicalBody;
+  String Notes;
+)
+]]></programlisting>
+      <para>All characters of string based fields shall be encoded as UTF-8. The following semantics apply:</para>
+      <variablelist>
+        <varlistentry>
+          <term>Role</term>
+          <listitem><para>Shall be '1' - real location</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Name</term>
+          <listitem><para>Human readable street address of the location, optionally including building internal addressing.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Longitude and Latitude</term>
+          <listitem><para>16.16 bit fixed point angle in degree.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Altitude</term>
+          <listitem><para>Hight of the location in meter.</para></listitem>
         </varlistentry>
       </variablelist>
     </section>
@@ -606,6 +678,8 @@ class AdditionalUserInformationBox
                 <emphasis role="bold">stts</emphasis><superscript>1</superscript>       Sample index by time 
                 <emphasis role="bold">stsc</emphasis><superscript>1</superscript>       Sample to chunk mapping
                 <emphasis role="bold">stco</emphasis><superscript>1</superscript>       List of Chunk offsets inside 'mdat' relative to file begin 
+    <emphasis role="bold">udta</emphasis><superscript>1</superscript>                   User data
+        <emphasis role="bold">loci</emphasis><superscript>4</superscript>               Geo location information
 <emphasis role="bold">mdat</emphasis><superscript>1</superscript>                       Raw Video and Audio of first fragment (moov)
 <emphasis role="bold">moof</emphasis><superscript>1</superscript>                       Fragment
     <emphasis role="bold">mfhd</emphasis><superscript>1</superscript>                   Contains creation time, timescale, duration and others
@@ -639,6 +713,8 @@ class AdditionalUserInformationBox
       <superscript>2</superscript> ISO/IEC 23000-10</para>
     <para>
       <superscript>3</superscript> This specification</para>
+    <para>
+      <superscript>4</superscript> ETSI TS 126 244</para>
   </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
