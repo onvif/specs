@@ -4,12 +4,12 @@
   <info>
     <title>ONVIF Core Specification</title>
     <titleabbrev>ONVIF Core Spec</titleabbrev>
-    <releaseinfo>21.06</releaseinfo>
+    <releaseinfo>21.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June, 2021</pubdate>
+    <pubdate>December, 2021</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -254,6 +254,14 @@
           <personname>Hans Busch</personname>
         </author>
         <revremark>Add various capabilities. Update MQTT ABNF definition.</revremark>
+      </revision>
+      <revision>
+        <revnumber>21.12</revnumber>
+        <date>Dec-2021</date>
+        <author>
+          <personname>Davide Cristanelli</personname>
+        </author>
+        <revremark>Add security policy configuration APIs.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -5470,24 +5478,14 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">MinLenRange - optional [tt:IntRange]</para>
               <para role="text">Range for "MinLen" rule [1, MaxPasswordLength]</para>
-            </listitem>
-            <listitem>
               <para role="param">UppercaseRange - optional [tt:IntRange]</para>
               <para role="text">Range for "Uppercase" rule [0, MaxPasswordLength]</para>
-            </listitem>
-            <listitem>
               <para role="param">NumberRange - optional [tt:IntRange]</para>
               <para role="text">Range for "Number" rule [0, MaxPasswordLength]</para>
-            </listitem>
-            <listitem>
               <para role="param">SpecialCharsRange - optional [tt:IntRange]</para>
               <para role="text">Range for "SpecialChars" rule [0, MaxPasswordLength]</para>
-            </listitem>
-            <listitem>
               <para role="param">BlockUsernameOccurrenceSupported [xs:boolean]</para>
               <para role="text">Signals if the device supports the "Block Username Occurrence" rule</para>
-            </listitem>
-            <listitem>
               <para role="param">PolicyConfigurationLockSupported [xs:boolean]</para>
               <para role="text">Signals if the devices supports the locking of the security policy configuration</para>
             </listitem>
@@ -5522,24 +5520,14 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">MinLen - optional [xs:integer]</para>
               <para role="text">Minimum password length</para>
-            </listitem>
-            <listitem>
               <para role="param">Uppercase - optional [xs:integer]</para>
               <para role="text">Minimum number of uppercase characters</para>
-            </listitem>
-            <listitem>
               <para role="param">Number - optional [xs:integer]</para>
               <para role="text">Minimum number of numeric characters</para>
-            </listitem>
-            <listitem>
               <para role="param">SpecialChars - optional [xs:integer]</para>
               <para role="text">Minimum number of non-alphanumeric characters</para>
-            </listitem>
-            <listitem>
               <para role="param">BlockUsernameOccurrence - optional [xs:boolean]</para>
               <para role="text">Blocks the use of the username in the password</para>
-            </listitem>
-            <listitem>
               <para role="param">PolicyConfigurationLocked - optional [xs:boolean]</para>
               <para role="text">Prevents future updates of the configuration until the next factory default</para>
             </listitem>
@@ -5568,24 +5556,14 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">MinLen - optional [xs:integer]</para>
               <para role="text">Minimum password length</para>
-            </listitem>
-            <listitem>
               <para role="param">Uppercase - optional [xs:integer]</para>
               <para role="text">Minimum number of uppercase characters</para>
-            </listitem>
-            <listitem>
               <para role="param">Number - optional [xs:integer]</para>
               <para role="text">Minimum number of numeric characters</para>
-            </listitem>
-            <listitem>
               <para role="param">SpecialChars - optional [xs:integer]</para>
               <para role="text">Minimum number of non-alphanumeric characters</para>
-            </listitem>
-            <listitem>
               <para role="param">BlockUsernameOccurrence - optional [xs:boolean]</para>
               <para role="text">Blocks the use of the username in the password</para>
-            </listitem>
-            <listitem>
               <para role="param">PolicyConfigurationLocked - optional [xs:boolean]</para>
               <para role="text">Prevents future updates of the configuration until the next factory default</para>
             </listitem>
@@ -5627,8 +5605,6 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">Enabled [xs:boolean]</para>
               <para role="text">If true the password history is enabled</para>
-            </listitem>
-            <listitem>
               <para role="param">Length [xs:integer]</para>
               <para role="text">The length of the password history, [1, MaxPasswordHistory]</para>
             </listitem>
@@ -5657,8 +5633,6 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">Enabled [xs:boolean]</para>
               <para role="text">Used to enable/disable the password history</para>
-            </listitem>
-            <listitem>
               <para role="param">Length [xs:integer]</para>
               <para role="text">The length of the password history, [1, MaxPasswordHistory]</para>
             </listitem>
@@ -5700,8 +5674,6 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">MonitorPeriodRange [tt:IntRange]</para>
               <para role="text">Range for "MonitorPeriod", expressed in seconds</para>
-            </listitem>
-            <listitem>
               <para role="param">AuthFailureRange [tt:IntRange]</para>
               <para role="text">Range for "MaxAuthFailures", number of allowed authentication failures</para>
             </listitem>
@@ -5736,12 +5708,8 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">Enabled [xs:boolean]</para>
               <para role="text">Indicates if the authentication failure warning is enabled or disabled</para>
-            </listitem>
-            <listitem>
               <para role="param">MonitorPeriod [xs:integer]</para>
               <para role="text">The amount of seconds that will be monitored after the first authentication failure</para>
-            </listitem>
-            <listitem>
               <para role="param">MaxAuthFailures [xs:integer]</para>
               <para role="text">Maximum number allowed of authentication failures before reporting the intrusion attempt</para>
             </listitem>
@@ -5771,12 +5739,8 @@ onvif://www.onvif.org/name/ARV-453
             <listitem>
               <para role="param">Enabled [xs:boolean]</para>
               <para role="text">Used to enable/disable the authentication failure warning</para>
-            </listitem>
-            <listitem>
               <para role="param">MonitorPeriod [xs:integer]</para>
               <para role="text">The amount of seconds that will be monitored after the first authentication failure</para>
-            </listitem>
-            <listitem>
               <para role="param">MaxAuthFailures [xs:integer]</para>
               <para role="text">Maximum number allowed of authentication failures before reporting the intrusion attempt</para>
             </listitem>
