@@ -4,7 +4,7 @@ This repository is dedicated to future extensions of the ONVIF Network Interface
 - Network Interface Specification Documents
 - Schemas and wsdl files
 
-Note that officially released specifications are avialable at [onvif.org](https://www.onvif.org/profiles/specifications/).
+Note that officially released specifications are available at [onvif.org](https://www.onvif.org/profiles/specifications/).
 
 You may browse the repository for proposals and corrections that have been assigned to a release.
 

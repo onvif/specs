@@ -4,12 +4,12 @@
   <info>
     <title>Export File Format Specification</title>
     <titleabbrev>ExportFileFormat</titleabbrev>
-    <releaseinfo>21.06</releaseinfo>
+    <releaseinfo>21.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June, 2021</pubdate>
+    <pubdate>December, 2021</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -94,6 +94,14 @@
         </author>
         <revremark>Move sigC definition to 5.4. Remove obsolete UUID notion.</revremark>
       </revision>
+      <revision>
+        <revnumber>21.12</revnumber>
+        <date>Dec-2021</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Add timed metadata.</revremark>
+      </revision>
     </revhistory>
   </info>
   <chapter>
@@ -104,6 +112,8 @@
     <title>Normative references</title>
     <para>ONVIF<superscript>TM</superscript> Core Specification</para>
     <para role="reference">&lt;​<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
+    <para>ONVIF<superscript>TM</superscript> Streaming Specification</para>
+    <para role="reference">&lt;​<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/stream/ONVIF-Streaming-Spec.pdf"></link>&gt;</para>
     <para>ISO/IEC 14496-12 Information technology — Coding of audiovisual objects – Part 12: ISO base media file format</para>
     <para role="reference">&lt;​<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/obp/ui/#iso:std:iso-iec:14496:-12:ed-5:v1:en"></link>&gt;</para>
     <para>ISO/IEC 23000-10 Information technology – Multimedia application format – Part 10: Surveillance application format</para>
@@ -411,6 +421,43 @@ class  LocationInformationBox extends FullBox (‘loci’) {
       </variablelist>
     </section>
     <section>
+      <title>Timed metadata</title>
+      <para>ONVIF metadata supports transport of frame related scene description, events and PTZ
+        information. This section defines how such information can be stored in export files.</para>
+      <para>ISO/IEC 14496-12 Base File Format defines the box requirements for timed XML metadata. This specification defines how to interpret the metx box.</para>
+      <programlisting><![CDATA[aligned(8) 
+class XMLMetaDataSampleEntry() extends MetaDataSampleEntry (‘metx’) {
+  string content_encoding; // optional
+  string namespace;
+  string schema_location; // optional
+  BitRateBox(); // optional
+)]]></programlisting>
+      <variablelist>
+        <varlistentry>
+          <term>content_encoding</term>
+          <listitem><para>Defaults to 'xml'. Options defined by ONVIF are 'gzip' and 'exi'.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>namespace</term>
+          <listitem><para>For ONVIF compliant metadata this parameter shall be set to "http://www.onvif.org/ver10/schema".</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>schema_location</term>
+          <listitem><para>Not used.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>BitRateBox</term>
+          <listitem><para>Not used.</para></listitem>
+        </varlistentry>
+      </variablelist>
+      <para>An ONVIF compliant device shall describe a timed metadata track containing ONVIF
+        metadata as defined by the ONVIF Streaming Specification using a XMLMetaDataSampleEntry box.  </para>
+      <para>Content compression shall be signaled via the content_encoding field. See the ONVIF
+        Streaming Specification for compression data format.</para>
+      <para>Note, XML documents should not be preceeded by an XML declaration since both version and
+        encoding are well defined. </para>
+    </section>
+    <section>
       <title>Signature</title>
       <section xml:id="_Ref341257518">
         <title>Preparing the signature input</title>
@@ -640,7 +687,9 @@ class AdditionalUserInformationBox
   </appendix>
   <appendix>
     <title>Box Structure (informative)</title>
-    <para>The diagram below provides an overview on required boxes and their referencing for a Video stream with Audio. In order to simplify the example, it shows the content of a single fragment while a real file would contain numerous fragments.</para>
+    <para>The diagram below provides an overview on required boxes and their referencing for a video
+      stream with audio and timed metadata. In order to simplify the example, it shows the content
+      of a single fragment while a real file would contain numerous fragments.</para>
 <programlisting>
 <emphasis role="bold">ftyp</emphasis><superscript>1</superscript>                       File brand ‘isom’.
 <emphasis role="bold">moov</emphasis><superscript>1</superscript>                       File wide definitions
@@ -680,6 +729,22 @@ class AdditionalUserInformationBox
                 <emphasis role="bold">stco</emphasis><superscript>1</superscript>       List of Chunk offsets inside 'mdat' relative to file begin 
     <emphasis role="bold">udta</emphasis><superscript>1</superscript>                   User data
         <emphasis role="bold">loci</emphasis><superscript>4</superscript>               Geo location information
+    <emphasis role="bold">trak</emphasis><superscript>1</superscript>                   Third track with timed metadata
+        <emphasis role="bold">tkhd</emphasis><superscript>1</superscript>               Track header with creation time, timescale, duration, track ID
+        <emphasis role="bold">mdia</emphasis><superscript>1</superscript>
+            <emphasis role="bold">mdhd</emphasis><superscript>1</superscript>           Media header with creation time, timescale, duration and others
+            <emphasis role="bold">hdlr</emphasis><superscript>1</superscript>           Signals that this is a metadata track (type is 'meta')
+            <emphasis role="bold">minf</emphasis><superscript>1</superscript>           Contains creation time, timescale, duration and others
+                <emphasis role="bold">nmhd</emphasis><superscript>1</superscript>       Null media handler box
+                <emphasis role="bold">dinf</emphasis><superscript>1</superscript>       Data location information.
+                <emphasis role="bold">dref</emphasis><superscript>1</superscript>
+                    <emphasis role="bold">url</emphasis><superscript>1</superscript>    Data location flag in file must be set
+            <emphasis role="bold">stbl</emphasis><superscript>1</superscript>           Container with sample descriptions.
+                <emphasis role="bold">stsd</emphasis><superscript>1</superscript>       Codec information 
+                    <emphasis role="bold">metx</emphasis><superscript>1</superscript>   Metadata format information
+                <emphasis role="bold">stts</emphasis><superscript>1</superscript>       Sample index by time 
+                <emphasis role="bold">stsc</emphasis><superscript>1</superscript>       Sample to chunk mapping
+                <emphasis role="bold">stco</emphasis><superscript>1</superscript>       List of Chunk offsets inside 'mdat' relative to file begin 
 <emphasis role="bold">mdat</emphasis><superscript>1</superscript>                       Raw Video and Audio of first fragment (moov)
 <emphasis role="bold">moof</emphasis><superscript>1</superscript>                       Fragment
     <emphasis role="bold">mfhd</emphasis><superscript>1</superscript>                   Contains creation time, timescale, duration and others
@@ -688,6 +753,10 @@ class AdditionalUserInformationBox
         <emphasis role="bold">tfdt</emphasis><superscript>1</superscript>               Track fragment decode time
         <emphasis role="bold">trun</emphasis><superscript>1</superscript>               Access to raw data in mdat box
     <emphasis role="bold">traf</emphasis><superscript>1</superscript>                   Second track with Audio
+        <emphasis role="bold">tfhd</emphasis><superscript>1</superscript>               Sample information
+        <emphasis role="bold">tfdt</emphasis><superscript>1</superscript>               Track fragment decode time
+        <emphasis role="bold">trun</emphasis><superscript>1</superscript>               Access to raw data in mdat box
+    <emphasis role="bold">traf</emphasis><superscript>1</superscript>                   Third track with timed metadata
         <emphasis role="bold">tfhd</emphasis><superscript>1</superscript>               Sample information
         <emphasis role="bold">tfdt</emphasis><superscript>1</superscript>               Track fragment decode time
         <emphasis role="bold">trun</emphasis><superscript>1</superscript>               Access to raw data in mdat box
