@@ -4,12 +4,12 @@
   <info>
     <title>Media2 Service Specification</title>
     <titleabbrev>Media2</titleabbrev>
-    <releaseinfo>21.06</releaseinfo>
+    <releaseinfo>21.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June 2021</pubdate>
+    <pubdate>December 2021</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -171,6 +171,14 @@
           <personname>Sujith Raman</personname>
         </author>
         <revremark>Clarify system coordinates.</revremark>
+      </revision>
+      <revision>
+        <revnumber>21.12</revnumber>
+        <date>Dec-2021</date>
+        <author>
+          <personname>Hans Busch, Rick Boer</personname>
+        </author>
+        <revremark>Add optional Receiver configuration to Media2. Fix inconsistency in Media2 NoProfile fault message.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -904,7 +912,7 @@
             <para>Fisheye – Undewarped viewmode from a device supporting fisheye lens.</para>
           </listitem>
           <listitem>
-            <para>360Panrama – 360 degree panoramic view.</para>
+            <para>360Panorama – 360 degree panoramic view.</para>
           </listitem>
           <listitem>
             <para>180Panorama – 180 degree panoramic view.</para>
@@ -1033,6 +1041,15 @@
         <title>Audio decoder configuration</title>
         <para>The Audio Decoder Configuration does not contain any parameter to configure the decoding . The encodings supported by an audio decoder configuration can be retrieved via the method GetAudioDecoderConfigurationOptions.</para>
       </section>
+      <section>
+        <title>Receiver configuration</title>
+        <para>The Receiver configuration provides an alternate source for video and audio. It allows
+          to pipe encoded media from an external source which than can be processed and forwarded.
+          For configuration see the ONVIF Receiver Service Specification.</para>
+        <para>A device supporting media profiles with receivers shall allow to add any receiver
+          configuration reported by GetReceivers as long as the profile doesn't include any other
+          video or audio source configuration.</para>
+      </section>
     </section>
     <section>
       <title>Media Configuration Methods</title>
@@ -1151,7 +1168,7 @@
             <term>faults</term>
             <listitem>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
-              <para role="text">The requested profile token token does not exist.</para>
+              <para role="text">The requested profile token does not exist.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoConfig</para>
               <para role="text">The requested configuration does not exist in the given context.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:IncompatibleConfiguration</para>
@@ -1272,7 +1289,7 @@
             <term>faults</term>
             <listitem>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
-              <para role="text">The requested profile token token does not exist.</para>
+              <para role="text">The requested profile token does not exist.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidStreamSetup</para>
               <para role="text">The specified Protocol is not supported.</para>
               <para role="param">env:Sender - ter:OperationProhibited - ter:StreamConflict</para>
@@ -1320,7 +1337,7 @@
             <term>faults</term>
             <listitem>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
-              <para role="text">The requested profile token token does not exist.</para>
+              <para role="text">The requested profile token does not exist.</para>
               <para role="param">env:Receiver - ter:Action - ter:IncompleteConfiguration</para>
               <para role="text">The specified media profile does contain either unused sources or encoder configurations without a corresponding source.</para>
             </listitem>
@@ -1361,7 +1378,7 @@
             <term>faults</term>
             <listitem>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
-              <para role="text">The requested profile token token does not exist.</para>
+              <para role="text">The requested profile token does not exist.</para>
               <para role="param">env:Receiver - ter:Action - ter:IncompleteConfiguration</para>
               <para role="text">The specified media profile does not contain either a reference to a video encoder a video source configuration, to a audio source or  to audio encoder configuration or a reference to a metadata configuration</para>
             </listitem>
@@ -1395,7 +1412,7 @@
             <term>faults</term>
             <listitem>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
-              <para role="text">The requested profile token token does not exist.</para>
+              <para role="text">The requested profile token does not exist.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -1434,7 +1451,7 @@
             <term>faults</term>
             <listitem>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
-              <para role="text">The requested profile token token does not exist.</para>
+              <para role="text">The requested profile token does not exist.</para>
             </listitem>
           </varlistentry>
           <varlistentry>

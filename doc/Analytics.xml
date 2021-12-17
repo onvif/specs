@@ -4,12 +4,12 @@
   <info>
     <title>Analytics Service Specification</title>
     <titleabbrev>Analytics</titleabbrev>
-    <releaseinfo>21.06</releaseinfo>
+    <releaseinfo>21.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June, 2021</pubdate>
+    <pubdate>December, 2021</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -225,6 +225,14 @@
           <personname>Hans Busch</personname>
         </author>
         <revremark>Update counting rule. Minor editorial fixes.</revremark>
+      </revision>
+      <revision>
+        <revnumber>21.12</revnumber>
+        <date>Dec-2021</date>
+        <author>
+          <personname>Sujith Raman, Fredrik Svensson, Hans Busch</personname>
+        </author>
+        <revremark>Added body temperature alarm rule. Clarifications for color.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -596,7 +604,15 @@
         <para>When the receiver of a scene description receives an empty frame, the receiver should assume that all subsequent frames are empty as well until the next non-empty frame is received. When the last received frame is non-empty, the receiver should assume that a description of the next processed frame will be transmitted.</para>
         <section xml:id="_Ref208712481">
           <title>Objects</title>
-          <para>Objects are identified via their ObjectID. Features relating to one particular object are collected in an object node with the corresponding ObjectID as an attribute. Associations of objects, such as Object Renaming, Object Splits, Object Merges and Object Deletions are expressed in a separate ObjectTree node. An ObjectID is implicitly created with the first appearance of the ObjectID within an object node<footnote xml:id="__FN3__"><para>Please note that the schema is included here for <emphasis>information only. </emphasis>[ONVIF Schema] contains the normative schema definition.</para></footnote>.</para>
+          <para>Objects are identified via their ObjectId. Features relating to one particular
+            object are collected in an object node with the corresponding ObjectId as an attribute.
+            Associations of objects, such as Object Renaming, Object Splits, Object Merges and
+            Object Deletions are expressed in a separate ObjectTree node. An ObjectId is implicitly
+            created with the first appearance of the ObjectId within an object node<footnote
+              xml:id="__FN3__">
+              <para>Please note that the schema is included here for <emphasis>information only.
+                </emphasis>[ONVIF Schema] contains the normative schema definition.</para>
+            </footnote>.</para>
           <programlisting><![CDATA[<xs:complexType name="ObjectId">
   <xs:attribute name="ObjectId" type="xs:integer"/>
 </xs:complexType>
@@ -614,8 +630,12 @@
   </xs:complexType>
 ]]></programlisting>
           <para>The object node has two placeholders for appearance and behaviour information. The appearance node starts with an optional transformation node which can be used to change from a frame-centric coordinate system to an object-centric coordinate system. Next, the Shape of an object can be specified. If an object is detected in a frame, the shape information should be present in the appearance description. The analytics algorithm may add object nodes for currently not visible objects, if it is able to infer information for this object otherwise. In such cases, the shape description may be omitted.</para>
-          <para>Object features such as shape (see <xref linkend="_Ref208821074" />), colour (see <xref linkend="_Toc214944464" />) and object class (see <xref linkend="_Ref485906999" />) can be added to the appearance node. </para>
-          <para>This specification defines two standard behaviours for objects: Removed or Idle. These behaviours shall be listed as child nodes of the behaviour node of an object. The presence of a removed or idle node does not automatically delete the corresponding ObjectID, making it possible to reuse the same ObjectID when the object starts moving again.</para>
+          <para>Object features such as shape (see <xref linkend="_Ref208821074" />), color (see <xref linkend="_Toc214944464" />) and object class (see <xref linkend="_Ref485906999" />) can be added to the appearance node. </para>
+          <para>This specification defines two standard behaviours for objects: Removed or Idle.
+            These behaviours shall be listed as child nodes of the behaviour node of an object. The
+            presence of a removed or idle node does not automatically delete the corresponding
+            ObjectId, making it possible to reuse the same ObjectId when the object starts moving
+            again.</para>
           <para>An object marked with the removed behaviour specifies the place from where the real object was removed. The marker should not be used as the behaviour of the removed object. It is possible to detect the removal even if the action of taking away the object was not detected.</para>
           <para>Objects previously in motion can be marked as Idle to indicate that the object stopped moving. As long as such objects don’t change, they will not be listed in the scene description anymore. When an Idle object appears again in the Scene Description, the Idle flag is removed automatically. </para>
           <para>Example:</para>
@@ -792,7 +812,7 @@
           <para>Example:</para>
           <programlisting><![CDATA[<tt:Frame UtcTime="2008-10-10T12:24:57.321">
   <tt:Transformation>
-    <tt:Translate x="-1.0" y="-1".0/>
+    <tt:Translate x="-1.0" y="-1.0"/>
     <tt:Scale x="0.003125" y="0.00416667"/>
   </tt:Transformation>
   <tt:Object ObjectId="12">
@@ -813,11 +833,26 @@
 ]]></programlisting>
         </section>
         <section xml:id="_Toc214944464">
-          <title>Colour descriptor</title>
-          <para>A colour descriptor is defined as an optional element of the appearance node of an object node. The colour descriptor is defined by a list of colour clusters, each consisting of a colour value, an optional weight and an optional covariance matrix. The colour descriptor does not specify, how the colour clusters are created. They can represent bins of a colour histogram or the result of a clustering algorithm.</para>
-          <para>Colours are represented by three-dimensional vectors. Additionally, the colourspace of each colour vector can be specified by a colourspace attribute. If the colourspace attribute is missing, the YcbCr colourspace is assumed. It refers to the 'sRGB' gamut with the RGB to YcbCr transformation as of ISO/IEC 10918-1 (Information technology -- Digital compression and coding of continuous-tone still images: Requirements and guidelines), a.k.a. JPEG. The Colourspace URI for the YcbCr colourspace is <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/colorspace/YCbCr"/>.</para>
-          <para>An example metadata containing colour information of the detected object is given below.  </para>
-          <programlisting><![CDATA[<tt:Frame UtcTime="2010-09-10T12:24:57.721">
+          <title>Color descriptor</title>
+          <para>The optional color descriptor allows to describe the representative colors of the
+            detected object or region. Each color is represented as vectors based on a color space.
+            Its weight denotes the fraction of pixels assigned to the representative color in the
+            range [0 .. 1]. Color covariance describes the variation of color values around the
+            representative color value in color space thus representative color denotes a region in
+            color space.</para>
+          <para>Note that the color descriptor does not specify, how color clusters are created.
+            They can represent bins of a color histogram or the result of a clustering
+            algorithm.</para>
+          <para>The color space defaults to the YCbCr color space which refers to the 'sRGB' gamut
+            with the RGB to YcbCr transformation as of ISO/IEC 10918-1 (Information technology --
+            Digital compression and coding of continuous-tone still images: Requirements and
+            guidelines), a.k.a. JPEG. The Colorspace URI for the YCbCr color space is <link
+              xmlns:xlink="http://www.w3.org/1999/xlink"
+              xlink:href="http://www.onvif.org/ver10/colorspace/YCbCr"/>. Alternate color spaces as
+            defined in <xref linkend="_colorspaces"/> can be defined on frame level and individually
+            for each object.</para> 
+          <para>An example metadata containing color information of the detected object is given below.  </para>
+          <programlisting><![CDATA[<tt:Frame UtcTime="2010-09-10T12:24:57.721" Colorspace="RGB">
   <tt:Transformation>
     <tt:Translate x="-1.0" y="-1.0"/>
     <tt:Scale x="0.003125" y="0.00416667"/>
@@ -832,26 +867,28 @@
         <tt:ColorCluster>
           <tt:Color X=”58” Y=”105” Z=”212”/>
           <tt:Covariance XX=”7.2” YY=”6” ZZ=”3”/>
-          <tt:Weight>90</tt:Weight>
+          <tt:Weight>0.5</tt:Weight>
         </tt:ColorCluster>
         <tt:ColorCluster>
           <tt:Color X=”165” Y=”44” Z=”139”/>
           <tt:Covariance XX=”4” YY=”4” ZZ=”4”/>
-          <tt:Weight>5</tt:Weight>
+          <tt:Weight>0.3</tt:Weight>
         </tt:ColorCluster>
       </tt:Color>
     </tt:Appearance>
   </tt:Object>
 </tt:Frame>
 ]]></programlisting>
-          <para>Colour descriptor contains the representative colours in detected object/region. The representative colours are computed from image of detected object/region each time. Each representative colour value is a vector of specified colour space. The representative colour weight (Weight) denotes the fraction of pixels assigned to the representative colour. Colour covariance describes the variation of colour values around the representative colour value in colour space thus representative colour denotes a region in colour space. The following table lists the acceptable values for Colourspace attribute</para>
-          <table>
-            <title>Colourspace namespace values</title>
-            <tgroup cols="2">
-              <colspec colname="c1" colwidth="60*" />
-              <colspec colname="c2" colwidth="40*" />
+          <para>The following table lists the acceptable values for colorspace attribute</para>
+          <table xml:id="_colorspaces">
+            <title>Colorspace namespace values</title>
+            <tgroup cols="3">
+              <colspec colname="c1" colwidth="1*"/>
+              <colspec colname="newCol2" colwidth="4.19*"/>
+              <colspec colname="c2" colwidth="3.33*"/>
               <thead>
                 <row>
+                  <entry>Colorspace</entry>
                   <entry>
                     <para>Namespace URI</para>
                   </entry>
@@ -862,35 +899,48 @@
               </thead>
               <tbody valign="top">
                 <row>
+                  <entry><para>YCbCr</para></entry>
                   <entry>
-                    <para>http://www.onvif.org/ver10/colorspace/YcbCr</para>
+                    <para>http://www.onvif.org/ver10/colorspace/YCbCr</para>
                   </entry>
                   <entry>
-                    <para>YcbCr colourspace</para>
+                    <para>YCbCr color space</para>
                   </entry>
                 </row>
                 <row>
+                  <entry><para>RGB</para></entry>
+                  <entry>
+                    <para>http://www.onvif.org/ver10/colorspace/RGB</para>
+                  </entry>
+                  <entry>
+                    <para>RGB color space</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry><para>CIELUV</para></entry>
                   <entry>
                     <para>http://www.onvif.org/ver10/colorspace/CIELUV</para>
                   </entry>
                   <entry>
-                    <para>CIE LUV</para>
+                    <para><emphasis role="bold">Deprecated</emphasis> CIE LUV</para>
                   </entry>
                 </row>
                 <row>
+                  <entry><para>CIELAB</para></entry>
                   <entry>
                     <para>http://www.onvif.org/ver10/colorspace/CIELAB</para>
                   </entry>
                   <entry>
-                    <para>CIE 1976 (L*a*b*)</para>
+                    <para><emphasis role="bold">Deprecated</emphasis> CIE 1976 (L*a*b*)</para>
                   </entry>
                 </row>
                 <row>
+                  <entry><para>HSV</para></entry>
                   <entry>
                     <para>http://www.onvif.org/ver10/colorspace/HSV</para>
                   </entry>
                   <entry>
-                    <para>HSV colourspace</para>
+                    <para><emphasis role="bold">Deprecated</emphasis> HSV color space</para>
                   </entry>
                 </row>
               </tbody>
@@ -1706,7 +1756,7 @@
         </section>
         <section>
           <title>Human body descriptor</title>
-          <para>A human body descriptor is defined as an optional element of the Appearance Node of an Object Node. It is exploited to describle some features of the humanbody, such as bodymetric, clothing, belonging and behaviour. All features are listed in the below table.</para>
+          <para>A human body descriptor is defined as an optional element of the Appearance Node of an Object Node. It is exploited to describle some features of the human body, such as body metric, clothing, belonging and behaviour. All features are listed in the below table.</para>
           <table>
             <title>Description of the Human Body detail</title>
             <tgroup cols="5">
@@ -1885,7 +1935,7 @@
                     <para>Color</para>
                   </entry>
                   <entry>
-                    <para>xs:string</para>
+                    <para>tt:ColorDescriptor</para>
                   </entry>
                   <entry>
                     <para>N/A</para>
@@ -1932,7 +1982,7 @@
                     <para>Color</para>
                   </entry>
                   <entry>
-                    <para>xs:string</para>
+                    <para>tt:ColorDescriptor</para>
                   </entry>
                   <entry>
                     <para>N/A</para>
@@ -1960,7 +2010,7 @@
                     <para>Color</para>
                   </entry>
                   <entry>
-                    <para>xs:string</para>
+                    <para>tt:ColorDescriptor</para>
                   </entry>
                   <entry>
                     <para>N/A</para>
@@ -1974,7 +2024,7 @@
                     <para>Color</para>
                   </entry>
                   <entry>
-                    <para>xs:string</para>
+                    <para>tt:ColorDescriptor</para>
                   </entry>
                   <entry>
                     <para>N/A</para>
@@ -2013,7 +2063,7 @@
                     <para>Color</para>
                   </entry>
                   <entry>
-                    <para>xs:string</para>
+                    <para>tt:ColorDescriptor</para>
                   </entry>
                   <entry>
                     <para>N/A</para>
@@ -2070,7 +2120,7 @@
                   </entry>
                 </row>
                 <row>
-                  <entry morerows="8">
+                  <entry morerows="2">
                     <para>Behaviour</para>
                   </entry>
                   <entry>
@@ -2101,83 +2151,17 @@
                   </entry>
                 </row>
                 <row>
-                  <entry morerows="6">
+                  <entry>
                     <para>Activity</para>
                   </entry>
                   <entry>
-                    <para>Walking</para>
-                  </entry>
-                  <entry>
                     <para>N/A</para>
                   </entry>
                   <entry>
                     <para>xs:string</para>
                   </entry>
-                </row>
-                <row>
                   <entry>
-                    <para>Running</para>
-                  </entry>
-                  <entry>
-                    <para>N/A</para>
-                  </entry>
-                  <entry>
-                    <para>xs:string</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>Fallen</para>
-                  </entry>
-                  <entry>
-                    <para>N/A</para>
-                  </entry>
-                  <entry>
-                    <para>xs:string</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>Squatting</para>
-                  </entry>
-                  <entry>
-                    <para>N/A</para>
-                  </entry>
-                  <entry>
-                    <para>xs:string</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>Sitting</para>
-                  </entry>
-                  <entry>
-                    <para>N/A</para>
-                  </entry>
-                  <entry>
-                    <para>xs:string</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>Standing</para>
-                  </entry>
-                  <entry>
-                    <para>N/A</para>
-                  </entry>
-                  <entry>
-                    <para>xs:string</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>Driving</para>
-                  </entry>
-                  <entry>
-                    <para>N/A</para>
-                  </entry>
-                  <entry>
-                    <para>xs:string</para>
+                    <para>bd:HumanActivity</para>
                   </entry>
                 </row>
               </tbody>
@@ -3030,7 +3014,7 @@
           <itemizedlist>
             <listitem>
               <para>SampleFrame [tt:Frame]</para>
-              <para>An example Frame instance. The instance shall include all elements that the analytics module outputs to the frame of a metadtata stream. A device implementation should strive for including all supported enumeration values. </para>
+              <para>An example Frame instance. The instance shall include all elements that the analytics module outputs to the frame of a metadata stream. A device implementation should strive for including all supported enumeration values. </para>
             </listitem>
           </itemizedlist>
           <para>If the sample frame includes object bounding boxes or shapes, these shall be located in the top left quarter of the image.</para>
@@ -3155,7 +3139,7 @@
     </section>
   </chapter>
   <appendix>
-    <title>Specified Rules (informative)</title>
+    <title>Specified Rules (normative)</title>
     <section>
       <title>Overview</title>
       <para>This Annex defines a set of generic rules. Rules are mainly designed for static cameras
@@ -3186,12 +3170,16 @@
           <varlistentry>
             <term>Data</term>
             <listitem>
-              <para role="text">Data items are rule specific. For property events any change of the data values items must be signaled with a changed event.
+              <para role="text">Data items are rule specific, except for the generic elements described here. For property events any change of the data values items must be signaled with a changed event.
               Non-property events may have no data items at all.</para>
+              <para role="param">ObjectId - optional [tt:StringList]</para>
+              <para role="text">Optional list of objects triggering this rule.</para>
+              <para role="param">ClassTypes - optional [tt:StringList]</para>
+              <para role="text">Optional list of class types of the detected objects, one for each object, in the same order as object ids are listed.</para>
             </listitem>
           </varlistentry>
         </variablelist>
-        <para>The data section contains the rule specific state or event information.</para>
+        <para>The data section contains the rule specific state or event information. Vendors are allowed to add vendor specific extensions to the data section, but must take care to do this in a future proof way by adding a vendor specific namespace prefix to the name.</para>
         <programlisting><![CDATA[<tt:Messages>
   <tt:Source>
     <tt:SimpleItemDescription Name="VideoSource" Type="tt:ReferenceToken"/>
@@ -3200,7 +3188,9 @@
   </tt:Source>
   <tt:Data>
     ...
-  </tt:Data>
+    <tt:SimpleItemDescription Name="ObjectId" Type="tt:StringList"/>
+    <tt:SimpleItemDescription Name="ClassTypes" Type="tt:StringList"/>
+    </tt:Data>
   <tt:ParentTopic>tns1:RuleEngine/Xxxx</tt:ParentTopic>
 </tt:Messages>]]></programlisting>
       </section>
@@ -3274,7 +3264,7 @@
       </section>
     </section>
     <section>
-      <title>LineDetector</title>
+      <title>Line Detector</title>
       <para>LineDetector is defined by a non-intersecting simple polyline. If an object crosses the polyline in the specified direction, the rule engine sends a Crossed event containing the name of the LineDetector and a reference to the object which has crossed the line. As directions, one can select between Left, Right, and Any, where directions Left and Right refer to the direction walking along the line from the first point to the second point and are the prohibited directions. The specific definition of the Left and Right direction can refer to the following <xref linkend="_Ref529526650" />, A is the first point and B is the second point.</para>
       <figure xml:id="_Ref529526650">
         <title>Direction – Left and Right</title>
@@ -3309,8 +3299,7 @@
         <varlistentry>
           <term>Data</term>
           <listitem>
-            <para role="param">ObjectID - optional [xs:integer]</para>
-            <para role="text">ID of the passing object that triggered the event.</para>
+            <para role="text">See <xref linkend="_msgSource"/></para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -3325,7 +3314,7 @@
       ...
     </tt:Source>
     <tt:Data>
-      <tt:SimpleItemDescription Name="ObjectId" Type="xs:integer"/>
+      ...
     </tt:Data>
     <tt:ParentTopic>tns1:RuleEngine/LineDetector/Crossed</tt:ParentTopic>
   </tt:Messages>
@@ -3358,14 +3347,14 @@
         <varlistentry>
           <term>Data</term>
           <listitem>
+            <para role="text">See <xref linkend="_msgSource"/></para>
             <para role="param">IsInside [xs:boolean]</para>
             <para role="text">True if one or more objects matching the parameters are inside.</para>
-            <para role="param">ObjectID - optional [tt:StringList]</para>
-            <para role="text">Optional list of objects triggering this rule.</para>
           </listitem>
         </varlistentry>
       </variablelist>
-      <para>Note: a device signaling ObjectID shall emit changed events whenever the list of objects changes.</para>
+      <para>Note: a device signaling ObjectId shall emit changed events whenever the list of objects
+        changes.</para>
       <para>See below example for a FieldDetector definition:</para>
       <programlisting><![CDATA[<tt:RuleDescription Name="tt:FieldDetector">
   <tt:Parameters>
@@ -3376,8 +3365,8 @@
       ...
     </tt:Source>
     <tt:Data>
+      ...
       <tt:SimpleItemDescription Name="IsInside" Type="xs:boolean"/>
-      <tt:SimpleItemDescription Name="ObjectId" Type="tt:StringList"/>
     </tt:Data >
     <tt:ParentTopic>
       tns1:RuleEngine/FieldDetector/ObjectsInside
@@ -3417,8 +3406,7 @@
         <varlistentry>
           <term>Data</term>
           <listitem>
-            <para role="param">ObjectID - optional [xs:StringList]</para>
-            <para role="text">One or more IDs of objects in loitering state.</para>
+            <para role="text">See <xref linkend="_msgSource"/></para>
             <para role="param">Since [xs:dateTime]</para>
             <para role="text">Since when this object is loitering.</para>
           </listitem>
@@ -4103,10 +4091,10 @@
     <para>This specification covers the two most common measurement modules offered by radiometric devices today: Spots and Boxes.</para>
     <para>A <emphasis role="bold">Spot Measurement Module</emphasis> shall provide the absolute temperature value for a point on the image (this could be a pixel, or small pixel cluster, depending on the lens/resolution of the device).</para>
     <para>A <emphasis role="bold">Box Measurement Module</emphasis> provides a number of different temperature values which are calculated based on the temperature values of the points contained in a rectangular area of the image. These <emphasis role="bold">BoxTemperatureTypes</emphasis> can be, for example, the Maximum temperature value for the points contained in the rectangular area, or the Minimum value, Average, Median, etc.</para>
-	<para>A <emphasis role="bold">Temperature Measurement Module</emphasis> provides a generic configuration for both Spot and Box measurement using the generic description language defined in section <xref linkend="_Ref515972960"/> </para>
+	<para>A <emphasis role="bold">Temperature Measurement Module</emphasis> provides a generic configuration for Spot, Box and BodyTemperature measurement using the generic description language defined in section <xref linkend="_Ref515972960"/> </para>
     <para>
       <emphasis role="bold">Radiometry Rules</emphasis> can be defined using the Rules Engine. These Rules trigger alarms based on <emphasis role="bold">TemperatureConditions</emphasis> of the output of their associated Analytics Module. Temperature Conditions supported by Devices can include, for example, LessThan (threshold), MoreThan, EqualTo, etc.</para>
-    <para>This specification describes a very simple rule, the <emphasis role="bold">RadiometryTemperatureRule</emphasis> and a generic measurement rule, the <emphasis role="bold">TemperatureMeasurementRule</emphasis>. Both these rules are based on a single Measurement Analytics Module output. These rules shall provide an Event when the TemperatureCondition is met by the selected output (Temperature Value) of the Analytics Module on which they are defined.</para>
+    <para>This specification describes three very simple rules, the <emphasis role="bold">RadiometryTemperatureRule</emphasis>, a generic measurement rule <emphasis role="bold">TemperatureMeasurementRule</emphasis> and the <emphasis role="bold">BodyTemperatureRule</emphasis>. All these three rules are based on a single Measurement Analytics Module output. These rules shall provide an Event when the TemperatureCondition is met by the selected output (Temperature Value) of the Analytics Module on which they are defined.</para>
     <para>
       <emphasis role="bold">Radiometry Analytics Module Options</emphasis> are provided by the GetAnalyticsModuleOptions Response, as described in the Analytics Service. Options and Types are described in the <emphasis role="bold">Radiometry Schema</emphasis>, (radiometry.xsd), under /Analytics.</para>
     <para>
@@ -4558,7 +4546,7 @@
                 <para>Mode</para>
               </entry>
               <entry>
-                <para>Operating mode, eg., it can either operate as Spot or Box modes,  actual supported modes would be listed in options</para>
+                <para>Operating mode, eg., it can either operate as Spot, Box or BodyTemperature  modes,  actual supported modes would be listed in options</para>
               </entry>
               <entry>
                 <para>Mandatory</para>
@@ -4681,7 +4669,7 @@
     </section>
     <section>
       <title>Radiometry Rules</title>
-        Following radiometry rules are defined, RadiometryTemperatureRule and TemperatureMeasurementRule. 
+      <para>Following radiometry rules are defined, RadiometryTemperatureRule and TemperatureMeasurementRule.</para> 
       <section>
         <title>RadiometryTemperatureRule</title>
       <para>Calling the GetRuleOptions operation with the ttr:RadiometryRule type shall return an ttr:RadiometryRuleConfigOptions, as well as ttr:RadiometryTemperatureRuleConfig, if Radiometry Rules are supported by the Device.</para>
@@ -5015,6 +5003,172 @@
                 </entry>
                 <entry>
                   <para>Geo Location of the measurement triggering the Alarm (if available)</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+	  </section>
+	   <section>
+	  <title>BodyTemperatureRule</title>
+		  <para>BodyTemperatureRule rule works on the output of Temperature Measurement Module (<xref linkend="_refTempMeasurementModule"/>), when the mode is configured as BodyTemperature.</para>
+		  <para>BodyTemperatureRule and options follows the generic description language defined in <xref linkend="_Ref515972960" />. For description of parameters refer <xref linkend="_RefBodMeasurementRuleTable" />.</para>
+		   <programlisting><![CDATA[
+<tt:RuleDescription Name="tt:BodyTemperatureAlarm">
+<tt:Parameters>
+  <tt:SimpleItemDescription Name="ThresholdTemperature" Type="xs:float"/>
+  <tt:SimpleItemDescription Name="RuleCondition" Type="xs:string"/>
+  <tt:SimpleItemDescription Name="Duration" Type="xs:duration"/>
+  <tt:SimpleItemDescription Name="TemperatureMeasurementModule" Type="xs:string"/>   
+</tt:Parameters>
+<tt:Messages>
+  <tt:Source>
+    <tt:SimpleItemDescription Type="tt:ReferenceToken" Name="VideoSource"/>
+    <tt:SimpleItemDescription Type="xs:string“ Name="RuleName" />
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription Type="xs:boolean" Name="State"/>
+    <tt:SimpleItemDescription Type="xs:integer" Name="ObjectId"/>
+    <tt:SimpleItemDescription Type="xs:float" Name="Temperature"/>
+    <tt:SimpleItemDescription Type="xs:anyURI" Name="ImageUri"/>
+    <tt:SimpleItemDescription Type="xs:anyURI" Name="SceneImageUri"/>
+    <tt:ElementItemDescription Type="xs:base64Binary" Name="Image"/>
+    <tt:ElementItemDescription Type="xs:base64Binary" Name="SceneImage"/>
+    <tt:ElementItemDescription Type="tt:Rectangle" Name="BoundingBox"/>
+  </tt:Data>
+  <tt:ParentTopic>tns1:RuleEngine/Radiometry/BodyTemperatureAlarm</tt:ParentTopic>
+</tt:Messages> 
+]]>
+		 </programlisting> 
+		  <table xml:id="_RefBodMeasurementRuleTable">
+        <title>BodyTemperatureRule configuration parameters </title>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="22*" />
+          <colspec colname="c2" colwidth="78*" />
+          <thead>
+            <row>
+              <entry>
+                <para>Parameter Name</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody valign="top">
+			<row>
+              <entry>
+                <para>ThresholdTemperature</para>
+              </entry>
+              <entry>
+                <para>Indicates the temperature reference value the rule shall be checked against. In Kelvin.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>RuleCondition</para>
+              </entry>
+              <entry>
+                <para>Configures the condition to check eg, LessThan, EqualTo etc., Actual supported values would be provided in options.</para>
+              </entry>
+            </row>			
+            <row>
+              <entry>
+                <para>Duration</para>
+              </entry>
+              <entry>
+                <para>How long the configured condition should stay in same state to generate the event.</para>
+              </entry>
+            </row>
+			<row>
+              <entry>
+                <para>TemperatureMeasurementModule</para>
+              </entry>
+              <entry>
+                <para>Name of the analytics module providing the temperature on which rule is defined.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+	   <table>
+          <title>Description of the BodyTemperature event fields</title>
+          <tgroup cols="2">
+            <colspec colname="c1" colwidth="22*" />
+            <colspec colname="c2" colwidth="78*" />
+            <thead>
+              <row>
+                <entry>
+                  <para>Parameter Name</para>
+                </entry>
+                <entry>
+                  <para>Description</para>
+                </entry>
+              </row>
+            </thead>
+            <tbody valign="top">
+              <row>
+                <entry>
+                  <para>State</para>
+                </entry>
+                <entry>
+                  <para>True (temperature condition is met) or False (condition not met)</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>ObjectId</para>
+                </entry>
+                <entry>
+                  <para>Optional Object ID of the person, whose temperature met the condition</para>
+                </entry>
+              </row>
+			  <row>
+                <entry>
+                  <para>Temperature</para>
+                </entry>
+                <entry>
+                  <para>Optional temperatue of the object in Kelvin</para>
+                </entry>
+              </row>
+			   <row>
+                <entry>
+                  <para>ImageUri</para>
+                </entry>
+                <entry>
+                  <para>Optional , uri of the object image </para>
+                </entry>
+              </row>
+			  <row>
+                <entry>
+                  <para>SceneImageUri</para>
+                </entry>
+                <entry>
+                  <para>Optional , uri of the full scene image </para>
+                </entry>
+              </row>
+			   <row>
+                <entry>
+                  <para>Image</para>
+                </entry>
+                <entry>
+                  <para>Optional , base64encoded object image </para>
+                </entry>
+              </row>
+			   <row>
+                <entry>
+                  <para>SceneImage</para>
+                </entry>
+                <entry>
+                  <para>Optional , base64encoded scene image </para>
+                </entry>
+              </row>
+			  <row>
+                <entry>
+                  <para>BoundingBox</para>
+                </entry>
+                <entry>
+                  <para>Optional , bounding box information of the object as normalized screen coordinates (-1.0, 1.0) </para>
                 </entry>
               </row>
             </tbody>

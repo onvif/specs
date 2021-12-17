@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="../../../ver20/util/onvif-wsdl-viewer.xsl"?>
 <!--
-Copyright (c) 2008-2019 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2021 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
@@ -10,7 +10,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tr2="http://www.onvif.org/ver20/media/wsdl" targetNamespace="http://www.onvif.org/ver20/media/wsdl">
 	<wsdl:types>
-		<xs:schema targetNamespace="http://www.onvif.org/ver20/media/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="19.06">
+		<xs:schema targetNamespace="http://www.onvif.org/ver20/media/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="21.12">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../../ver10/schema/onvif.xsd"/>
 			<!--  Message Request/Responses elements  -->
 			<!--===============================-->
@@ -152,6 +152,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:enumeration value="Metadata"/>
 					<xs:enumeration value="Analytics"/>
 					<xs:enumeration value="PTZ"/>
+					<xs:enumeration value="Receiver"/>
 					<!-- Vendors may conceptually add items here prefixing them with there own namespace -->
 				</xs:restriction>
 			</xs:simpleType>
@@ -173,6 +174,15 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						</xs:annotation>
 					</xs:element>
 				</xs:sequence>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:complexType name="ReceiverConfiguration">
+				<xs:complexContent>
+					<xs:extension base="tt:ReceiverConfiguration">
+						<xs:attribute name="token" type="tt:ReferenceToken"/>
+						<xs:anyAttribute processContents="lax"/>
+					</xs:extension>
+				</xs:complexContent>
 			</xs:complexType>
 			<!--===============================-->
 			<xs:complexType name="ConfigurationSet">
@@ -225,6 +235,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:element name="AudioDecoder" type="tt:AudioDecoderConfiguration" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>Optional configuration of the Audio decoder.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Receiver" type="tr2:ReceiverConfiguration" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Optional configuration of the Receiver.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
