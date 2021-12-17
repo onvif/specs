@@ -404,13 +404,12 @@ Change Request 2061, 2063, 2065, 2109</revremark>
       </section>
       <section>
         <title>RecordingJobConfiguration</title>
-        <para>The RecordingJobConfiguration structure shall hold the configuration for a recording job. As a UML diagram, the RecordingJobConfiguration can be viewed as:</para>
-        <figure>
-          <title>
-          </title>
+        <para>The RecordingJobConfiguration structure shall hold the configuration for a recording job. Its UML diagram is hown in <xref linkend="image3"/>.</para>
+        <figure xml:id="image3">
+          <title>UML diagram of the RecordingJobConfiguration</title>
           <mediaobject>
             <imageobject>
-              <imagedata fileref="media/RecordingControl/image3.svg" contentwidth="38.34mm" contentdepth="75.89mm" />
+              <imagedata fileref="media/RecordingControl/image3.svg" contentdepth="75.89mm" />
             </imageobject>
           </mediaobject>
         </figure>
@@ -1172,14 +1171,27 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           <listitem>
             <para role="param">JobOptions [trc:JobOptions ]</para>
             <para role="text">Contains two attributes:</para>
+            <para role="text">Spare: Number of spare jobs that can be created for the recording. By setting none of
+              the Spare attribute the device signals that no job can be created.</para>
+            <para role="text">CompatibleSources: A device that supports recording of a restricted set of
+              Media/Media2 Service Profiles shall return the list of profiles that can be recorded on
+              the given Recording.
+            </para>
             <para role="param">TrackOptions [trc:TrackOptions]</para>
             <para role="text">Contains four attributes:</para>
+            <para role="text">SpareTotal: Total spare number of tracks that can be added to this recording.</para>
+              <para role="text">SpareVideo: Number of spare video tracks for this recording</para>
+            <para role="text">SpareAudio: Number of spare audio tracks for this recording</para>
+            <para role="text">SpareMetadata: Number of spare metadata tracks for this recording</para>
+            <para role="text">By setting none of the spare attributes the device signals that no
+              track can be added.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>faults</term>
           <listitem>
-            <para role="text">env:Sender - ter:InvalidArgVal - ter:NoRecording</para>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:NoRecording</para>
+            <para role="text">The RecordingToken does not reference an existing recording.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -1189,7 +1201,6 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           </listitem>
         </varlistentry>
       </variablelist>
-      <para>The RecordingToken does not reference an existing recording.</para>
     </section>
     <section>
       <title>ExportRecordedData</title>
@@ -1419,15 +1430,13 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <para>If the configuration of a recording is changed, a device shall provide the following event:</para>
         <para>Topic: tns1:RecordingConfig/<phrase>RecordingConfiguration</phrase></para>
         <programlisting><![CDATA[<tt:MessageDescription IsProperty="false"> 
-        <para>&lt;tt:MessageDescription IsProperty="false"&gt; </para>
-        <para>  &lt;tt:Source&gt; </para>
-        <para>    &lt;tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/&gt; </para>
-        <para>  &lt;/tt:Source&gt; </para>
-        <para>  &lt;tt:Data&gt; </para>
-        <para>    &lt;tt:ElementItemDescription Name="Configuration" Type="tt:RecordingConfiguration"/&gt; </para>
-        <para>  &lt;/tt:Data&gt; </para>
-        <para>&lt;/tt:MessageDescription&gt;</para>
-]]></programlisting>
+  <tt:Source> 
+    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/> 
+  </tt:Source> 
+  <tt:Data> 
+    <tt:ElementItemDescription Name="Configuration" Type="tt:RecordingConfiguration"/> 
+  </tt:Data> 
+</tt:MessageDescription>]]></programlisting>
         <para>If the configuration of a track is changed, a device shall provide the following event:</para>
         <para>Topic: tns1:RecordingConfig/<phrase>TrackConfiguration</phrase></para>
         <programlisting><![CDATA[<tt:MessageDescription IsProperty="false"> 
@@ -1519,14 +1528,17 @@ Change Request 2061, 2063, 2065, 2109</revremark>
       <section>
         <title>Example 1: setup recording of a single camera</title>
         <para>There are two steps involved. The first step is to configure the NVS</para>
-        <para>Create recording (this implicitly creates an A, V and M track)</para>
-        <programlisting><![CDATA[; RecordToken = CreateRecording(RecordConfiguration)
+        <programlisting><![CDATA[; Create recording (this implicitly creates an A, V and M track)
+RecordToken = CreateRecording(RecordConfiguration)
+
 ; The tracktokens are predefined. We don’t have to find them on the device
 TrackToken1 = “VIDEO001”
 TrackToken2 = “AUDIO001”
 TrackToken3 = “META001”
+
 ; Create a recording job, assume that we set mode to idle, auto create receiver
 JobToken, ActualJobConfig = CreateRecordingJob(JobConfiguration)
+
 ; Configure the receiver
 ConfigureReceiver(ActualJobConfiguration.ReceiverToken, ReceiverConfiguration)
 ]]></programlisting>
@@ -1543,21 +1555,23 @@ SetRecordingJobMode(JobToken, Active)
         <para>This example is very similar to example 1. The jobconfiguration will hold references to two receiver objects. Each receiver object is configured to receive from the same device, but from a different stream.</para>
         <programlisting><![CDATA[; Create recording (this implicitly creates an A, V and M track)
 RecordToken = CreateRecording(RecordConfiguration)
+
 ; The tracktokens are predefined. We don’t have to find them on the device
 TrackToken1 = “VIDEO001”
 TrackToken2 = “AUDIO001”
 TrackToken3 = “META001”
+
 ; Create three additional tracks
 TrackToken4 = CreateTrack(RecordToken, AudioConfig)
 TrackToken5 = CreateTrack(RecordToken, VideoConfig)
 TrackToken6 = CreateTrack(RecordToken, MetadataConfig)
+
 ; Create a recording job, assume that we set mode to idle,auto create two receivers
 JobToken, ActualJobConfiguration = CreateRecordingJob(JobConfiguration)
+
 ; Configure the receivers
-ConfigureReceiver(ActualJobConfiguration.ReceiverToken[1],
-Receiver1Configuration)
-ConfigureReceiver(ActualJobConfiguration.ReceiverToken[2],
-Receiver2Configuration)
+ConfigureReceiver(ActualJobConfiguration.ReceiverToken[1], Receiver1Configuration)
+ConfigureReceiver(ActualJobConfiguration.ReceiverToken[2], Receiver2Configuration)
 ]]></programlisting>
         <para>To really start recording, some entity calls</para>
         <programlisting><![CDATA[; Activate the recording job
@@ -1571,25 +1585,47 @@ SetRecordingJobMode(JobToken, Active)
     <para>This annex describes a scenario for Multiple Recording Jobs configured to record data into a single recording.</para>
     <para>As described in Section <xref linkend="_Toc247178839" />, "If there are two recording jobs with the same priority, the device shall record the data corresponding to the recording job that was activated the latest."</para>
     <para>Accordingly, a device supporting Multiple Recording Jobs is required to change the Job Modes of Recording Jobs with respect to Priority, as described below :</para>
-    <para>Step 1: A Recording Job ‘J1’ with Priority ‘1’ is created in 'Active' mode</para>
-    <para>Job Modes of Recording Jobs after Step 1:</para>
-    <para>Recording Job ‘J1’ = ACTIVE</para>
-    <para>Step 2: A new Recording Job ‘J2’ with Priority ‘1’ is now created in 'Active' mode</para>
-    <para>Job Modes of Recording Jobs after Step 2:</para>
-    <para>Recording Job ‘J1’ = IDLE</para>
-    <para>Recording Job ‘J2’ = ACTIVE</para>
-    <para>Step 3 : Another Recording Job ‘J3’ with higher Priority ‘2’ is now created in 'Active' mode. Because it has a higher priority than J2, it takes precedence.</para>
-    <para>Job Modes of Recording Jobs after Step 3:</para>
-    <para>Recording Job ‘J1’ = IDLE</para>
-    <para>Recording Job ‘J2’ = IDLE</para>
-    <para>Recording Job ‘J3’ = ACTIVE</para>
-    <para>Step 4. Recording Job ‘J3’ is now deleted, 'J1' and 'J2' are both at the highest priority, so Section <xref linkend="_Toc246137491" /> applies, and the device can activate either 'J1' or 'J2'.</para>
-    <para>Job Modes of Recording Jobs after Step 4, possibility 1: </para>
-    <para>Recording Job ‘J1’ = ACTIVE</para>
-    <para>Recording Job ‘J2’ = IDLE</para>
-    <para>Job Modes of Recording Jobs after Step 4, possibility 2:</para>
-    <para>Recording Job ‘J1’ = IDLE</para>
-    <para>Recording Job ‘J2’ = ACTIVE</para>
+    <variablelist>
+      <varlistentry>
+        <term>Step&#8199;1</term> <!-- inhibit line break -->
+        <listitem>
+          <para>A Recording Job ‘J1’ with Priority ‘1’ is created in 'Active' mode</para>
+          <para>Job Modes of Recording Jobs after Step 1:</para>
+          <para>Recording Job ‘J1’ = ACTIVE</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Step 2</term>
+        <listitem>
+          <para>A new Recording Job ‘J2’ with Priority ‘1’ is now created in 'Active' mode</para>
+          <para>Job Modes of Recording Jobs after Step 2:</para>
+          <para>Recording Job ‘J1’ = IDLE</para>
+          <para>Recording Job ‘J2’ = ACTIVE</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Step 3</term>
+        <listitem>
+          <para>Another Recording Job ‘J3’ with higher Priority ‘2’ is now created in 'Active' mode. Because it has a higher priority than J2, it takes precedence.</para>
+          <para>Job Modes of Recording Jobs after Step 3:</para>
+          <para>Recording Job ‘J1’ = IDLE</para>
+          <para>Recording Job ‘J2’ = IDLE</para>
+          <para>Recording Job ‘J3’ = ACTIVE</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Step 4</term>
+        <listitem>
+          <para>Recording Job ‘J3’ is now deleted, 'J1' and 'J2' are both at the highest priority, so Section <xref linkend="_Toc246137491" /> applies, and the device can activate either 'J1' or 'J2'.</para>
+          <para>Job Modes of Recording Jobs after Step 4, possibility 1: </para>
+          <para>Recording Job ‘J1’ = ACTIVE</para>
+          <para>Recording Job ‘J2’ = IDLE</para>
+          <para>Job Modes of Recording Jobs after Step 4, possibility 2:</para>
+          <para>Recording Job ‘J1’ = IDLE</para>
+          <para>Recording Job ‘J2’ = ACTIVE</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
   </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
