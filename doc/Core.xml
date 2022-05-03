@@ -7595,7 +7595,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
               <para>
                 <emphasis role="bold">PublishFilter</emphasis>
               </para>
-              <para>Concrete Topic Expression to select specific topics to publish, see section <xref linkend="_Ref210199558" />.</para>
+              <para>Concrete TopicExpression to select specific topics to publish, see section <xref linkend="_Ref210199558" />. Example TopicExpression: "tns1:VideoAnalytics//.|tns1:RuleEngine//."</para>
             </listitem>
             <listitem>
               <para>
@@ -7721,7 +7721,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
           according to RFC 5234. Note that special characters like, '#' and '+' shall be omitted
           from the topic. For an example, see section <xref linkend="_Ref19678957"/>.</para>
         <para>Topic = TopicPrefix "/" PayloadPrefix "/" LocalTopic [ "&amp;" Source ]</para>
-        <para>Source = *("/" SNAME "=" SVALUE)</para>
+        <para>Source = *("/" SVALUE)</para>
         <para>with<itemizedlist>
             <listitem>
               <para>TopicPrefix - uniquely identifies the producer and is configurable through the
@@ -7747,14 +7747,11 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
                 "Device/HardwareFailure/tns:acme/LensFailure".</para>
             </listitem>
             <listitem>
-              <para>SNAME being the value of the Name attribute of a SimpleItem in the Source part
-                of the message. All SimpleItem vame/value pairs shall be listed in the SOURCE
-                sequentially. These are added to the topic to make it unique so that they can be
-                cached by the broker individually.</para>
-            </listitem>
-            <listitem>
-              <para>SVALUE being the value of the Value attribute of the corresponding
-                SimpleItem.</para>
+              <para>SVALUE being the value of the Value attribute of a SimpleItem in the Source part
+                of the message. All SimpleItem values shall be listed in the SOURCE sequentially in
+                the same order as they are listed in the response to GetEventProperties. These
+                values are added to the topic to make it unique so that it can be cached by the
+                broker individually. See <xref linkend="_Ref19678957"/> for an example.</para>
             </listitem>
           </itemizedlist></para>
         <table xml:id="table_bj3_3wk_frb">
@@ -7838,8 +7835,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             corresponding MQTT topics and JSON payload. In these examples TopicPrefix has been set
             to "MyDevice".</para>
           <para>Topic for the first message:</para>
-          <programlisting>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed&amp;/VideoSource=1/
-AnalyticsConfiguration=2/Rule=MyImportantFence1</programlisting>
+          <programlisting>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed&amp;/1/2/MyImportantFence1</programlisting>
           <para>Payload for the first message:</para>
           <programlisting>{
   "UtcTime": "2008-10-10T12:24:57.321Z", 	
@@ -7853,10 +7849,7 @@ AnalyticsConfiguration=2/Rule=MyImportantFence1</programlisting>
   }
 }</programlisting>
           <para>Topic for the second message:</para>
-          <programlisting>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed&amp;/VideoSource=1/
-AnalyticsConfiguration=2/Rule=MyImportantFence2</programlisting>
-          <para>Payload for the second message:</para>
-          <programlisting>{
+          <programlisting>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed&amp;/1/2/MyImportanteventbroker
   "UtcTime": "2008-10-10T12:24:57.789Z
   "Source": {
     "VideoSource": "1",
