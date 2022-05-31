@@ -7479,10 +7479,8 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
           <wsnt:Message>
             <tt:Message UtcTime="2008-10-10T12:24:57.321Z">
               <tt:Source>
-                <tt:SimpleItem Name="VideoSourceConfigurationToken"
-                  Value="1"/>
-                <tt:SimpleItem Name="VideoAnalyticsConfigurationToken"
-                  Value="2"/>
+                <tt:SimpleItem Name="VideoSource" Value="1"/>
+                <tt:SimpleItem Name="AnalyticsConfiguration" Value="2"/>
                 <tt:SimpleItem Value="MyImportantFence1" Name="Rule"/>
               </tt:Source>
               <tt:Data>
@@ -7498,10 +7496,8 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
           <wsnt:Message>
             <tt:Message UtcTime="2008-10-10T12:24:57.789Z">
               <tt:Source>
-                <tt:SimpleItem Name="VideoSourceConfigurationToken"
-                  Value="1"/>
-                <tt:SimpleItem Name="VideoAnalyticsConfigurationToken"
-                  Value="2"/>
+                <tt:SimpleItem Name="VideoSource" Value="1"/>
+                <tt:SimpleItem Name="AnalyticsConfiguration" Value="2"/>
                 <tt:SimpleItem Value="MyImportantFence2" Name="Rule"/>
               </tt:Source>
               <tt:Data>
@@ -7610,7 +7606,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
               <para>
                 <emphasis role="bold">PublishFilter</emphasis>
               </para>
-              <para>Concrete Topic Expression to select specific topics to publish, see section <xref linkend="_Ref210199558" />.</para>
+              <para>Concrete TopicExpression to select specific topics to publish, see section <xref linkend="_Ref210199558" />. Example TopicExpression: "tns1:VideoAnalytics//.|tns1:RuleEngine//."</para>
             </listitem>
             <listitem>
               <para>
@@ -7732,14 +7728,48 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
       </section>
       <section>
         <title>Topic Structure</title>
-        <para>Topics are published according to the following structure:</para>
-        <para>&lt;TopicPrefix&gt;/&lt;PayloadPrefix&gt;/&lt;LocalTopic&gt;[/&amp;&lt;Source&gt;[/&lt;Key&gt;]]</para>
-        <para>ONVIF topics are are only locally unique within the device so they must be prefixed with a TopicPrefix to become globally unique. The TopicPrefix is configurable through the AddEventBroker command. The TopicPrefix shall not be empty. The PayloadPrefix signals what kind of data that is published. The following prefixes are defined.</para>
-        <table>
+        <para>Topics are published according to the following structure, expressed as ABNF rules
+          according to RFC 5234. Note that special characters like, '#' and '+' shall be omitted
+          from the topic. For an example, see section <xref linkend="_Ref19678957"/>.</para>
+        <para>Topic = TopicPrefix "/" PayloadPrefix "/" LocalTopic [ "&amp;" Source ]</para>
+        <para>Source = *("/" SVALUE)</para>
+        <para>with<itemizedlist>
+            <listitem>
+              <para>TopicPrefix - uniquely identifies the producer and is configurable through the
+                AddEventBroker command in the Event service. It shall not be empty.</para>
+            </listitem>
+            <listitem>
+              <para>PayloadPrefix - signals in what format the data is published. See <xref
+                  xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_bj3_3wk_frb"/> below for
+                possible values.</para>
+            </listitem>
+            <listitem>
+              <para>LocalTopic is the same as the ONVIF topic, but because MQTT does not support
+                namespaces, the namespace prefix for ONVIF topics shall be dropped, so that for
+                example, "tns1:Device/HardwareFailure/StorageFailure" becomes
+                "Device/HardwareFailure/StorageFailure". This means that the default topic namespace
+                is ONVIF, i.e. "http://www.onvif.org/ver10/topics". If an event uses another topic
+                namespace this should be signalled using the syntax:
+                "tns:{namespace-alias}/&lt;topic&gt;". Vendor specific extensions should choose a
+                suitable namespace alias to avoid name clashes. As an example, consider the ONVIF
+                topic "tns1:Device/HardwareFailure/acme:LensFailure" where
+                tns1="http://www.onvif.org/ver10/topics" and acme="http://www.acme.com/topics". This
+                should be translated to the MQTT topic
+                "Device/HardwareFailure/tns:acme/LensFailure".</para>
+            </listitem>
+            <listitem>
+              <para>SVALUE being the value of the Value attribute of a SimpleItem in the Source part
+                of the message. All SimpleItem values shall be listed in the SOURCE sequentially in
+                the same order as they are listed in the response to GetEventProperties. These
+                values are added to the topic to make it unique so that it can be cached by the
+                broker individually. See <xref linkend="_Ref19678957"/> for an example.</para>
+            </listitem>
+          </itemizedlist></para>
+        <table xml:id="table_bj3_3wk_frb">
           <title>Prefix definitions</title>
           <tgroup cols="2">
-            <colspec colname="c1" colwidth="15*" />
-            <colspec colname="c2" colwidth="85*" />
+            <colspec colname="c1" colwidth="15*"/>
+            <colspec colname="c2" colwidth="85*"/>
             <thead>
               <row>
                 <entry>
@@ -7762,23 +7792,21 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </tbody>
           </tgroup>
         </table>
-        <para>The LocalTopic is the same as the ONVIF topic, but because MQTT does not support namespaces, the namespace prefix for ONVIF topics shall be dropped, so that for example, “tns1:Device/HardwareFailure/StorageFailure” becomes “Device/HardwareFailure/StorageFailure”. This means that the default topic namespace is ONVIF, i.e. “​http://www.onvif.org/ver10/topics”. If an event uses another topic namespace this should be signalled using the syntax: "tns:{namespace-alias}/&lt;topic&gt;". Vendor specific extensions should choose a suitable namespace alias to avoid name clashes. As an example, consider the ONVIF topic "tns1:Device/HardwareFailure/acme:LensFailure" where tns1="​http://www.onvif.org/ver10/topics" and acme="​http://www.acme.com/topics". This should be translated to the MQTT topic "Device/HardwareFailure/tns:acme/LensFailure".</para>
-        <para>The Source and Key are taken from the payload, preceded by a '&amp;' character. For property events, they are added to the topic to make it unique so that they can be cached by the broker individually. For each SimpleItem name/value pair in the Source/Key a ‘/’ character plus the value shall be appended to the topic. The values shall be added in the same order as they are listed in the response to GetEventProperties. Note that special characters like, ‘/’, ‘#’ and ‘+’ shall be omitted from the topic. For an example, see section <xref linkend="_Ref19678957" />.</para>
       </section>
       <section>
         <title>JSON Event Payload</title>
         <para>This section describes how an ONVIF event is mapped to the JSON data format when published using the "onvif-ej" payload definition. <phrase>Mapping definition from XML to JSON according to RFC 5234:</phrase></para>
-        <para>MESSAGE ::= "{" TIMEINFO "," SOURCE ["," DATA ] "}"</para>
-        <para>TIMEINFO ::= DQUOTE "UtcTime" DQUOTE ":" TIMESTAMP </para>
-        <para>SOURCE ::= DQUOTE "Source" DQUOTE ":" "{" *(ITEM) "}"</para>
-        <para>DATA ::= DQUOTE "Data" DQUOTE ":" "{" *(ITEM) "}"</para>
-        <para>ITEM ::= SIMPLEITEM / ELEMENTITEM</para>
-        <para>SIMPLEITEM ::= DQUOTE SNAME DQUOTE ":" DQUOTE  SVALUE DQUOTE</para>
-        <para>ELEMENTITEM ::= DQUOTE ENAME DQUOTE ":  {" [ TYPE *("," TYPE)] "}"</para>
-        <para>TYPE ::= ATTRIBUTE  / SIMPLETYPE / COMPLEXTYPE</para>
-        <para>ATTRIBUTE ::= DQUOTE ANAME DQUOTE ": " DQUOTE AVALUE DQUOTE</para>
-        <para>SIMPLETYPE ::= DQUOTE  NAME DQUOTE ": " DQUOTE VALUE DQUOTE</para>
-        <para>COMPLEXTYPE ::= DQUOTE NAME DQUOTE ": {" [TYPE *("," TYPE)] "}"</para>
+        <para>MESSAGE = "{" TIMEINFO "," SOURCE ["," DATA ] "}"</para>
+        <para>TIMEINFO = DQUOTE "UtcTime" DQUOTE ":" TIMESTAMP </para>
+        <para>SOURCE = DQUOTE "Source" DQUOTE ":" "{" *(ITEM) "}"</para>
+        <para>DATA = DQUOTE "Data" DQUOTE ":" "{" *(ITEM) "}"</para>
+        <para>ITEM = SIMPLEITEM / ELEMENTITEM</para>
+        <para>SIMPLEITEM = DQUOTE SNAME DQUOTE ":" DQUOTE SVALUE DQUOTE</para>
+        <para>ELEMENTITEM = DQUOTE ENAME DQUOTE ": {" [ TYPE *("," TYPE)] "}"</para>
+        <para>TYPE = ATTRIBUTE / SIMPLETYPE / COMPLEXTYPE</para>
+        <para>ATTRIBUTE = DQUOTE ANAME DQUOTE ": " DQUOTE AVALUE DQUOTE</para>
+        <para>SIMPLETYPE = DQUOTE NAME DQUOTE ": " DQUOTE VALUE DQUOTE</para>
+        <para>COMPLEXTYPE = DQUOTE NAME DQUOTE ": {" [TYPE *("," TYPE)] "}"</para>
         <para>with </para>
         <itemizedlist>
           <listitem>
@@ -7813,36 +7841,36 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
         <para>The output shall be generated according above described rules.</para>
         <section xml:id="_Ref19678957">
           <title>Example</title>
-          <para>The XML example response from PullMessages listed in Section <xref linkend="ev_PullMessageResp" /> contains two messages which are mapped to the following corresponding MQTT topics and JSON payload:</para>
-          <programlisting>Topic:
-  MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed/&amp;1/2/MyImportantFence1
-Payload:
-{
+          <para>The XML example response from PullMessages listed in Section <xref
+              linkend="ev_PullMessageResp"/> contains two messages which are mapped to the following
+            corresponding MQTT topics and JSON payload. In these examples TopicPrefix has been set
+            to "MyDevice".</para>
+          <para>Topic for the first message:</para>
+          <programlisting>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed&amp;/1/2/MyImportantFence1</programlisting>
+          <para>Payload for the first message:</para>
+          <programlisting>{
   "UtcTime": "2008-10-10T12:24:57.321Z", 	
   "Source": {
     "VideoSource": "1",
     "AnalyticsConfiguration": "2",
     "Rule": "MyImportantFence1"
-    },
+  },
   "Data": {
     "ObjectId": "15"
   }
-}
-
-Topic:
-  MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed/&amp;1/2/MyImportantFence2Payload:
-Payload:
-{
+}</programlisting>
+          <para>Topic for the second message:</para>
+          <programlisting>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed&amp;/1/2/MyImportanteventbroker
   "UtcTime": "2008-10-10T12:24:57.789Z
   "Source": {
     "VideoSource": "1",
+    "AnalyticsConfiguration": "2",
     "Rule": "MyImportantFence2"
-    },
+  },
   "Data": {
     "ObjectId": "19" 	
   }
-}
-          </programlisting>
+}</programlisting>
         </section>
       </section>
       <section>
