@@ -835,7 +835,7 @@
         <section xml:id="_Toc214944464">
           <title>Color descriptor</title>
           <para>The optional color descriptor allows to describe the representative colors of the
-            detected object or region. Each color is represented as vectors based on a color space.
+            detected object or region. Each color is represented as a three-dimensional vector based on a color space.
             Its weight denotes the fraction of pixels assigned to the representative color in the
             range [0 .. 1]. Color covariance describes the variation of color values around the
             representative color value in color space thus representative color denotes a region in
@@ -941,6 +941,41 @@
                   </entry>
                   <entry>
                     <para><emphasis role="bold">Deprecated</emphasis> HSV color space</para>
+                  </entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </table>
+          <para><xref linkend="_colorranges"/> lists the acceptable value ranges for prominent color
+            spaces.</para>
+          <table xml:id="_colorranges">
+            <title>Colorspace value ranges</title>
+            <tgroup cols="2">
+              <colspec colname="c1" colwidth="1*"/>
+              <colspec colname="newCol2" colwidth="4.19*"/>
+              <thead>
+                <row>
+                  <entry>Colorspace</entry>
+                  <entry>
+                    <para>Range</para>
+                  </entry>
+                </row>
+              </thead>
+              <tbody valign="top">
+                <row>
+                  <entry>
+                    <para>YCbCr</para>
+                  </entry>
+                  <entry>
+                    <para>Y [16 to 235] and Cb/Cr[16 to 240]</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>RGB</para>
+                  </entry>
+                  <entry>
+                    <para>For all component values [0...255]</para>
                   </entry>
                 </row>
               </tbody>
@@ -2402,7 +2437,7 @@
         </section>
         <section>
           <title>Example</title>
-          <para>This examples explains the options for an analytics module called myModule in namesapce nn with four simple parameters:</para>
+          <para>This examples explains the options for an analytics module called myModule in namespace nn with four simple parameters:</para>
           <programlisting><![CDATA[<tt:AnalyticsModuleDescription Name="nn:myModule" fixed="true" maxInstances="1">
   <tt:Parameters>
     <tt:SimpleItemDescription Name="Mode" Type="xs:string"/>
@@ -2968,6 +3003,12 @@
                 <para role="text">The device cannot delete the modules without creating a conflicting configuration.</para>
               </listitem>
             </varlistentry>
+            <varlistentry>
+              <term>access class</term>
+              <listitem>
+                <para role="access">ACTUATE</para>
+              </listitem>
+            </varlistentry>
           </variablelist>
         </section>
         <section>
@@ -3525,7 +3566,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
       </section>
     </section>
     <section>
-      <title>Capabilities</title>
+      <title>GetServiceCapabilities</title>
       <para>The capabilities reflect optional functions and functionality of a service. The information is static and does not change during device operation. The following capabilites are available:</para>
       <variablelist>
         <varlistentry>
@@ -6708,6 +6749,17 @@ xmlns:acme="http://www.acme.com/schema"&gt;
                 <para>Optional</para>
               </entry>
             </row>
+			<row>
+              <entry>
+                <para>Threshold</para>
+              </entry>
+              <entry>
+                <para>The level of confidence required for the detection/recognition.</para>                
+              </entry>
+              <entry>
+                <para>Optional</para>
+              </entry>
+            </row>
           </tbody>
         </tgroup>
       </table>
@@ -6894,6 +6946,12 @@ xmlns:acme="http://www.acme.com/schema"&gt;
     <tt:SimpleItemDescription Name="PlateLocation" Type="xs:string"/>
     <tt:ElementItemDescription Name=”Region” Type=”tt:Polygon”/>
     <tt:ElementItemDescription Name=”SnapLine” Type=”tt:Polyline”/>
+	<tt: SimpleItemDescription Name=”Country” Type=”xs:string”/>
+	<tt: SimpleItemDescription Name=”Sensitivity” Type=”xs:float”/>
+	<tt: SimpleItemDescription Name=”Threshold” Type=”xs:float”/>
+	<tt: SimpleItemDescription Name=”PlateMinWidth” Type=”xs:float”/>
+	<tt: SimpleItemDescription Name=”PlateMaxWidth” Type=”xs:float”/>
+	<tt: SimpleItemDescription Name=”EventInterval” Type=”xs:int”/>
   </tt:Parameters>
   <tt:Messages>
     <tt:Source>
@@ -6968,6 +7026,61 @@ xmlns:acme="http://www.acme.com/schema"&gt;
               </entry>
               <entry>
                 <para>License plate to be analyzed. Predefined values are 'Front' and 'Rear'.</para>
+              </entry>
+              <entry>
+                <para>Optional</para>
+              </entry>
+            </row>
+			<row>
+              <entry>
+                <para>Country</para>
+              </entry>
+              <entry>
+                <para>Specifies the country for which LPR should be processed.</para>
+              </entry>
+              <entry>
+                <para>Optional</para>
+              </entry>
+            </row>
+			<row>
+              <entry>
+                <para>Sensitivity</para>
+              </entry>
+              <entry>
+                <para>Detection sensitivity which provides compromise between detection rate and false alarms.Higher the sensitivity, more License plates are detected at the cost of increasing false alarms number.</para>
+              </entry>
+              <entry>
+                <para>Optional</para>
+              </entry>
+            </row>
+			<row>
+              <entry>
+                <para>PlateMinWidth</para>
+              </entry>
+              <entry>
+                <para>Minimum width of the license plate in percentage to be detected/recognized with respect to Scene Image.</para>
+              </entry>
+              <entry>
+                <para>Optional</para>
+              </entry>
+            </row>
+			<row>
+              <entry>
+                <para>PlateMaxWidth</para>
+              </entry>
+              <entry>
+                <para>Maximum width of the license plate in percentage to be detected/recognized with respect to Scene Image.</para>
+              </entry>
+              <entry>
+                <para>Optional</para>
+              </entry>
+            </row>
+			<row>
+              <entry>
+                <para>EventInterval</para>
+              </entry>
+              <entry>
+                <para>Minimum interval between event notification when same license plate is recognized.</para>
               </entry>
               <entry>
                 <para>Optional</para>
