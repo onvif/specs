@@ -502,499 +502,12 @@
     <para>Radiometry types, modules and rules are defined in the RADIOMETRY Schema file <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver20/analytics/radiometry.xsd">http://www.onvif.org/ver20/analytics/radiometry.xsd</link>.</para>
   </chapter>
   <chapter>
-    <title>ONVIF Metadata in JSON over MQTT</title>
-	<para>Increasing demand in analytics use cases presented a need for
-      standardizing format and transport of ONVIF metadata to be consumed by
-      non-traditional clients (e.g. cloud vendors) to bridge gap between
-      traditional surveillance systems and IoT ecosystems. For easy
-      consumption in such systems ONVIF metadata can be published in JSON
-      format over the MQTT protocol.</para>
-
-      <para>MQTT is a pub/sub messaging protocol centered around topics.
-      Consumers can subscribe to topics published by producers to get
-      continuous updates on the data content. ONVIF metadata, like video
-      analytics scene descriptions, can be published to an MQTT broker and
-      subscribed to by a consumer.</para>
-
-    	<section xml:id="mqtt">
-      <title>Metadata publish sequence</title>
-      <para>This is sequence of operations to set up the metadata flow:<itemizedlist>
-          <listitem>
-            <para>An ONVIF client calls AddEventBroker in the device's Event
-            service to set up:<itemizedlist>
-                <listitem>
-                  <para>Address and credentials to the MQTT broker to use</para>
-                </listitem>
-
-                <listitem>
-                  <para>A unique TopicPrefix for the device</para>
-                </listitem>
-
-                <listitem>
-                  <para>A PublishFilter listing topics to which the device
-                  shall publish</para>
-                </listitem>
-              </itemizedlist></para>
-          </listitem>
-
-          <listitem>
-            <para>The producer (ONVIF device) connects to the MQTT broker and starts publishing
-            data on the selected topics.</para>
-          </listitem>
-
-          <listitem>
-            <para>The consumer connects to the MQTT broker, specifying which topics
-            that it wants to subscribe to. A consumer can be any MQTT capable
-            client, for example, an event engine like Node-RED, IoT cloud
-            platforms, VSaaS platforms, etc. Multiple comsumers using
-            different topics are possible.</para>
-          </listitem>
-
-          <listitem>
-            <para>The consumer receives updates on subscribed topics and can
-            implement actions like statistics aggregation and complex
-            analytics rules with data from multiple sources.</para>
-          </listitem>
-        </itemizedlist></para>
-
-      <para>The following sections describe how topics and payload shall be
-      structured by an ONVIF metadata producer when published to an MQTT
-      broker.</para>
-
-      <section>
-        <title>MQTT Topic Structure</title>
-
-        <para>This section describes how an MQTT topic is structured based on
-        metadata type and source expressed as ABNF rules according to RFC
-        5234.</para>
-
-        <para>Topic = TopicPrefix "/" PayloadPrefix "/" MetadataType "/" MetadataProducer</para>
-		 <para>Note that special characters like, ‘/’, ‘#’ and ‘+’ shall be omitted from the topic.</para>
-        <para>with<itemizedlist>
-            <listitem>
-              <para>TopicPrefix - uniquely identifies the producer and is
-              configurable through the AddEventBroker command in the Event
-              service. It shall not be empty.</para>
-            </listitem>
-
-            <listitem>
-              <para>PayloadPrefix - signals in what format the data is
-              published. See <xref linkend="table_qy2_xhl_crb"/> below for
-              possible values.</para>
-            </listitem>
-
-            <listitem>
-              <para>MetadataType - signals what type of metadata it is. See
-              <xref linkend="table_i4l_yhl_crb"/> below for possible
-              values.</para>
-            </listitem>
-
-            <listitem>
-              <para>MetadataProducer - specifies additional source information for the metadata. The
-                format depends on the metadata type. See <xref linkend="table_i4l_yhl_crb"/> below
-                for definition.</para>
-            </listitem>
-          </itemizedlist></para>
-
-        <table xml:id="table_qy2_xhl_crb">
-          <title>PayloadPrefix types</title>
-
-          <tgroup cols="2">
-            <thead>
-              <row>
-                <entry align="center"><para>Prefix</para></entry>
-
-                <entry align="center"><para>Description</para></entry>
-              </row>
-            </thead>
-
-            <tbody>
-              <row>
-                <entry><para>"onvif-mj"</para></entry>
-
-                <entry><para>ONVIF metadata with JSON payload</para></entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </table>
-
-        <table xml:id="table_i4l_yhl_crb">
-          <title>MetadataType categories with corresponding MetadataProducer</title>
-
-          <tgroup cols="3">
-            <thead>
-              <row>
-                <entry align="center"><para>MetadataType</para></entry>
-
-                <entry align="center"><para>MetadataProducer (template in ABNF) </para></entry>
-
-                <entry align="center"><para>Description</para></entry>
-              </row>
-            </thead>
-
-            <tbody>
-              <row>
-                <entry><para>"VideoAnalytics"</para></entry>
-
-                <entry><para>ProfileToken "/"
-                AnalyticsModuleName</para></entry>
-
-                <entry><para>ONVIF metadata from a VideoAnalytics module
-                active via VideoAnalyticsConfiguration included in Profile
-                configuration</para></entry>
-              </row>
-
-              <row>
-                <entry><para>"AudioAnalytics"</para></entry>
-
-                <entry><para>ProfileToken "/"
-                AnalyticsModuleName</para></entry>
-
-                <entry><para>ONVIF metadata from an AudioAnalytics module
-                active via AudioAnalyticsConfiguration included in Profile
-                configuration</para></entry>
-              </row>
-
-              <row>
-                <entry><para>"PTZ"</para></entry>
-
-                <entry><para>ProfileToken "/" PTZConfigurationToken</para></entry>
-
-                <entry><para>ONVIF metadata from a PTZ node included in
-                Profile configuration</para></entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </table>
-
-        <para>with<itemizedlist>
-            <listitem>
-              <para>ProfileToken = The media profile token</para>
-            </listitem>
-
-            <listitem>
-              <para>AnalyticsModuleName = The name of the analytics
-              module</para>
-            </listitem>
-
-            <listitem>
-              <para>PTZConfigurationToken = The PTZ configuration token</para>
-            </listitem>
-          </itemizedlist></para>
-      </section>
-
-      <section>
-        <title>JSON Payload Structure</title>
-
-        <para>Instead of creating a full fledged schema for XML to JSON
-        conversion, provided below are a set of generic rules that devices
-        shall need to implement to express ONVIF metadata in JSON
-        format.</para>
-
-        <table>
-          <title>ONVIF Metadata XML to JSON conversion</title>
-
-          <tgroup cols="3">
-            <thead>
-              <row>
-                <entry align="center"><para>ONVIF XML Element</para></entry>
-
-                <entry align="center"><para>ONVIF JSON
-                Representation</para></entry>
-
-                <entry align="center"><para>Description</para></entry>
-              </row>
-            </thead>
-
-            <tbody>
-              <row>
-                <entry><para>&lt;xmltag/&gt;</para></entry>
-
-                <entry><para>“xmltag”: null</para></entry>
-
-                <entry><para>Null tag</para></entry>
-              </row>
-
-              <row>
-                <entry><para>&lt;xmltag&gt;text&lt;/xmltag&gt;</para></entry>
-
-                <entry><para>“xmltag”: "text"</para></entry>
-
-                <entry><para>Simple tag with value</para></entry>
-              </row>
-
-              <row>
-                <entry><para>&lt; xmltag name="value" /&gt;</para></entry>
-
-                <entry><para>“xmltag”:{"@name": "value"}</para></entry>
-
-                <entry><para>Tag with attribute</para></entry>
-              </row>
-
-              <row>
-                <entry><para>&lt;xmltag name="value"&gt;text&lt;/
-                xmltag&gt;</para></entry>
-
-                <entry><para>“xmltag”: { "@name": "value", "#text": "text"
-                }</para></entry>
-
-                <entry><para>Tag with attribute and value</para></entry>
-              </row>
-
-              <row>
-                <entry><para>&lt;xmltag&gt; &lt;tag1&gt;text&lt;/tag1&gt;
-                &lt;tag2&gt;text&lt;/tag2&gt; &lt;/xmltag</para></entry>
-
-                <entry><para>“xmltag”: { "tag1": "text", "tag2": "text"
-                }</para></entry>
-
-                <entry><para>Tag with multiple child tags</para></entry>
-              </row>
-
-              <row>
-                <entry><para>&lt;xmltag&gt; &lt;tag1&gt;text&lt;/tag1&gt;
-                &lt;tag1&gt;text&lt;/tag1&gt; &lt;/ xmltag&gt;</para></entry>
-
-                <entry><para>“xmltag”: { "tag1": ["text", "text"]
-                }</para></entry>
-
-                <entry><para>Tag with multiple child tags of same type
-                (similar to minOccurs &gt; 1)</para></entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </table>
-
-        <para>All extension elements and attributes shall be included within
-        the same parent JSON object.</para>
-
-        <para>Namespace prefixes for ONVIF defined namespaces shall be
-        dropped, i.e. elements and attributes that belong to the following
-        namespaces:</para>
-
-        <itemizedlist>
-          <listitem>
-            <para>http://www.onvif.org/ver10/schema</para>
-          </listitem>
-
-          <listitem>
-            <para>http://www.onvif.org/ver20/analytics/humanface</para>
-          </listitem>
-
-          <listitem>
-            <para>http://www.onvif.org/ver20/analytics/humanbody</para>
-          </listitem>
-
-          <listitem>
-            <para>http://www.onvif.org/ver20/analytics/radiometry</para>
-          </listitem>
-        </itemizedlist>
-
-        <para>XML elements and attributes that belong to a different namespace
-        shall have their names prepended with their corresponding namespace
-        prefix joined by a ':' as shown in the example while defining
-        the namespace in the "context" object as per JSON-LD specification.<xref
-        linkend="example"/>. See specifically the acme:ColorName
-        exampe.</para>
-      </section>
-
-      <section xml:id="example">
-        <title>Example</title>
-
-        <para>Sample metadata frame in XML format:</para>
-
-        <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;tt:MetadataStream xmlns:tt="http://www.onvif.org/ver10/schema"
-xmlns:fc="http://www.onvif.org/ver20/analytics/humanface"
-xmlns:bd="http://www.onvif.org/ver20/analytics/humanbody"
-xmlns:acme="http://www.acme.com/schema"&gt;
-  &lt;tt:VideoAnalytics&gt;
-    &lt;tt:Frame UtcTime="2021-10-05T15:13:27.321" Source="MyClassifier"&gt;
-      &lt;tt:Transformation&gt;
-        &lt;tt:Translate x="-1.0" y="-1.0"/&gt;
-        &lt;tt:Scale x="0.003125" y="0.00416667"/&gt;
-      &lt;/tt:Transformation&gt;
-      &lt;tt:Object ObjectId="15"&gt;
-        &lt;tt:Appearance&gt;
-          &lt;tt:Shape&gt;
-            &lt;tt:BoundingBox left="20.0" top="80.0" right="100.0" bottom="30.0"/&gt;
-            &lt;tt:CenterOfGravity x="60.0" y="50.0"/&gt;
-            &lt;tt:Polygon&gt;
-              &lt;tt:Point x="20.0" y="30.0"/&gt;
-              &lt;tt:Point x="100.0" y="30.0"/&gt;
-              &lt;tt:Point x="100.0" y="80.0"/&gt;
-              &lt;tt:Point x="20.0" y="80.0"/&gt;
-            &lt;/tt:Polygon&gt;
-          &lt;/tt:Shape&gt;
-          &lt;tt:Color&gt;
-            &lt;tt:ColorCluster&gt;
-              &lt;tt:Color X="213" Y="135" Z="126" /&gt;
-              &lt;tt:Weight&gt;0.9&lt;/tt:Weight&gt;
-              &lt;acme:ColorName&gt;White&lt;/acme:ColorName&gt;
-            &lt;/tt:ColorCluster&gt;
-            &lt;tt:ColorCluster&gt;
-              &lt;tt:Color X="102" Y="176" Z="119" /&gt;
-              &lt;tt:Weight&gt;0.5&lt;/tt:Weight&gt;
-              &lt;acme:ColorName&gt;Blue&lt;/acme:ColorName&gt;
-            &lt;/tt:ColorCluster&gt;
-          &lt;/tt:Color&gt;
-          &lt;tt:Class&gt;
-            &lt;tt:Type Likelihood="0.8"&gt;Human&lt;/tt:Type&gt;
-          &lt;/tt:Class&gt;
-          &lt;tt:HumanFace&gt;
-            &lt;fc:Gender&gt;Male&lt;/fc:Gender&gt;
-            &lt;fc:Age&gt;
-              &lt;tt:Min&gt;20&lt;/tt:Min&gt;
-              &lt;tt:Max&gt;30&lt;/tt:Max&gt;
-            &lt;/fc:Age&gt;
-            &lt;fc:Accessory&gt;
-              &lt;fc:Opticals&gt;
-                &lt;fc:Wear&gt;True&lt;/fc:Wear&gt;
-              &lt;/fc:Opticals&gt;
-              &lt;fc:Hat&gt;
-                &lt;fc:Wear&gt;True&lt;/fc:Wear&gt;
-              &lt;/fc:Hat&gt;
-            &lt;/fc:Accessory&gt;
-          &lt;/tt:HumanFace&gt;
-          &lt;tt:HumanBody&gt;
-            &lt;bd:Clothing&gt;
-              &lt;bd:Tops&gt;
-                &lt;bd:Category&gt;LongSleeve&lt;/bd:Category&gt;
-              &lt;/bd:Tops&gt;
-              &lt;bd:Bottoms&gt;
-                &lt;bd:Category&gt;Shorts&lt;/bd:Category&gt;
-              &lt;/bd:Bottoms&gt;
-            &lt;/bd:Clothing&gt;
-            &lt;bd:Belonging&gt;
-              &lt;bd:Bag&gt;
-                &lt;bd:Category&gt;Backpack&lt;/bd:Category&gt;
-              &lt;/bd:Bag&gt;
-            &lt;/bd:Belonging&gt;
-          &lt;/tt:HumanBody&gt;
-        &lt;/tt:Appearance&gt;
-      &lt;/tt:Object&gt;
-    &lt;/tt:Frame&gt;
-  &lt;/tt:VideoAnalytics&gt;
-&lt;/tt:MetadataStream&gt;</programlisting>
-
-        <para>This data will be published under this topic:</para>
-
-        <programlisting>MyDevice/onvif-mj/VideoAnalytics/1/MyClassifier</programlisting>
-
-        <para>Where "MyDevice" is the given TopicPrefix and "1" is the
-        analytics configuration token. Shown below is how the sample metadata
-        frame is formatted in JSON:</para>
-
-        <programlisting>{
-  "Frame": [{
-    "@UtcTime": "2021-10-05T15:13:27.321",
-    "@Source": "MyClassifier",
-    "@context": {
-        "acme": "http://www.acme.com/schema"
-	},
-    "Transformation": {
-      "Translate": {
-        "@x": "-1.0", "@y": "-1.0"
-      },
-      "Scale": {
-        "@x": "0.003125", "@y": "0.00416667"
-      }
-    },
-    "Object": [{
-      "@ObjectId": "15",
-      "Appearance": {
-        "Shape": {
-          "BoundingBox": {
-            "@left": "20.0", "@top": "20.0", "@right": "100.0", "@bottom": "30.0"
-          },
-          "CenterOfGravity": {
-            "@x": "60.0", "@y": "50.0"
-          },
-          "Polygon": [{
-            "@x": "20.0", "@y": "30.0"
-          }, {
-            "@x": "100.0", "@y": "30.0"
-          }, {
-            "@x": "100.0", "@y": "80.0"
-          }, {
-            "@x": "20.0", "@y": "80.0"
-          }]
-        },
-        "Color": {
-          "ColorCluster": [{
-            "Color": {
-              "@X": "213", "@Y": "135", "@Z": "126"
-            },
-            "Weight": 0.9,
-            "acme:ColorName": "White"
-          }, {
-            "Color": {
-              "@X": "102", "@Y": "176", "@Z": "119"
-            },
-            "Weight": 0.5,
-            "acme:ColorName": "Blue"
-          }]
-        },
-        "Class": {
-          "@Likelihood": "0.8",
-          "#text": "Human"
-        },
-        "HumanFace": {
-          "Gender:": "Male",
-          "Age": {
-            "@Min": "20", "@Max": "30"
-          },
-          "Accessory": {
-            "Opticals": {
-              "Wear": "true"
-            },
-            "Hat": {
-              "Wear": "true"
-            }
-          }
-        },
-        "HumanBody": {
-          "Clothing": {
-            "Tops": {
-              "Category": "LongSleeve"
-            },
-            "Bottoms": {
-              "Category": "Shorts"
-            }
-          },
-          "Belonging": {
-            "Bag": {
-              "Category": "Backpack"
-            }
-          }
-        }
-      }
-    }]
-  }]
-}</programlisting>
-      </section>
-    </section>
-  </chapter>
-  <chapter>
-    <title>Service</title>
-    <para>This section covers the following main areas of this architecture:</para>
-    <itemizedlist>
-      <listitem>
-        <para>Analytics Module interface </para>
-      </listitem>
-      <listitem>
-        <para>Scene description</para>
-      </listitem>
-      <listitem>
-        <para>Rules interface</para>
-      </listitem>
-    </itemizedlist>
-    <para>The analytics service allows fine-grained configuration of individual rules and individual analytics modules (see <xref linkend="_Ref11057187" /> and <xref linkend="_Ref476820362" />). <xref linkend="_Toc213144786" /> introduces the XML-based scene description, which can be streamed as metadata to clients via RTP as defined in the ONVIF Streaming Specification.</para>
-    <section xml:id="_Toc213144786">
-      <title>Scene Description Interface</title>
+    <title>Scene Description</title>
       <section>
         <title>Overview</title>
-        <para>This specification defines the XML schema that shall be used to encode Scene Descriptions by a device. The scope of the Scene Description covers basic Scene Elements which can be displayed in a video overlay to the end-user as well as a framework for vendor-specific extensions. Annex A shows additional Scene Elements that may be used for processing vendor-specific rules.</para>
+        <para>This chapter defines the XML-based scene description, which can be streamed as metadata to clients via RTP as defined in the ONVIF Streaming Specification.</para>
+        <para>The scope of the Scene Description covers basic Scene Elements which can be displayed in a video overlay to the end-user as well as a framework for vendor-specific extensions.</para>
+        <para>Section <xref linkend="mqtt"/> defines an alternate JSON based representation.</para>
       </section>
       <section>
         <title>Frame Related Content</title>
@@ -2680,7 +2193,492 @@ xmlns:acme="http://www.acme.com/schema"&gt;
           </table>
         </section>
       </section>
+    <section  xml:id="mqtt">
+      <title>ONVIF Metadata in JSON over MQTT</title>
+      <para>Increasing demand in analytics use cases presented a need for
+      standardizing format and transport of ONVIF metadata to be consumed by
+      non-traditional clients (e.g. cloud vendors) to bridge gap between
+      traditional surveillance systems and IoT ecosystems. For easy
+      consumption in such systems ONVIF metadata can be published in JSON
+      format over the MQTT protocol.</para>
+
+      <para>MQTT is a pub/sub messaging protocol centered around topics.
+      Consumers can subscribe to topics published by producers to get
+      continuous updates on the data content. ONVIF metadata, like video
+      analytics scene descriptions, can be published to an MQTT broker and
+      subscribed to by a consumer.</para>
+
+    	<section>
+      <title>Metadata publish sequence</title>
+      <para>This is sequence of operations to set up the metadata flow:<itemizedlist>
+          <listitem>
+            <para>An ONVIF client calls AddEventBroker in the device's Event
+            service to set up:<itemizedlist>
+                <listitem>
+                  <para>Address and credentials to the MQTT broker to use</para>
+                </listitem>
+
+                <listitem>
+                  <para>A unique TopicPrefix for the device</para>
+                </listitem>
+
+                <listitem>
+                  <para>A PublishFilter listing topics to which the device
+                  shall publish</para>
+                </listitem>
+              </itemizedlist></para>
+          </listitem>
+
+          <listitem>
+            <para>The producer (ONVIF device) connects to the MQTT broker and starts publishing
+            data on the selected topics.</para>
+          </listitem>
+
+          <listitem>
+            <para>The consumer connects to the MQTT broker, specifying which topics
+            that it wants to subscribe to. A consumer can be any MQTT capable
+            client, for example, an event engine like Node-RED, IoT cloud
+            platforms, VSaaS platforms, etc. Multiple comsumers using
+            different topics are possible.</para>
+          </listitem>
+
+          <listitem>
+            <para>The consumer receives updates on subscribed topics and can
+            implement actions like statistics aggregation and complex
+            analytics rules with data from multiple sources.</para>
+          </listitem>
+        </itemizedlist></para>
+
+      <para>The following sections describe how topics and payload shall be
+      structured by an ONVIF metadata producer when published to an MQTT
+      broker.</para>
+    	</section>
+      <section>
+        <title>MQTT Topic Structure</title>
+
+        <para>This section describes how an MQTT topic is structured based on
+        metadata type and source expressed as ABNF rules according to RFC
+        5234.</para>
+
+        <para>Topic = TopicPrefix "/" PayloadPrefix "/" MetadataType "/" MetadataProducer</para>
+		 <para>Note that special characters like, ‘/’, ‘#’ and ‘+’ shall be omitted from the topic.</para>
+        <para>with<itemizedlist>
+            <listitem>
+              <para>TopicPrefix - uniquely identifies the producer and is
+              configurable through the AddEventBroker command in the Event
+              service. It shall not be empty.</para>
+            </listitem>
+
+            <listitem>
+              <para>PayloadPrefix - signals in what format the data is
+              published. See <xref linkend="table_qy2_xhl_crb"/> below for
+              possible values.</para>
+            </listitem>
+
+            <listitem>
+              <para>MetadataType - signals what type of metadata it is. See
+              <xref linkend="table_i4l_yhl_crb"/> below for possible
+              values.</para>
+            </listitem>
+
+            <listitem>
+              <para>MetadataProducer - specifies additional source information for the metadata. The
+                format depends on the metadata type. See <xref linkend="table_i4l_yhl_crb"/> below
+                for definition.</para>
+            </listitem>
+          </itemizedlist></para>
+
+        <table xml:id="table_qy2_xhl_crb">
+          <title>PayloadPrefix types</title>
+
+          <tgroup cols="2">
+            <thead>
+              <row>
+                <entry align="center"><para>Prefix</para></entry>
+
+                <entry align="center"><para>Description</para></entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry><para>"onvif-mj"</para></entry>
+
+                <entry><para>ONVIF metadata with JSON payload</para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+
+        <table xml:id="table_i4l_yhl_crb">
+          <title>MetadataType categories with corresponding MetadataProducer</title>
+
+          <tgroup cols="3">
+            <thead>
+              <row>
+                <entry align="center"><para>MetadataType</para></entry>
+
+                <entry align="center"><para>MetadataProducer (template in ABNF) </para></entry>
+
+                <entry align="center"><para>Description</para></entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry><para>"VideoAnalytics"</para></entry>
+
+                <entry><para>ProfileToken "/"
+                AnalyticsModuleName</para></entry>
+
+                <entry><para>ONVIF metadata from a VideoAnalytics module
+                active via VideoAnalyticsConfiguration included in Profile
+                configuration</para></entry>
+              </row>
+
+              <row>
+                <entry><para>"AudioAnalytics"</para></entry>
+
+                <entry><para>ProfileToken "/"
+                AnalyticsModuleName</para></entry>
+
+                <entry><para>ONVIF metadata from an AudioAnalytics module
+                active via AudioAnalyticsConfiguration included in Profile
+                configuration</para></entry>
+              </row>
+
+              <row>
+                <entry><para>"PTZ"</para></entry>
+
+                <entry><para>ProfileToken "/" PTZConfigurationToken</para></entry>
+
+                <entry><para>ONVIF metadata from a PTZ node included in
+                Profile configuration</para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+
+        <para>with<itemizedlist>
+            <listitem>
+              <para>ProfileToken = The media profile token</para>
+            </listitem>
+
+            <listitem>
+              <para>AnalyticsModuleName = The name of the analytics
+              module</para>
+            </listitem>
+
+            <listitem>
+              <para>PTZConfigurationToken = The PTZ configuration token</para>
+            </listitem>
+          </itemizedlist></para>
+      </section>
+
+      <section>
+        <title>JSON Payload Structure</title>
+
+        <para>Instead of creating a full fledged schema for XML to JSON
+        conversion, provided below are a set of generic rules that devices
+        shall need to implement to express ONVIF metadata in JSON
+        format.</para>
+
+        <table>
+          <title>ONVIF Metadata XML to JSON conversion</title>
+
+          <tgroup cols="3">
+            <thead>
+              <row>
+                <entry align="center"><para>ONVIF XML Element</para></entry>
+
+                <entry align="center"><para>ONVIF JSON
+                Representation</para></entry>
+
+                <entry align="center"><para>Description</para></entry>
+              </row>
+            </thead>
+
+            <tbody>
+              <row>
+                <entry><para>&lt;xmltag/&gt;</para></entry>
+
+                <entry><para>“xmltag”: null</para></entry>
+
+                <entry><para>Null tag</para></entry>
+              </row>
+
+              <row>
+                <entry><para>&lt;xmltag&gt;text&lt;/xmltag&gt;</para></entry>
+
+                <entry><para>“xmltag”: "text"</para></entry>
+
+                <entry><para>Simple tag with value</para></entry>
+              </row>
+
+              <row>
+                <entry><para>&lt; xmltag name="value" /&gt;</para></entry>
+
+                <entry><para>“xmltag”:{"@name": "value"}</para></entry>
+
+                <entry><para>Tag with attribute</para></entry>
+              </row>
+
+              <row>
+                <entry><para>&lt;xmltag name="value"&gt;text&lt;/
+                xmltag&gt;</para></entry>
+
+                <entry><para>“xmltag”: { "@name": "value", "#text": "text"
+                }</para></entry>
+
+                <entry><para>Tag with attribute and value</para></entry>
+              </row>
+
+              <row>
+                <entry><para>&lt;xmltag&gt; &lt;tag1&gt;text&lt;/tag1&gt;
+                &lt;tag2&gt;text&lt;/tag2&gt; &lt;/xmltag</para></entry>
+
+                <entry><para>“xmltag”: { "tag1": "text", "tag2": "text"
+                }</para></entry>
+
+                <entry><para>Tag with multiple child tags</para></entry>
+              </row>
+
+              <row>
+                <entry><para>&lt;xmltag&gt; &lt;tag1&gt;text&lt;/tag1&gt;
+                &lt;tag1&gt;text&lt;/tag1&gt; &lt;/ xmltag&gt;</para></entry>
+
+                <entry><para>“xmltag”: { "tag1": ["text", "text"]
+                }</para></entry>
+
+                <entry><para>Tag with multiple child tags of same type
+                (similar to minOccurs &gt; 1)</para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+
+        <para>All extension elements and attributes shall be included within
+        the same parent JSON object.</para>
+
+        <para>Namespace prefixes for ONVIF defined namespaces shall be
+        dropped, i.e. elements and attributes that belong to the following
+        namespaces:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>http://www.onvif.org/ver10/schema</para>
+          </listitem>
+
+          <listitem>
+            <para>http://www.onvif.org/ver20/analytics/humanface</para>
+          </listitem>
+
+          <listitem>
+            <para>http://www.onvif.org/ver20/analytics/humanbody</para>
+          </listitem>
+
+          <listitem>
+            <para>http://www.onvif.org/ver20/analytics/radiometry</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>XML elements and attributes that belong to a different namespace
+        shall have their names prepended with their corresponding namespace
+        prefix joined by a ':' as shown in the example while defining
+        the namespace in the "context" object as per JSON-LD specification.<xref
+        linkend="example"/>. See specifically the acme:ColorName
+        exampe.</para>
+      </section>
+
+      <section xml:id="example">
+        <title>Example</title>
+
+        <para>Sample metadata frame in XML format:</para>
+
+        <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;tt:MetadataStream xmlns:tt="http://www.onvif.org/ver10/schema"
+xmlns:fc="http://www.onvif.org/ver20/analytics/humanface"
+xmlns:bd="http://www.onvif.org/ver20/analytics/humanbody"
+xmlns:acme="http://www.acme.com/schema"&gt;
+  &lt;tt:VideoAnalytics&gt;
+    &lt;tt:Frame UtcTime="2021-10-05T15:13:27.321" Source="MyClassifier"&gt;
+      &lt;tt:Transformation&gt;
+        &lt;tt:Translate x="-1.0" y="-1.0"/&gt;
+        &lt;tt:Scale x="0.003125" y="0.00416667"/&gt;
+      &lt;/tt:Transformation&gt;
+      &lt;tt:Object ObjectId="15"&gt;
+        &lt;tt:Appearance&gt;
+          &lt;tt:Shape&gt;
+            &lt;tt:BoundingBox left="20.0" top="80.0" right="100.0" bottom="30.0"/&gt;
+            &lt;tt:CenterOfGravity x="60.0" y="50.0"/&gt;
+            &lt;tt:Polygon&gt;
+              &lt;tt:Point x="20.0" y="30.0"/&gt;
+              &lt;tt:Point x="100.0" y="30.0"/&gt;
+              &lt;tt:Point x="100.0" y="80.0"/&gt;
+              &lt;tt:Point x="20.0" y="80.0"/&gt;
+            &lt;/tt:Polygon&gt;
+          &lt;/tt:Shape&gt;
+          &lt;tt:Color&gt;
+            &lt;tt:ColorCluster&gt;
+              &lt;tt:Color X="213" Y="135" Z="126" /&gt;
+              &lt;tt:Weight&gt;0.9&lt;/tt:Weight&gt;
+              &lt;acme:ColorName&gt;White&lt;/acme:ColorName&gt;
+            &lt;/tt:ColorCluster&gt;
+            &lt;tt:ColorCluster&gt;
+              &lt;tt:Color X="102" Y="176" Z="119" /&gt;
+              &lt;tt:Weight&gt;0.5&lt;/tt:Weight&gt;
+              &lt;acme:ColorName&gt;Blue&lt;/acme:ColorName&gt;
+            &lt;/tt:ColorCluster&gt;
+          &lt;/tt:Color&gt;
+          &lt;tt:Class&gt;
+            &lt;tt:Type Likelihood="0.8"&gt;Human&lt;/tt:Type&gt;
+          &lt;/tt:Class&gt;
+          &lt;tt:HumanFace&gt;
+            &lt;fc:Gender&gt;Male&lt;/fc:Gender&gt;
+            &lt;fc:Age&gt;
+              &lt;tt:Min&gt;20&lt;/tt:Min&gt;
+              &lt;tt:Max&gt;30&lt;/tt:Max&gt;
+            &lt;/fc:Age&gt;
+            &lt;fc:Accessory&gt;
+              &lt;fc:Opticals&gt;
+                &lt;fc:Wear&gt;True&lt;/fc:Wear&gt;
+              &lt;/fc:Opticals&gt;
+              &lt;fc:Hat&gt;
+                &lt;fc:Wear&gt;True&lt;/fc:Wear&gt;
+              &lt;/fc:Hat&gt;
+            &lt;/fc:Accessory&gt;
+          &lt;/tt:HumanFace&gt;
+          &lt;tt:HumanBody&gt;
+            &lt;bd:Clothing&gt;
+              &lt;bd:Tops&gt;
+                &lt;bd:Category&gt;LongSleeve&lt;/bd:Category&gt;
+              &lt;/bd:Tops&gt;
+              &lt;bd:Bottoms&gt;
+                &lt;bd:Category&gt;Shorts&lt;/bd:Category&gt;
+              &lt;/bd:Bottoms&gt;
+            &lt;/bd:Clothing&gt;
+            &lt;bd:Belonging&gt;
+              &lt;bd:Bag&gt;
+                &lt;bd:Category&gt;Backpack&lt;/bd:Category&gt;
+              &lt;/bd:Bag&gt;
+            &lt;/bd:Belonging&gt;
+          &lt;/tt:HumanBody&gt;
+        &lt;/tt:Appearance&gt;
+      &lt;/tt:Object&gt;
+    &lt;/tt:Frame&gt;
+  &lt;/tt:VideoAnalytics&gt;
+&lt;/tt:MetadataStream&gt;</programlisting>
+
+        <para>This data will be published under this topic:</para>
+
+        <programlisting>MyDevice/onvif-mj/VideoAnalytics/1/MyClassifier</programlisting>
+
+        <para>Where "MyDevice" is the given TopicPrefix and "1" is the
+        analytics configuration token. Shown below is how the sample metadata
+        frame is formatted in JSON:</para>
+
+        <programlisting>{
+  "Frame": [{
+    "@UtcTime": "2021-10-05T15:13:27.321",
+    "@Source": "MyClassifier",
+    "@context": {
+        "acme": "http://www.acme.com/schema"
+	},
+    "Transformation": {
+      "Translate": {
+        "@x": "-1.0", "@y": "-1.0"
+      },
+      "Scale": {
+        "@x": "0.003125", "@y": "0.00416667"
+      }
+    },
+    "Object": [{
+      "@ObjectId": "15",
+      "Appearance": {
+        "Shape": {
+          "BoundingBox": {
+            "@left": "20.0", "@top": "20.0", "@right": "100.0", "@bottom": "30.0"
+          },
+          "CenterOfGravity": {
+            "@x": "60.0", "@y": "50.0"
+          },
+          "Polygon": [{
+            "@x": "20.0", "@y": "30.0"
+          }, {
+            "@x": "100.0", "@y": "30.0"
+          }, {
+            "@x": "100.0", "@y": "80.0"
+          }, {
+            "@x": "20.0", "@y": "80.0"
+          }]
+        },
+        "Color": {
+          "ColorCluster": [{
+            "Color": {
+              "@X": "213", "@Y": "135", "@Z": "126"
+            },
+            "Weight": 0.9,
+            "acme:ColorName": "White"
+          }, {
+            "Color": {
+              "@X": "102", "@Y": "176", "@Z": "119"
+            },
+            "Weight": 0.5,
+            "acme:ColorName": "Blue"
+          }]
+        },
+        "Class": {
+          "@Likelihood": "0.8",
+          "#text": "Human"
+        },
+        "HumanFace": {
+          "Gender:": "Male",
+          "Age": {
+            "@Min": "20", "@Max": "30"
+          },
+          "Accessory": {
+            "Opticals": {
+              "Wear": "true"
+            },
+            "Hat": {
+              "Wear": "true"
+            }
+          }
+        },
+        "HumanBody": {
+          "Clothing": {
+            "Tops": {
+              "Category": "LongSleeve"
+            },
+            "Bottoms": {
+              "Category": "Shorts"
+            }
+          },
+          "Belonging": {
+            "Bag": {
+              "Category": "Backpack"
+            }
+          }
+        }
+      }
+    }]
+  }]
+}</programlisting>
+      </section>
     </section>
+  </chapter>
+  <chapter>
+    <title>Service</title>
+    <para>This section covers the following main areas of this architecture:</para>
+    <itemizedlist>
+      <listitem>
+        <para>Analytics Module interface </para>
+      </listitem>
+      <listitem>
+        <para>Rules interface</para>
+      </listitem>
+    </itemizedlist>
+    <para>The analytics service allows fine-grained configuration of individual rules and individual analytics modules (see <xref linkend="_Ref11057187" /> and <xref linkend="_Ref476820362" />). </para>
     <section xml:id="_Ref42033279">
       <title>Configuration description language</title>
       <para>This specification introduces a description language which is used to configure rules and analytics modules. Beside configuration parameters the config description additionally contains an event description according to the OASIS topic notification. </para>
