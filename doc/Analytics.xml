@@ -499,7 +499,13 @@
       </listitem>
     </itemizedlist>
     <para>This specification defines a configuration framework for the analytics engine called ONVIF Analytics Service. This framework enables a client to contact a device implementing the ONVIF Analytics Service for supported analytics modules and their configurations. Configurations of such modules can be dynamically added, removed or modified by a client, allowing a client to run multiple Analytics Modules in parallel if supported by the device.</para>
-    <para>The output from the Analytics Engine is called a <emphasis>Scene Description</emphasis>. The Scene Description represents the abstraction of the scene in terms of metadata for the objects, either static or dynamic, that are part of the scene. This specification defines an XML-based Scene Description Interface including data types. </para>
+    <para>The output from the Analytics Engine is called a <emphasis>Scene Description</emphasis>.
+      The Scene Description represents the abstraction of the scene in terms of metadata for the
+      objects, either static or dynamic, that are part of the scene. This specification defines an
+      XML-based Scene Description Interface including data types. For easy consumption by
+      non-traditional clients (e.g. cloud vendors) and to bridge gap between traditional
+      surveillance systems and IoT ecosystems metadata including scene description can be published
+      in JSON format over the MQTT protocol.</para>    
     <para>Rules describe how the scene description is interpreted and how to react on that information. The specification defines standard rule syntax and methods to communicate configuration of these rules from the application to the device. </para>
     <para>A device supporting ONVIF Analytics Service shall implement the Scene Description Interface and allow events to be dispatched using the Event Service. If the device additionally supports a rule engine then it shall implement the Rules Analytics Modules Interface.</para>
     <para>Event and action engine interfaces and configuration is out of scope of this specification. The event interface is handled through the Event Service as described in the ONVIF Core specification.</para>
@@ -2203,23 +2209,15 @@
         </section>
       </section>
     <section  xml:id="mqtt">
-      <title>ONVIF Metadata in JSON over MQTT</title>
-      <para>Increasing demand in analytics use cases presented a need for
-      standardizing format and transport of ONVIF metadata to be consumed by
-      non-traditional clients (e.g. cloud vendors) to bridge gap between
-      traditional surveillance systems and IoT ecosystems. For easy
-      consumption in such systems ONVIF metadata can be published in JSON
-      format over the MQTT protocol.</para>
-
-      <para>MQTT is a pub/sub messaging protocol centered around topics.
-      Consumers can subscribe to topics published by producers to get
-      continuous updates on the data content. ONVIF metadata, like video
-      analytics scene descriptions, can be published to an MQTT broker and
-      subscribed to by a consumer.</para>
-
+      <title>JSON over MQTT</title>
     	<section>
       <title>Metadata publish sequence</title>
-      <para>This is sequence of operations to set up the metadata flow:<itemizedlist>
+    	  <para>MQTT is a pub/sub messaging protocol centered around topics.
+    	    Consumers can subscribe to topics published by producers to get
+    	    continuous updates on the data content. ONVIF metadata, like video
+    	    analytics scene descriptions, can be published to an MQTT broker and
+    	    subscribed to by a consumer.</para>
+    	  <para>This is sequence of operations to set up the metadata flow:<itemizedlist>
           <listitem>
             <para>An ONVIF client calls AddEventBroker in the device's Event
             service to set up:<itemizedlist>
@@ -2263,7 +2261,7 @@
       broker.</para>
     	</section>
       <section>
-        <title>MQTT Topic Structure</title>
+        <title>MQTT topic structure</title>
 
         <para>This section describes how an MQTT topic is structured based on
         metadata type and source expressed as ABNF rules according to RFC
@@ -2385,14 +2383,14 @@
       </section>
 
       <section>
-        <title>JSON Payload Structure</title>
+        <title>JSON payload format</title>
 
         <para>Instead of creating a full fledged schema for XML to JSON
-        conversion, provided below are a set of generic rules that devices
+          conversion, <xref linkend="xmlToJson" /> provides a set of generic rules that devices
         shall need to implement to express ONVIF metadata in JSON
         format.</para>
 
-        <table>
+        <table xml:id="xmlToJson">
           <title>ONVIF Metadata XML to JSON conversion</title>
 
           <tgroup cols="3">
