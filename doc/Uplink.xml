@@ -2,14 +2,14 @@
 <?xml-stylesheet href="docbook.xsl" type="text/xsl" ?>
 <book xmlns="http://docbook.org/ns/docbook" version="5.0">
   <info>
-    <title>ONVIF Uplink Service Specification</title>
+    <title>Uplink Specification</title>
     <titleabbrev>Uplink</titleabbrev>
-    <releaseinfo>18.12</releaseinfo>
+    <releaseinfo>22.06</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate> December, 2018</pubdate>
+    <pubdate> June, 2022</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm" />
@@ -33,6 +33,14 @@
         </author>
         <revremark>First release</revremark>
       </revision>
+      <revision>
+        <revnumber>22.06</revnumber>
+        <date>June 2022</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Add section on media streaming</revremark>
+      </revision>
     </revhistory>
   </info>
   <chapter>
@@ -49,8 +57,16 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://tools.ietf.org/html/rfc6125"></link>&gt; </para>
     <para>IETF RFC 7540 - Hypertext Transfer Protocol Version 2 (HTTP/2)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://tools.ietf.org/html/rfc7540"></link>&gt; </para>
+    <para>IETF RFC 8441 - Bootstrapping WebSockets with HTTP/2</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://tools.ietf.org/html/rfc8441"></link>&gt; </para>
     <para>ONVIF Core Specification</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
+    <para>ONVIF Media2 Service Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/srv/media/ONVIF-Media2-Service-Spec.pdf"></link>&gt;</para>
+    <para>ONVIF Streaming Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/stream/ONVIF-Streaming-Spec.pdf"></link>&gt;</para>
+    <para>Apple Computer Inc. RTSP over HTTP, Tunneling QuickTime RTSP and RTP over HTTP</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://opensource.apple.com/source/QuickTimeStreamingServer/QuickTimeStreamingServer-412.42/Documentation/RTSP_Over_HTTP.pdf"></link>&gt;</para>
   </chapter>
   <chapter>
     <title>Terms and Definitions</title>
@@ -190,6 +206,32 @@
       <title>HTTP Transactions</title>
       <para>The uplink shall be used in reverse direction for http requests and responses. The remote client shall send requests that are served in a standard http manner by the local service.</para>
     </section>
+    <section>
+      <title>Media Streaming</title>
+      <section>
+        <title>Introduction</title>
+        <para>The ONVIF Media Service Specification and the ONVIF Streaming Specification define
+          various mechanism for streaming Video, Audio and Metadata. This specification defines how
+          to apply streaming over http. Usage of other communication mechanism like UDP unicast and
+          multicast are outside of the scope of this specification.</para>
+      </section>
+      <section>
+        <title>RTSP over HTTP</title>
+        <para>The underlying RTSP over HTTP specification requires to open separate communication
+          channels for continously sending and receiving data. For sending media from RTSP server to
+          client the communication channel is opened with a GET request and a response without
+          content-length. For sending media to the server a POST request is used. The specification
+          notes that a content-length must be sent. Most applications use the value 32767 from the
+          example given in the specification. Since http/2 streams may be closed by either side when
+          the content-length has been reached clients shall use a value large enough for the
+          connection life time.</para>
+      </section>
+      <section>
+        <title>RTSP over WebSockets</title>
+        <para>A device signaling support for websockets over RTSP via its capabilities shall support
+          RFC 8441 on the uplink.</para>
+      </section>
+    </section>
   </chapter>
   <chapter>
     <title>Configuration Interface</title>
@@ -208,47 +250,68 @@
         <listitem>
           <para>Status	Current connection status</para>
         </listitem>
+         <listitem>
+          <para>CertPathValidationPolicyID  ID of Certificate Validation policy to validate the remote uplink server certficate. If not configured, server certificate shall not be validated. </para>
+        </listitem>
       </itemizedlist>
       <para>Field RemoteAddress is used as key of the list of uplink configurations.</para>
     </section>
     <section>
       <title>GetUplinks</title>
       <para>A device supporting uplinks shall support this command to retrieve the configured uplink configurations. The Status field shall signal whether a connection is Offline, Connecting or Online.</para>
-      <para>REQUEST</para>
-      <para>&lt;empty&gt;</para>
-      <para>RESPONSE</para>
-      <itemizedlist>
-        <listitem>
-          <para>Configuration – optional, unbounded [Configuration]</para>
-          <para>List of configurations</para>
-        </listitem>
-      </itemizedlist>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="text">This message is empty</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">Configuration – optional, unbounded [Configuration]</para>
+            <para role="text">List of configurations.</para>
+          </listitem>
+        </varlistentry> 
+      </variablelist>
     </section>
     <section>
       <title>SetUplink</title>
       <para>A device supporting uplinks shall support this command to add or modify an uplink configuration. The Status property of the UplinkConfiguration shall be ignored by the device. A device shall use the field RemoteAddress to decide whether to update an existing entry or create a new entry.</para>
-      <para>REQUEST</para>
-      <itemizedlist>
-        <listitem>
-          <para>Configuration – [UplinkConfiguration]</para>
-          <para>Configuration to be added or modified.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">Configuration – [UplinkConfiguration]</para>
+            <para role="text">Configuration to be added or modified.</para>
         </listitem>
-      </itemizedlist>
-      <para>RESPONSE</para>
-      <para>&lt;empty&gt;</para>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+        <listitem>
+          <para role="text">This message is empty</para>
+        </listitem>
+        </varlistentry> 
+      </variablelist>
     </section>
     <section>
       <title>DeleteUplink</title>
       <para>A device supporting uplinks shall support this command to remove an uplink configuration. </para>
-      <para>REQUEST</para>
-      <itemizedlist>
-        <listitem>
-          <para>RemoteAddress – [xs:anyURI]</para>
-          <para>Configuration to be deleted.</para>
-        </listitem>
-      </itemizedlist>
-      <para>RESPONSE</para>
-      <para>&lt;empty&gt;</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">RemoteAddress – [xs:anyURI]</para>
+            <para role="text">Configuration to be deleted.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="text">This message is empty</para>
+          </listitem>
+        </varlistentry> 
+      </variablelist>
     </section>
     <section>
       <title>Capabilities</title>
