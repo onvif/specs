@@ -1,0 +1,970 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="docbook.xsl" type="text/xsl" ?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <info>
+    <title>WebRTC Specification</title>
+    <titleabbrev>WebRTC</titleabbrev>
+    <releaseinfo>22.06</releaseinfo>
+    <author>
+      <orgname>ONVIF™</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate> June, 2022</pubdate>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="media/logo.png" contentwidth="60mm"/>
+      </imageobject>
+    </mediaobject>
+    <copyright>
+      <year>2008-2022</year>
+      <holder>ONVIF™ All rights reserved.</holder>
+    </copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so
+        long as this copyright notice, license and disclaimer are retained with all copies of the
+        document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR
+        AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+        LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+        NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE;
+        OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS,
+        TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY
+        DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR
+        RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION,
+        MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2)
+        SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR
+        DISTRIBUTION OF THIS DOCUMENT. THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT
+        APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR
+        RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF
+        THE CORPORATION.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>22.12</revnumber>
+        <date>Dec 2022</date>
+        <author>
+          <personname>Fredrik Svensson, Jonas Cremon</personname>
+        </author>
+        <revremark>First release</revremark>
+      </revision>
+    </revhistory>
+  </info>
+  <chapter>
+    <title>Scope </title>
+    <para>This document defines how WebRTC and related protocols are to be used for ONVIF  clients
+      and devices to establish a peer-to-peer connection between a client and a device using a
+      signaling server.</para>
+  </chapter>
+  <chapter>
+    <title>Normative references</title>
+    <para>W3C WebRTC Specification: Real-Time Communication Between Browsers</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="https://www.w3.org/TR/webrtc/"/>&gt;</para>
+    <para>IETF RFC 8829 - JavaScript Session Establishment Protocol (JSEP)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://tools.ietf.org/html/rfc8829"/>&gt;</para>
+    <para>IETF RFC 5245 - Interactive Connectivity Establishment (ICE)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://tools.ietf.org/html/rfc5245"/>&gt;</para>
+    <para>IETF RFC 8866 - SDP: Session Description Protocol</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://tools.ietf.org/html/rfc8866"/>&gt;</para>
+    <para>IETF RFC 8489 - Session Traversal Utilities for NAT (STUN)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://tools.ietf.org/html/rfc8489"/>&gt;</para>
+    <para>IETF RFC 8656 - Traversal Using Relays around NAT (TURN)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://tools.ietf.org/html/rfc8856"/>&gt;</para>
+  </chapter>
+  <chapter>
+    <title>Terms and Definitions</title>
+    <section>
+      <title>Definitions</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*" />
+          <colspec colname="c2" colwidth="76*" />
+          <tbody valign="top">
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Signaling Server</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>A server that manages the WebRTC connections between clients and
+                  devices.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+    <section>
+      <title>Abbreviations</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*"/>
+          <colspec colname="c2" colwidth="76*"/>
+          <tbody valign="top">
+            <row>
+              <entry valign="middle">
+                <para>ICE</para>
+              </entry>
+              <entry valign="middle">
+                <para>Interactive Connectivity Establishment</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>NAT</para>
+              </entry>
+              <entry valign="middle">
+                <para>Network Address Translation</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>P2P</para>
+              </entry>
+              <entry valign="middle">
+                <para>Peer-to-peer</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>SDP</para>
+              </entry>
+              <entry valign="middle">
+                <para>Session Description Protocol</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>STUN</para>
+              </entry>
+              <entry valign="middle">
+                <para>Session Traversal Utilities for NAT</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>TURN</para>
+              </entry>
+              <entry valign="middle">
+                <para>Traversal Using Relays around NAT</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>WebRTC</para>
+              </entry>
+              <entry valign="middle">
+                <para>Web Real-Time Communication</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Overview</title>
+    <para>This specification contains documentation and examples of the signaling protocol used to
+      set up a WebRTC peer-to-peer connection. The setup involves three participants: <emphasis
+        role="italic">client</emphasis>, <emphasis role="italic">device</emphasis> and <emphasis
+        role="italic">signaling server</emphasis>.</para>
+    <figure xml:id="_Ref493258796">
+      <title>Client, device, signaling server</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="media/WebRTC/client_device_server_triangle.png" contentwidth="158.75mm"/>
+        </imageobject>
+      </mediaobject>
+    </figure>
+    <para>In this figure,<itemizedlist>
+        <listitem>
+          <para>The <emphasis role="italic">client</emphasis> represents a real user who initiates
+            the WebRTC session.</para>
+        </listitem>
+        <listitem>
+          <para>The <emphasis role="italic">device</emphasis> is the resource delivering the media,
+            for example a camera.</para>
+        </listitem>
+        <listitem>
+          <para>The <emphasis role="italic">signaling server</emphasis> is the mediator that both
+              <emphasis role="italic">client</emphasis> and <emphasis role="italic"
+              >device</emphasis> connect to in order to establish a peer-to-peer connection between
+            them.</para>
+        </listitem>
+      </itemizedlist></para>
+    <para>The <emphasis>Signaling Protocol</emphasis> described in this specification details the
+      data exchange between client and device via the signaling server as examples. The formal API
+      is defined in separate JSON schema files.</para>
+    <para>Once a peer-to-peer connection has been established how WebRTC is used is described in the
+      WebRTC usage chapter.</para>
+  </chapter>
+  <chapter>
+    <title>Signaling Protocol</title>
+    <para>The <emphasis role="italic">Signaling Protocol</emphasis> defines the messages between a
+        <emphasis role="italic">client</emphasis> and a <emphasis role="italic">device</emphasis> in
+      a WebRTC system. The messages are always sent via the <emphasis>signaling server</emphasis>
+      called <emphasis>server</emphasis> from now on.</para>
+    <section>
+      <title>Connecting to the signaling server</title>
+      <para>A client first needs to connect to the server, by setting up a websocket to, for
+        example, the URL:</para>
+      <programlisting>https://signaling.companyname.com/client?authorization=Bearer%20access_token</programlisting>
+      <para>where <code>signaling.companyname.com</code> should be replaced with the server's address, and
+        <code>access_token</code> should be replaced with a valid access token that the server will accept. The
+        signaling messages are then sent as JSON text messages in the websocket.</para>
+      <para>Directly after connecting a websocket to the server the client typically gets a hello
+        message from the server, with the client's assigned signaling id.</para>
+      <para><emphasis role="bold">Received by client, from server:</emphasis></para>
+      <programlisting><code>{
+    "type":"hello",
+    "id":"Ri1kodW3joBCJgg="
+}</code></programlisting>
+    </section>
+    <section>
+      <title>Message structure</title>
+      <para>The messages shown in this chapter are sent as JSON text messages over the websocket
+        connection. Generally a message contains two parts; the first part is processed by the
+        server and the second part is intended for the device. So in essence device bound messages
+        and responses are encapsulated in the <code>data</code> field of the first part.</para>
+      <para>
+        <note>
+          <para>Note that messages sent via the server may be delivered out-of-order; for optimal
+            scalability messages should be handled asynchronously.</para>
+        </note>
+      </para>
+      <para>Below are explanations for some of the key/value pairs that are seen repeatedly.</para>
+      <section>
+        <title>Top level keys</title>
+        <para>
+          <informaltable>
+            <tgroup cols="2">
+              <tbody>
+                <row>
+                  <entry>
+                    <para><emphasis role="bold">Key</emphasis></para>
+                  </entry>
+                  <entry>
+                    <para><emphasis role="bold">Description</emphasis></para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>type</para>
+                  </entry>
+                  <entry>
+                    <para>Can be "hello", "initSession", "signaling" or "error"</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>targetID</para>
+                  </entry>
+                  <entry>
+                    <para>WebRTC-signaling-ID of the intended device, or the device that sent the
+                      message</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>orgId</para>
+                  </entry>
+                  <entry>
+                    <para>The related organization's guid</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>accessToken</para>
+                  </entry>
+                  <entry>
+                    <para>Client's access token that allows signaling</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>correlationId</para>
+                  </entry>
+                  <entry>
+                    <para>Optional value that may be useful for logging and debugging</para>
+                  </entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </informaltable>
+        </para>
+      </section>
+      <section>
+        <title>Device level keys inside data blocks</title>
+        <para>
+          <informaltable>
+            <tgroup cols="2">
+              <tbody>
+                <row>
+                  <entry>
+                    <para><emphasis role="bold">Key</emphasis></para>
+                  </entry>
+                  <entry>
+                    <para><emphasis role="bold">Description</emphasis></para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>apiVersion</para>
+                  </entry>
+                  <entry>
+                    <para>API version</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>type</para>
+                  </entry>
+                  <entry>
+                    <para>Can be "request" or "response"</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>sessionId</para>
+                  </entry>
+                  <entry>
+                    <para>Value chosen by client to identify the p2p session, so that different
+                      sessions can exist between the same client and device</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>method</para>
+                  </entry>
+                  <entry>
+                    <para>Function of the message</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>params</para>
+                  </entry>
+                  <entry>
+                    <para>Parameters related to the method</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>context</para>
+                  </entry>
+                  <entry>
+                    <para>Optional value that, if present in a request, should be included in the
+                      corresponding response</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>id</para>
+                  </entry>
+                  <entry>
+                    <para>Optional message counter, for debugging</para>
+                  </entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </informaltable>
+        </para>
+      </section>
+      <section>
+        <title>Param level keys inside params blocks</title>
+        <para>
+          <informaltable>
+            <tgroup cols="2">
+              <tbody>
+                <row>
+                  <entry>
+                    <para><emphasis role="bold">Key</emphasis></para>
+                  </entry>
+                  <entry>
+                    <para><emphasis role="bold">Description</emphasis></para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>type</para>
+                  </entry>
+                  <entry>
+                    <para>Sub function of the method </para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>profile</para>
+                  </entry>
+                  <entry>
+                    <para>Media profile</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>sdp</para>
+                  </entry>
+                  <entry>
+                    <para>SDP record offer</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>candidate</para>
+                  </entry>
+                  <entry>
+                    <para>ICE candidate</para>
+                  </entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </informaltable>
+        </para>
+      </section>
+    </section>
+    <section>
+      <title>Initializing a new WebRTC session</title>
+      <para>A new WebRTC session is initiated by the client requesting the device to produce an SDP
+        offer using a <code>initSession</code> message.</para>
+      <section>
+        <title>Live session</title>
+        <para>Use an <code>initSession</code> message of type <code>live</code> to request a live
+          video and/or audio session.</para>
+        <para><emphasis role="bold">Sent by client, to server:</emphasis></para>
+        <programlisting><code>{
+    "type":"initSession",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "accessToken":"_0XBPWQQ_2863814f-359c-4e5a-a6ac-7a2fd73618f0",
+    "correlationId":"ea5c004d-5d23-4c64-bbce-872a22602197",
+    "data":{
+        "apiVersion":"1.0",
+        "type":"request",
+        "sessionId":"1",
+        "method":"initSession",
+        "params":{
+            "type":"live",
+            "profile":"my_profile"
+        }
+    }
+}</code></programlisting>
+        <para>The server then responds with a copy of the <code>initSession</code> message, including details for
+          the STUN and TURN servers that can be used:</para>
+        <para><emphasis role="bold">Received by client, from server:</emphasis></para>
+        <programlisting><code>{
+    "type":"initSession",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "turnServers":[
+        {
+            "urls":[
+                "turns:turn.webrtc.companyname.com:443?transport=tcp",
+                "turns:turn.webrtc.companyname.com:443?transport=udp"
+            ],
+            "username":"********************************",
+            "password":"********************************"
+        }
+    ],
+    "stunServers":[
+        {
+            "urls":[
+                "stun:turn.webrtc.companyname.com:443?transport=tcp"
+            ]
+        }
+    ],
+    "correlationId":"ea5c004d-5d23-4c64-bbce-872a22602197",
+    "data":{
+        "apiVersion":"1.0",
+        "type":"request",
+        "sessionId":"1",
+        "method":"initSession",
+        "params":{
+            "type":"live",
+            "profile":"my_profile"
+        }
+    }
+}
+</code></programlisting>
+        <para>The device will acknowledge that it has received an <code>initSession</code>
+          message:</para>
+        <para><emphasis role="bold">Received by client, from device via server:</emphasis></para>
+        <programlisting><code>{
+    "type":"signaling",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "data":{
+        "apiVersion":"1.0",
+        "method":"initSession",
+        "type":"response",
+        "sessionId":"1",
+        "id":"6",
+        "data":{}
+    }
+}</code></programlisting>
+      </section>
+    </section>
+    <section>
+      <title>SDP and ICE candidate negotiation</title>
+      <para>Once a P2P signaling channel has been set up using the <code>initSession</code> message
+        the next step is to exchange SDP and ICE candidates. The dynamics and the format of the SDP
+        and ICE candidate strings are defined in RFC 8829.</para>
+      <section>
+        <title>SDP offer</title>
+        <para>An SDP offer is always sent from the device to the client. Note that the contents of
+            <code>params</code> map directly to the contents of the
+            <code>RTCSessionDescription</code> interface described in the W3C WebRTC
+          Specification.</para>
+        <para><emphasis role="bold">Received by client, from device via server:</emphasis></para>
+        <programlisting><code>{
+    "type":"signaling",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "data":{
+        "apiVersion":"1.0",
+        "sessionId":"1",
+        "type":"request",
+        "method":"setSdpOffer",
+        "params":{
+            "type":"offer",
+            "sdp":"v=0\r\no=- 4144271901200024193 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\n\
+a=ice-options:trickle\r\na=group:BUNDLE video0 application1\r\nm=video 9 UDP/TLS/RTP/S\
+AVPF 96\r\nc=IN IP4 0.0.0.0\r\na=setup:actpass\r\na=ice-ufrag:X08YNy5mcX4oUhnmnm4yeVIK\
+yoEUuMRG\r\na=ice-pwd:efI9F/ytKd6Cxm5oXfx+UMbwzylszW+A\r\na=rtcp-mux\r\na=rtcp-rsize\r\
+\na=sendrecv\r\na=rtpmap:96 H264/90000\r\na=rtcp-fb:96 nack pli\r\na=rtcp-fb:96 transp\
+ort-cc\r\na=framerate:15\r\na=fmtp:96 packetization-mode=1;sprop-parameter-sets=Z00AKe\
+KQFAe03AQEBpQANu6ABm/zADxIioA=,aO48gA==;profile-level-id=42E01F;level-asymmetry-allowe\
+d=1\r\na=ssrc:443350527 msid:user2673023031@host-7e1818cd webrtctransceiver1\r\na=ssrc\
+:443350527 cname:user2673023031@host-7e1818cd\r\na=mid:video0\r\na=fingerprint:sha-256\
+ 22:DA:40:B4:2E:DD:A4:82:54:16:FC:ED:CE:96:DF:66:AA:21:5C:55:BA:CF:DE:B9:D1:50:16:58:9\
+9:47:2E:96\r\na=rtcp-mux-only\r\nm=application 0 UDP/DTLS/SCTP webrtc-datachannel\r\nc\
+=IN IP4 0.0.0.0\r\na=setup:actpass\r\na=ice-ufrag:X08YNy5mcX5oUhnmnm4yeVIKyoEUuMRG\r\n\
+a=ice-pwd:efI9F/ytKd6Cxm5oXfx+UMbwzylszW+A\r\na=bundle-only\r\na=mid:application1\r\na\
+=sctp-port:5000\r\na=fingerprint:sha-256 22:DA:40:B4:2E:DD:A4:81:53:16:FC:ED:CE:96:DF:\
+66:BB:21:5C:55:BA:CF:DE:B9:D1:50:16:58:99:47:2E:96\r\n"
+        }
+    }
+}</code></programlisting>
+        <para>The client SHOULD acknowledge the received SDP offer with a response after validating
+          the message.</para>
+        <para><emphasis role="bold">Sent from client, to device via server:</emphasis></para>
+        <programlisting><code>{
+    "type":"signaling",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "accessToken":"_0XBPWQQ_2863814f-359c-4e5a-a6ac-7a2fd73618f0",
+    "correlationId":"ea5c004d-5d23-4c64-bbce-872a22602197",
+    "data":{
+        "apiVersion":"1.0",
+        "method":"setSdpOffer",
+        "type":"response",
+        "sessionId":"1",
+        "id":"1",
+        "data":{}
+    }
+}
+</code></programlisting>
+        <para/>
+      </section>
+      <section>
+        <title>SDP answer</title>
+        <para>An SDP answer is always sent from the client to the device. Note that the contents of
+            <code>params</code> map directly to the contents of the
+            <code>RTCSessionDescription</code> interface described in the W3C WebRTC
+          Specification.</para>
+        <para><emphasis role="bold">Sent from client, to device via server:</emphasis></para>
+        <programlisting><code>{
+    "type":"signaling",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "accessToken":"_0XBPWQQ_2863814f-359c-4e5a-a6ac-7a2fd73618f0",
+    "correlationId":"ea5c004d-5d23-4c64-bbce-872a22602197",
+    "data":{
+        "apiVersion":"1.0",
+        "sessionId":"1",
+        "type":"request",
+        "method":"setSdpAnswer",
+        "params":{
+            "type":"answer",
+            "sdp":"v=0\r\no=- 4144171901200124193 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\n\
+a=ice-options:trickle\r\na=group:BUNDLE video0 application1\r\nm=video 9 UDP/TLS/RTP/S\
+AVPF 96\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:NiCxpTfr/ySAto/HpTLF8eFuICk5WV7f\r\na=ice-p\
+wd:IT8TJ69y0S5UBty5ZaZH+5f9sSLSeox6\r\na=rtcp-mux\r\na=mid:video0\r\na=setup:active\r\n\
+a=rtpmap:96 H264/90000\r\na=rtcp-fb:96 nack pli\r\na=rtcp-fb:96 transport-cc\r\na=fmtp\
+:96 packetization-mode=1;sprop-parameter-sets=Z00AKeKQFAe03AQEBpQANu6ABm/zADxIioA=,aO4\
+8gA==;level-asymmetry-allowed=1\r\na=recvonly\r\na=fingerprint:sha-256 58:2E:F8:22:AE:\
+5D:3A:11:B4:86:3B:36:A8:3A:D4:59:E3:1B:D9:46:75:E5:90:0E:F4:BB:7A:41:D5:A7:F8:36\r\nm=\
+application 9 UDP/DTLS/SCTP webrtc-datachannel\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:NiCx\
+pTfr/ySAto/HpTLF8eFuICk5WV7f\r\na=ice-pwd:IT8TJ69y0S5UBty5ZaZH+5f9sSLSeox6\r\na=mid:ap\
+plication1\r\na=setup:active\r\na=sctp-port:5000\r\na=fingerprint:sha-256 58:2E:F8:22:\
+AE:5D:3A:11:B4:86:3B:27:A8:3A:D4:59:E3:1B:D0:46:75:E5:90:0E:F4:BB:7A:41:D5:A7:F8:36\r\n"
+        }
+    }
+}</code></programlisting>
+        <para>A device MUST send a response back to the client after validating the message.</para>
+        <para><emphasis role="bold">Received by client, from device via server:</emphasis></para>
+        <programlisting><code>{
+    "type":"signaling",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "data":{
+        "apiVersion":"1.0",
+        "method":"setSdpAnswer",
+        "type":"response",
+        "sessionId":"1",
+        "id":"7",
+        "data":{}
+    }
+}</code></programlisting>
+      </section>
+      <section>
+        <title>ICE candidates</title>
+        <para>Both client and device produce ICE candidates and send them to each other using a
+            <code>addIceCandidate</code> message.</para>
+        <para>
+          <note>
+            <para>Note that ICE candidates can arrive BEFORE the offer and the implementing client
+              needs to handle this.</para>
+          </note>
+        </para>
+        <para>Note that the contents of <code>params</code> map directly to the contents of the
+            <code>RTCIceCandidate</code> interface described in the W3C WebRTC Specification.</para>
+        <section>
+          <title>From device</title>
+          <para>The client may receive an ICE candidate from the device:</para>
+          <para><emphasis role="bold">Received by client, from device via server:</emphasis></para>
+          <programlisting><code>{
+    "type":"signaling",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "data":{
+        "apiVersion":"1.0",
+        "sessionId":"1",
+        "method":"addIceCandidate",
+        "type":"request",
+        "params":{
+            "candidate":"candidate:3 1 TCP 1010827519 192.168.101.141 39093 typ host \
+tcptype passive",
+            "sdpMLineIndex":0
+        },
+        "context":"698086333"
+    }
+}</code></programlisting>
+          <para>And the client is supposed to send a response and acknowledge:</para>
+          <para><emphasis role="bold">Sent from client, to device via server:</emphasis></para>
+          <programlisting><code>{
+    "type":"signaling",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "accessToken":"_0XBPWQQ_2863814f-359c-4e5a-a6ac-7a2fd73618f0",
+    "correlationId":"ea5c004d-5d23-4c64-bbce-872a22602197",
+    "data":{
+        "apiVersion":"1.0",
+        "method":"addIceCandidate",
+        "type":"response",
+        "sessionId":"1",
+        "context":"698086333",
+        "id":"2",
+        "data":{}
+    }
+}</code></programlisting>
+        </section>
+        <section>
+          <title>From client</title>
+          <para>Similarly, the client may send an ICE candidate to the device:</para>
+          <para><emphasis role="bold">Sent from client, to device via server:</emphasis></para>
+          <programlisting><code>{
+    "type":"signaling",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "accessToken":"_0XBPWQQ_2863814f-359c-4e5a-a6ac-7a2fd73618f0",
+    "correlationId":"ea5c004d-5d23-4c64-bbce-872a22602197",
+    "data":{
+        "apiVersion":"1.0",
+        "sessionId":"1",
+        "method":"addIceCandidate",
+        "type":"request",
+        "params":{
+            "candidate":"candidate:1 1 UDP 2015363327 172.16.0.15 60022 typ host",
+            "sdpMLineIndex":0
+        },
+        "context":"1708088221"
+    }
+}
+</code></programlisting>
+          <para>And similarly, the device acknowledges with a response:</para>
+          <para><emphasis role="bold">Received by client, from device via server:</emphasis></para>
+          <programlisting><code>{
+    "type":"signaling",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "data":{
+        "apiVersion":"1.0",
+        "method":"addIceCandidate",
+        "type":"response",
+        "sessionId":"1",
+        "context":"1708088221",
+        "id":"10",
+        "data":{}
+    }
+}
+</code></programlisting>
+          <para>If everything works as it should, a peer-to-peer WebRTC session can be set up
+            between client and device using the above messages.</para>
+        </section>
+      </section>
+    </section>
+    <section>
+      <title>Error handling</title>
+      <para>Errors that can be immediately reported when receiving a request are reported directly
+        in its corresponding response. However, errors may also occur later during the subsequent
+        session setup or after it has been setup and is running. These types of errors are reported
+        in an <code>event</code> message. Both 'events' and 'responses' include a numeric error
+        code, and a human-readable message.</para>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colnum="1" colname="col1" colwidth="1*"/>
+          <colspec colnum="2" colname="col2" colwidth="4.71*"/>
+          <thead>
+            <row>
+              <entry>
+                <para>Code</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>1100</para>
+              </entry>
+              <entry>
+                <para>Internal error</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>1101</para>
+              </entry>
+              <entry>
+                <para>Temporarily unavailable</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>1200</para>
+              </entry>
+              <entry>
+                <para>Media streaming failed, audio from client to device</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>1201</para>
+              </entry>
+              <entry>
+                <para>Media streaming failed, connection to upstream source lost</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>2100</para>
+              </entry>
+              <entry>
+                <para>API version not supported</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>2101</para>
+              </entry>
+              <entry>
+                <para>Invalid JSON</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>2102</para>
+              </entry>
+              <entry>
+                <para>Method not supported</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>2103</para>
+              </entry>
+              <entry>
+                <para>Required parameter missing</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>2104</para>
+              </entry>
+              <entry>
+                <para>Invalid parameter value specified</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>2105</para>
+              </entry>
+              <entry>
+                <para>Authorization failed</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>2106</para>
+              </entry>
+              <entry>
+                <para>Authentication failed</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+      <para>When errors are reported by the client or device the <code>error</code> message is
+        encapsulated in a <code>signaling</code> message. The server may itself send errors by using
+        its own <code>error</code> type message.</para>
+      <section>
+        <title>Device error response</title>
+        <para>Below is an example error response to an <code>initSession</code> request.</para>
+        <para><emphasis role="bold">Sent from device, to client via server:</emphasis></para>
+        <para>
+          <programlisting><code>{
+    "type":"signaling",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "data":{
+        "apiVersion": "1.0",
+        "type": "response",
+        "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+        "method": "initSession",
+        "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
+        "error": {
+            "code": 2103,
+            "message": "Required parameter(s) missing: 'sessionId'"
+        }
+    }
+}</code></programlisting>
+        </para>
+      </section>
+      <section>
+        <title>Client error response</title>
+        <para>Below is an example error response to a <code>addIceCandidate</code> request.</para>
+        <para><emphasis role="bold">Sent from client, to device via server:</emphasis></para>
+        <para>
+          <programlisting><code>{
+    "type":"signaling",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",    
+    "data":{
+        "apiVersion": "1.0",
+        "type": "response",
+        "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+        "method": "addIceCandidate",
+        "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
+        "error": {
+            "code": 2103,
+            "message": "Required parameter(s) missing: 'candidate'"
+        }
+    }
+}</code></programlisting>
+        </para>
+      </section>
+      <section>
+        <title>Runtime error</title>
+        <para>Below is an example runtime event error reported by the device.</para>
+        <para><emphasis role="bold">Sent from device, to client via server</emphasis>:</para>
+        <para>
+          <programlisting><code>{
+    "type":"signaling",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "data":{
+        "apiVersion": "1.0",
+        "type": "event",
+        "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+        "error": {
+            "code": 1100,
+            "message": "Media streaming failure",
+            "details": {}
+        }
+    }
+}</code></programlisting>
+        </para>
+      </section>
+      <section>
+        <title>Server error response</title>
+        <para>Below is an example response for using an invalid <code>targetID</code> during an
+            <code>initSession</code> request.</para>
+        <para>
+          <note>
+            <para>Note that server errors use different error codes than client and device.</para>
+          </note>
+        </para>
+        <para><emphasis role="bold">Sent from server, to client:</emphasis></para>
+        <programlisting><code>{
+    "type":"error",
+    "targetId":"example-device",
+    "orgId":"bac02553-eea8-6b52-f369-ac109333091",
+    "correlationId":"bd11c7e1-43ab-408c-b91a-e6c7a026ee3b",
+    "code":"DISCONNECTED",
+    "reason":"Target is not connected"
+}</code></programlisting>
+        <para>Below is another example response to an <code>initSession</code> message with an
+          authorization error.</para>
+        <para><emphasis role="bold">Sent from server, to client:</emphasis></para>
+        <para>
+          <programlisting><code>{
+    "type":"error",
+    "targetId":"my_camera",
+    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
+    "correlationId":"481d4ece-ebd2-4184-b825-b7f962d8dd0c",
+    "code":"UNAUTHORIZED",
+    "reason":"You are not allowed to access the resource my_camera"
+}</code></programlisting>
+        </para>
+      </section>
+    </section>
+  </chapter>
+  <chapter>
+    <title>WebRTC usage</title>
+    <para>This chapter describes ONVIF specific usage of WebRTC regarding how to send data between
+      the client and device on the peer-to-peer connection.</para>
+    <section>
+      <title>Video</title>
+      <para>When using WebRTC with a web browser only certain codecs will work. Because of this
+        ONVIF recommends to use the h.264 codec.</para>
+    </section>
+    <section>
+      <title>Audio</title>
+      <para>When using WebRTC with a web browser only certain codecs will work. Because of this
+        ONVIF recommends to use the Opus or AAC codec.</para>
+    </section>
+    <section>
+      <title>Metadata</title>
+      <para>A device could send event and analytics metadata on a WebRTC datachannel. This is not
+        covered in the this version of this specifcation but may be added in future versions.</para>
+    </section>
+    <section>
+      <title>Commands</title>
+      <para>A client could send PTZ and other commands on a WebRTC datachannel. This is not covered
+        in the this version of this specifcation but may be added in future versions.</para>
+    </section>
+  </chapter>
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para />
+  </appendix>
+</book>
