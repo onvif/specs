@@ -1,0 +1,122 @@
+{
+    "$id": "addIceCandidate_request_server_to_client",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Complete addIceCandidate request from server to client",
+    "description": "Encapsulates a device-to-client message sent via the signaling server.\nThis flavour of the signaling message defines the format that the server uses when forwarding a message sent from the device to the client.\nConsequently it defines the format that a client must understand when receiving.",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "const": "signaling",
+            "description": "Specifies this message as a signaling message."
+        },
+        "targetId": {
+            "type": "string",
+            "examples": [
+                "mycamera"
+            ],
+            "description": "The target id from which the message is sent."
+        },
+        "orgId": {
+            "type": "string",
+            "examples": [
+                "myorg"
+            ],
+            "description": "The id of the organization that the device belongs to."
+        },
+        "correlationId": {
+            "type": "string",
+            "description": "Used to identify the message."
+        },
+        "data": {
+            "$ref": "#/definitions/P2P"
+        }
+    },
+    "required": [
+        "type",
+        "targetId",
+        "orgId",
+        "data"
+    ],
+    "definitions": {
+        "P2P": {
+            "$id": "addIceCandidate",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "title": "addIceCandidate",
+            "description": "Requests the receiver of the message to add a remote ICE candidate originating from the requestor.",
+            "type": "object",
+            "properties": {
+                "apiVersion": {
+                    "type": "string",
+                    "const": "1.0",
+                    "pattern": "^[0-9]+\\.[0-9]+$",
+                    "description": "The API version used in the request."
+                },
+                "type": {
+                    "type": "string",
+                    "examples": [
+                        "request"
+                    ],
+                    "description": "Specifies that this message is a request"
+                },
+                "sessionId": {
+                    "type": "string",
+                    "examples": [
+                        "948dd272-f56b-416f-b349-fa1e88578b7c"
+                    ],
+                    "description": "An identifier chosen by the client that should be used for all messages belonging to this session."
+                },
+                "method": {
+                    "type": "string",
+                    "const": "addIceCandidate",
+                    "description": "Specifies an addIceCandidate request."
+                },
+                "context": {
+                    "type": "string",
+                    "examples": [
+                        "ee4b07f4-1890-41db-b368-66b246c54fb3"
+                    ],
+                    "description": "An optional identifier chosen by the requestor that can be used to correlate the response with the request."
+                },
+                "params": {
+                    "type": "object",
+                    "description": "Parameters for the request. The parameters match the contents of the [`RTCIceCandidate` interface](https://w3c.github.io/webrtc-pc/#dom-rtcicecandidate)",
+                    "properties": {
+                        "candidate": {
+                            "type": "string",
+                            "description": "An SDP ICE candidate formatted according to [RFC8839, section 5.1](https://datatracker.ietf.org/doc/html/rfc8839#section-5.1)",
+                            "examples": [
+                                "candidate:1 1 UDP 2013266431 fe80::ba4a:5577:8c48:32c6 33388 typ host"
+                            ]
+                        },
+                        "sdpMLineIndex": {
+                            "type": "integer",
+                            "description": "The `RTCIceCandidate` attribute `sdpMLineIndex` as described in the [WebRTC W3C specification](https://w3c.github.io/webrtc-pc#dom-rtcicecandidate)",
+                            "examples": [
+                                0
+                            ]
+                        },
+                        "sdpMid": {
+                            "type": "string",
+                            "description": "The `RTCIceCandidate` attribute `sdpMid` as described in the [WebRTC W3C specification](https://w3c.github.io/webrtc-pc#dom-rtcicecandidate)",
+                            "examples": [
+                                "video0"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "candidate",
+                        "sdpMLineIndex",
+                        "sdpMid"
+                    ]
+                }
+            },
+            "required": [
+                "apiVersion",
+                "sessionId",
+                "method",
+                "params"
+            ]
+        }
+    }
+}

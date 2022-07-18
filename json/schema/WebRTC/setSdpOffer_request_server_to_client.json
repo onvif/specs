@@ -1,0 +1,112 @@
+{
+    "$id": "setSdpOffer_request_server_to_client",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Complete setSdpOffer request from server to client",
+    "description": "Encapsulates a device-to-client message sent via the signaling server.\nThis flavour of the signaling message defines the format that the server uses when forwarding a message sent from the device to the client.\nConsequently it defines the format that a client must understand when receiving.",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "const": "signaling",
+            "description": "Specifies this message as a signaling message."
+        },
+        "targetId": {
+            "type": "string",
+            "examples": [
+                "mycamera"
+            ],
+            "description": "The target id from which the message is sent."
+        },
+        "orgId": {
+            "type": "string",
+            "examples": [
+                "myorg"
+            ],
+            "description": "The id of the organization that the device belongs to."
+        },
+        "correlationId": {
+            "type": "string",
+            "description": "Used to identify the message."
+        },
+        "data": {
+            "$ref": "#/definitions/P2P"
+        }
+    },
+    "required": [
+        "type",
+        "targetId",
+        "orgId",
+        "data"
+    ],
+    "definitions": {
+        "P2P": {
+            "$id": "setSdpOffer",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "title": "setSdpOffer",
+            "description": "SDP offer from the device.",
+            "type": "object",
+            "properties": {
+                "apiVersion": {
+                    "type": "string",
+                    "const": "1.0",
+                    "pattern": "^[0-9]+\\.[0-9]+$",
+                    "description": "The API version used in the request."
+                },
+                "type": {
+                    "type": "string",
+                    "examples": [
+                        "request"
+                    ],
+                    "description": "Specifies that this message is a request"
+                },
+                "sessionId": {
+                    "type": "string",
+                    "examples": [
+                        "948dd272-f56b-416f-b349-fa1e88578b7c"
+                    ],
+                    "description": "An identifier chosen by the client that should be used for all messages belonging to this session."
+                },
+                "method": {
+                    "type": "string",
+                    "const": "setSdpOffer",
+                    "description": "Specifies a setSdpOffer request."
+                },
+                "context": {
+                    "type": "string",
+                    "examples": [
+                        "ee4b07f4-1890-41db-b368-66b246c54fb3"
+                    ],
+                    "description": "An optional identifier chosen by the requestor that can be used to correlate the response with the request."
+                },
+                "params": {
+                    "type": "object",
+                    "description": "Parameters for the request. The parameters match the contents of the [`RTCSessionDescription` interface](https://w3c.github.io/webrtc-pc/#dom-rtcsessiondescription)",
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "const": "offer",
+                            "description": "Redundant information but included in params to match `RTCSessionDescription` interface"
+                        },
+                        "sdp": {
+                            "type": "string",
+                            "description": "SDP offer as described in [RFC8829](https://datatracker.ietf.org/doc/html/rfc8829)",
+                            "examples": [
+                                "v=0\r\no=- 8388597958126579576 0 IN IP4 ...\r\n"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "sdp"
+                    ]
+                }
+            },
+            "required": [
+                "apiVersion",
+                "sessionId",
+                "method",
+                "params"
+            ]
+        }
+    }
+}
