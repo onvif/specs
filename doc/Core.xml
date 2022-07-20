@@ -492,6 +492,8 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc2616.txt"></link>&gt;</para>
     <para>IETF RFC 2617, HTTP Authentication: Basic and Digest Access Authentication</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc2617.txt"></link>&gt;</para>
+	<para>IETF RFC 7616, HTTP Digest Access Authentication</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7616.txt"></link>&gt;</para>
     <para>IETF RFC 3315, Dynamic Host Configuration Protocol for IPv6 (DHCPv6)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc3315.txt"></link>&gt;</para>
     <para>IETF RFC 3548, The Base16, Base32, and Base64 Data Encodings</para>
@@ -2165,7 +2167,7 @@ DATE: when response was generated
       <title>Security</title>
       <section>
         <title>Authentication</title>
-        <para>The services defined in this standard shall be protected using digest authentication according to [RFC 2617] with the following exceptions.</para>
+        <para>The services defined in this standard shall be protected using digest authentication according to [RFC 2617]and [RFC 7616] with the following exceptions.</para>
         <itemizedlist>
           <listitem>
             <para>legacy devices supporting [WS-UsernameToken] and</para>
@@ -2174,7 +2176,7 @@ DATE: when response was generated
             <para>TLS client authorization. </para>
           </listitem>
         </itemizedlist>
-        <para>If server supports both digest authentication as specified in [RFC 2617] and the user name token profile as specified in WS-Security the following behavior shall be adapted: a web service request can be authenticated on the HTTP level via digest authentication [RFC 2617] or on the web service level via the WS-Security (WSS) framework. If a client does not supply authentication credentials along with a web service request, the server shall assume that the client intends to use digest authentication [RFC 2617], if required. Hence, if a client does not provide authentication credentials when requesting a service that requires authentication, it will receive an HTTP 401 error according to [RFC 2617]. Note that this behaviour on the server’s side differs from the case of supporting only username token profile, which requires for this case an HTTP 400 error on the HTTP level and a SOAP:Fault env:Sender ter:NotAuthorized error on the WS level.</para>
+        <para>If server supports both digest authentication as specified in [RFC 2617]and [RFC 7616] and the user name token profile as specified in WS-Security the following behavior shall be adapted: a web service request can be authenticated on the HTTP level via digest authentication [RFC 2617]and [RFC 7616] or on the web service level via the WS-Security (WSS) framework. If a client does not supply authentication credentials along with a web service request, the server shall assume that the client intends to use digest authentication [RFC 2617]and [RFC 7616], if required. Hence, if a client does not provide authentication credentials when requesting a service that requires authentication, it will receive an HTTP 401 error according to [RFC 2617]and [RFC 7616]. Note that this behaviour on the server’s side differs from the case of supporting only username token profile, which requires for this case an HTTP 400 error on the HTTP level and a SOAP:Fault env:Sender ter:NotAuthorized error on the WS level.</para>
         <para>A client should not simultaneously supply authentication credentials on both the HTTP level and the WS level. If a server receives a web service request that contains authentication credentials on both the HTTP level and the WS level, it shall first validate the credentials provided on the HTTP layer. If this validation was successful, the server shall finally validate the authentication credentials provided on the WS layer.</para>
         <para>
           <xref linkend="AuthenticationFlow" /> summarizes the authentication of a web service request by a server.</para>
@@ -2188,7 +2190,61 @@ DATE: when response was generated
         </figure>
         <para>Both digest authentication and the user name token profile give only a rudimentary level of security. In a system where security is important, it is recommended to always configure the device for TLS-based access (see Advanced Security Service). Digest authentication or the user name token message level security combined with TLS, with client and server authentication, protected transport level security give an acceptable level of security in many systems.</para>
         <para>An ONVIF compliant device should authenticate an RTSP request at the RTSP level. If HTTP is used to tunnel the RTSP request the device shall not authenticate on the HTTP level.</para>
-        <para>When authenticating RTSP or HTTP methods, an ONVIF compliant device shall use digest authentication [RFC 2617]. The credentials shall be managed with the GetUsers, CreateUsers, DeleteUsers and SetUser methods. If the device also supports WS-Security, the same set of credentials shall be used.</para>
+        <para>When authenticating RTSP or HTTP methods, an ONVIF compliant device shall use digest authentication [RFC 2617]and [RFC 7616. The credentials shall be managed with the GetUsers, CreateUsers, DeleteUsers and SetUser methods. If the device also supports WS-Security, the same set of credentials shall be used.</para>
+      </section>
+	  <section>
+	  <title>GetHashingAlgorithm</title>
+        <section>          
+          <para>ONVIF Client gets current hashing algorithm of ONVIF device by sending ONVIF HTTP or RTSP request with out Authorization header.Here ONVIF Device responds with a HTTP or RTSP 401 message according to [RFC 2617] [RFC 7616] that includes a challenge for each digest algorithm currently it was set, in its order of preference.</para>
+          <para>The example HTTP digest challenge response from ONVIF Device when ONVIF Device current hashing algorithams is MD5 and SHA-256 is as follows.</para>
+		  <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+				WWW-Authenticate: Digest
+					realm="http-auth@test.org",
+					qop="auth, auth-int",
+					algorithm=MD5,
+					nonce="7ypf/xlj9XXwfDPEoM4URrv/xwf94BcCAzFZH4GiTo0v",
+					opaque="FQhe/qaU925kfnzjCev0ciny7QMkPqMAFRtzCUYo5tdS"
+				WWW-Authenticate: Digest
+					realm="http-auth@test.org",
+					qop="auth, auth-int",
+					algorithm=SHA-256,
+					nonce="7ypf/xlj9XXwfDPEoM4URrv/xwf94BcCAzFZH4GiTo0v",
+					opaque="FQhe/qaU925kfnzjCev0ciny7QMkPqMAFRtzCUYo5tdS"]]>
+			</programlisting>
+			<para>To maintain backward compatability with old ONVIF Client(s), ONVIF Device by default should do HTTP or RTSP digest challenge with MD5 hashing alogorithm as per RFC[2617].</para>
+        </section>
+      </section>
+	  <section>
+        <title>SetHashingAlgorithm</title>
+        <para>This operation sets the hashing algorithm(s) used in HTTP and RTSP Digest Authentication.</para>        
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Algorithm [tds:StringList]</para>
+              <para role="text">Hashing algorithm(s) used in HTTP and RTSP Digest Authentication</para>              
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:Argument Value Invalid</para>
+              <para role="text">The requested hashing algorithm(s) is invalid.</para>            
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
       </section>
       <section>
         <title>User-based access control</title>
