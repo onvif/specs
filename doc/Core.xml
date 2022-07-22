@@ -2167,7 +2167,7 @@ DATE: when response was generated
       <title>Security</title>
       <section>
         <title>Authentication</title>
-        <para>The services defined in this standard shall be protected using digest authentication according to [RFC 2617]and [RFC 7616] with the following exceptions.</para>
+        <para>The services defined in this standard shall be protected using digest authentication according to [RFC 2617] with the following exceptions.</para>
         <itemizedlist>
           <listitem>
             <para>legacy devices supporting [WS-UsernameToken] and</para>
@@ -2176,7 +2176,7 @@ DATE: when response was generated
             <para>TLS client authorization. </para>
           </listitem>
         </itemizedlist>
-        <para>If server supports both digest authentication as specified in [RFC 2617]and [RFC 7616] and the user name token profile as specified in WS-Security the following behavior shall be adapted: a web service request can be authenticated on the HTTP level via digest authentication [RFC 2617]and [RFC 7616] or on the web service level via the WS-Security (WSS) framework. If a client does not supply authentication credentials along with a web service request, the server shall assume that the client intends to use digest authentication [RFC 2617]and [RFC 7616], if required. Hence, if a client does not provide authentication credentials when requesting a service that requires authentication, it will receive an HTTP 401 error according to [RFC 2617]and [RFC 7616]. Note that this behaviour on the server’s side differs from the case of supporting only username token profile, which requires for this case an HTTP 400 error on the HTTP level and a SOAP:Fault env:Sender ter:NotAuthorized error on the WS level.</para>
+        <para>If server supports both digest authentication as specified in [RFC 2617] and the user name token profile as specified in WS-Security the following behavior shall be adapted: a web service request can be authenticated on the HTTP level via digest authentication [RFC 2617] or on the web service level via the WS-Security (WSS) framework. If a client does not supply authentication credentials along with a web service request, the server shall assume that the client intends to use digest authentication [RFC 2617], if required. Hence, if a client does not provide authentication credentials when requesting a service that requires authentication, it will receive an HTTP 401 error according to [RFC 2617]. Note that this behaviour on the server’s side differs from the case of supporting only username token profile, which requires for this case an HTTP 400 error on the HTTP level and a SOAP:Fault env:Sender ter:NotAuthorized error on the WS level.</para>
         <para>A client should not simultaneously supply authentication credentials on both the HTTP level and the WS level. If a server receives a web service request that contains authentication credentials on both the HTTP level and the WS level, it shall first validate the credentials provided on the HTTP layer. If this validation was successful, the server shall finally validate the authentication credentials provided on the WS layer.</para>
         <para>
           <xref linkend="AuthenticationFlow" /> summarizes the authentication of a web service request by a server.</para>
@@ -2190,33 +2190,56 @@ DATE: when response was generated
         </figure>
         <para>Both digest authentication and the user name token profile give only a rudimentary level of security. In a system where security is important, it is recommended to always configure the device for TLS-based access (see Advanced Security Service). Digest authentication or the user name token message level security combined with TLS, with client and server authentication, protected transport level security give an acceptable level of security in many systems.</para>
         <para>An ONVIF compliant device should authenticate an RTSP request at the RTSP level. If HTTP is used to tunnel the RTSP request the device shall not authenticate on the HTTP level.</para>
-        <para>When authenticating RTSP or HTTP methods, an ONVIF compliant device shall use digest authentication [RFC 2617]and [RFC 7616. The credentials shall be managed with the GetUsers, CreateUsers, DeleteUsers and SetUser methods. If the device also supports WS-Security, the same set of credentials shall be used.</para>
+        <para>When authenticating RTSP or HTTP methods, an ONVIF compliant device shall use digest authentication [RFC 2617]. The credentials shall be managed with the GetUsers, CreateUsers, DeleteUsers and SetUser methods. If the device also supports WS-Security, the same set of credentials shall be used.</para>
       </section>
 	  <section>
-	  <title>GetHashingAlgorithm</title>
-        <section>          
-          <para>ONVIF Client gets current hashing algorithm of ONVIF device by sending ONVIF HTTP or RTSP request with out Authorization header.Here ONVIF Device responds with a HTTP or RTSP 401 message according to [RFC 2617] [RFC 7616] that includes a challenge for each digest algorithm currently it was set, in its order of preference.</para>
-          <para>The example HTTP digest challenge response from ONVIF Device when ONVIF Device current hashing algorithams is MD5 and SHA-256 is as follows.</para>
-		  <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
-				WWW-Authenticate: Digest
-					realm="http-auth@test.org",
-					qop="auth, auth-int",
-					algorithm=MD5,
-					nonce="7ypf/xlj9XXwfDPEoM4URrv/xwf94BcCAzFZH4GiTo0v",
-					opaque="FQhe/qaU925kfnzjCev0ciny7QMkPqMAFRtzCUYo5tdS"
-				WWW-Authenticate: Digest
-					realm="http-auth@test.org",
-					qop="auth, auth-int",
-					algorithm=SHA-256,
-					nonce="7ypf/xlj9XXwfDPEoM4URrv/xwf94BcCAzFZH4GiTo0v",
-					opaque="FQhe/qaU925kfnzjCev0ciny7QMkPqMAFRtzCUYo5tdS"]]>
+        <title>SHA-256 Support in HTTP and RTSP digest authentication</title>
+        <para>An ONVIF compliant device follows [RFC 7616] to support SHA-256 hashing algorithm in HTTP and RTSP digest authentication. An ONVIF device signals it's supported hashing algorthms via Security Capability HashingAlgorithms parameter.</para>
+		<para>Support of SHA-256 hashing algorithm is optional for ONVIF device and client.</para>      
+      <section>
+	  <title>GetHashingAlgorithm</title>               
+          <para>ONVIF Client can get current hashing algorithm of ONVIF device by sending HTTP or RTSP request without Authorization header. Here ONVIF Device responds with a HTTP or RTSP 401 message that includes a challenge for each digest algorithm currently it was set, in its order of preference.</para>
+          <para>There is no ONVIF API to get current hashing algorithm of a device, ONVIF Client can rely on HTTP or RTSP digest challenge response.</para>
+		  <para>The example HTTP request and response from ONVIF Device when device current hashing algorithm MD5 and SHA-256 is as follows. </para>
+		    <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
+Host: 10.XX.XX.XX
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: 299
+
+<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>
+</s:Body></s:Envelope>]]>
+			</programlisting>             
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Digest algorithm=MD5, realm="Silvan_http_digest", qop="auth", 
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+WWW-Authenticate: Digest algorithm=SHA-256, realm="Silvan_http_digest", qop="auth", 
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+X-Frame-Options: SAMEORIGIN
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: 2785
+]]>
 			</programlisting>
-			<para>To maintain backward compatability with old ONVIF Client(s), ONVIF Device by default should do HTTP or RTSP digest challenge with MD5 hashing alogorithm as per RFC[2617].</para>
-        </section>
+            </listitem>
+          </varlistentry>     
+        </variablelist>		  
+			<para>To maintain backward compatibility with old ONVIF Client(s), ONVIF Device by default should do HTTP or RTSP digest challenge with MD5 hashing algorithm  as per RFC[2617].</para>        
       </section>
 	  <section>
         <title>SetHashingAlgorithm</title>
-        <para>This operation sets the hashing algorithm(s) used in HTTP and RTSP Digest Authentication.</para>        
+        <para>This operation sets the hashing algorithm(s) used in HTTP and RTSP Digest Authentication. A device follows [RFC 7616] shall support this operation.</para>        
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -2246,6 +2269,7 @@ DATE: when response was generated
           </varlistentry>
         </variablelist>
       </section>
+	  </section>	  
       <section>
         <title>User-based access control</title>
         <section>
@@ -3024,7 +3048,7 @@ onvif://www.onvif.org/name/ARV-453
                   </entry>
                 </row>
                 <row>
-                  <entry morerows="15">
+                  <entry morerows="16">
                     <para>Security</para>
                   </entry>
                   <entry>
@@ -3152,6 +3176,14 @@ onvif://www.onvif.org/name/ARV-453
                   </entry>
                   <entry>
                     <para>Maximum number of passwords that the device can remember for each user. If the device does not support the password history this attribute should be zero or not present</para>
+                  </entry>
+                </row>
+				 <row>
+                  <entry>
+                    <para>HashingAlgorithms</para>
+                  </entry>
+                  <entry>
+                    <para>Indicates which hashing algorithms supported as part of HTTP and RTSP Digest authentication.</para>
                   </entry>
                 </row>
                 <row>
