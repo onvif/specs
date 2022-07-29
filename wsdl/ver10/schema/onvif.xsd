@@ -7984,12 +7984,19 @@ and sample rate. </xs:documentation>
 
 	<xs:complexType name="RecordingEventFilter">
 		<xs:sequence>
-			<xs:element name="TopicFilter" type="xs:string">
-				<xs:annotation><xs:documentation>Topic filter as defined in section 9.6.3 of the ONVIF Core Specification.</xs:documentation></xs:annotation>
-			</xs:element>
-			<xs:element name="ContentFilter" type="xs:string" minOccurs="0">
-				<xs:annotation><xs:documentation>Optional message content filter as defined in section 9.4.4 of the ONVIF Core Specification. 
-					When this parameter is absent any message Data parameter with value other than 'false', zero or empty shall result in a match.</xs:documentation></xs:annotation>
+			<xs:element name="Filter" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Topic" type="xs:string">
+							<xs:annotation><xs:documentation>Topic filter as defined in section 9.6.3 of the ONVIF Core Specification.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="Source" type="xs:string" minOccurs="0">
+							<xs:annotation><xs:documentation>Optional message source content filter as defined in section 9.4.4 of the ONVIF Core Specification.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then vendor -->
+					</xs:sequence>
+					<xs:anyAttribute processContents="lax"/>
+				</xs:complexType>
 			</xs:element>
 			<xs:element name="Before" type="xs:duration" minOccurs="0">
 				<xs:annotation><xs:documentation>Optional timespan to record before the actual event condition became active.</xs:documentation></xs:annotation>
