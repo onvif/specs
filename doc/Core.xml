@@ -2194,53 +2194,53 @@ DATE: when response was generated
       </section>
 	  <section>
         <title>SHA-256 Support in HTTP and RTSP digest authentication</title>
-        <para>An ONVIF compliant device follows [RFC 7616] to support SHA-256 hashing algorithm in HTTP and RTSP digest authentication. An ONVIF device signals it's supported hashing algorthms via Security Capability HashingAlgorithms parameter.</para>
-		<para>Support of SHA-256 hashing algorithm is optional for ONVIF device and client.</para>      
-      <section>
-	  <title>GetHashingAlgorithm</title>               
-          <para>ONVIF Client can get current hashing algorithm of ONVIF device by sending HTTP or RTSP request without Authorization header. Here ONVIF Device responds with a HTTP or RTSP 401 message that includes a challenge for each digest algorithm currently it was set, in its order of preference.</para>
-          <para>There is no ONVIF API to get current hashing algorithm of a device, ONVIF Client can rely on HTTP or RTSP digest challenge response.</para>
-		  <para>The example HTTP request and response from ONVIF Device when device current hashing algorithm MD5 and SHA-256 is as follows. </para>
-		    <variablelist role="op">
-          <varlistentry>
-            <term>request</term>
-            <listitem>
-              <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
-Host: 10.XX.XX.XX
-Content-Type: application/soap+xml; charset=utf-8
-Content-Length: 299
-
-<?xml version="1.0" encoding="utf-8"?>
-<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
-<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>
-</s:Body></s:Envelope>]]>
-			</programlisting>             
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>response</term>
-            <listitem>
-              <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
-WWW-Authenticate: Digest algorithm=MD5, realm="Silvan_http_digest", qop="auth", 
-nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
-WWW-Authenticate: Digest algorithm=SHA-256, realm="Silvan_http_digest", qop="auth", 
-nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
-X-Frame-Options: SAMEORIGIN
-Content-Type: application/soap+xml; charset=utf-8
-Content-Length: 2785
-]]>
-			</programlisting>
-            </listitem>
-          </varlistentry>     
-        </variablelist>		  
-			<para>To maintain backward compatibility with old ONVIF Client(s), ONVIF Device by default should do HTTP or RTSP digest challenge with MD5 hashing algorithm  as per RFC[2617].</para>        
-      </section>
-	  <section>
+        <para>To support SHA-256 hashing algorithm in HTTP and RTSP digest authentication, an ONVIF compliant device and client should follow [RFC 7616].</para>
+        <para>Below table explains the default and optional parameters for ONVIF compliant devices:</para>
+		 <table>
+			<title>Device authentication Behavior</title>
+            <tgroup cols="3">
+              <colspec colname="c1" colwidth="49*" />
+              <colspec colname="c2" colwidth="13*" />
+              <colspec colname="c3" colwidth="37*" />
+              <thead>
+                <row>
+                  <entry>
+                    <para>Default Behavior</para>
+                  </entry>
+                  <entry>
+                    <para>Default Hashing Algorithm Used</para>
+                  </entry>
+                  <entry>
+                    <para>Optional(In Digest authentication)</para>
+                  </entry>
+                </row>
+              </thead>
+              <tbody valign="top">
+                <row>
+                  <entry>
+                    <para>An ONVIF compliant device and client should follow [RFC 2617] digest authentication.</para>
+                  </entry>
+                  <entry>
+                    <para>MD5</para>
+                  </entry>
+                  <entry>
+                    <para>Support of SHA-256 hashing algorithm is optional for both ONVIF device and client.</para>
+                  </entry>
+                </row>                
+              </tbody>
+            </tgroup>
+          </table>
+		<para>Client can check the supported hashing algorithms in “HashingAlgorithms” field under “SecurityCapabilities” section of capabilities response. If this field is absent or empty by default only “MD5” is applicable.</para>		
+	 	<section>
         <title>SetHashingAlgorithm</title>
-        <para>This operation sets the hashing algorithm(s) used in HTTP and RTSP Digest Authentication. A device follows [RFC 7616] shall support this operation.</para>        
-        <variablelist role="op">
+        <para>How to set HashingAlgorithm for an ONVIF Device/Client</para>
+		<para>•	ONVIF client should use SetHashingAlgorithm API to modify the current hashing algorithm of a device.</para>
+		<para>•	SetHashingAlgorithm API sets the hashing algorithm(s) to be used in HTTP and RTSP Digest Authentication.</para>
+		<para>Note: ONVIF devices that follows [RFC 7616] will support this operation</para>
+		<para>Post changing the Hashing Algorithm:</para>        
+        <para>1.After changing the hashing algorithm of an ONVIF device, the device should use the new hashing algorithm in the digest challenge for the upcoming HTTP and RTSP request.</para>
+		<para>Below request needs to be posted:</para>
+		<variablelist role="op">
           <varlistentry>
             <term>request</term>
             <listitem>
@@ -2269,6 +2269,74 @@ Content-Length: 2785
           </varlistentry>
         </variablelist>
       </section>
+	  <section>
+	  <title>Get Device Hashing Algorithm</title>               
+          <para>Follow the below workflow to get the latest device Hashing Algorithm:</para>
+		  <para>1. The ONVIF client should send a HTTP or RTSP requests without an Authorization header.</para>
+		  <para>2. The device responds with a HTTP or RTSP 401 message, that includes a challenge for each digest algorithm currently it was set, in its order of preference.</para>
+		  <para>Note: There is no ONVIF API to get the current hashing algorithm of a device, ONVIF clients should depend on HTTP or RTSP digest challenge response.</para>
+          <para>Below is the example for HTTP request and response from ONVIF device and client:</para>
+		  <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
+Host: 10.XX.XX.XX
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: 299
+
+<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>
+</s:Body></s:Envelope>]]>
+			</programlisting>             
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <para>Response from a device if the hashing algorithm is set to MD5, SHA-256:</para>
+            <listitem>
+              <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Digest algorithm=MD5, realm="Silvan_http_digest", qop="auth", 
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+WWW-Authenticate: Digest algorithm=SHA-256, realm="Silvan_http_digest", qop="auth", 
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+X-Frame-Options: SAMEORIGIN
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: 2785
+]]>
+			</programlisting>
+            </listitem>
+          </varlistentry>
+<varlistentry>
+            <para>Response from a device if the hashing algorithm is set to SHA-256:</para>
+            <listitem>
+              <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Digest algorithm=SHA-256, realm="Silvan_http_digest", qop="auth", 
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+X-Frame-Options: SAMEORIGIN
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: 2785
+]]>
+			</programlisting>
+            </listitem>
+          </varlistentry>
+<varlistentry>
+            <para>Response from a device if the hashing algorithm is set to MD5:</para>
+            <listitem>
+              <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Digest algorithm=MD5, realm="Silvan_http_digest", qop="auth", 
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+X-Frame-Options: SAMEORIGIN
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: 2785
+]]>
+			</programlisting>
+            </listitem>
+          </varlistentry>		  
+        </variablelist>			       
+      </section>	 
 	  </section>	  
       <section>
         <title>User-based access control</title>
@@ -3183,7 +3251,7 @@ onvif://www.onvif.org/name/ARV-453
                     <para>HashingAlgorithms</para>
                   </entry>
                   <entry>
-                    <para>Indicates which hashing algorithms supported as part of HTTP and RTSP Digest authentication.</para>
+                    <para>Indicates which hashing algorithms are supported as part of HTTP and RTSP digest authentication.</para>
                   </entry>
                 </row>
                 <row>
