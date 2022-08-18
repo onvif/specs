@@ -7825,7 +7825,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
         <para>SIMPLEITEM = DQUOTE SNAME DQUOTE ":" DQUOTE SVALUE DQUOTE</para>
         <para>ELEMENTITEM = DQUOTE ENAME DQUOTE ": {" [ TYPE *("," TYPE)] "}"</para>
         <para>TYPE = ATTRIBUTE / SIMPLETYPE / COMPLEXTYPE</para>
-        <para>ATTRIBUTE = DQUOTE ANAME DQUOTE ": " DQUOTE AVALUE DQUOTE</para>
+        <para>ATTRIBUTE = DQUOTE "@" ANAME DQUOTE ": " DQUOTE AVALUE DQUOTE</para>
         <para>SIMPLETYPE = DQUOTE NAME DQUOTE ": " DQUOTE VALUE DQUOTE</para>
         <para>COMPLEXTYPE = DQUOTE NAME DQUOTE ": {" [TYPE *("," TYPE)] "}"</para>
         <para>with </para>
@@ -7858,6 +7858,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             <para>VALUE being the value of the corresponding XML element</para>
           </listitem>
         </itemizedlist>
+        <para>Note, that quotes may be omitted for integer and floating point values as well as logical states true and false.</para>
         <para>The parser shall parse the elements recursively in the order they are present in the XML representation.</para>
         <para>The output shall be generated according above described rules.</para>
         <section xml:id="_Ref19678957">
@@ -7881,7 +7882,9 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
   }
 }</programlisting>
           <para>Topic for the second message:</para>
-          <programlisting>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed&amp;/1/2/MyImportantFence2
+          <programlisting>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed&amp;/1/2/MyImportantFence2</programlisting>
+          <para>Payload for the second message:</para>
+          <programlisting>{
   "UtcTime": "2008-10-10T12:24:57.789Z
   "Source": {
     "VideoSource": "1",
@@ -7890,6 +7893,29 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
   },
   "Data": {
     "ObjectId": "19" 	
+  }
+}</programlisting>
+  <para>Third message with the following complex xml data content:</para>
+  <programlisting><![CDATA[<tt:ElementItem Name="Segments">
+  <tt:Polyline>
+    <tt:Point x="0.10" y="0.50"/>
+    <tt:Point x="1.0" y="0.50"/>
+  </tt:Polyline>
+</tt:ElementItem>
+]]></programlisting>
+          <para>Payload for third message:</para>
+          <programlisting>
+"UtcTime": "2008-10-10T12:24:57.789Z
+  "Source": {
+    "VideoSource": "1",
+    "Rule": "MyLineInfo"
+  },
+  "Data": {
+    "Segments": {
+      "Polyline": {
+        "Point": [ { "@x": 0.10, "@y", 0.50}, {"@x": 1.0, "@y": 0.50} ]
+      }
+    }
   }
 }</programlisting>
         </section>
