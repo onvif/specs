@@ -7631,6 +7631,51 @@ and sample rate. </xs:documentation>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
+	<xs:simpleType name="RecordingFormat">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="mp4"/>
+			<xs:enumeration value="CMAF"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--===============================-->
+	<xs:complexType name="RecordingEncryption">
+		<xs:sequence>
+			<xs:element name="KID" type="xs:hexBinary">
+				<xs:annotation><xs:documentation>Key ID of the associated key for encryption.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="Key" type="xs:hexBinary">
+				<xs:annotation><xs:documentation>Key for encrypting content.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+		</xs:sequence>
+		<xs:attribute name="Track" type="tt:IntList">
+			<xs:annotation><xs:documentation>Optional list of track IDs to be enctryped. Defaults to any.</xs:documentation></xs:annotation>
+		</xs:attribute>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="RecordingTargetConfiguration">
+		<xs:sequence>
+			<xs:element name="Storage" type="tt:ReferenceToken">
+				<xs:annotation><xs:documentation>Token of a storage configuration.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="Format" type="xs:string">
+				<xs:annotation><xs:documentation>Recording format as defined in tt:RecordingFormat.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="Prefix" type="xs:string">
+				<xs:annotation><xs:documentation>Uri path prefix.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="FragmentDuration" type="xs:duration">
+				<xs:annotation><xs:documentation>Default length of a fragment. Note that the actual duration may vary because fragments have to start at gop boundaries.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="Encryption" type="tt:RecordingEncryption" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation><xs:documentation>Optional encryption configuration. See capability trc:Encryption for number of supported entries.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
 	<xs:simpleType name="RecordingStatus">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="Initiated"/>
@@ -7863,6 +7908,11 @@ and sample rate. </xs:documentation>
 				the device shall not limit the retention time of stored data, except by resource constraints.
 				Whatever the value of MaximumRetentionTime, the device may automatically delete
 				recordings to free up storage space for new recordings.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Target" type="tt:RecordingTargetConfiguration" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional external storage target configuration.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
