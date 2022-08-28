@@ -1,0 +1,461 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="docbook.xsl" type="text/xsl" ?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <info>
+    <title>Media Signing Specification</title>
+    <titleabbrev>Media Signing</titleabbrev>
+    <releaseinfo>22.12</releaseinfo>
+    <author>
+      <orgname>ONVIF™</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate> December, 2022</pubdate>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="media/logo.png" contentwidth="60mm"/>
+      </imageobject>
+    </mediaobject>
+    <copyright>
+      <year>2008-2022</year>
+      <holder>ONVIF™ All rights reserved.</holder>
+    </copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so
+        long as this copyright notice, license and disclaimer are retained with all copies of the
+        document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR
+        AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+        LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+        NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE;
+        OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS,
+        TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY
+        DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR
+        RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION,
+        MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2)
+        SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR
+        DISTRIBUTION OF THIS DOCUMENT. THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT
+        APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR
+        RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF
+        THE CORPORATION.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>22.12</revnumber>
+        <date>Dec 2022</date>
+        <author>
+          <personname>Fredrik Svensson, Björn Völcker, Axel Keskikangas</personname>
+        </author>
+        <revremark>First release</revremark>
+      </revision>
+    </revhistory>
+  </info>
+  <chapter>
+    <title>Scope </title>
+    <para>This specification defines how live media from ONVIF devices is signed to give a guarantee
+      that the media has not been manipulated since it was transmitted from the device. </para>
+  </chapter>
+  <chapter>
+    <title>Normative references</title>
+    <para>ITU-T Recommendation, H.264: Advanced video coding for generic audiovisual services</para>
+    <para role="reference">&lt;<link xlink:href="https://www.itu.int/rec/T-REC-H.264" xmlns:xlink="http://www.w3.org/1999/xlink"/>&gt;</para>
+    <para>ITU-T Recommendation, H.265: High effiency video coding</para>
+    <para role="reference">&lt;<link xlink:href="https://www.itu.int/rec/T-REC-H.265" xmlns:xlink="http://www.w3.org/1999/xlink"/>&gt;</para>
+    <para>IETF RFC 6234 - US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF)</para>
+    <para role="reference">&lt;<link xlink:href="http://tools.ietf.org/html/rfc6234"
+        xmlns:xlink="http://www.w3.org/1999/xlink"/>&gt;</para>
+  </chapter>
+  <chapter>
+    <title>Terms and Definitions</title>
+    <section>
+      <title>Definitions</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*"/>
+          <colspec colname="c2" colwidth="76*"/>
+          <tbody valign="top">
+            <row>
+              <entry align="left"><para>Document</para></entry>
+              <entry align="left"><para>A document in this spec refers to a codec specific document that
+                includes hashes of all media frames since previous signing occation together with
+                other metadata. For H.264 and H.265 a document is encoded into a SEI frame.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+    <section>
+      <title>Abbreviations</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*"/>
+          <colspec colname="c2" colwidth="76*"/>
+          <tbody valign="top">
+            <row>
+              <entry valign="middle"><para>AU</para></entry>
+              <entry valign="middle"><para>Access Unit</para></entry>
+            </row>
+            <row>
+              <entry valign="middle"><para>GOP</para></entry>
+              <entry valign="middle"><para>Group Of Pictures</para></entry>
+            </row>
+            <row>
+              <entry valign="middle"><para>IDR</para></entry>
+              <entry valign="middle"><para>Instantaneous Decoding Refresh</para></entry>
+            </row>
+            <row>
+              <entry valign="middle"><para>NAL</para></entry>
+              <entry valign="middle"><para>Network Abstraction Layer</para></entry>
+            </row>
+            <row>
+              <entry valign="middle"><para>NALU</para></entry>
+              <entry valign="middle"><para>NAL Unit</para></entry>
+            </row>
+            <row>
+              <entry valign="middle"><para>SEI</para></entry>
+              <entry valign="middle"><para>Supplementary Enhancement Information</para></entry>
+            </row>
+            <row>
+              <entry valign="middle"><para>TLV</para></entry>
+              <entry valign="middle"><para>Type-Length-Value</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Overview</title>
+    <para><emphasis>Signed Media</emphasis> adds cryptographic signatures to captured media as part
+      of the codec format. The media is, after adding these signatures, protected against
+      manipulations, that is, the authenticity of the media can be validated if needed. </para>
+    <para>The public key that is used to verify the signatures is also included in the media as well
+      as the certificate to verify the public key.</para>
+  </chapter>
+  <chapter>
+    <title>Signed Video</title>
+    <para>A video consists of picture frames displayed at a certain frame rate. If these frames are
+      transmitted or stored for later use and displayed by a third party one would like to be able
+      to validate that they have not been manipulated since the time of signing.</para>
+    <para>In brief, the principle of signing documents is used, that is, collect information and
+      sign the information using a Private encryption key. Then, packetize the produced signature
+      together with some additional information. For validation, the user can then verify the
+      information by using the signature and the corresponding Public key.</para>
+    <para>On a high level, <emphasis>Signed Video</emphasis> hashes encoded video frames and on a
+      regular basis creates a <code>document</code> representing these hashes and signs that <code>document</code>. This
+      signature, together with the <code>document</code>, is added to the video using Supplementary Enhancement
+      Information (SEI) frames.</para>
+    <section>
+      <title>Limitations and Properties</title>
+      <para><emphasis>Signed Video</emphasis> is defined for the H264 and H265 video codec formats.
+        Therefore, most of the description uses the Network Abstraction Layer (NAL) concept. Note
+        that raw video is not covered.</para>
+      <para><emphasis role="bold">Signing frequency</emphasis>. Signing is done upon transition
+        between two Group of Pictures (GOP). For short GOP lengths the time between two GOP
+        transitions may be shorter than the time it takes to perform the signing. Hence, there is a
+        limit on how short GOPs a device can allow for to be able to sign a video in
+        real-time.</para>
+      <para><emphasis role="bold">Authenticity level</emphasis>. <emphasis>Signed Video</emphasis>
+        supports two levels of authenticity; GOP level and NALU level. For GOP level, all frames
+        between two signatures are treated in one single chunk and if the validation fails, all
+        these frames are considered as not authentic even if it is due to a lost frame. For NALU
+        level it's possible to identify which frames are authentic or not, or even lost. This means
+        that frame drops can be handled, but not packet losses. Losing packets in general means
+        losing parts of a frame, hence is equivalent with modifying a frame. The cost for validating
+        the authenticity of each individual NAL is an increase in bitrate.</para>
+    </section>
+    <section>
+      <title>Detailed description</title>
+      <para>The H.264 and H.265 codec formats allow the user to add arbitrary data to a stream
+        through SEI frames of type user data unregistered. <emphasis>Signed Video</emphasis> puts
+        the produced signatures and additional metadata in such frames. These SEI frames are ignored
+        by the decoder and will therefore not affect the video rendering. One obvious drawback is
+        that it is easy to destroy the signed video and make it unsigned by simply dropping those
+        SEI frames. In some cases this can also be beneficial if, e.g., the user is no longer
+        interested in its authenticity. It is out of scope to protect against lost SEI
+        frames.</para>
+      <para>All operations are done on the encoded video stream. Each picture frame is split into
+        NAL Units (NALU) and <emphasis role="italic">Signed Video</emphasis> operates on these
+        NALUs. NALUs that are not part of a picture frame are ignored. These NALUs are:<itemizedlist>
+          <listitem>
+            <para>SPS/PPS/VPS</para>
+          </listitem>
+          <listitem>
+            <para>AUD</para>
+          </listitem>
+          <listitem>
+            <para>SEIs other than Signed Video specific</para>
+          </listitem>
+        </itemizedlist></para>
+      <para>Note that these can still affect the visual aspect of a video.</para>
+    </section>
+    <section>
+      <title>Signing a GOP</title>
+      <para>Without loss of generality, consider three consecutive GOPs each starting with an IDR
+        (I-frame) followed by 4 non-IDRs (P-frames). In text format it would look like
+          <code>IPPPPIPPPPIPPPP</code>. The signing information is collected in a SEI frame
+          (<code>S</code>) and put just before the picture frame to follow the Access Unit (AU)
+        format. Each I-frame will trigger a signing procedure and ideally the SEI is generated and
+        available instantaneously and can be attached to the stream as
+          <code>SIPPPPSIPPPPSIPPPP</code>.</para>
+      <para>Each NALU is hashed using SHA-256, but not in a straightforward manner. Since every
+        P-frame directly or indirectly refers to the I-frame starting the GOP they are linked
+        together. Let <code>h(F)</code> denote the hash of a frame <code>F</code>, and <code>href =
+          h(I)</code> is the hash of the first I-frame in a GOP and used as reference. Then each
+        frame in a GOP is hashed according to <code>hash(F) = h(href, h(F))</code> where
+          <code>href</code> and <code>h(F)</code> have been aligned in memory. All hashes are
+        collected in a list and together with some metadata form a <code>document</code>, which
+        later will be signed.</para>
+      <para>To preserve the order of GOPs the I-frame of the next GOP is also include in the list of
+        hashes, that is, <code>hash(Inext) = h(href, h(Inext))</code> is added as well.</para>
+      <para>This <code>document</code> is then hashed, denoted <emphasis role="italic">gop
+          hash</emphasis> (<code>= h(document)</code>), and signed to produce a signature as</para>
+      <para><code>signature = sign(h(document))</code></para>
+      <para>and together with the <code>document</code> itself is added to the stream in a SEI, that
+        is, SEI = <code>document + signature</code>. After signing, the next GOP is then initiated
+        with a new <code>href</code> using the very same I-frame that closed the previous GOP. For
+        the end user to validate the authenticity of a signed video the public key, associated with
+        the private key used when signing, is needed. The public key is included as part of the
+        metadata. This simplifies validating the authenticity of the video, but requires a separate
+        logic to verify its origin.</para>
+      <section>
+        <title>Signing at GOP authenticity level</title>
+        <para>Transmitting the list of hashes can be too expensive in terms of an increased bitrate.
+          The <emphasis role="italic">Signed Video Framework</emphasis> therefore offer a light
+          version in GOP level as authenticitiy level. Instead of transmitting the hash list a
+          single hash representing all the frames and the metadata is computed. This single hash is
+          implemented recursively and is then signed.</para>
+        <para>The recursive operation is initialized with a hashed salt <code>hash(0) =
+            h(salt)</code>. The next step is to add <code>href</code> as <code>hash(1) = h(hash(0),
+            href)</code> and the n'th hash becomes <code>hash(n) = h(hash(n-1), hash(F_n))</code>,
+          where <code>F_n</code> is the frame that produced the n'th hash. The last frame added to
+          the recursive hash is <code>Inext</code> and a <code>document</code> is created just like
+          above, but now without the hash list, hence it includes the metadata only. The recursive
+          hash is then finalized with the hash of this <code>document</code> which now becomes the
+            <emphasis role="italic">gop hash</emphasis></para>
+        <para><code>hash(gop) = h(hash(N), hash(document))</code></para>
+        <para>The <emphasis role="italic">gop hash</emphasis> is then signed by generating a
+          signature. Combine the metadata, which by definition is the <code>document</code>, and the
+          signature to form the SEI = <code>document + signature</code> where <code>signature =
+            sign(hash(gop))</code></para>
+        <?oxy_comment_start author="fredriks" timestamp="20220829T150150+0200" comment="Should we even include NALU level in this spec?"?>
+        <para>For NALU level and long GOP lengths, <emphasis role="italic">Signed Video</emphasis>
+          automatically falls back to GOP level to avoid very large SEI frames.</para>
+      </section>
+      <section>
+        <title>Signing at NALU authenticity level</title>
+        <para>...</para>
+      </section><?oxy_comment_end?>
+    </section>
+    <section>
+      <title>Metadata</title>
+      <para>Part from the public key it is possible to add some signer specific information. The
+        following fields are supported</para>
+      <itemizedlist>
+        <listitem>
+          <para>Hardware ID</para>
+        </listitem>
+        <listitem>
+          <para>Firmware version</para>
+        </listitem>
+        <listitem>
+          <para>Serial Number</para>
+        </listitem>
+        <listitem>
+          <para>Manufacturer (who is the signer)</para>
+        </listitem>
+        <listitem>
+          <para>Address (Contact information of signer, e.g., URL, email, mail)</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+    <section>
+      <title>SEI format</title>
+      <para>SEIs of type <emphasis role="italic">user data unregistered</emphasis> are used. These
+        are organized as:</para>
+      <para>
+        <table frame="all">
+          <title>User data unregistered SEI</title>
+          <tgroup cols="5">
+            <colspec colname="c1" colnum="1" colwidth="1*"/>
+            <colspec colname="c2" colnum="2" colwidth="1*"/>
+            <colspec colname="c3" colnum="3" colwidth="1*"/>
+            <colspec colname="c4" colnum="4" colwidth="1*"/>
+            <colspec colname="c5" colnum="5" colwidth="1*"/>
+            <tbody>
+              <row>
+                <entry align="center"><para>NALU header</para></entry>
+                <entry align="center"><para>payload size</para></entry>
+                <entry align="center"><para>UUID</para></entry>
+                <entry align="center"><para>payload</para></entry>
+                <entry align="center"><para>stop bit</para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </para>
+      <para>The UUID is used to put a <emphasis role="italic">Signed Video</emphasis> identity to
+        the SEI. The UUID for Signed Video is <code>53, 69, 67, 6e, 65, 64, 20, 56, 69, 64, 65, 6f,
+          2e, 2e, 2e, 30</code> in hexadecimal notation. The payload includes the metadata and the
+        signature, and is serialized in a TLV structure. By definition the <code>document</code>
+        includes everything from the NALU header to the signature tag, hence the entire frame is
+        secured.</para>
+      <para>
+        <table frame="all">
+          <title>Signed video SEI</title>
+          <tgroup cols="7" align="center">
+            <colspec colname="c1" colnum="1" colwidth="1*"/>
+            <colspec colname="c2" colnum="2" colwidth="1*"/>
+            <colspec colname="c3" colnum="3" colwidth="1*"/>
+            <colspec colname="c4" colnum="4" colwidth="1*"/>
+            <colspec colname="c5" colnum="5" colwidth="1*"/>
+            <colspec colname="c6" colnum="6" colwidth="1*"/>
+            <colspec colname="c7" colnum="7" colwidth="1*"/>
+            <thead>
+              <row>
+                <entry align="center" namest="c1" nameend="c5">
+                  <para>document</para>
+                </entry>
+                <entry align="center"/>
+                <entry align="center">
+                  <para> </para>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry align="center"><para>NALU header</para></entry>
+                <entry align="center"><para>payload size</para></entry>
+                <entry align="center"><para>UUID</para></entry>
+                <entry align="center"><para>metadata</para></entry>
+                <entry align="center"><para>list of hashes</para></entry>
+                <entry align="center"><para>signature</para></entry>
+                <entry align="center"><para>stop bit</para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </para>
+      <section>
+        <title>TLV tags</title>
+        <para>Following is a list of possible TLV tags that can be part of the metadata.</para>
+        <para>
+          <table frame="all">
+            <title>TLV tags</title>
+            <tgroup cols="3" align="left">
+              <colspec colname="c1" colnum="1" colwidth="1.33*"/>
+              <colspec colname="c2" colnum="2" colwidth="1*"/>
+              <colspec colname="c3" colnum="3" colwidth="2.32*"/>
+              <thead>
+                <row>
+                  <entry><para>Tag</para></entry>
+                  <entry><para>Decimal</para></entry>
+                  <entry><para>Description</para></entry>
+                </row>
+              </thead>
+              <tbody>
+                <row>
+                  <entry><para>General info</para></entry>
+                  <entry><para>1</para></entry>
+                  <entry><para>General info like GOP length</para></entry>
+                </row>
+                <row>
+                  <entry><para>Public key</para></entry>
+                  <entry><para>2</para></entry>
+                  <entry><para>The public signing key</para></entry>
+                </row>
+                <row>
+                  <entry><para>Product info</para></entry>
+                  <entry><para>3</para></entry>
+                  <entry><para>Information about the device</para></entry>
+                </row>
+                <row>
+                  <entry><para>Hash list</para></entry>
+                  <entry><para>4</para></entry>
+                  <entry><para>List of frame hashes</para></entry>
+                </row>
+                <row>
+                  <entry><para>Signature</para></entry>
+                  <entry><para>5</para></entry>
+                  <entry><para>The signature of the document</para></entry>
+                </row>
+                <row>
+                  <entry><para>Arbitrary data</para></entry>
+                  <entry><para>6</para></entry>
+                  <entry><para>You put your weed in there</para></entry>
+                </row>
+                <row>
+                  <entry><para>Number of tags</para></entry>
+                  <entry><para>7</para></entry>
+                  <entry><para>Total number of TLV tags included</para></entry>
+                </row>
+                <row>
+                  <entry>Certificate</entry>
+                  <entry>8</entry>
+                  <entry>The public key certificate</entry>
+                </row>
+                <row>
+                  <entry><para>ONVIF vendor tag</para></entry>
+                  <entry><para>130</para></entry>
+                  <entry><para>Signals that the document is signed according to this standard</para></entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </table>
+        </para>
+      </section>
+      <section>
+        <title>General info</title>
+        <para>...</para>
+      </section>
+      <section>
+        <title>Public key</title>
+        <para>...</para>
+      </section>
+      <section>
+        <title>Product info</title>
+        <para>...</para>
+      </section>
+      <section>
+        <title>Hash list</title>
+        <para>...</para>
+      </section>
+      <section>
+        <title>Signature</title>
+        <para>...</para>
+      </section>
+      <section>
+        <title>Arbitrary data</title>
+        <para>...</para>
+      </section>
+      <section>
+        <title>Number of tags</title>
+        <para>...</para>
+      </section>
+      <section>
+        <title>Certificate</title>
+        <para>...</para>
+      </section>
+      <section>
+        <title>ONVIF vendor tag</title>
+        <para>...</para>
+      </section>
+    </section>
+    <section>
+      <title>Signing in a secure hardware</title>
+      <para>When signing in hardware the signing itself may take some time and to avoid piling up
+        frames the SEI frames can be added at a later stage, but no later than at the next signing
+        request. Using the example above, a signed video segment could look like
+          <code>IPSPPPIPPPPSIPPPSP</code> where the <code>S</code>s show up delayed compared to the
+        ideal case <code>SIPPPPSIPPPPSIPPPP</code>.</para>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Audio Signing</title>
+    <para>...</para>
+  </chapter>
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para/>
+  </appendix>
+</book>
