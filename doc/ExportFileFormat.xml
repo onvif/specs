@@ -4,12 +4,12 @@
   <info>
     <title>Export File Format Specification</title>
     <titleabbrev>ExportFileFormat</titleabbrev>
-    <releaseinfo>22.06</releaseinfo>
+    <releaseinfo>22.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June, 2022</pubdate>
+    <pubdate>December, 2022</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -110,6 +110,14 @@
         </author>
         <revremark>Add location information.</revremark>
       </revision>
+      <revision>
+        <revnumber>22.12</revnumber>
+        <date>December-2022</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Remove references to ISO 23000-10.</revremark>
+      </revision>
     </revhistory>
   </info>
   <chapter>
@@ -124,10 +132,6 @@
     <para role="reference">&lt;​<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/stream/ONVIF-Streaming-Spec.pdf"></link>&gt;</para>
     <para>ISO/IEC 14496-12 Information technology — Coding of audiovisual objects – Part 12: ISO base media file format</para>
     <para role="reference">&lt;​<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/obp/ui/#iso:std:iso-iec:14496:-12:ed-5:v1:en"></link>&gt;</para>
-    <para>ISO/IEC 23000-10 Information technology – Multimedia application format – Part 10: Surveillance application format</para>
-    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/obp/ui/#iso:std:iso-iec:23000:-10:ed-2:v1:en"></link>&gt;</para>
-    <para>ISO/IEC 23000-10/Cor 2:2014 Information technology – Multimedia application format – Part 10: Surveillance application format - TechnicalCorrigendum 2</para>
-    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/obp/ui/#iso:std:iso-iec:23000:-10:ed-2:v1:cor:2:v1:en"></link>&gt;</para>
     <para>NIST FIPS 180-4 Secure Hash Standard</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://csrc.nist.gov/publications/detail/fips/180/4/final"></link>&gt;</para>
     <para>ISO/IEC 14888-2 Information technology – Security techniques – Digital signatures with appendix – Part 2: Integer factorization based mechanisms</para>
@@ -185,7 +189,12 @@
     </section>
     <section>
       <title>Time Information</title>
-      <para>The ISO Base File Format has been mainly designed for storing movies and music clips. It defines a media timeline relative to the beginning which is defined as time zero. For Video Surveillance purposes it is important that the file preserves the absolute time of the captured frames. This specification refers to ISO 23000-10 for storing the absolute start time. All other times can be derived using the relative time data defined in ISO/IEC 14496-12. Additional to this time information time corrections can be stored during the sealing process.</para>
+      <para>The ISO Base File Format has been mainly designed for storing movies and music clips. It
+        defines a media timeline relative to the beginning which is defined as time zero. For Video
+        Surveillance purposes it is important that the file includes the absolute start time of the
+        captured frames. All other times can be derived using the relative time data defined in
+        ISO/IEC 14496-12. Additional to this time information time corrections can be stored during
+        the sealing process.</para>
       <para>In order to improve random access the ISOM baseline requires the movie fragment table at the end of the file. This redundant information does not require the protection seal.</para>
     </section>
     <section>
@@ -344,18 +353,16 @@ class SurveillanceExportBox
     </section>
     <section>
       <title>Timing</title>
-      <para>The <literal>startTime</literal> element of <literal>AFIdentificationBox</literal><footnote xml:id="__FN1__"><para>Box definitions can be found in ISO/IEC 23000-10 Information technology – Multimedia application format – Part 10: Surveillance application format.</para></footnote> shall contain the UTC based time of the first media sample in the fragment.</para>
-      <para>Each track fragment shall contain the Track Fragment Decode Time box ‘tfdt’ as defined in ISO/IEC 14496-12 to ease seeking during playback.</para>
-    </section>
-    <section>
-      <title>Correction of start time</title>
+      <para>The box defined in the section shall be used to provide the start date and time of the
+        capture. Subsequent signing instances may define corrected start times.</para>
+
       <para>
-        <emphasis role="bold">CorrectStartTimeBox</emphasis>
+        <emphasis role="bold">StartTimeBox</emphasis>
       </para>
       <programlisting>Box Types: 'cstb' 
-Container: Protection Scheme Information Box (‘sinf’)
+Container: Protection Scheme Information Box (‘sinf’) or Metadata box ('meta')
 Mandatory: No 
-Quantity:  Zero or one per signing instance</programlisting>
+Quantity:  Zero or one</programlisting>
       <para>
         <emphasis role="bold">Syntax</emphasis>
       </para>
@@ -374,13 +381,15 @@ class CorrectStartTimeBox extends Box (‘cstb’) {
       <variablelist>
         <varlistentry>
           <term>track_ID</term>
-          <listitem><para>An integer that provides a reference to another track in the presentation. track_IDs are never re-used and cannot be equal to zero.</para></listitem>
+          <listitem><para>An integer that provides a reference to a track in the presentation. track_IDs are never re-used and cannot be equal to zero.</para></listitem>
         </varlistentry>
         <varlistentry>
           <term>startTime</term>
-          <listitem><para>The UTC based time represented by the number of 100-nanosecond intervals since January 1, 1601 of the first media sample in the first fragment.</para></listitem>
+          <listitem><para>The UTC based time represented by the number of 100-nanosecond intervals since January 1, 1601 of the origin of the media timeline.</para></listitem>
         </varlistentry>
       </variablelist>
+      <para>Note, typically it is sufficient to provide the start time for the first track only. Multiple entries e.g. allow to correct audio and video synchronization.</para>
+      <para>Each track fragment shall contain the Track Fragment Decode Time box ‘tfdt’ as defined in ISO/IEC 14496-12 to ease seeking during playback.</para>
     </section>
     <section>
       <title>Location information</title>
@@ -401,7 +410,7 @@ class  LocationInformationBox extends FullBox (‘loci’) {
   UInt(16) language;
   String Name;
   UInt(8) Role;
-  UInt(32) Logitude;
+  UInt(32) Longitude;
   UInt(32) Latitude;
   UInt(32) Altitude;
   String AstronomicalBody;
@@ -736,7 +745,7 @@ class AdditionalUserInformationBox
                 <emphasis role="bold">stsc</emphasis><superscript>1</superscript>       Sample to chunk mapping
                 <emphasis role="bold">stco</emphasis><superscript>1</superscript>       List of Chunk offsets inside 'mdat' relative to file begin 
     <emphasis role="bold">udta</emphasis><superscript>1</superscript>                   User data
-        <emphasis role="bold">loci</emphasis><superscript>4</superscript>               Geo location information
+        <emphasis role="bold">loci</emphasis><superscript>3</superscript>               Geo location information
     <emphasis role="bold">trak</emphasis><superscript>1</superscript>                   Third track with timed metadata
         <emphasis role="bold">tkhd</emphasis><superscript>1</superscript>               Track header with creation time, timescale, duration, track ID
         <emphasis role="bold">mdia</emphasis><superscript>1</superscript>
@@ -771,14 +780,14 @@ class AdditionalUserInformationBox
 <emphasis role="bold">mdat</emphasis><superscript>1</superscript>                       Raw Video and Audio of this 
 <emphasis role="bold">meta</emphasis><superscript>1</superscript>                       File level meta information
     <emphasis role="bold">hdlr</emphasis><superscript>1</superscript>
-    <emphasis role="bold">sumi</emphasis><superscript>2</superscript>                   File UUIDs as well as absolute start time and duration
-    <emphasis role="bold">suep</emphasis><superscript>3</superscript>                   Export supplementary information
+    <emphasis role="bold">suep</emphasis><superscript>2</superscript>                   Export supplementary information
     <emphasis role="bold">ipro</emphasis><superscript>1</superscript>                   File protection
         <emphasis role="bold">sinf</emphasis><superscript>1</superscript>               File protection  information
+            <emphasis role="bold">cstb</emphasis><superscript>2</superscript>           Start time
             <emphasis role="bold">schm</emphasis><superscript>1</superscript>           Protection scheme OEFF defined by this specification
             <emphasis role="bold">schi</emphasis><superscript>1</superscript>
-                <emphasis role="bold">sibo</emphasis><superscript>3</superscript>       Signature of the export
-                <emphasis role="bold">cert</emphasis><superscript>3</superscript>       Certificate of the exporter
+                <emphasis role="bold">sibo</emphasis><superscript>2</superscript>       Signature of the export
+                <emphasis role="bold">cert</emphasis><superscript>2</superscript>       Certificate of the exporter
 <emphasis role="bold">mfra</emphasis><superscript>1</superscript>                       Optional movie fragment random access (must be last in file)
     <emphasis role="bold">tfra</emphasis><superscript>1</superscript>                   Track fragment random access
     <emphasis role="bold">mfro</emphasis><superscript>1</superscript>                    Movie fragment random access offset
@@ -787,11 +796,9 @@ class AdditionalUserInformationBox
     <para>
       <superscript>1</superscript> ISO/IEC 14496-12</para>
     <para>
-      <superscript>2</superscript> ISO/IEC 23000-10</para>
+      <superscript>2</superscript> This specification</para>
     <para>
-      <superscript>3</superscript> This specification</para>
-    <para>
-      <superscript>4</superscript> ETSI TS 126 244</para>
+      <superscript>3</superscript> ETSI TS 126 244</para>
   </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
