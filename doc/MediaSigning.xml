@@ -64,6 +64,11 @@
     <para>IETF RFC 6234 - US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF)</para>
     <para role="reference">&lt;<link xlink:href="http://tools.ietf.org/html/rfc6234"
         xmlns:xlink="http://www.w3.org/1999/xlink"/>&gt;</para>
+        <para>IETF RFC 3447 Public-Key Cryptography Standards (PKCS) #1: RSA Cryptography Specifications Version 2.1</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://tools.ietf.org/rfc/rfc3447.txt"></link>&gt;</para>
+    <para>ITU-T Recommendation X.690 (2008) | ISO/IEC 8825-1:2008, Information technology – ASN.1 encoding rules: Specification of Basic Encoding Rules (BER),Canonical Encoding Rules (CER)and Distinguished Encoding Rules (DER)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.itu.int/rec/T-REC-X.690-200811-S"></link>&gt;</para>
+    
   </chapter>
   <chapter>
     <title>Terms and Definitions</title>
@@ -79,6 +84,17 @@
               <entry align="left"><para>A document in this spec refers to a codec specific document that
                 includes hashes of all media frames since previous signing occation together with
                 other metadata. For H.264 and H.265 a document is encoded into a SEI frame.</para></entry>
+            </row>
+            <row>
+              <entry align="left"><para>Certificate</para></entry>
+              <entry align="left"><para>A certificate as used in this specification binds a public key
+                to a subject entity. The certificate is digitally signed by the certificate issuer 
+                to allow for verifying its authenticity </para></entry>
+            </row>
+            <row>
+              <entry align="left"><para>Signature</para></entry>
+              <entry align="left"><para>A digital signature or digital signature scheme is a mathematical
+                scheme for demonstrating the authenticity of a digital message or document. </para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -161,8 +177,8 @@
         these frames are considered as not authentic even if it is due to a lost frame. For NALU
         level it's possible to identify which frames are authentic or not, or even lost. This means
         that frame drops can be handled, but not packet losses. Losing packets in general means
-        losing parts of a frame, hence is equivalent with modifying a frame. The cost for validating
-        the authenticity of each individual NAL is an increase in bitrate.</para>
+        losing parts of a frame, hence is equivalent with modifying a frame. The cost of the 
+        solution able to validate the authenticity of each individual NAL is an increase in bitrate.</para>
     </section>
     <section>
       <title>Detailed description</title>
@@ -410,7 +426,7 @@
       </section>
       <section>
         <title>Public key</title>
-        <para>...</para>
+        <para>This mandatory field contains the Public key used to sign the video.</para>
       </section>
       <section>
         <title>Product info</title>
@@ -418,23 +434,27 @@
       </section>
       <section>
         <title>Hash list</title>
-        <para>...</para>
+        <para>This mandatory field contains the hash list, for a complete GOP I through P-frames.</para>
       </section>
       <section>
         <title>Signature</title>
-        <para>...</para>
+        <para>This mandatory field contains the Signature over the Hash List.</para>
       </section>
       <section>
         <title>Arbitrary data</title>
-        <para>...</para>
+        <para>This optional field contains Abritrary data that the device manifacturer might want included.
+        There is no guarantee that the Arbitrary data is reasonable or readable by anyone not priviously
+        knowledgable in the area.</para>
       </section>
       <section>
         <title>Number of tags</title>
-        <para>...</para>
+        <para>This mandatory field contains the number of tags included in this TLV</para>
       </section>
       <section>
         <title>Certificate</title>
-        <para>...</para>
+        <para>This optional field contains the ceritficate corresponding to the public key. This field is optional
+        in order to not put undue bitrate burden on the videostream as x509 certificates can be quite large, especially if 
+        intermediate certificates also are included.</para>
       </section>
       <section>
         <title>ONVIF vendor tag</title>
