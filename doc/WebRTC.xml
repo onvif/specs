@@ -4,12 +4,12 @@
   <info>
     <title>WebRTC Specification</title>
     <titleabbrev>WebRTC</titleabbrev>
-    <releaseinfo>22.06</releaseinfo>
+    <releaseinfo>22.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate> June, 2022</pubdate>
+    <pubdate> December, 2022</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -219,10 +219,12 @@
       <programlisting>https://signaling.companyname.com/client?authorization=Bearer%20access_token</programlisting>
       <para>where <code>signaling.companyname.com</code> should be replaced with the server's
         address, and <code>access_token</code> should be replaced with a valid access token that the
-        server will accept. The signaling messages are then sent as JSON text messages in the
-        websocket.</para>
+        server will accept. See <xref xmlns:xlink="http://www.w3.org/1999/xlink"
+          xlink:href="#chapter_cwp_r2k_v5b"/> for how to get an access token.</para>
+      <para>The signaling messages are then sent as JSON text messages in the websocket.</para>
       <para>Directly after connecting a websocket to the server the client typically gets a hello
-        message from the server, with the client's assigned signaling id.</para>
+        message from the server, with the client's assigned signaling id. Note that this ID is not
+        directly used in the Signaling Protocol.</para>
       <para><emphasis role="bold">Received by client, from server:</emphasis></para>
       <programlisting><code>{
     "type":"hello",
@@ -271,7 +273,7 @@
                   <entry>
                     <para xml:id="para_wff_512_v5b">The ID of the intended device, or the device
                       that sent the message. See <xref xmlns:xlink="http://www.w3.org/1999/xlink"
-                        xlink:href="#chapter_ryt_v12_v5b"/> for how to retrieve IDs.</para>
+                        xlink:href="#chapter_ryt_v12_v5b"/> for how to get available IDs.</para>
                   </entry>
                 </row>
                 <row>
@@ -279,7 +281,9 @@
                     <para>orgId</para>
                   </entry>
                   <entry>
-                    <para>The related organization's ID.</para>
+                    <para>The related organization's ID. See <xref
+                        xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#chapter_ryt_v12_v5b"
+                      /> for how to get available IDs.</para>
                   </entry>
                 </row>
                 <row>
@@ -287,7 +291,9 @@
                     <para>accessToken</para>
                   </entry>
                   <entry>
-                    <para>Client's access token that allows signaling</para>
+                    <para>Client's access token that allows signaling. See <xref
+                        xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#chapter_cwp_r2k_v5b"
+                      /> for how to get an access token.</para>
                   </entry>
                 </row>
                 <row>
@@ -407,7 +413,9 @@
                     <para>profile</para>
                   </entry>
                   <entry>
-                    <para>Media profile</para>
+                    <para>Media profile. See <xref xmlns:xlink="http://www.w3.org/1999/xlink"
+                        xlink:href="#chapter_ryt_v12_v5b"/> for how to get available
+                      profiles.</para>
                   </entry>
                 </row>
                 <row>
@@ -554,8 +562,9 @@ a=ice-pwd:efI9F/ytKd6Cxm5oXfx+UMbwzylszW+A\r\na=bundle-only\r\na=mid:application
         }
     }
 }</code></programlisting>
-        <para>The client SHOULD acknowledge the received SDP offer with a response after validating
-          the message.</para>
+        <para>The client MAY acknowledge the received SDP offer with a response after validating the
+          message. Altough this is not strictly necessary it can be helpful to send these to ease
+          debugging the signaling flow. </para>
         <para><emphasis role="bold">Sent from client, to device via server:</emphasis></para>
         <programlisting><code>{
     "type":"signaling",
@@ -940,22 +949,21 @@ tcptype passive",
         </para>
       </section>
     </section>
-  </chapter>
-  <chapter xml:id="chapter_ryt_v12_v5b">
-    <title>Directory Protocol</title>
-    <section xml:id="section_syt_v12_v5b">
-      <title>Listing Sites</title>
-      <para>...</para>
-    </section>
-    <section xml:id="section_tyt_v12_v5b">
-      <title>Listing Devices</title>
-      <para>...</para>
+    <section xml:id="section_fks_5rk_v5b">
+      <title>Reconnecting</title>
+      <para>If a client is disconnected it's up to the client to reconnect again using the same
+        procedure as was used initially, i.e. start from scratch. Each client should use an
+        individual ascending interval strategy to avoid that all clients reconnect at the same
+        time.</para>
     </section>
   </chapter>
   <chapter xml:id="chapter_uyt_v12_v5b">
     <title>WebRTC Usage</title>
     <para>This chapter describes ONVIF specific usage of WebRTC regarding how to send data between
       the client and device on the peer-to-peer connection.</para>
+    <para>Devices MAY define profiles for different streaming scenarios that can be choosen by the
+      client based on the available bandwidth or other limiting factors. For example, a specific
+      profile for mobile clients, another one for high quality streaming, etc.</para>
     <section xml:id="section_vyt_v12_v5b">
       <title>Video</title>
       <para>When using WebRTC with a web browser only certain codecs will work. Because of this
@@ -975,6 +983,34 @@ tcptype passive",
       <title>Commands</title>
       <para>A client could send PTZ and other commands on a WebRTC datachannel. This is not covered
         in the this version of this specifcation but may be added in future versions.</para>
+    </section>
+  </chapter>
+  <chapter xml:id="chapter_ryt_v12_v5b">
+    <title>Directory Protocol</title>
+    <para>The Directory Protocol is used to query organizations, devices and profiles in a
+      directory.</para>
+    <section xml:id="section_syt_v12_v5b">
+      <title>Listing organizations</title>
+      <para>List organizations that are accessible by the user. </para>
+      <para>...</para>
+    </section>
+    <section xml:id="section_tyt_v12_v5b">
+      <title>Listing devices</title>
+      <para>List devices that are accessible by the user.</para>
+      <para>...</para>
+    </section>
+    <section xml:id="section_bwp_r2k_v5b">
+      <title>Listing profiles</title>
+      <para>List streaming profiles together with video and audio settings.</para>
+      <para>...</para>
+    </section>
+  </chapter>
+  <chapter xml:id="chapter_cwp_r2k_v5b">
+    <title>Login Protocol</title>
+    <para>The Login Protocol is used to authenticate the user and get access to services.</para>
+    <section xml:id="section_dwp_r2k_v5b">
+      <title>Get access token</title>
+      <para>...</para>
     </section>
   </chapter>
   <appendix role="revhistory">
