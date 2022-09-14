@@ -171,7 +171,7 @@
     </figure>
     <section>
       <title>Limitations and Properties</title>
-      <para><emphasis>Signed Video</emphasis> is defined for the H264 and H265 video codec formats.
+      <para><emphasis role="bold">Codecs</emphasis>. <emphasis>Signed Video</emphasis> is defined for the H.264 and H.265 video codec formats.
         Therefore, most of the description uses the Network Abstraction Layer (NAL) concept. Note
         that raw video is not covered.</para>
       <para><emphasis role="bold">Signing frequency</emphasis>. Signing is done upon transition
@@ -208,13 +208,16 @@
     <section>
       <title>Signing a GOP</title>
       <para>Without loss of generality, consider three consecutive GOPs each starting with an IDR
-        (I-frame) followed by 4 non-IDRs (P-frames). In text format it would look like
+        (I-frame) followed by 4 non-IDRs (P- or B-frames). In text format it would look like
           <code>IPPPPIPPPPIPPPP</code>. The signing information is collected in a SEI frame
-          (<code>S</code>) and put just before the picture frame to follow the Access Unit (AU)
+          (<code>S</code>) and put just before a picture frame to follow the Access Unit (AU)
         format. Each I-frame will trigger a signing procedure and ideally the SEI is generated and
         available instantaneously and can be attached to the stream as
-          <code>SIPPPPSIPPPPSIPPPP</code>.</para>
-      <para>Each NALU is hashed using SHA-256, but not in a straightforward manner. Since every
+          <code>SIPPPPSIPPPPSIPPPP</code>.</para> In practice signing in a Secure Element (SE) takes
+        time and blocking the video stream while waiting adds jitter to the video stream. The camera
+        therefore has the option to add it to the video stream later, when signing has been completed.
+        In such a case the text-ified stream can look like <code>IPSPPPISPPPPIPPSPP</code>.
+      <para>Each NALU is hashed, but not in a straightforward manner. Since every
         P-frame directly or indirectly refers to the I-frame starting the GOP they are linked
         together. Let <code>h(F)</code> denote the hash of a frame <code>F</code>, and <code>href =
           h(I)</code> is the hash of the first I-frame in a GOP and used as reference. Then each
@@ -224,44 +227,15 @@
         later will be signed.</para>
       <para>To preserve the order of GOPs the I-frame of the next GOP is also include in the list of
         hashes, that is, <code>hash(Inext) = h(href, h(Inext))</code> is added as well.</para>
-      <para>This <code>document</code> is then hashed, denoted <emphasis role="italic">gop
-          hash</emphasis> (<code>= h(document)</code>), and signed to produce a signature as</para>
-      <para><code>signature = sign(h(document))</code></para>
-      <para>and together with the <code>document</code> itself is added to the stream in a SEI, that
+      <para>This <code>document</code> is then signed (hashed and encrypted) to produce a signature
+        as <code>signature = encrypt(h(document))</code>
+        and together with the <code>document</code> itself is added to the stream in a SEI, that
         is, SEI = <code>document + signature</code>. After signing, the next GOP is then initiated
         with a new <code>href</code> using the very same I-frame that closed the previous GOP. For
         the end user to validate the authenticity of a signed video the public key, associated with
-        the private key used when signing, is needed. The public key is included as part of the
-        metadata. This simplifies validating the authenticity of the video, but requires a separate
-        logic to verify its origin.</para>
-      <section>
-        <title>Signing at GOP authenticity level</title>
-        <para>Transmitting the list of hashes can be too expensive in terms of an increased bitrate.
-          The <emphasis role="italic">Signed Video Framework</emphasis> therefore offer a light
-          version in GOP level as authenticitiy level. Instead of transmitting the hash list a
-          single hash representing all the frames and the metadata is computed. This single hash is
-          implemented recursively and is then signed.</para>
-        <para>The recursive operation is initialized with a hashed salt <code>hash(0) =
-            h(salt)</code>. The next step is to add <code>href</code> as <code>hash(1) = h(hash(0),
-            href)</code> and the n'th hash becomes <code>hash(n) = h(hash(n-1), hash(F_n))</code>,
-          where <code>F_n</code> is the frame that produced the n'th hash. The last frame added to
-          the recursive hash is <code>Inext</code> and a <code>document</code> is created just like
-          above, but now without the hash list, hence it includes the metadata only. The recursive
-          hash is then finalized with the hash of this <code>document</code> which now becomes the
-            <emphasis role="italic">gop hash</emphasis></para>
-        <para><code>hash(gop) = h(hash(N), hash(document))</code></para>
-        <para>The <emphasis role="italic">gop hash</emphasis> is then signed by generating a
-          signature. Combine the metadata, which by definition is the <code>document</code>, and the
-          signature to form the SEI = <code>document + signature</code> where <code>signature =
-            sign(hash(gop))</code></para>
-        <?oxy_comment_start author="fredriks" timestamp="20220829T150150+0200" comment="Should we even include NALU level in this spec?"?>
-        <para>For NALU level and long GOP lengths, <emphasis role="italic">Signed Video</emphasis>
-          automatically falls back to GOP level to avoid very large SEI frames.</para>
-      </section>
-      <section>
-        <title>Signing at NALU authenticity level</title>
-        <para>...</para>
-      </section><?oxy_comment_end?>
+        the private key used when signing, is needed. The public key together with its associated
+        certificate is included as part of the metadata. This simplifies validating the authenticity
+        of the video.</para>
     </section>
     <section>
       <title>Metadata</title>
@@ -311,8 +285,8 @@
         </table>
       </para>
       <para>The UUID is used to put a <emphasis role="italic">Signed Video</emphasis> identity to
-        the SEI. The UUID for Signed Video is <code>53, 69, 67, 6e, 65, 64, 20, 56, 69, 64, 65, 6f,
-          2e, 2e, 2e, 30</code> in hexadecimal notation. The payload includes the metadata and the
+        the SEI. The UUID for Signed Video is <code>ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee,
+          ee, ee, ee, ee</code> in hexadecimal notation. The payload includes the metadata and the
         signature, and is serialized in a TLV structure. By definition the <code>document</code>
         includes everything from the NALU header to the signature tag, hence the entire frame is
         secured.</para>
@@ -373,66 +347,52 @@
               </thead>
               <tbody>
                 <row>
-                  <entry><para>General info</para></entry>
+                  <entry><para>General GOP info</para></entry>
                   <entry><para>1</para></entry>
                   <entry><para>Every document</para></entry>
-                  <entry><para>General info like GOP length</para></entry>
-                </row>
-                <row>
-                  <entry><para>Public key</para></entry>
-                  <entry><para>2</para></entry>
-                  <entry><para>Every n:th document</para></entry>
-                  <entry><para>The public signing key</para></entry>
-                </row>
-                <row>
-                  <entry><para>Product info</para></entry>
-                  <entry><para>3</para></entry>
-                  <entry><para>Every document</para></entry>
-                  <entry><para>Information about the device</para></entry>
+                  <entry><para>General info like GOP number</para></entry>
                 </row>
                 <row>
                   <entry><para>Hash list</para></entry>
-                  <entry><para>4</para></entry>
+                  <entry><para>2</para></entry>
                   <entry><para>Every document</para></entry>
                   <entry><para>List of frame hashes</para></entry>
                 </row>
                 <row>
                   <entry><para>Signature</para></entry>
-                  <entry><para>5</para></entry>
+                  <entry><para>3</para></entry>
                   <entry><para>Every document</para></entry>
-                  <entry><para>The signature of the document</para></entry>
+                  <entry><para>The signature of the document and signing algorithm (or should this be with the Public key)</para></entry>
                 </row>
                 <row>
-                  <entry><para>Arbitrary data</para></entry>
-                  <entry><para>6</para></entry>
-                  <entry><para>Optional</para></entry>
-                  <entry><para>You put your weed in there</para></entry>
+                  <entry><para>Public key</para></entry>
+                  <entry><para>4</para></entry>
+                  <entry><para>Every n:th document</para></entry>
+                  <entry><para>The public signing key</para></entry>
+                </row>
+                <row>
+                  <entry><para>ONVIF vendor info</para></entry>
+                  <entry><para>5</para></entry>
+                  <entry><para>Every n:th document</para></entry>
+                  <entry><para>Information about the device and vendor</para></entry>
                 </row>
                 <row>
                   <entry><para>Certificate</para></entry>
-                  <entry><para>7</para></entry>
+                  <entry><para>6</para></entry>
                   <entry><para>Once</para></entry>
                   <entry><para>The public key certificate</para></entry>
                 </row>
                 <row>
                   <entry><para>Hashing algo</para></entry>
+                  <entry><para>7</para></entry>
+                  <entry><para>Once</para></entry>
+                  <entry><para>The algorithm that was used to calculate the hashes DO WE NEED THIS FROM THE BEGINNING?</para></entry>
+                </row>
+                <row>
+                  <entry><para>Arbitrary data</para></entry>
                   <entry><para>8</para></entry>
-                  <entry><para>Once</para></entry>
-                  <entry><para>The algorithm that was used to calculate the hashes</para></entry>
-                </row>
-                <row>
-                  <entry><para>Signing algo</para></entry>
-                  <entry><para>9</para></entry>
-                  <entry><para>Once</para></entry>
-                  <entry><para>The algorithm that was used to sign the document</para></entry>
-                </row>
-                <row>
-                  <entry><para>ONVIF vendor tag</para></entry>
-                  <entry><para>130</para></entry>
-                  <entry><para>Every document</para></entry>
-                  <entry>
-                    <para>Signals that the document is signed according to this standard</para>
-                  </entry>
+                  <entry><para>Optional</para></entry>
+                  <entry><para>You put your weed in there</para></entry>
                 </row>
               </tbody>
             </tgroup>
@@ -440,7 +400,7 @@
         </para>
       </section>
       <section>
-        <title>General info</title>
+        <title>General GOP info</title>
         <para>...</para>
       </section>
       <section>
@@ -448,7 +408,7 @@
         <para>This mandatory field contains the Public key used to sign the video.</para>
       </section>
       <section>
-        <title>Product info</title>
+        <title>ONVIF vendor info</title>
         <para>...</para>
       </section>
       <section>
@@ -471,18 +431,6 @@
         in order to not put undue bitrate burden on the videostream as x509 certificates can be quite large, especially if 
         intermediate certificates also are included.</para>
       </section>
-      <section>
-        <title>ONVIF vendor tag</title>
-        <para>...</para>
-      </section>
-    </section>
-    <section>
-      <title>Signing in a secure hardware</title>
-      <para>When signing in hardware the signing itself may take some time and to avoid piling up
-        frames the SEI frames can be added at a later stage, but no later than at the next signing
-        request. Using the example above, a signed video segment could look like
-          <code>IPSPPPIPPPPSIPPPSP</code> where the <code>S</code>s show up delayed compared to the
-        ideal case <code>SIPPPPSIPPPPSIPPPP</code>.</para>
     </section>
   </chapter>
   <chapter>
