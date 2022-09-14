@@ -212,6 +212,14 @@
         <emphasis role="italic">client</emphasis> and a <emphasis role="italic">device</emphasis> in
       a WebRTC system. The messages are always sent via the <emphasis>signaling server</emphasis>
       called <emphasis>server</emphasis> from now on.</para>
+    <figure xml:id="_Ref493258797">
+      <title>Signaling flow sequence diagram</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="media/WebRTC/webrtc_signaling_flow.svg" contentwidth="220mm"/>
+        </imageobject>
+      </mediaobject>
+    </figure>
     <section xml:id="section_ayt_v12_v5b">
       <title>Connecting to the signaling server</title>
       <para>A client first needs to connect to the server, by setting up a websocket to, for
@@ -219,8 +227,8 @@
       <programlisting>https://signaling.companyname.com/client?authorization=Bearer%20access_token</programlisting>
       <para>where <code>signaling.companyname.com</code> should be replaced with the server's
         address, and <code>access_token</code> should be replaced with a valid access token that the
-        server will accept. See <xref xmlns:xlink="http://www.w3.org/1999/xlink"
-          xlink:href="#chapter_cwp_r2k_v5b"/> for how to get an access token.</para>
+        server will accept. See section <xref linkend="chapter_cwp_r2k_v5b"/> for how to get an
+        access token.</para>
       <para>The signaling messages are then sent as JSON text messages in the websocket.</para>
       <para>Directly after connecting a websocket to the server the client typically gets a hello
         message from the server, with the client's assigned signaling id. Note that this ID is not
@@ -272,8 +280,8 @@
                   </entry>
                   <entry>
                     <para xml:id="para_wff_512_v5b">The ID of the intended device, or the device
-                      that sent the message. See <xref xmlns:xlink="http://www.w3.org/1999/xlink"
-                        xlink:href="#chapter_ryt_v12_v5b"/> for how to get available IDs.</para>
+                      that sent the message. This ID is unique within the organization. See section
+                      <xref linkend="chapter_ryt_v12_v5b"/> for how to get available IDs.</para>
                   </entry>
                 </row>
                 <row>
@@ -281,9 +289,9 @@
                     <para>orgId</para>
                   </entry>
                   <entry>
-                    <para>The related organization's ID. See <xref
-                        xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#chapter_ryt_v12_v5b"
-                      /> for how to get available IDs.</para>
+                    <para>The related organization's ID. This ID is unique within the directory
+                      server. See section <xref linkend="chapter_ryt_v12_v5b"/> for how to get
+                      available IDs.</para>
                   </entry>
                 </row>
                 <row>
@@ -291,9 +299,8 @@
                     <para>accessToken</para>
                   </entry>
                   <entry>
-                    <para>Client's access token that allows signaling. See <xref
-                        xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#chapter_cwp_r2k_v5b"
-                      /> for how to get an access token.</para>
+                    <para>Client's access token that allows signaling. See section <xref
+                        linkend="chapter_cwp_r2k_v5b"/> for how to get an access token.</para>
                   </entry>
                 </row>
                 <row>
@@ -413,9 +420,8 @@
                     <para>profile</para>
                   </entry>
                   <entry>
-                    <para>Media profile. See <xref xmlns:xlink="http://www.w3.org/1999/xlink"
-                        xlink:href="#chapter_ryt_v12_v5b"/> for how to get available
-                      profiles.</para>
+                    <para>Media profile. See section <xref linkend="chapter_ryt_v12_v5b"/> for how
+                      to get available profiles.</para>
                   </entry>
                 </row>
                 <row>
@@ -563,8 +569,8 @@ a=ice-pwd:efI9F/ytKd6Cxm5oXfx+UMbwzylszW+A\r\na=bundle-only\r\na=mid:application
     }
 }</code></programlisting>
         <para>The client MAY acknowledge the received SDP offer with a response after validating the
-          message. Altough this is not strictly necessary it can be helpful to send these to ease
-          debugging the signaling flow. </para>
+          message. Altough this is not strictly necessary it can be helpful to send these
+          acknowledgements to ease debugging the signaling flow. </para>
         <para><emphasis role="bold">Sent from client, to device via server:</emphasis></para>
         <programlisting><code>{
     "type":"signaling",
@@ -582,7 +588,6 @@ a=ice-pwd:efI9F/ytKd6Cxm5oXfx+UMbwzylszW+A\r\na=bundle-only\r\na=mid:application
     }
 }
 </code></programlisting>
-        <para/>
       </section>
       <section xml:id="section_iyt_v12_v5b">
         <title>SDP answer</title>
@@ -661,8 +666,8 @@ AE:5D:3A:11:B4:86:3B:27:A8:3A:D4:59:E3:1B:D0:46:75:E5:90:0E:F4:BB:7A:41:D5:A7:F8
         "method":"addIceCandidate",
         "type":"request",
         "params":{
-            "candidate":"candidate:3 1 TCP 1010827519 192.168.101.141 39093 typ host \
-tcptype passive",
+            "candidate":"candidate:3 1 TCP 1010827519 192.168.101.141 39093 \
+typ host tcptype passive",
             "sdpMLineIndex":0
         },
         "context":"698086333"
@@ -703,7 +708,8 @@ tcptype passive",
         "method":"addIceCandidate",
         "type":"request",
         "params":{
-            "candidate":"candidate:1 1 UDP 2015363327 172.16.0.15 60022 typ host",
+            "candidate":"candidate:1 1 UDP 2015363327 172.16.0.15 60022 typ \
+host",
             "sdpMLineIndex":0
         },
         "context":"1708088221"
@@ -928,7 +934,7 @@ tcptype passive",
         <para><emphasis role="bold">Sent from server, to client:</emphasis></para>
         <programlisting><code>{
     "type":"error",
-    "targetId":"example-device",
+    "targetId":"my_camera",
     "orgId":"bac02553-eea8-6b52-f369-ac109333091",
     "correlationId":"bd11c7e1-43ab-408c-b91a-e6c7a026ee3b",
     "code":"DISCONNECTED",
