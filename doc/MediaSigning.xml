@@ -170,7 +170,7 @@
       </mediaobject>
     </figure>
     <section>
-      <title>Limitations and Properties</title>
+      <title>Limitations</title>
       <para><emphasis role="bold">Codecs</emphasis>. <emphasis>Signed Video</emphasis> is defined for the H.264 and H.265 video codec formats.
         Therefore, most of the description uses the Network Abstraction Layer (NAL) concept. Note
         that raw video is not covered.</para>
@@ -236,28 +236,6 @@
         the private key used when signing, is needed. The public key together with its associated
         certificate is included as part of the metadata. This simplifies validating the authenticity
         of the video.</para>
-    </section>
-    <section>
-      <title>Metadata</title>
-      <para>Part from the public key it is possible to add some signer specific information. The
-        following fields are supported</para>
-      <itemizedlist>
-        <listitem>
-          <para>Hardware ID</para>
-        </listitem>
-        <listitem>
-          <para>Firmware version</para>
-        </listitem>
-        <listitem>
-          <para>Serial Number</para>
-        </listitem>
-        <listitem>
-          <para>Manufacturer (who is the signer)</para>
-        </listitem>
-        <listitem>
-          <para>Address (Contact information of signer, e.g., URL, email, mail)</para>
-        </listitem>
-      </itemizedlist>
     </section>
     <section>
       <title>SEI format</title>
@@ -327,8 +305,14 @@
         </table>
       </para>
       <section>
+        <title>Information sent only once</title>
+        <para>Large data blobs like certificates are preferably sent only once. This "only need once"
+          information should be put in a separate SEI with a different UUID and signed. This separates
+          the SEI from the video stream and can be copied and added to any exported material.</para>
+      </section>
+      <section>
         <title>TLV tags</title>
-        <para>Following is a list of possible TLV tags that can be part of the metadata.</para>
+        <para>Following is a list of possible TLV tags that can be part of a SEI payload.</para>
         <para>
           <table frame="all">
             <title>TLV tags</title>
@@ -383,12 +367,6 @@
                   <entry><para>The public key certificate</para></entry>
                 </row>
                 <row>
-                  <entry><para>Hashing algo</para></entry>
-                  <entry><para>7</para></entry>
-                  <entry><para>Once</para></entry>
-                  <entry><para>The algorithm that was used to calculate the hashes DO WE NEED THIS FROM THE BEGINNING?</para></entry>
-                </row>
-                <row>
                   <entry><para>Arbitrary data</para></entry>
                   <entry><para>8</para></entry>
                   <entry><para>Optional</para></entry>
@@ -401,23 +379,41 @@
       </section>
       <section>
         <title>General GOP info</title>
-        <para>...</para>
+        <para>Includes GOP specific information like a GOP counter and a timestamp of the first frame.</para>
       </section>
       <section>
         <title>Public key</title>
-        <para>This mandatory field contains the Public key used to sign the video.</para>
+        <para>This mandatory field contains the Public key used to sign the video. (IN PEM FORMAT?)</para>
       </section>
       <section>
         <title>ONVIF vendor info</title>
-        <para>...</para>
+        <para>Includes information that identifies the product and vendor. The
+          following fields are supported</para>
+        <itemizedlist>
+          <listitem>
+            <para>Hardware ID</para>
+          </listitem>
+          <listitem>
+            <para>Firmware version (IS THIS NECESSARY)</para>
+          </listitem>
+          <listitem>
+            <para>Serial Number (CAN THIS BE COMBINED WITH HWID?)</para>
+          </listitem>
+          <listitem>
+            <para>Manufacturer (who is the signer)</para>
+          </listitem>
+          <listitem>
+            <para>Address (Contact information of signer, e.g., URL, email, mail)</para>
+          </listitem>
+        </itemizedlist>
       </section>
       <section>
         <title>Hash list</title>
-        <para>This mandatory field contains the hash list, for a complete GOP I through P-frames.</para>
+        <para>This mandatory field contains the hash list, for a complete GOP I through P-frames and the linked I-frame of the succeeding GOP.</para>
       </section>
       <section>
         <title>Signature</title>
-        <para>This mandatory field contains the Signature over the Hash List.</para>
+        <para>This mandatory field contains the Signature of the document.</para>
       </section>
       <section>
         <title>Arbitrary data</title>
@@ -432,6 +428,10 @@
         intermediate certificates also are included.</para>
       </section>
     </section>
+  </chapter>
+  <chapter>
+    <title>Client side validation</title>
+    <para>...</para>
   </chapter>
   <chapter>
     <title>Audio Signing</title>
