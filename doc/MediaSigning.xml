@@ -155,10 +155,12 @@
       to validate that they have not been manipulated since the time of signing.</para>
     <para>In brief, the principle of signing documents is used, that is, collect information and
       sign the information using a Private encryption key. Then, packetize the produced signature
-      together with some additional information. For validation, the user can then verify the
-      information by using the signature and the corresponding Public key.</para>
+      together with the signed information. For complete validation, the user first verifies the Public key
+      with the certificate, then verifies the signature using the Public key. If successful so far the
+      transmitted information can then be used to validate the video segment.</para>
     <para>On a high level, <emphasis>Signed Video</emphasis> hashes encoded video frames and on a
-      regular basis creates a <code>document</code> representing these hashes and signs that <code>document</code>. This
+      regular basis creates a <code>document</code> representing these hashes together with some metadata
+      and signs that <code>document</code>. This
       signature, together with the <code>document</code>, is added to the video using Supplementary Enhancement
       Information (SEI) frames.</para>
     <figure xml:id="signedvideofig">
@@ -182,6 +184,7 @@
     </section>
     <section>
       <title>Detailed description</title>
+      <para>SHOULD WE SPLIT THE DETAILED DESCRIPTION INTO ONE PART ON HOW TO GENERATE SEIS, ONE PART ON ADDING SEIS AND ONE PART ON VALIDATING SEIS/VIDEOS?</para>
       <para>The H.264 and H.265 codec formats allow the user to add arbitrary data to a stream
         through SEI frames of type user data unregistered. <emphasis>Signed Video</emphasis> puts
         the produced signatures and additional metadata in such frames. These SEI frames are ignored
@@ -269,6 +272,7 @@
         includes everything from the NALU header to the signature tag, hence the entire frame is
         secured.</para>
       <para>
+        DO WE NEED A RESERVED BYTE RIGHT AFTER UUID? THE BENEFIT IS THAT ONE CAN ALLOW FOR MAJOR STRUCTURAL CHANGES LIKE REPLACING THE TLV
         <table frame="all">
           <title>Signed video SEI</title>
           <tgroup cols="7" align="center">
@@ -346,7 +350,7 @@
                   <entry><para>Signature</para></entry>
                   <entry><para>3</para></entry>
                   <entry><para>Every document</para></entry>
-                  <entry><para>The signature of the document and signing algorithm (or should this be with the Public key)</para></entry>
+                  <entry><para>The signature of the document and signing algorithm</para></entry>
                 </row>
                 <row>
                   <entry><para>Public key</para></entry>
