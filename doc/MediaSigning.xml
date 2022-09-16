@@ -225,36 +225,24 @@
     </section>
     <section>
       <title>Signing a GOP</title>
-      <para>Without loss of generality, consider three consecutive GOPs each starting with an IDR
-        (I-frame) followed by 4 non-IDRs (P- or B-frames). In text format it would look like
-          <code>IPPPPIPPPPIPPPP</code>. The signing information is collected in a SEI frame
-          (<code>S</code>) and put just before a picture frame to follow the Access Unit (AU)
-        format. Each I-frame will trigger a signing procedure and ideally the SEI is generated and
-        available instantaneously and can be attached to the stream as
-          <code>SIPPPPSIPPPPSIPPPP</code>.</para>
-      <para>In practice signing in a Secure Element (SE) takes
-        time and blocking the video stream while waiting adds jitter to the video stream. The camera
-        therefore has the option to add it to the video stream later, when signing has been completed.
-        In such a case the text-ified stream can look like <code>IPSPPPISPPPPIPPSPP</code>.</para>
-      <para>Each NALU is hashed, but not in a straightforward manner. Since every
-        P-frame directly or indirectly refers to the I-frame starting the GOP they are linked
-        together. Let <code>h(F)</code> denote the hash of a frame <code>F</code>, and <code>href =
+      <para>Each NALU is hashedin a non-straightforward manner. [Vi kan inte i draften förklara att
+        det främsta skälet är att kringå ett patent, men det kan vara värt att ta upp det på mötet.]
+        Since every P-frame directly or indirectly refers to the I-frame starting the GOP they are linked
+        together. If the I-frame is modified it indirectly modifies the P-frames. Therefore, each P-frame
+        is hashed together with the dependent I-frame.</para>
+      <para>Let <code>h(F)</code> denote the hash of a frame <code>F</code>, and <code>href =
           h(I)</code> is the hash of the first I-frame in a GOP and used as reference. Then each
         frame in a GOP is hashed according to <code>hash(F) = h(href, h(F))</code> where
           <code>href</code> and <code>h(F)</code> have been aligned in memory. All hashes are
         collected in a list and together with some metadata form a <code>document</code>, which
         later will be signed.</para>
-      <para>To preserve the order of GOPs the I-frame of the next GOP is also include in the list of
+      <para>To preserve the order of GOPs the I-frame of the next GOP is also included in the list of
         hashes, that is, <code>hash(Inext) = h(href, h(Inext))</code> is added as well.</para>
       <para>This <code>document</code> is then signed (hashed and encrypted) to produce a signature
         as <code>signature = encrypt(h(document))</code>
         and together with the <code>document</code> itself is added to the stream in a SEI, that
-        is, SEI = <code>document + signature</code>. After signing, the next GOP is then initiated
-        with a new <code>href</code> using the very same I-frame that closed the previous GOP. For
-        the end user to validate the authenticity of a signed video the public key, associated with
-        the private key used when signing, is needed. The public key together with its associated
-        certificate is included as part of the metadata. This simplifies validating the authenticity
-        of the video.</para>
+        is, SEI = <code>document + signature</code>. The next GOP is initiated with a new <code>href</code>
+        using the very same I-frame that closed the previous GOP.</para>
     </section>
     <section>
       <title>SEI format</title>
@@ -504,10 +492,26 @@
         intermediate certificates also are included.</para>
       </section>
     </section>
-  </chapter>
-  <chapter>
-    <title>Client side validation</title>
-    <para>...</para>
+    <section>
+      <title>How to add a generated SEI to a video stream in a device</title>
+      <para>Without loss of generality, consider three consecutive GOPs each starting with an IDR
+        (I-frame) followed by 4 non-IDRs (P- or B-frames). In text format it would look like
+          <code>IPPPPIPPPPIPPPP</code>. The signing information is collected in a SEI frame
+          (<code>S</code>). The SEI should be added to the video stream such that it follows the Access Unit (AU)
+        format, i.e., it has to prepend all picture NALUs in a AU. [Behöver vi säga att H.265 faktiskt tillåter
+        att SEIs läggs efter picture NALUs, men att det blir smidigare att göra samma för båda codecformaten?]
+        Each I-frame will trigger a signing procedure and ideally the SEI is generated and
+        available instantaneously and can be attached to the stream as
+          <code>SIPPPPSIPPPPSIPPPP</code>.</para>
+      <para>In practice signing in a Secure Element (SE) takes time and blocking the video stream while waiting
+        adds jitter to the video stream. The device therefore has the option to add it to the video stream later,
+        when signing has been completed. In such a case the text-ified stream can look like
+          <code>IPSPPPISPPPPIPPSPP</code>.</para>
+    </section>
+    <section>
+      <title>Client side validation</title>
+      <para>...</para>
+    </section>
   </chapter>
   <chapter>
     <title>Audio Signing</title>
