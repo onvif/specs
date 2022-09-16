@@ -190,12 +190,12 @@
         to choose from, which limits the scope somewhat since there may be variations within them.</para>
     </section>
     <section>
-      <title>Detailed description on how the device generates a SEI including a signature</title>
+      <title>Detailed description on how the device generates SEI frames including signatures</title>
       <para>The H.264 and H.265 codec formats allow the user to add arbitrary data to a stream
         through SEI frames of type user data unregistered. <emphasis>Signed Video</emphasis> puts
         the produced signatures and additional metadata in such frames. These SEI frames are ignored
         by the decoder and will therefore not affect the video rendering. One obvious drawback is
-        that it is easy to destroy the signed video and make it unsigned by simply dropping those
+        that it is easy to modify the signed video and make it unsigned by simply dropping those
         SEI frames. In some cases this can also be beneficial if, e.g., the user is no longer
         interested in its authenticity. It is out of scope to protect against lost SEI
         frames.</para>
@@ -204,15 +204,24 @@
         NALUs. NALUs that are not part of a picture frame are ignored. These NALUs are:<itemizedlist>
           <listitem>
             <para>SPS/PPS/VPS</para>
+            <para>These NALUs can be sent once in the beginning of a stream and stored at client side
+              to add back when exporting to file. This is a correct process, but ruins the authenticity
+              since Signed Video requires the order to be preserved.
+              There is parts in these NALUs that can change the video behavior.</para>
           </listitem>
           <listitem>
             <para>AUD</para>
+            <para>The Access Unit Delimiter is simply a NALU header used in access unit video streams,
+              c.f., bytestream.</para>
           </listitem>
           <listitem>
             <para>SEIs other than Signed Video specific</para>
+            <para>SEI frames are in general information frames that usually has no visible impact on
+              the video. Some of them can correctly be added to, or removed from, the stream at a later
+              stage.</para>
           </listitem>
         </itemizedlist></para>
-      <para>Note that these can still affect the visual aspect of a video.</para>
+      <para>Note that these can still affect the visual aspect of a video, but are excluded for simplicity.</para>
     </section>
     <section>
       <title>Signing a GOP</title>
