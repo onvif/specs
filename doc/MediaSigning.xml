@@ -181,10 +181,16 @@
         transitions may be shorter than the time it takes to perform the signing. Hence, there is a
         limit on how short GOPs a device can allow for to be able to sign a video in
         real-time.</para>
+      <para><emphasis role="bold">Hashing algorithms</emphasis>. Hashing is used in two contexts.
+        One is to get a short representation of each NALU to put in a list, and the other serves as
+        a message digest to generate a signature. The same hashing algorithms have to be used both
+        on the device and in the client. For simplicity the standard specifies which to use, which
+        for example limits the ability to put extra security on some videos.</para>
+      <para><emphasis role="bold">Signing algorithm</emphasis>. There is a fixed list of algorithms
+        to choose from, which limits the scope somewhat since there may be variations within them.</para>
     </section>
     <section>
-      <title>Detailed description</title>
-      <para>SHOULD WE SPLIT THE DETAILED DESCRIPTION INTO ONE PART ON HOW TO GENERATE SEIS, ONE PART ON ADDING SEIS AND ONE PART ON VALIDATING SEIS/VIDEOS?</para>
+      <title>Detailed description on how the device generates a SEI including a signature</title>
       <para>The H.264 and H.265 codec formats allow the user to add arbitrary data to a stream
         through SEI frames of type user data unregistered. <emphasis>Signed Video</emphasis> puts
         the produced signatures and additional metadata in such frames. These SEI frames are ignored
@@ -216,11 +222,10 @@
           (<code>S</code>) and put just before a picture frame to follow the Access Unit (AU)
         format. Each I-frame will trigger a signing procedure and ideally the SEI is generated and
         available instantaneously and can be attached to the stream as
-          <code>SIPPPPSIPPPPSIPPPP</code>.</para>
-      <para>In practice signing in a Secure Element (SE) takes
+          <code>SIPPPPSIPPPPSIPPPP</code>.</para> In practice signing in a Secure Element (SE) takes
         time and blocking the video stream while waiting adds jitter to the video stream. The camera
         therefore has the option to add it to the video stream later, when signing has been completed.
-        In such a case the text-ified stream can look like <code>IPSPPPISPPPPIPPSPP</code>.</para>
+        In such a case the text-ified stream can look like <code>IPSPPPISPPPPIPPSPP</code>.
       <para>Each NALU is hashed, but not in a straightforward manner. Since every
         P-frame directly or indirectly refers to the I-frame starting the GOP they are linked
         together. Let <code>h(F)</code> denote the hash of a frame <code>F</code>, and <code>href =
@@ -317,7 +322,9 @@
       </section>
       <section>
         <title>TLV tags</title>
-        <para>Following is a list of possible TLV tags that can be part of a SEI payload.</para>
+        <para>Following is a list of possible TLV tags that can be part of a SEI payload. The length
+          field of some of these tags can be represented with only one byte, but for ease of use all
+          tags use 2 bytes for representing the length.</para>
         <para>
           <table frame="all">
             <title>TLV tags</title>
@@ -385,24 +392,53 @@
       <section>
         <title>General GOP info</title>
         <para>Includes GOP specific information like a GOP counter and a timestamp of the first frame.</para>
+        <itemizedlist>
+          <listitem>
+            <para>Tag version (1 byte)</para>
+          </listitem>
+          <listitem>
+            <para>GOP counter (4 bytes)</para>
+          </listitem>
+          <listitem>
+            <para>ONVIF Signed Media version (X bytes)</para>
+            <para>This will prevent version mismatch between device and client.</para>
+          </listitem>
+          <listitem>
+            <para>Unix epoch timestamp in UTC (8 bytes)</para>
+          </listitem>
+          <listitem>
+            <para>Flags (Y bytes)</para>
+            <para>Examples: emulation prevention bytes used</para>
+          </listitem>
+        </itemizedlist>
       </section>
       <section>
         <title>Public key</title>
-        <para>This mandatory field contains the Public key used to sign the video. (IN PEM FORMAT?)</para>
+        <para>This mandatory field contains the Public key used to sign the video.</para>
+        <itemizedlist>
+          <listitem>
+            <para>Tag version (1 byte)</para>
+          </listitem>
+          <listitem>
+            <para>Signing algorithm (1 bytes)</para>
+            <para>Selected item in list of supported algorithms</para>
+          </listitem>
+          <listitem>
+            <para>Public key in PEM format (variable bytes)</para>
+          </listitem>
+        </itemizedlist>
       </section>
       <section>
         <title>ONVIF vendor info</title>
         <para>Includes information that identifies the product and vendor. The
-          following fields are supported</para>
+          following fields are supported. These fields are only for easy parsing by a player.
+          The true device information is present in the certificate.</para>
         <itemizedlist>
           <listitem>
-            <para>Hardware ID</para>
+            <para>Firmware version</para>
           </listitem>
           <listitem>
-            <para>Firmware version (IS THIS NECESSARY)</para>
-          </listitem>
-          <listitem>
-            <para>Serial Number (CAN THIS BE COMBINED WITH HWID?)</para>
+            <para>Serial Number or similar</para>
           </listitem>
           <listitem>
             <para>Manufacturer (who is the signer)</para>
@@ -415,10 +451,35 @@
       <section>
         <title>Hash list</title>
         <para>This mandatory field contains the hash list, for a complete GOP I through P-frames and the linked I-frame of the succeeding GOP.</para>
+        <itemizedlist>
+          <listitem>
+            <para>Tag version (1 byte)</para>
+          </listitem>
+          <listitem>
+            <para>All hashes in one big chunk (variable bytes)</para>
+          </listitem>
+        </itemizedlist>
       </section>
       <section>
         <title>Signature</title>
         <para>This mandatory field contains the Signature of the document.</para>
+        <itemizedlist>
+          <listitem>
+            <para>Tag version (1 byte)</para>
+          </listitem>
+          <listitem>
+            <para>Message digest hash selected from a list of supported hashing algorithms (1 byte)</para>
+          </listitem>
+          <listitem>
+            <para>Actual size of signature (2 bytes)</para>
+            <para>Not all signing algorithms generate a fixed size.</para>
+          </listitem>
+          <listitem>
+            <para>The signature (max signature size bytes)</para>
+            <para>A fixed size is reserved to be able to determine the payload size of the SEI.
+              This is necessary to be able to hash the SEI and generate the message digest.</para>
+          </listitem>
+        </itemizedlist>
       </section>
       <section>
         <title>Arbitrary data</title>
