@@ -226,13 +226,13 @@
     </section>
     <section>
       <title>Signing a GOP</title>
-      <para>Each NALU is hashed in a non-straightforward manner. [Vi kan inte i draften förklara att
-        det främsta skälet är att kringå ett patent, men det kan vara värt att ta upp det på mötet.]
+      <para>Each NALU is hashed in linked manner. [Vi kan inte i draften förklara att det främsta skälet är
+        att kringå ett patent, men det kan vara värt att ta upp det på mötet.]
         Since every P-frame directly or indirectly refers to the I-frame starting the GOP they are linked
         together. If the I-frame is modified it indirectly modifies the P-frames. Therefore, each P-frame
         is hashed together with the dependent I-frame.</para>
       <para>All NALU data from the NALU header to the last byte (including the stop bit) should be hashed.
-        The start code is excluded from the hash.</para>
+        The start code is excluded when hashing.</para>
       <para>Let <code>h(F)</code> denote the hash of a frame <code>F</code>, and <code>href =
           h(I)</code> is the hash of the first I-frame in a GOP and used as reference. Then each
         frame in a GOP is hashed according to <code>hash(F) = h(href, h(F))</code> where
@@ -321,7 +321,7 @@
         <para>Large data blobs like certificates are preferably sent only once. This "only need once"
           information should be put in a separate SEI with a different UUID and signed. This separates
           the SEI from the video stream and can be copied and added to any exported material.
-          [Ett alternativ är att behålla samma UUID och starta SEI payload med en reserverad byte som
+          [Ett alternativ är att behålla samma UUID och inleda SEI payload med en reserverad byte som
           kan flagga om detta är en SEI som ska sparas och läggas till vid filexport.]</para>
       </section>
       <section>
