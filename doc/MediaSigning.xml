@@ -173,10 +173,11 @@
     </figure>
     <section>
       <title>Limitations</title>
-      <para><emphasis role="bold">Codecs</emphasis>. <emphasis>Signed Video</emphasis> is defined for
-        the H.264 and H.265 video codec formats. Therefore, most of the description uses the Network
-        Abstraction Layer (NAL) concept. Note that raw video is not covered. There exists other codec
-        standards where the same technique can be applied, e.g., AV1. [Länk till AOM?]</para>
+      <para><emphasis role="bold">Codecs</emphasis>. <emphasis>Signed Video</emphasis> is defined
+        for the H.264 and H.265 video codec formats. Therefore, most of the description uses the
+        Network Abstraction Layer (NAL) concept. Note that raw video is not covered. There exists
+        other codec standards where the same technique can be applied, e.g.,
+        <?oxy_comment_start author="bjornv" timestamp="20220919T130539+0200" comment="Länk till AOM?"?>AV1<?oxy_comment_end?>.</para>
       <para><emphasis role="bold">Signing frequency</emphasis>. Signing is done upon transition
         between two Group of Pictures (GOP). For short GOP lengths the time between two GOP
         transitions may be shorter than the time it takes to perform the signing. Hence, there is a
@@ -226,8 +227,7 @@
     </section>
     <section>
       <title>Signing a GOP</title>
-      <para>Each NALU is hashed in linked manner. [Vi kan inte i draften förklara att det främsta skälet är
-        att kringå ett patent, men det kan vara värt att ta upp det på mötet.]
+      <para><?oxy_comment_start author="bjornv" timestamp="20220919T130656+0200" comment="Vi kan inte i draften förklara att det främsta skälet är att kringå ett patent, men det kan vara värt att ta upp det på mötet."?>Each NALU is hashed in linked manner.<?oxy_comment_end?> 
         Since every P-frame directly or indirectly refers to the I-frame starting the GOP they are linked
         together. If the I-frame is modified it indirectly modifies the P-frames. Therefore, each P-frame
         is hashed together with the dependent I-frame.</para>
@@ -273,10 +273,11 @@
         </table>
       </para>
       <para>The UUID is used to put a <emphasis role="italic">Signed Video</emphasis> identity to
-        the SEI. The UUID for Signed Video is <code>ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee,
-          ee, ee, ee, ee</code> in hexadecimal notation. ["ONVIFSignedMedia" -> 4f 4e 56 49 46 53 69 67 6e 65 64 4d 65 64 69 61]
-        The payload includes the metadata and the
-        signature, and is serialized in a TLV structure. The order of the added TLV tags is
+        the SEI.
+        <?oxy_comment_start author="bjornv" timestamp="20220919T120007+0200" comment="&quot;ONVIFSignedMedia&quot; -&gt; 4f 4e 56 49 46 53 69 67 6e 65 64 4d 65 64 69 61"?>The
+        UUID for Signed Video is <code>ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee,
+          ee</code> in hexadecimal notation.<?oxy_comment_end?> The payload includes the metadata
+        and the signature, and is serialized in a TLV structure. The order of the added TLV tags is
         arbitrary except the signature tag which by definition has to come last. By definition the
         <code>document</code> includes everything from the NALU header (inclusive) to the signature
         tag (exclusive), hence the entire frame is secured.</para>
@@ -318,11 +319,11 @@
       </para>
       <section>
         <title>Information sent only once</title>
+        <?oxy_comment_start author="bjornv" timestamp="20220919T115932+0200" comment="Ett alternativ är att behålla samma UUID och starta SEI payload med en reserverad byte som kan flagga om detta är en SEI som ska sparas och läggas till vid filexport."?>
         <para>Large data blobs like certificates are preferably sent only once. This "only need once"
           information should be put in a separate SEI with a different UUID and signed. This separates
-          the SEI from the video stream and can be copied and added to any exported material.
-          [Ett alternativ är att behålla samma UUID och inleda SEI payload med en reserverad byte som
-          kan flagga om detta är en SEI som ska sparas och läggas till vid filexport.]</para>
+          the SEI from the video stream and can be copied and added to any exported material.</para>
+        <?oxy_comment_end?>
       </section>
       <section>
         <title>TLV tags</title>
@@ -538,12 +539,12 @@
       <para>Without loss of generality, consider three consecutive GOPs each starting with an IDR
         (I-frame) followed by 4 non-IDRs (P- or B-frames). In text format it would look like
           <code>IPPPPIPPPPIPPPP</code>. The signing information is collected in a SEI frame
-          (<code>S</code>). The SEI should be added to the video stream such that it follows the Access Unit (AU)
-        format, i.e., it has to prepend all picture NALUs in a AU. [Behöver vi säga att H.265 faktiskt tillåter
-        att SEIs läggs efter picture NALUs, men att det blir smidigare att göra samma för båda codec-formaten?]
-        Each I-frame will trigger a signing procedure and ideally the SEI is generated and
-        available instantaneously and can be attached to the stream as
-          <code>SIPPPPSIPPPPSIPPPP</code>.</para>
+          (<code>S</code>).
+        <?oxy_comment_start author="bjornv" timestamp="20220919T115655+0200" comment="Behöver vi säga att H.265 faktiskt tillåter att SEIs läggs efter picture NALUs, men att det blir smidigare att göra samma för båda codec-formaten?"?>The
+        SEI should be added to the video stream such that it follows the Access Unit (AU) format,
+        i.e., it has to prepend all picture NALUs in a AU.<?oxy_comment_end?> Each I-frame will
+        trigger a signing procedure and ideally the SEI is generated and available instantaneously
+        and can be attached to the stream as <code>SIPPPPSIPPPPSIPPPP</code>.</para>
       <para>In practice signing in a Secure Element (SE) takes time and blocking the video stream while waiting
         adds jitter to the video stream. The device therefore has the option to add it to the video stream later,
         when signing has been completed. In such a case the text-ified stream can look like
@@ -551,16 +552,14 @@
     </section>
     <section>
       <title>Client handling of a signed video stream</title>
-      <para>Attached to the first AU of a signed video stream is the SEI including all information that is only
+      <para><?oxy_comment_start author="bjornv" timestamp="20220919T115556+0200" comment="Ska vi nämna att en klient kan hjälpa en framtida validering genom att flytta SEIs till rätt GOP?"?>Attached to the first AU of a signed video stream is the SEI including all information that is only
         sent once. This SEI should be stored for later validation. Further, when exporting a video segment to file,
-        this SEI should be added to the first AU of that recording.</para>
-      <para>[Ska vi nämna att en klient kan hjälpa en framtida validering genom att flytta SEIs till rätt GOP?]</para>
+        this SEI should be added to the first AU of that recording.<?oxy_comment_end?></para>
     </section>
     <section>
       <title>Client side validation</title>
-      <para>Validation is done GOP by GOP, just like the signing side signs GOP by GOP. The validation has to be
-        aborted upon any failing step below.
-        <itemizedlist>
+      <para>Validation is done GOP by GOP, just like the signing side signs GOP by GOP. The
+        validation has to be aborted upon any failing step below. <itemizedlist>
           <listitem>
             <para>Verify the signature of the "only sent once" SEI.</para>
           </listitem>
@@ -571,35 +570,38 @@
             <para>Verify the Public key.</para>
           </listitem>
           <listitem>
-            <para>Find the SEI associated with the GOP that is to be validated.</para>
+            <para><?oxy_comment_start author="bjornv" timestamp="20220919T130247+0200" comment="Ska vi beskriva hur man kan hitta rätt SEI? Och hur man ska hantera/detektera bortplockade GOP:ar? AUTHENTIC WITH MISSING GOP?"?>Find
+              the SEI associated with the GOP that is to be validated.<?oxy_comment_end?></para>
           </listitem>
           <listitem>
             <para>Verify the signature of the SEI.</para>
           </listitem>
           <listitem>
-            <para>Hash all NALUs of the GOP in the same way as is described for the device part above.</para>
+            <para>Hash all NALUs of the GOP in the same way as is described for the device part
+              above.</para>
           </listitem>
           <listitem>
-            <para>Verify each computed hash against corresponding hash in the hash list present in the SEI.</para>
+            <para>Verify each computed hash against corresponding hash in the hash list present in
+              the SEI.</para>
           </listitem>
           <listitem>
-            <para>The client should signal AUTHENTIC if all computed hashes are verified successfully against the
-              hashes in the SEI, and the order is preserved and no NALUs are missing.</para>
-            <para>If any missing NALU is detected the client should signal AUTHENTIC WITH MISSING NALUS.</para>
+            <para>The client should signal AUTHENTIC if all computed hashes are verified
+              successfully against the hashes in the SEI, and the order is preserved and no NALUs
+              are missing.</para>
+            <para>If any missing NALU is detected the client should signal AUTHENTIC WITH MISSING
+              NALUS.</para>
             <para>If no SEIs are present the client should signal NOT SIGNED.</para>
-            <para>If none of the above applies the video is not authentic and the client should signal NOT AUTHENTIC.</para>
+            <para>If none of the above applies the video is not authentic and the client should
+              signal NOT AUTHENTIC.</para>
           </listitem>
         </itemizedlist>
-        [Ska vi beskriva hur man kan hitta rätt SEI? Och hur man ska hantera/detektera bortplockade GOP:ar? AUTHENTIC WITH MISSING GOP?]
       </para>
     </section>
   </chapter>
   <chapter>
     <title>Audio Signing</title>
-    <para>[AAC har precis som H.26x ett definierat block för godtycklig data precis som vi har SEI, men storleken
-      är begränsad. Dock kan man lägga till multipla sådana block. Hur som helst så blir det orimligt dyrt att signera
-      audio oberoende av video. Man vill också koppla ihop audio med video så att man inte kan validera ljud inklippt
-      från en annan tidpunkt. Hur vi kombinerar audio och video har Axis inte specificerat än.]</para>
+    <para>
+      <?oxy_comment_start author="bjornv" timestamp="20220919T130146+0200" comment="AAC har precis som H.26x ett definierat block för godtycklig data precis som vi har SEI, men storleken är begränsad. Dock kan man lägga till multipla sådana block. Hur som helst så blir det orimligt dyrt att signera audio oberoende av video. Man vill också koppla ihop audio med video så att man inte kan validera ljud inklippt från en annan tidpunkt. Hur vi kombinerar audio och video har Axis inte specificerat än."?>TODO<?oxy_comment_end?></para>
   </chapter>
   <appendix role="revhistory">
     <title>Revision History</title>
