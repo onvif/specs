@@ -278,8 +278,8 @@
         The payload includes the metadata and the
         signature, and is serialized in a TLV structure. The order of the added TLV tags is
         arbitrary except the signature tag which by definition has to come last. By definition the
-        <code>document</code> includes everything from the NALU header to the signature tag, hence
-        the entire frame is secured.</para>
+        <code>document</code> includes everything from the NALU header (inclusive) to the signature
+        tag (exclusive), hence the entire frame is secured.</para>
       <para>
         <table frame="all">
           <title>Signed video SEI</title>
@@ -353,7 +353,8 @@
                   <entry><para>General info like GOP number</para></entry>
                 </row>
                 <row>
-                  <entry><para>Hash list</para></entry>
+                  <entry><para>Hash list [Om vi alltid ska skicka med en hash-lista så
+                    kan vi väl kombinera ihop denna tag med "General GOP info"?]</para></entry>
                   <entry><para>2</para></entry>
                   <entry><para>Every document</para></entry>
                   <entry><para>List of frame hashes</para></entry>
@@ -367,13 +368,13 @@
                 <row>
                   <entry><para>Public key</para></entry>
                   <entry><para>4</para></entry>
-                  <entry><para>Every n:th document</para></entry>
+                  <entry><para>Every n:th document (or once?)</para></entry>
                   <entry><para>The public signing key</para></entry>
                 </row>
                 <row>
                   <entry><para>ONVIF vendor info</para></entry>
                   <entry><para>5</para></entry>
-                  <entry><para>Every n:th document</para></entry>
+                  <entry><para>Every n:th document (or once?)</para></entry>
                   <entry><para>Information about the device and vendor</para></entry>
                 </row>
                 <row>
@@ -549,7 +550,7 @@
           <code>IPSPPPISPPPPIPPSPP</code>.</para>
     </section>
     <section>
-      <title>Client handling a signed video stream</title>
+      <title>Client handling of a signed video stream</title>
       <para>Attached to the first AU of a signed video stream is the SEI including all information that is only
         sent once. This SEI should be stored for later validation. Further, when exporting a video segment to file,
         this SEI should be added to the first AU of that recording.</para>
@@ -589,7 +590,7 @@
             <para>If none of the above applies the video is not authentic and the client should signal NOT AUTHENTIC.</para>
           </listitem>
         </itemizedlist>
-        [Ska vi beskriva hur man kan hitta rätt SEI? Och hur man ska hantera/detektera bortplockade GOP:ar?]
+        [Ska vi beskriva hur man kan hitta rätt SEI? Och hur man ska hantera/detektera bortplockade GOP:ar? AUTHENTIC WITH MISSING GOP?]
       </para>
     </section>
   </chapter>
