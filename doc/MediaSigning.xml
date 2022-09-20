@@ -52,8 +52,10 @@
   </info>
   <chapter>
     <title>Scope</title>
-    <para>This specification defines how live media from ONVIF devices is signed to give a guarantee
-      that the media has not been manipulated since it was transmitted from the device. </para>
+    <para>This specification defines
+      how<?oxy_comment_start author="FredrikS" timestamp="20220920T122344+0200" comment="Also stored"?>
+      live medi<?oxy_comment_end?>a from ONVIF devices is signed to give a guarantee that the media
+      has not been manipulated since it was transmitted from the device. </para>
   </chapter>
   <chapter>
     <title>Normative references</title>
@@ -205,33 +207,36 @@
         SEI frames. In some cases this can also be beneficial if, e.g., the user is no longer
         interested in its authenticity. It is out of scope to protect against lost SEI
         frames.</para>
-      <para>All operations are done on the encoded video stream. Each picture frame is split into
-        NAL Units (NALU) and <emphasis role="italic">Signed Video</emphasis> operates on these
-        NALUs. NALUs that are not part of a picture frame are ignored. These NALUs are:<itemizedlist>
+      <para><?oxy_comment_start author="FredrikS" timestamp="20220920T123345+0200" comment="What about frames with multiple NALUs?"?>All
+        operations are done on the encoded video stream. Each picture frame is split into NAL Units
+        (NALU) and <emphasis role="italic">Signed Video</emphasis> operates on these
+        NALUs.<?oxy_comment_end?> NALUs that are not part of a picture frame are ignored. These
+        NALUs are:<itemizedlist>
           <listitem>
             <para>SPS/PPS/VPS</para>
-            <para>These NALUs can be sent once in the beginning of a stream and stored at client side
-              to add back when exporting to file. This is a correct process, but ruins the authenticity
-              since Signed Video requires the order to be preserved.
-              There is parts in these NALUs that can change the video behavior.</para>
+            <para>These NALUs can be sent once in the beginning of a stream and stored at client
+              side to add back when exporting to file. This is a correct process, but ruins the
+              authenticity since Signed Video requires the order to be preserved. There is parts in
+              these NALUs that can change the video behavior.</para>
           </listitem>
           <listitem>
             <para>AUD</para>
-            <para>The Access Unit Delimiter is simply a NALU header used in access unit video streams,
-              c.f., bytestream.</para>
+            <para>The Access Unit Delimiter is simply a NALU header used in access unit video
+              streams, c.f., bytestream.</para>
           </listitem>
           <listitem>
-            <para>SEIs other than Signed Video specific</para>
+            <para><?oxy_comment_start author="FredrikS" timestamp="20220920T123837+0200" comment="There could be information from the device that would be useful to guarantee authenticity for"?>SEIs
+              other than Signed Video specific<?oxy_comment_end?></para>
             <para>SEI frames are in general information frames that usually has no visible impact on
-              the video. Some of them can correctly be added to, or removed from, the stream at a later
-              stage.</para>
+              the video. Some of them can correctly be added to, or removed from, the stream at a
+              later stage.</para>
           </listitem>
         </itemizedlist></para>
       <para>Note that these can still affect the visual aspect of a video, but are excluded for simplicity.</para>
     </section>
     <section>
       <title>Signing a GOP</title>
-      <para><?oxy_comment_start author="bjornv" timestamp="20220919T130656+0200" comment="Vi kan inte i draften förklara att det främsta skälet är att kringå ett patent, men det kan vara värt att ta upp det på mötet."?>Each NALU is hashed in linked manner.<?oxy_comment_end?> 
+      <para><?oxy_comment_start author="bjornv" timestamp="20220919T130656+0200" comment="Vi kan inte i draften förklara att det främsta skälet är att kringå ett patent, men det kan vara värt att ta upp det på mötet  PATENT NUMBER??."?>Each NALU is hashed in linked manner.<?oxy_comment_end?> 
         Since every P-frame directly or indirectly refers to the I-frame starting the GOP they are linked
         together. If the I-frame is modified it indirectly modifies the P-frames. Therefore, each P-frame
         is hashed together with the dependent I-frame.</para>
@@ -243,8 +248,10 @@
           <code>href</code> and <code>h(F)</code> have been aligned in memory. All hashes are
         collected in a list and together with some metadata form a <code>document</code>, which
         later will be signed.</para>
-      <para>To preserve the order of GOPs the I-frame of the next GOP is also included in the list of
-        hashes, that is, <code>hash(Inext) = h(href, h(Inext))</code> is added as well.</para>
+      <para>To preserve the order of GOPs the I-frame of the
+        <?oxy_comment_start author="FredrikS" timestamp="20220920T124438+0200" comment="Should be previous???"?>next<?oxy_comment_end?>
+        GOP is also included in the list of hashes, that is, <code>hash(Inext) = h(href,
+          h(Inext))</code> is added as well.</para>
       <para>This <code>document</code> is then signed (hashed and encrypted) to produce a signature
         as <code>signature = encrypt(h(document))</code>
         and together with the <code>document</code> itself is added to the stream in a SEI, that
@@ -278,7 +285,7 @@
       </para>
       <para>The UUID is used to put a <emphasis role="italic">Signed Video</emphasis> identity to
         the SEI.
-        <?oxy_comment_start author="bjornv" timestamp="20220919T120007+0200" comment="&quot;ONVIFSignedMedia&quot; -&gt; 4f 4e 56 49 46 53 69 67 6e 65 64 4d 65 64 69 61"?>The
+        <?oxy_comment_start author="bjornv" timestamp="20220919T120007+0200" comment="&quot;ONVIFSignedMedia&quot; -&gt; 4f 4e 56 49 46 53 69 67 6e 65 64 4d 65 64 69 61 SHOULD BE VALID UUID"?>The
         UUID for Signed Video is <code>ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee,
           ee</code> in hexadecimal notation.<?oxy_comment_end?> The payload includes the metadata
         and the signature, and is serialized in a TLV structure. The order of the added TLV tags is
@@ -390,7 +397,9 @@
                 </row>
                 <row>
                   <entry><para>Arbitrary data</para></entry>
-                  <entry><para>8</para></entry>
+                  <entry>
+                    <para>7</para>
+                  </entry>
                   <entry><para>Optional</para></entry>
                   <entry><para>You put your weed in there</para></entry>
                 </row>
@@ -430,7 +439,8 @@
             <para>Tag version (1 byte)</para>
           </listitem>
           <listitem>
-            <para>Signing algorithm (1 bytes)</para>
+            <para><?oxy_comment_start author="FredrikS" timestamp="20220920T125418+0200" comment="Check Export File Format Spec definition. Use OIDs"?>Signing
+              algorithm<?oxy_comment_end?> (1 bytes)</para>
             <para>Selected item in list of supported algorithms</para>
           </listitem>
           <listitem>
@@ -445,7 +455,8 @@
           The true device information is present in the certificate.</para>
         <itemizedlist>
           <listitem>
-            <para>Firmware version</para>
+            <para><?oxy_comment_start author="FredrikS" timestamp="20220920T130019+0200" comment="Is this useful? If fw is compromised you can change this information too to write a different fw version"?>Firmware
+              version<?oxy_comment_end?></para>
           </listitem>
           <listitem>
             <para>Serial Number or similar</para>
@@ -454,13 +465,16 @@
             <para>Manufacturer (who is the signer)</para>
           </listitem>
           <listitem>
-            <para>Address (Contact information of signer, e.g., URL, email, mail)</para>
+            <para><?oxy_comment_start author="FredrikS" timestamp="20220920T125533+0200" comment="Not needed, since it&apos;s part of the cert. Maybe add product model also. "?>Address
+              (Contact information of signer, e.g., URL, email, mail)<?oxy_comment_end?></para>
           </listitem>
         </itemizedlist>
       </section>
       <section>
         <title>Hash list</title>
-        <para>This mandatory field contains the hash list, for a complete GOP I through P-frames and the linked I-frame of the succeeding GOP.</para>
+        <para>This mandatory field contains the hash list, for a complete GOP I through
+          <?oxy_comment_start author="FredrikS" timestamp="20220920T130135+0200" comment="Include B-frames as well"?>P-frames<?oxy_comment_end?>
+          and the linked I-frame of the succeeding GOP.</para>
         <itemizedlist>
           <listitem>
             <para>Tag version (1 byte)</para>
@@ -481,7 +495,8 @@
             <para>Message digest hash selected from a list of supported hashing algorithms (1 byte)</para>
           </listitem>
           <listitem>
-            <para>Actual size of signature (2 bytes)</para>
+            <para><?oxy_comment_start author="FredrikS" timestamp="20220920T130305+0200" comment="Add reason why this is needed"?>Actual
+              size of signature<?oxy_comment_end?> (2 bytes)</para>
             <para>Not all signing algorithms generate a fixed size.</para>
           </listitem>
           <listitem>
@@ -505,7 +520,9 @@
       </section>
     </section>
     <section>
-      <title>How to generate the SEI</title>
+      <title><?oxy_comment_start author="FredrikS" timestamp="20220920T130703+0200" comment="Write pseudo code for the generation.
+Add separate section about export? To include the cert. Add in Export File Format."?>How to
+        generate the SEI<?oxy_comment_end?></title>
         <itemizedlist>
           <listitem>
             <para>Write SEI NALU header</para>
@@ -561,7 +578,8 @@
         this SEI should be added to the first AU of that recording.<?oxy_comment_end?></para>
     </section>
     <section>
-      <title>Client side validation</title>
+      <title><?oxy_comment_start author="FredrikS" timestamp="20220920T130635+0200" comment="Make this section informative? Since it&apos;s difficult to test clients"?>Client
+        side validation<?oxy_comment_end?></title>
       <para>Validation is done GOP by GOP, just like the signing side signs GOP by GOP. The
         validation has to be aborted upon any failing step below. <itemizedlist>
           <listitem>
