@@ -285,9 +285,8 @@
       </para>
       <para>The UUID is used to put a <emphasis role="italic">Signed Video</emphasis> identity to
         the SEI.
-        <?oxy_comment_start author="bjornv" timestamp="20220919T120007+0200" comment="&quot;ONVIFSignedMedia&quot; -&gt; 4f 4e 56 49 46 53 69 67 6e 65 64 4d 65 64 69 61 SHOULD BE VALID UUID"?>The
-        UUID for Signed Video is <code>ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee, ee,
-          ee</code> in hexadecimal notation.<?oxy_comment_end?> The payload includes the metadata
+        UUID for Signed Video is <code>59, 89, d8, 92, 07, 2f, 49, ef, 94, 95, 40, 6d, bb, a9, ca, 35
+        </code> in hexadecimal notation. The payload includes the metadata
         and the signature, and is serialized in a TLV structure. The order of the added TLV tags is
         arbitrary except the signature tag which by definition has to come last. By definition the
         <code>document</code> includes everything from the NALU header (inclusive) to the signature
@@ -330,11 +329,13 @@
       </para>
       <section>
         <title>Information sent only once</title>
-        <?oxy_comment_start author="bjornv" timestamp="20220919T115932+0200" comment="Ett alternativ är att behålla samma UUID och starta SEI payload med en reserverad byte som kan flagga om detta är en SEI som ska sparas och läggas till vid filexport."?>
         <para>Large data blobs like certificates are preferably sent only once. This "only need once"
           information should be put in a separate SEI with a different UUID and signed. This separates
-          the SEI from the video stream and can be copied and added to any exported material.</para>
-        <?oxy_comment_end?>
+          the SEI from the video stream and can be copied and added to any exported material.
+          
+          Vi borde trycka tillbaka på UUID/version byte här för att indikera att det är en frame som
+          är godkänt att flytta på? Jag tycker det vore bra.
+        </para>
       </section>
       <section>
         <title>TLV tags</title>
@@ -566,7 +567,7 @@ Add separate section about export? To include the cert. Add in Export File Forma
         i.e., it has to prepend all picture NALUs in a AU.<?oxy_comment_end?> Each I-frame will
         trigger a signing procedure and ideally the SEI is generated and available instantaneously
         and can be attached to the stream as <code>SIPPPPSIPPPPSIPPPP</code>.</para>
-      <para>In practice signing in a Secure Element (SE) takes time and blocking the video stream while waiting
+      <para>In practice signing in secure hardware takes time and blocking the video stream while waiting
         adds jitter to the video stream. The device therefore has the option to add it to the video stream later,
         when signing has been completed. In such a case the text-ified stream can look like
           <code>IPSPPPISPPPPIPPSPP</code>.</para>
