@@ -351,6 +351,9 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <para>To save data to a recording, a client first creates a recording and ensures that the recording has the necessary tracks. Then the client creates a recording job that pulls data from one or more sources and stores the data to the tracks in the recording. </para>
         <para>Clients may set up multiple recording jobs that all record into the same recording. If multiple recording jobs are active, the device uses a priority scheme to select between the tracks defined in the recording jobs. Clients may change the mode of recording jobs at any time, thereby providing means to implement features like alarm recording or manual recording.</para>
         <para>If a device supports scheduled recording, clients may configure scheduled recording by adding a scheduler token to the recording job. A recording job with a scheduler token will only record when the associated schedule is active. If the associated schedule of a recording job is inactive a job with lower recording priority may record.</para>
+        <para>By default a recording job is continuously recording. Devices supporting the
+          EventFilter can be configured such that they only record events. To provide some context
+          time intervals before and after the event may be captured.</para>
         <para>The recording job relies on the receiver service for receiving the data from other devices through receiver objects identified by ReceiverTokens</para>
       </section>
     </section>
@@ -424,6 +427,8 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <para>
           <emphasis role="bold">ScheduleToken:</emphasis> This attribute adds an additional requirement for activating the recording job. If this optional field is provided the job shall only record if the schedule exists and is active.</para>
         <para>
+          <emphasis role="bold">EventFilter:</emphasis> This set of parameters allows to control recording depending on a given set of event condititions.</para>
+        <para>
           <emphasis role="bold">SourceToken</emphasis>: This field shall be a reference to the source of the data. The type of the source is determined by the attribute Type in the SourceToken structure. If Type is http://www.onvif.org/ver10/schema/Receiver, the token is a ReceiverReference. In this case the device shall receive the data over the network. If Type is http://www.onvif.org/ver10/schema/Profile, the token identifies a media profile, instructing the device to obtain data from a profile that exists on the local device. </para>
         <para>A device that includes the ONVIF Media Service shall support a Media Profile token and a device that includes the ONVIF Receiver Service shall support a Receiver token.</para>
         <para>If the <emphasis role="bold">SourceToken</emphasis> is omitted, <emphasis role="bold">AutoCreateRecevier</emphasis> shall be true.</para>
@@ -434,6 +439,46 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <para>
           <emphasis role="bold">Destination</emphasis>: The destination is the track token of the track to which the device shall store the received data. All tracks must belong to the recording identified by the RecordingToken.</para>
         <para>The TrackInformation field for a Track holds a single Source. In case multiple RecordingJobs with differing Source are recording to the same Track it is undefined which of them is reported in the corresponding TrackInformation of the the RecordingSearch API.</para>
+      </section>
+      <section>
+        <title>Event recording</title>
+        <para>A device signalling support for EventRecording via its capabilities shall support
+          controling recording job activity via the EventFilter with the following set of
+          parameters: 
+          </para>
+        <variablelist>
+          <varlistentry>
+            <term>Filter</term>
+            <listitem>
+              <para>One or more filter pairs containing a mandatory topic filter as defined in section 9.6.3 of the ONVIF Core Specification. It may be associated with an optional message content filter as defined in section 9.4.4 of the ONVIF Core
+                Specification. </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Before</term>
+            <listitem>
+              <para>Optional timespan to record before the actual event condition became active.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>After</term>
+            <listitem>
+              <para>Optional timespan to record after the actual event condition becomes
+                inactive.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+        <para>A device shall support filtering on topics and message source parameters. Filtering on message data values doesn't need to be supported since it may cause malfunctions.</para>
+        <para>A device shall support Before and After durations when their limit is signalled via
+          the respective capability. A device may adapt the Before and After duration values to internal
+          quantization. </para>
+        <para>A device shall at least record the event duration and the specified before and after
+          timesspans. Due to the nature of GOP structures it may record more.</para>
+        <para>Note that non-property events result in an infinite short timespan. In such cases at least one I-Frame shall be recorded, optionally
+          extended by before and after timespans. </para>
+        <para>A recording job of a device supporting both EventFilter and ScheduledRecording shall
+          become active if both conditions are met.</para>
       </section>
     </section>
     <section>
@@ -1404,6 +1449,18 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <varlistentry>
           <term>ScheduledRecording</term>
           <listitem><para>Indication that the device supports scheduled recording.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>EventRecording</term>
+          <listitem><para>Indication that the device supports event triggered recording.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>BeforeEventLimit</term>
+          <listitem><para>Indicates that the device supports before event durations up to the given value.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>AfterEventLimit</term>
+          <listitem><para>Indicates that the device supports after event durations up to the given value.</para></listitem>
         </varlistentry>
       </variablelist>
     </section>
