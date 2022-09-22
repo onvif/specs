@@ -89,9 +89,12 @@
             </row>
             <row>
               <entry align="left"><para>Certificate</para></entry>
-              <entry align="left"><para>A certificate as used in this specification binds a public key
-                to a subject entity. The certificate is digitally signed by the certificate issuer 
-                to allow for verifying its authenticity.</para></entry>
+              <entry align="left">
+                <para><?oxy_comment_start author="FredrikS" timestamp="20220922T123738+0200" comment="Explain that there may be intermediate certs as well"?>A
+                  certificate as used in this specification binds a public key to a subject entity.
+                  The certificate is digitally signed by the certificate issuer to allow for
+                  verifying its authenticity.</para><?oxy_comment_end?>
+              </entry>
             </row>
             <row>
               <entry align="left"><para>Signature</para></entry>
@@ -169,7 +172,9 @@
       <title>Signed video overview</title>
       <mediaobject>
         <imageobject>
-          <imagedata fileref="media/MediaSigning/signed_video.svg" contentwidth="170mm"/>
+          <?oxy_comment_start author="FredrikS" timestamp="20220922T122033+0200" comment="Update image, last SEI should be after IDR"?>
+          <imagedata fileref="media/MediaSigning/signed_video.svg" contentwidth="170mm"
+          /><?oxy_comment_end?>
         </imageobject>
       </mediaobject>
     </figure>
@@ -260,13 +265,11 @@
     </section>
     <section>
        <title>Bootstrapping the Videostream</title>
-        <para>
-          In order to provide an expedient video stream startup experience, one may send an empty HashList TLV
-          in order to indicate to the client which hashing algorithm is used for hashing of the NALUs.
-          Furthermore the device may also pre-compute all the "Send Once" TLVs, including signing in order to
-          be able to supply the "Send Once" TLVs together with the other "Send Once" information such as 
-          PPS/SPS/VPS.
-        </para>
+        <para>In order to provide an expedient video stream startup experience, one may send an
+        empty Hash List TLV in order to indicate to the client which hashing algorithm is used for
+        hashing of the NALUs. Furthermore the device may also pre-compute all the "Send Once" TLVs,
+        including signing in order to be able to supply the "Send Once" TLVs together with the other
+        "Send Once" information such as PPS/SPS/VPS. </para>
     </section>
     <section>
       <title>SEI format</title>
@@ -339,16 +342,15 @@
       </para>
       <section>
         <title>Information sent only once</title>
-        <para>Large data blobs like certificates are preferably sent only once. This "only need once"
-          information should be put in a separate SEI with a different UUID and signed. This separates
-          the SEI from the video stream and can be copied and added to any exported material.
-          
-          Vi borde trycka tillbaka på UUID/version byte här för att indikera att det är en frame som
-          är godkänt att flytta på? Jag tycker det vore bra.
-        </para>
+        <para><?oxy_comment_start author="FredrikS" timestamp="20220922T101952+0200" comment="Vi borde trycka tillbaka på UUID/version byte här för att indikera att det är en frame som är godkänt att flytta på? Jag tycker det vore bra. "?>Large
+          data blobs like certificates are preferably sent only once. This "only need once"
+          information should be put in a separate SEI with a different UUID and signed. This
+          separates the SEI from the video stream and can be copied and added to any exported
+          material.<?oxy_comment_end?></para>
       </section>
       <section>
-        <title>TLV tags</title>
+        <title><?oxy_comment_start author="FredrikS" timestamp="20220922T124616+0200" comment="How should dual signing be handled?"?>TLV
+          tags<?oxy_comment_end?></title>
         <para>Following is a list of possible TLV tags that can be part of a SEI payload. The length
           field of some of these tags can be represented with only one byte, but for ease of use all
           tags use 2 bytes for representing the length.</para>
@@ -376,8 +378,7 @@
                   <entry><para>General info like GOP number</para></entry>
                 </row>
                 <row>
-                  <entry><para><?oxy_comment_start author="bjornv" timestamp="20220920T095030+0200" comment="Om vi alltid ska skicka med en hash-lista så kan vi väl kombinera ihop denna tag med &quot;General GOP info&quot;?"?>Hash
-                      list<?oxy_comment_end?></para></entry>
+                  <entry><para>Hash list</para></entry>
                   <entry><para>2</para></entry>
                   <entry><para>Every document</para></entry>
                   <entry><para>List of frame hashes</para></entry>
@@ -483,8 +484,10 @@
       </section>
       <section>
         <title>Hash list</title>
-        <para>This mandatory field contains the hash list, for a complete GOP I through
-          <?oxy_comment_start author="FredrikS" timestamp="20220920T130135+0200" comment="Include B-frames as well"?>P-frames<?oxy_comment_end?>
+        <para>This mandatory field contains the hash list, for a complete GOP
+          <?oxy_comment_start author="FredrikS" timestamp="20220922T123227+0200" comment="Replace with IDR frame. Sync with Streaming Spec"?>I<?oxy_comment_end?>
+          through
+          <?oxy_comment_start author="FredrikS" timestamp="20220920T130135+0200" comment="Include B-frames as well. Replace with intermediate frames?"?>P-frames<?oxy_comment_end?>
           and the linked I-frame of the succeeding GOP.</para>
         <itemizedlist>
           <listitem>
@@ -531,9 +534,8 @@
       </section>
     </section>
     <section>
-      <title><?oxy_comment_start author="FredrikS" timestamp="20220920T130703+0200" comment="Write pseudo code for the generation.
-Add separate section about export? To include the cert. Add in Export File Format."?>How to
-        generate the SEI<?oxy_comment_end?></title>
+      <title><?oxy_comment_start author="FredrikS" timestamp="20220920T130703+0200" comment="Write pseudo code for the generation. Move under section 5.2?"?>How
+        to generate the SEI<?oxy_comment_end?></title>
         <itemizedlist>
           <listitem>
             <para>Write SEI NALU header</para>
@@ -567,7 +569,8 @@ Add separate section about export? To include the cert. Add in Export File Forma
         </itemizedlist>
     </section>
     <section>
-      <title>How to add a generated SEI to a video stream in a device</title>
+      <title><?oxy_comment_start author="FredrikS" timestamp="20220922T125620+0200" comment="Move under section 5.2?"?>How
+        to add a generated SEI to a video stream in a device</title><?oxy_comment_end?>
       <para>Without loss of generality, consider three consecutive GOPs each starting with an IDR
         (I-frame) followed by 4 non-IDRs (P- or B-frames). In text format it would look like
           <code>IPPPPIPPPPIPPPP</code>. The signing information is collected in a SEI frame
@@ -577,10 +580,10 @@ Add separate section about export? To include the cert. Add in Export File Forma
         i.e., it has to prepend all picture NALUs in a AU.<?oxy_comment_end?> Each I-frame will
         trigger a signing procedure and ideally the SEI is generated and available instantaneously
         and can be attached to the stream as <code>SIPPPPSIPPPPSIPPPP</code>.</para>
-      <para>In practice signing in secure hardware takes time and blocking the video stream while waiting
-        adds jitter to the video stream. The device therefore has the option to add it to the video stream later,
-        when signing has been completed. In such a case the text-ified stream can look like
-          <code>IPSPPPISPPPPIPPSPP</code>.</para>
+      <para>In practice signing in secure hardware takes time and blocking the video stream while
+        waiting adds jitter to the video stream. The device therefore has the option to add it to
+        the video stream later, when signing has been completed. In such a case the text-ified
+        stream can look like <code>IPSPPPISPPPPIPPSPP</code>.</para>
     </section>
     <section>
       <title>Client handling of a signed video stream</title>
@@ -589,7 +592,7 @@ Add separate section about export? To include the cert. Add in Export File Forma
         this SEI should be added to the first AU of that recording.<?oxy_comment_end?></para>
     </section>
     <section>
-      <title><?oxy_comment_start author="FredrikS" timestamp="20220920T130635+0200" comment="Make this section informative? Since it&apos;s difficult to test clients"?>Client
+      <title><?oxy_comment_start author="FredrikS" timestamp="20220920T130635+0200" comment="Make this section informative? Since it&apos;s difficult to test clients. Make appendix"?>Client
         side validation<?oxy_comment_end?></title>
       <para>Validation is done GOP by GOP, just like the signing side signs GOP by GOP. The
         validation has to be aborted upon any failing step below. <itemizedlist>
@@ -597,10 +600,12 @@ Add separate section about export? To include the cert. Add in Export File Forma
             <para>Verify the signature of the "only sent once" SEI.</para>
           </listitem>
           <listitem>
-            <para>Verify the sent certificate.</para>
+            <para><?oxy_comment_start author="FredrikS" timestamp="20220922T123900+0200" comment="Explain about CA cert. Refer section 5.10"?>Verify
+              the sent certificate.<?oxy_comment_end?></para>
           </listitem>
           <listitem>
-            <para>Verify the Public key.</para>
+            <para><?oxy_comment_start author="FredrikS" timestamp="20220922T124026+0200" comment="Explain that you verify the key against the cert"?>Verify
+              the Public key.<?oxy_comment_end?></para>
           </listitem>
           <listitem>
             <para><?oxy_comment_start author="bjornv" timestamp="20220919T130247+0200" comment="Ska vi beskriva hur man kan hitta rätt SEI? Och hur man ska hantera/detektera bortplockade GOP:ar? AUTHENTIC WITH MISSING GOP?"?>Find
@@ -631,41 +636,43 @@ Add separate section about export? To include the cert. Add in Export File Forma
       </para>
     </section>
     <section>
-      <title> Certificate validation </title>
-      <para>
-        In order to validate the certificate, one follows the certificate chain from the leaf 
+      <title>
+        <?oxy_comment_start author="FredrikS" timestamp="20220922T125214+0200" comment="Informative"?>Certificate
+        validation<?oxy_comment_end?>
+      </title>
+      <para>In order to validate the certificate, one follows the certificate chain from the leaf
         certificate to the root certificate according to the x.509 standard. Since Onvif does not
         provide a trusted certificate store the client implementor and/or the end user must install
-        trusted root CA certificates in the client. Typically one also need the intermediate CA 
-        certificate which is also provided by the device. 
-        When verifying old video, it may happen that the certificates have expired as compared to
-        the current date. However, the verification concerns the date that the video was created
-        as such the date should be validated against the claimed recording date rather than the
-        current date.
-      </para>
+        trusted root CA certificates in the client. Typically one also need the intermediate CA
+        certificate which is also provided by the device. When verifying old video, it may happen
+        that the certificates have expired as compared to the current date. However, the
+        verification concerns the date that the video was created as such the date should be
+        validated against the claimed recording date rather than the current date. </para>
     </section>
     <section>
-      <title> Exporting a Signed Media  </title>
-      <para>
-        In order to be able to verify an exported segment of Signed Media, the client must include
-        the "Send Once" TLVs that are included in the beginning of the mediastream. This can be
-        combined with the Onvif Export File Format in order to provide layered video authentication,
-        the media signing covers authenticity in the media layer where as the Export File 
-        Format provides validity on the container level. Even if this Signed Media specification is
-        used, the Onvif Export File Format is still valuable as it provides more information of the
-        provenance of the video as it allows the user to tell the story of the path of the video.
-      </para>
+      <title>
+        <?oxy_comment_start author="FredrikS" timestamp="20220922T125717+0200" comment="Do we need to add info in Export FF?"?>Exporting
+        a Signed Media<?oxy_comment_end?>
+      </title>
+      <para>In order to be able to verify an exported segment of Signed Media, the client must
+        include the "Send Once" TLVs that are included in the beginning of the mediastream. This can
+        be combined with the Onvif Export File Format in order to provide layered video
+        authentication, the media signing covers authenticity in the media layer where as the Export
+        File Format provides validity on the container level. Even if this Signed Media
+        specification is used, the Onvif Export File Format is still valuable as it provides more
+        information of the provenance of the video as it allows the user to tell the story of the
+        path of the video. </para>
     </section>
     <section>
-      <title>Dangling End </title>
-      <para>
-        One special consideration is the possbility of dangling ends, i.e. that the SEI frame containing
-        the verification information for a GOP may be very delayed. This can be due to a number of reasons
-        such as delay in signature generation process, very long GOP lengths when using dynamic GOP and 
-        other implementation specific issues.
-        When exporting recording, or trying to verify a dropped videostream, this means that the end of the
-        video may not be covered by the verificaiton information in the current segment.
-      </para>
+      <title><?oxy_comment_start author="FredrikS" timestamp="20220922T125248+0200" comment="Informative"?>Dangling
+        End<?oxy_comment_end?>
+      </title>
+      <para>One special consideration is the possbility of dangling ends, i.e. that the SEI frame
+        containing the verification information for a GOP may be very delayed. This can be due to a
+        number of reasons such as delay in signature generation process, very long GOP lengths when
+        using dynamic GOP and other implementation specific issues. When exporting recording, or
+        trying to verify a dropped videostream, this means that the end of the video may not be
+        covered by the verificaiton information in the current segment. </para>
     </section>
   </chapter>
   <chapter>
