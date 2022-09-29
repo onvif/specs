@@ -360,9 +360,11 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <para>The target interface allows configuration for devices that support recording to external storage targets. 
           For authentication configuration see the related storage configuration APIs of the core specification.
         </para>
-        <para>The target API allows to configuration for each recording to define a path on the storage device where the related recordings should be stored. 
-          In order to keep reasonably sized files the recordings are split into snippets. This specification defines a date and time based index. 
-          Indexing according to events and video content is outside of the scope of this specification.</para>
+        <para>The target API defines for each recording a path on the storage device where
+          the related recordings should be stored. In order to keep reasonably sized files the
+          recordings are split into snippets. This specification defines a date and time based
+          index. Indexing according to events and video content is outside of the scope of this
+          specification.</para>
         <para>An encryption configuration interface allows to encrypt the content according to well defined standards.</para>
       </section>
     </section>
@@ -414,15 +416,16 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           </varlistentry>
           <varlistentry>
             <term>Format</term>
-            <listitem><para>Format of the recording. Examples are mp4 and CMAF.</para></listitem>
+            <listitem><para>Format of the recording. Examples are mp4 and DASH.</para></listitem>
           </varlistentry>
           <varlistentry>
             <term>Prefix</term>
             <listitem><para>Path prefix to be appended to the base URL.</para></listitem>
           </varlistentry>
           <varlistentry>
-            <term>FragmentDuration</term>
-            <listitem><para>Duration of each fragment. The actual duration is allowed to slighlty adjust to gop boundaries.</para></listitem>
+            <term>SnippetDuration</term>
+            <listitem><para>Maximum duration of a snippet. The actual duration may differ slighlty to adjust to gop
+                boundaries.</para></listitem>
           </varlistentry>
           <varlistentry>
             <term>Encryption</term>
@@ -1445,6 +1448,10 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           <term>SupportedTargetFormats</term>
           <listitem><para>List of formats supported by the device for recording to an external target. See tt:RecordingFormat for a list of definitions.</para></listitem>
         </varlistentry>
+        <varlistentry>
+          <term>TargetEncryption</term>
+          <listitem><para>Indicates supported encryption modes.</para></listitem>
+        </varlistentry>
       </variablelist>
     </section>
     <section>
@@ -1672,23 +1679,64 @@ SetRecordingJobMode(JobToken, Active)
     <section>
       <title>Overview</title>
       <para>This annex describes the ONVIF recording requirements for recording to blob storage.</para>
+      <para>A recording consists of one or more continuous spans. Each span consists of one or more
+        snippets. The size of the snippets depends on the constraints of the underlying storage
+        architecture and the configure snippet duration. Each snippet contains  fragements with
+        media data according to ISO/IEC 14496-12.</para>
+      <para>In order to ease detection of gaps of a recording the extension of the first snippet of
+        a span differs from continuation snippets. A continuation snippet shall by definition have
+        the same presentation time as the end of the previous snippet.</para>
     </section>
     <section>
       <title>Format mp4</title>
-      <para>A device that signals support for recording mp4 files via its recording capabilities
-        shall write mp4 files conforming to ISO/IEC 14496-14.</para>
-      <para>Each file path shall be composed from the configured target prefix followed by a slash
-        and the utc date and time according to ISO 8601. The suffix of the file shall use '.mp4'.
-        The file shall contain one or more tracks for video, audio and metadata.</para>
-      <para>The duration of the file shall be stored as ...</para>
-      <para>A device may store supplemental information at a similar location as long as the extension differs from '.mp4'.</para>
-      <para>Path example: 'http://example.com/myRecordings/myFirstCamera/Line1/2022-01-30T08:01:15z.mp4'</para>
+      <para>A recorder that signals support for recording mp4 files via its recording capabilities
+        shall write snippets as mp4 files conforming to ISO/IEC 14496-14. Each snippet shall contain
+        one or more tracks for video, audio and metadata. </para>
+      <para>In order to support quick navigation as well as estimation of snippet duration all
+        snippets of a recording shall use the same time scale. Each snippet shall contain a movie
+        fragment random access box as last box. In order to speed up random playback the first movie
+        header shall not reference any media samples. </para>
+      <para>A recorder should place the fragment header of the last fragment immediately before the
+        movie fragment random access header such that a client can read its content together with
+        the movie fragment random access header.</para>
+      <para>The path of each file shall be composed from the configured target prefix followed by a
+        slash and the utc date and time of the acquisition time of its first frame encoded according
+        to ISO 8601 optionally followed by a suffice and a mandatory extension. The extension of the
+        first snippet of a span shall use '.mp4'. Any continuation snippets shall use the extension
+        <?oxy_comment_start author="hbusch" timestamp="20220929T062706+0200" comment="To be aligned"?>'.x.mp4'<?oxy_comment_end?>.</para>
+      <para>A device may store supplemental information at a similar location as long as the
+        extension differs from '.mp4'.</para>
+      <para>Path example:
+        'http://example.com/myRecordings/myFirstCamera/Line1/2022-01-30T08:01:15z.mp4'</para>
+      <para>Note that a client can determine the end of a snippet by reading its last bytes and
+        analyzing the fragment random access header. The end can be either estimated from adding the
+        observed GOP interval to the last sync point or exactly by evaluating the last fragment
+        header.</para>
     </section>
     <section>
       <title>Encryption</title>
       <para>A device signaling support for recording to an external target with ecryption shall 
         support writing encrypted files according to ISO/IEC 23001-7. The device shall
         create an individual initialization vector for each file.
+      </para>
+      <para>
+        <variablelist>
+          <varlistentry>
+            <term>cenc</term>
+            <listitem>
+              <para>Basic symmetric payload encryption as specified in ISO/IEC 23001-7 with off-band
+                key transmission.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><?oxy_comment_start author="hbusch" timestamp="20220929T071826+0200" comment="Does ONVIF want to define this?"?>asym</term>
+            <?oxy_comment_end?>
+            <listitem>
+              <para>One or more assymetrically encrypted keys are provided within the mp4 file. The
+                client is expected to have the required private key to decrypt the content.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
       </para>
     </section>
   </appendix>
