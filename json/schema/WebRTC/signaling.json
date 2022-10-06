@@ -1,0 +1,1297 @@
+{
+  "asyncapi": "2.5.0",
+  "id": "urn:onvif:org:webrtc:signaling:server",
+  "defaultContentType": "application/json",
+  "info": {
+    "title": "WebRTC Signaling API",
+    "version": "1.0.0",
+    "contact": {
+      "name": "ONVIF",
+      "url": "https://onvif.org"
+    },
+    "description": "The Signaling API is provided by a **Signaling Server** to allow a **Client** to establish a peer-to-peer WebRTC connection with a **Device**.",
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0"
+    }
+  },
+  "servers": {
+    "example": {
+      "url": "signaling.example.com",
+      "protocol": "wss",
+      "description": "Example signaling server.",
+      "variables": {
+        "authorization": {
+          "description": "A valid access token that the server will accept.",
+          "examples": [
+            "Bearer%207d0a23119ad9a99fdf81e7af66b8226f"
+          ]
+        }
+      },
+      "security": [
+        {
+          "httpApiKey": []
+        }
+      ]
+    }
+  },
+  "channels": {
+    "client": {
+      "publish": {
+        "message": {
+          "oneOf": [
+            {
+              "$ref": "#/components/messages/initSession"
+            },
+            {
+              "$ref": "#/components/messages/setSdpOfferAck"
+            },
+            {
+              "$ref": "#/components/messages/setSdpAnswer"
+            },
+            {
+              "$ref": "#/components/messages/addIceCandidateFromClient"
+            },
+            {
+              "$ref": "#/components/messages/addIceCandidateFromDeviceAck"
+            },
+            {
+              "$ref": "#/components/messages/errorFromClient"
+            }
+          ]
+        }
+      },
+      "subscribe": {
+        "message": {
+          "oneOf": [
+            {
+              "$ref": "#/components/messages/hello"
+            },
+            {
+              "$ref": "#/components/messages/initSessionResponse"
+            },
+            {
+              "$ref": "#/components/messages/initSessionAck"
+            },
+            {
+              "$ref": "#/components/messages/setSdpOffer"
+            },
+            {
+              "$ref": "#/components/messages/setSdpAnswerAck"
+            },
+            {
+              "$ref": "#/components/messages/addIceCandidateFromDevice"
+            },
+            {
+              "$ref": "#/components/messages/addIceCandidateFromClientAck"
+            },
+            {
+              "$ref": "#/components/messages/errorFromDevice"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "components": {
+    "messages": {
+      "hello": {
+        "description": "This message is sent to the client from the signaling server after the client successfully connects.",
+        "payload": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "hello"
+            },
+            "id": {
+              "type": "string",
+              "examples": [
+                "43456f0f-c67d-4834-8839-e121c981a58f"
+              ],
+              "description": "The client's assigned signaling id. Note that this id is not directly used in the Signaling Protocol."
+            }
+          },
+          "required": [
+            "type",
+            "id"
+          ]
+        }
+      },
+      "initSession": {
+        "description": "This message is sent from the client to the signaling server to request a new WebRTC session to a device. The requested properties of the session are passed in the `params` property in the payload.",
+        "correlationId": {
+          "location": "$message.header#/correlationId"
+        },
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/initSessionType"
+          },
+          {
+            "$ref": "#/components/messageTraits/accessHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/correlationHeader"
+          }
+        ],
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/commonPayload"
+            },
+            {
+              "$ref": "#/components/schemas/requestType"
+            },
+            {
+              "$ref": "#/components/schemas/requestPayload"
+            },
+            {
+              "$ref": "#/components/schemas/initSessionMethod"
+            },
+            {
+              "$ref": "#/components/schemas/initSessionParams"
+            }
+          ]
+        }
+      },
+      "initSessionResponse": {
+        "description": "This message is sent from the signaling server to the client in response to an initSession request. It echoes back the initSession message but adds details for the STUN and TURN servers that can be used. The payload contains the exact same data that was sent in the request message.",
+        "correlationId": {
+          "location": "$message.header#/correlationId"
+        },
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/initSessionType"
+          },
+          {
+            "$ref": "#/components/messageTraits/correlationHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/serverHeader"
+          }
+        ],
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/commonPayload"
+            },
+            {
+              "$ref": "#/components/schemas/requestType"
+            },
+            {
+              "$ref": "#/components/schemas/requestPayload"
+            },
+            {
+              "$ref": "#/components/schemas/initSessionMethod"
+            },
+            {
+              "$ref": "#/components/schemas/initSessionParams"
+            }
+          ]
+        }
+      },
+      "initSessionAck": {
+        "description": "The device sends this message as an acknowledgement that it has received an initSession message.",
+        "correlationId": {
+          "location": "$message.payload#/context"
+        },
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/signalingType"
+          }
+        ],
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/commonPayload"
+            },
+            {
+              "$ref": "#/components/schemas/responseType"
+            },
+            {
+              "$ref": "#/components/schemas/requestPayload"
+            },
+            {
+              "$ref": "#/components/schemas/initSessionMethod"
+            },
+            {
+              "$ref": "#/components/schemas/ackPayload"
+            }
+          ]
+        },
+        "examples": [
+          {
+            "summary": "Example acknowledgement after successful validation.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "response",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "initSession",
+              "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
+              "id": "6582ff03-1280-4254-9dbb-7c8a8f455d1f",
+              "data": {}
+            }
+          },
+          {
+            "summary": "Example error response.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "response",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "initSession",
+              "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
+              "id": "6582ff03-1280-4254-9dbb-7c8a8f455d1f",
+              "error": {
+                "code": 2103,
+                "message": "Required parameter(s) missing: 'sessionId'"
+              }
+            }
+          }
+        ]
+      },
+      "setSdpOffer": {
+        "description": "This message is an SDP offer sent from the device to the client as a result of an initSession being sent from the client.",
+        "correlationId": {
+          "location": "$message.payload#/context"
+        },
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/signalingType"
+          }        ],
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/commonPayload"
+            },
+            {
+              "$ref": "#/components/schemas/requestType"
+            },
+            {
+              "$ref": "#/components/schemas/requestPayload"
+            },
+            {
+              "$ref": "#/components/schemas/setSdpOfferMethod"
+            },
+            {
+              "$ref": "#/components/schemas/sdpParams"
+            },
+            {
+              "$ref": "#/components/schemas/sdpOfferType"
+            }
+          ]
+        },
+        "examples": [
+          {
+            "summary": "Example SDP offer from device.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "request",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "setSdpOffer",
+              "params": {
+                "type": "offer",
+                "sdp": "v=0\r\no=- 4144271901200024193 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=ice-options:trickle\r\na=group:BUNDLE video0 application1\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\nc=IN IP4 0.0.0.0\r\na=setup:actpass\r\na=ice-ufrag:X08YNy5mcX4oUhnmnm4yeVIKyoEUuMRG\r\na=ice-pwd:efI9F/ytKd6Cxm5oXfx+UMbwzylszW+A\r\na=rtcp-mux\r\na=rtcp-rsize\r\na=sendrecv\r\na=rtpmap:96 H264/90000\r\na=rtcp-fb:96 nack pli\r\na=rtcp-fb:96 transport-cc\r\na=framerate:15\r\na=fmtp:96 packetization-mode=1;sprop-parameter-sets=Z00AKeKQFAe03AQEBpQANu6ABm/zADxIioA=,aO48gA==;profile-level-id=42E01F;level-asymmetry-allowed=1\r\na=ssrc:443350527 msid:user2673023031@host-7e1818cd webrtctransceiver1\r\na=ssrc:443350527 cname:user2673023031@host-7e1818cd\r\na=mid:video0\r\na=fingerprint:sha-256 22:DA:40:B4:2E:DD:A4:82:54:16:FC:ED:CE:96:DF:66:AA:21:5C:55:BA:CF:DE:B9:D1:50:16:58:99:47:2E:96\r\na=rtcp-mux-only\r\nm=application 0 UDP/DTLS/SCTP webrtc-datachannel\r\nc=IN IP4 0.0.0.0\r\na=setup:actpass\r\na=ice-ufrag:X08YNy5mcX5oUhnmnm4yeVIKyoEUuMRG\r\na=ice-pwd:efI9F/ytKd6Cxm5oXfx+UMbwzylszW+A\r\na=bundle-only\r\na=mid:application1\r\na=sctp-port:5000\r\na=fingerprint:sha-256 22:DA:40:B4:2E:DD:A4:81:53:16:FC:ED:CE:96:DF:66:BB:21:5C:55:BA:CF:DE:B9:D1:50:16:58:99:47:2E:96\r\n"
+              }
+            }
+          }
+        ]
+      },
+      "setSdpOfferAck": {
+        "description": "This message indicates that the client has successfully validated the setSdpOffer request.",
+        "correlationId": {
+          "location": "$message.payload#/context"
+        },
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/signalingType"
+          },
+          {
+            "$ref": "#/components/messageTraits/accessHeader"
+          }
+        ],
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/commonPayload"
+            },
+            {
+              "$ref": "#/components/schemas/responseType"
+            },
+            {
+              "$ref": "#/components/schemas/requestPayload"
+            },
+            {
+              "$ref": "#/components/schemas/setSdpOfferMethod"
+            },
+            {
+              "$ref": "#/components/schemas/ackPayload"
+            }
+          ]
+        },
+        "examples": [
+          {
+            "summary": "Example acknowledgement after successful validation.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "response",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "setSdpOffer",
+              "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
+              "id": "6582ff03-1280-4254-9dbb-7c8a8f455d1f",
+              "data": {}
+            }
+          },
+          {
+            "summary": "Example error response.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "response",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "setSdpOffer",
+              "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
+              "id": "6582ff03-1280-4254-9dbb-7c8a8f455d1f",
+              "error": {
+                "code": 2103,
+                "message": "Required parameter(s) missing: 'sdp'"
+              }
+            }
+          }
+        ]
+      },
+      "setSdpAnswer": {
+        "description": "This message contains the SDP answer from the client to the device.",
+        "correlationId": {
+          "location": "$message.header#/correlationId"
+        },
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/signalingType"
+          },
+          {
+            "$ref": "#/components/messageTraits/accessHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/correlationHeader"
+          }
+        ],
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/commonPayload"
+            },
+            {
+              "$ref": "#/components/schemas/requestType"
+            },
+            {
+              "$ref": "#/components/schemas/requestPayload"
+            },
+            {
+              "$ref": "#/components/schemas/setSdpAnswerMethod"
+            },
+            {
+              "$ref": "#/components/schemas/sdpParams"
+            },
+            {
+              "$ref": "#/components/schemas/sdpAnswerType"
+            }
+          ]
+        },
+        "examples": [
+          {
+            "summary": "Example SDP answer from client.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "request",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "setSdpAnswer",
+              "params": {
+                "type": "answer",
+                "sdp": "v=0\r\no=- 4144171901200124193 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=ice-options:trickle\r\na=group:BUNDLE video0 application1\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:NiCxpTfr/ySAto/HpTLF8eFuICk5WV7f\r\na=ice-pwd:IT8TJ69y0S5UBty5ZaZH+5f9sSLSeox6\r\na=rtcp-mux\r\na=mid:video0\r\na=setup:active\r\na=rtpmap:96 H264/90000\r\na=rtcp-fb:96 nack pli\r\na=rtcp-fb:96 transport-cc\r\na=fmtp:96 packetization-mode=1;sprop-parameter-sets=Z00AKeKQFAe03AQEBpQANu6ABm/zADxIioA=,aO48gA==;level-asymmetry-allowed=1\r\na=recvonly\r\na=fingerprint:sha-256 58:2E:F8:22:AE:5D:3A:11:B4:86:3B:36:A8:3A:D4:59:E3:1B:D9:46:75:E5:90:0E:F4:BB:7A:41:D5:A7:F8:36\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:NiCxpTfr/ySAto/HpTLF8eFuICk5WV7f\r\na=ice-pwd:IT8TJ69y0S5UBty5ZaZH+5f9sSLSeox6\r\na=mid:application1\r\na=setup:active\r\na=sctp-port:5000\r\na=fingerprint:sha-256 58:2E:F8:22:AE:5D:3A:11:B4:86:3B:27:A8:3A:D4:59:E3:1B:D0:46:75:E5:90:0E:F4:BB:7A:41:D5:A7:F8:36\r\n"
+              }
+            }
+          }
+        ]
+      },
+      "setSdpAnswerAck": {
+        "description": "This message indicates that the device has successfully validated the setSdpAnswer request.",
+        "correlationId": {
+          "location": "$message.payload#/context"
+        },
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/signalingType"
+          }
+        ],
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/commonPayload"
+            },
+            {
+              "$ref": "#/components/schemas/responseType"
+            },
+            {
+              "$ref": "#/components/schemas/requestPayload"
+            },
+            {
+              "$ref": "#/components/schemas/setSdpAnswerMethod"
+            },
+            {
+              "$ref": "#/components/schemas/ackPayload"
+            }
+          ]
+        },
+        "examples": [
+          {
+            "summary": "Example acknowledgement after successful validation.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "response",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "setSdpAnswer",
+              "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
+              "id": "6582ff03-1280-4254-9dbb-7c8a8f455d1f",
+              "data": {}
+            }
+          },
+          {
+            "summary": "Example error response.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "response",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "setSdpAnswer",
+              "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
+              "id": "6582ff03-1280-4254-9dbb-7c8a8f455d1f",
+              "error": {
+                "code": 2103,
+                "message": "Required parameter(s) missing: 'sdp'"
+              }
+            }
+          }
+        ]
+      },
+      "addIceCandidateFromClient": {
+        "description": "This message requests the device to add a remote ICE candidate originating from the client.",
+        "correlationId": {
+          "location": "$message.header#/context"
+        },
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/signalingType"
+          },
+          {
+            "$ref": "#/components/messageTraits/accessHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/correlationHeader"
+          }
+        ],
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/commonPayload"
+            },
+            {
+              "$ref": "#/components/schemas/requestType"
+            },
+            {
+              "$ref": "#/components/schemas/requestPayload"
+            },
+            {
+              "$ref": "#/components/schemas/addIceCandidateMethod"
+            },
+            {
+              "$ref": "#/components/schemas/iceCandidateParams"
+            }
+          ]
+        },
+        "examples": [
+          {
+            "summary": "Example request from client to an add ICE candidate to device.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "request",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "addIceCandidate",
+              "context": "24932371-b5e5-4448-a8f9-29626c042151",
+              "params": {
+                "candidate": "candidate:1 1 UDP 2015363327 172.16.0.15 60022 typ host",
+                "sdpMLineIndex": 0,
+                "sdpMid": "video0"
+              }
+            }
+          }
+        ]
+      },
+      "addIceCandidateFromClientAck": {
+        "description": "This message acknowledges that the device has successfully validated ICE candidate from the client.",
+        "correlationId": {
+          "location": "$message.payload#/context"
+        },
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/signalingType"
+          }
+        ],
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/commonPayload"
+            },
+            {
+              "$ref": "#/components/schemas/responseType"
+            },
+            {
+              "$ref": "#/components/schemas/requestPayload"
+            },
+            {
+              "$ref": "#/components/schemas/addIceCandidateMethod"
+            },
+            {
+              "$ref": "#/components/schemas/ackPayload"
+            }
+          ]
+        },
+        "examples": [
+          {
+            "summary": "Example acknowledgement after successful validation.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "response",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "addIceCandidate",
+              "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
+              "id": "6582ff03-1280-4254-9dbb-7c8a8f455d1f",
+              "data": {}
+            }
+          },
+          {
+            "summary": "Example error response.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "response",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "addIceCandidate",
+              "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
+              "id": "6582ff03-1280-4254-9dbb-7c8a8f455d1f",
+              "error": {
+                "code": 2103,
+                "message": "Required parameter(s) missing: 'candidate'"
+              }
+            }
+          }
+        ]
+      },
+      "addIceCandidateFromDevice": {
+        "description": "This message requests the device to add a remote ICE candidate originating from the client.",
+        "correlationId": {
+          "location": "$message.header#/context"
+        },
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/signalingType"
+          }
+        ],
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/commonPayload"
+            },
+            {
+              "$ref": "#/components/schemas/requestType"
+            },
+            {
+              "$ref": "#/components/schemas/requestPayload"
+            },
+            {
+              "$ref": "#/components/schemas/addIceCandidateMethod"
+            },
+            {
+              "$ref": "#/components/schemas/iceCandidateParams"
+            }
+          ]
+        },
+        "examples": [
+          {
+            "summary": "Example request from device to an add ICE candidate to client.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "request",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "addIceCandidate",
+              "context": "3115ef0d-ee01-4ec3-8939-f4bac1e7336a",
+              "params": {
+                "candidate": "candidate:3 1 TCP 1010827519 192.168.101.141 39093 typ host tcptype passive",
+                "sdpMLineIndex": 0,
+                "sdpMid": "video0"
+              }
+            }
+          }
+        ]
+      },
+      "addIceCandidateFromDeviceAck": {
+        "description": "This message acknowledges that the client has successfully validated ICE candidate from the device.",
+        "correlationId": {
+          "location": "$message.payload#/context"
+        },
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/signalingType"
+          },
+          {
+            "$ref": "#/components/messageTraits/accessHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/correlationHeader"
+          }
+        ],
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/commonPayload"
+            },
+            {
+              "$ref": "#/components/schemas/responseType"
+            },
+            {
+              "$ref": "#/components/schemas/requestPayload"
+            },
+            {
+              "$ref": "#/components/schemas/addIceCandidateMethod"
+            },
+            {
+              "$ref": "#/components/schemas/ackPayload"
+            }
+          ]
+        },
+        "examples": [
+          {
+            "summary": "Example acknowledgement after successful validation.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "response",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "addIceCandidate",
+              "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
+              "id": "6582ff03-1280-4254-9dbb-7c8a8f455d1f",
+              "data": {}
+            }
+          },
+          {
+            "summary": "Example error response.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "response",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "method": "addIceCandidate",
+              "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
+              "id": "6582ff03-1280-4254-9dbb-7c8a8f455d1f",
+              "error": {
+                "code": 2103,
+                "message": "Required parameter(s) missing: 'candidate'"
+              }
+            }
+          }
+        ]
+      },
+      "errorFromDevice": {
+        "description": "This message notifies the receiver of a error that occurred outside of the normal signaling flow.",
+        "correlationId": {
+          "location": "$message.header#/correlationId"
+        },
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/signalingType"
+          },
+          {
+            "$ref": "#/components/messageTraits/correlationHeader"
+          }
+        ],
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/commonPayload"
+            },
+            {
+              "$ref": "#/components/schemas/eventType"
+            },
+            {
+              "$ref": "#/components/schemas/error"
+            }
+          ]
+        },
+        "examples": [
+          {
+            "summary": "Example run-time error.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "event",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "error": {
+                "code": 1100,
+                "message": "Media streaming failed",
+                "details": {
+                  "comment": "Media streaming failure for audio track."
+                }
+              }
+            }
+          }
+        ]
+      },
+      "errorFromClient": {
+        "description": "This message notifies the receiver of a error that occurred outside of the normal signaling flow.",
+        "correlationId": {
+          "location": "$message.header#/correlationId"
+        },
+        "traits": [
+          {
+            "$ref": "#/components/messageTraits/commonHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/signalingType"
+          },
+          {
+            "$ref": "#/components/messageTraits/accessHeader"
+          },
+          {
+            "$ref": "#/components/messageTraits/correlationHeader"
+          }
+        ],
+        "payload": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/commonPayload"
+            },
+            {
+              "$ref": "#/components/schemas/eventType"
+            },
+            {
+              "$ref": "#/components/schemas/error"
+            }
+          ]
+        },
+        "examples": [
+          {
+            "summary": "Example run-time error.",
+            "payload": {
+              "apiVersion": "1.0",
+              "type": "event",
+              "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
+              "error": {
+                "code": 1100,
+                "message": "Media streaming failed",
+                "details": {
+                  "comment": "Media streaming failure for audio track."
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "schemas": {
+      "commonPayload": {
+        "type": "object",
+        "properties": {
+          "apiVersion": {
+            "type": "string",
+            "const": "1.0",
+            "pattern": "^[0-9]+\\.[0-9]+$",
+            "description": "The API version that should be used in the request."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "request",
+              "response",
+              "event"
+            ],
+            "description": "Specifies whether this message is a request or response."
+          },
+          "sessionId": {
+            "type": "string",
+            "examples": [
+              "948dd272-f56b-416f-b349-fa1e88578b7c"
+            ],
+            "description": "An identifier chosen by the client that should be used for all subsequent messages belonging to this session to and from the device."
+          }
+        },
+        "required": [
+          "apiVersion",
+          "sessionId"
+        ]
+      },
+      "requestPayload": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "enum": [
+              "initSession",
+              "setSdpOffer",
+              "setSdpAnswer",
+              "addIceCandidate"
+            ],
+            "description": "Specifies which request method this message concerns."
+          },
+          "context": {
+            "type": "string",
+            "examples": [
+              "ee4b07f4-1890-41db-b368-66b246c54fb3"
+            ],
+            "description": "An optional identifier chosen by the requestor that can be used to correlate the response from the receiver with the request. Echoed back in the response."
+          }
+        },
+        "required": [
+          "method"
+        ]
+      },
+      "requestType": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "request"
+          }
+        }
+      },
+      "responseType": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "response"
+          },
+          "id": {
+            "type": "string",
+            "examples": [
+              "6582ff03-1280-4254-9dbb-7c8a8f455d1f"
+            ],
+            "description": "A string chosen by the responder that may be used for debugging purposes. Better example???"
+          }
+        }
+      },
+      "eventType": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "event"
+          }
+        }
+      },
+      "initSessionMethod": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "const": "initSession"
+          }
+        }
+      },
+      "setSdpOfferMethod": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "const": "setSdpOffer"
+          }
+        }
+      },
+      "setSdpAnswerMethod": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "const": "setSdpAnswer"
+          }
+        }
+      },
+      "addIceCandidateMethod": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "const": "addIceCandidate"
+          }
+        }
+      },
+      "initSessionParams": {
+        "type": "object",
+        "properties": {
+          "params": {
+            "type": "object",
+            "description": "The requested session configuration.",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "live",
+                  "playback",
+                  "data"
+                ],
+                "const": "live",
+                "description": "Specifies the type of session to start."
+              },
+              "profile": {
+                "type": "string",
+                "examples": [
+                  "default-h264"
+                ],
+                "description": "The media profile to use for this session. If none is specified the device will choose a default profile."
+              }
+            },
+            "required": [
+              "type"
+            ]
+          }
+        },
+        "required": [
+          "params"
+        ]
+      },
+      "sdpParams": {
+        "type": "object",
+        "properties": {
+          "params": {
+            "type": "object",
+            "description": "Parameters for the request including SDP record. The parameters match the contents of the [`RTCSessionDescription` interface](https://w3c.github.io/webrtc-pc/#dom-rtcsessiondescription) to make it easy to pass it on to a parser.",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "offer",
+                  "answer"
+                ],
+                "description": "Specifies if whether this is an offer or answer."
+              },
+              "sdp": {
+                "type": "string",
+                "examples": [
+                  "v=0\r\no=- 4144271901200024193 0 IN IP4 0.0.0.0 ..."
+                ],
+                "description": "SDP record as described in [RFC8829](https://datatracker.ietf.org/doc/html/rfc8829)."
+              }
+            },
+            "required": [
+              "type",
+              "sdp"
+            ]
+          }
+        },
+        "required": [
+          "params"
+        ]
+      },
+      "sdpOfferType": {
+        "type": "object",
+        "properties": {
+          "params": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "offer"
+              }
+            }
+          }
+        }
+      },
+      "sdpAnswerType": {
+        "type": "object",
+        "properties": {
+          "params": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "answer"
+              }
+            }
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "description": "The presence of an error object indicates a failed validation",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "examples": [
+                        2103
+                    ],
+                    "description": "A numeric error code intended for machine interpretation."
+                },
+                "message": {
+                    "type": "string",
+                    "examples": [
+                        "Required parameter(s) missing: 'sessionId'"
+                    ],
+                    "description": "A descriptive error message intended for human interpretation."
+                },
+                "details": {
+                    "type": "object",
+                    "examples": [
+                      {
+                        "func:": "validate-session"
+                      }
+                    ],
+                    "description": "Optional extra information about the error."
+                }
+            },
+            "required": [
+                "code",
+                "message"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "ackPayload": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "description": "The presence of a data object indicates a successful validation."
+              }
+            },
+            "required": [
+              "data"
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/error"
+          }
+        ]
+      },
+      "iceCandidateParams": {
+        "type": "object",
+        "properties": {
+          "params": {
+            "type": "object",
+            "description": "Parameters for the request. The parameters match the contents of the [`RTCIceCandidate` interface](https://w3c.github.io/webrtc-pc/#dom-rtcicecandidate) to make it easier to pass it on to a parser.",
+            "properties": {
+                "candidate": {
+                    "type": "string",
+                    "description": "An SDP ICE candidate formatted according to [RFC8839, section 5.1](https://datatracker.ietf.org/doc/html/rfc8839#section-5.1)",
+                    "examples": [
+                        "candidate:1 1 UDP 2013266431 fe80::ba4a:5577:8c48:32c6 33388 typ host"
+                    ]
+                },
+                "sdpMLineIndex": {
+                    "type": "integer",
+                    "description": "The `RTCIceCandidate` attribute `sdpMLineIndex` as described in the [WebRTC W3C specification](https://w3c.github.io/webrtc-pc#dom-rtcicecandidate)",
+                    "examples": [
+                        0
+                    ]
+                },
+                "sdpMid": {
+                    "type": "string",
+                    "description": "The `RTCIceCandidate` attribute `sdpMid` as described in the [WebRTC W3C specification](https://w3c.github.io/webrtc-pc#dom-rtcicecandidate)",
+                    "examples": [
+                        "video0"
+                    ]
+                }
+            },
+            "required": [
+                "candidate",
+                "sdpMLineIndex",
+                "sdpMid"
+            ]
+          }
+        }
+      }
+    },
+    "messageTraits": {
+      "commonHeader": {
+        "headers": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "initSession",
+                "signaling",
+                "error"
+              ],
+              "description": "The message type to send."
+            },
+            "deviceId": {
+              "type": "string",
+              "examples": [
+                "3c6a3aee-6267-401b-9908-1ac3bac949ff"
+              ],
+              "description": "The device to which the message is intended."
+            },
+            "orgId": {
+              "type": "string",
+              "examples": [
+                "57e0375e-9b2b-4fa8-92a8-7f6ca7019933"
+              ],
+              "description": "The id of the organization that the device belongs to."
+            }
+          },
+          "required": [
+            "type",
+            "deviceId",
+            "orgId"
+          ]
+        }
+      },
+      "initSessionType": {
+        "headers": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "initSession"
+            }
+          }
+        }
+      },
+      "signalingType": {
+        "headers": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "signaling"
+            }
+          }
+        }
+      },
+      "accessHeader": {
+        "headers": {
+          "type": "object",
+          "properties": {
+            "accessToken": {
+              "type": "string",
+              "description": "Access token for the logged in user.",
+              "examples": [
+                "78767f38-c728-45f7-96d6-d28a95bdd71f"
+              ]
+            }
+          },
+          "required": [
+            "type",
+            "deviceId",
+            "orgId",
+            "accessToken"
+          ]
+        }
+      },
+      "correlationHeader": {
+        "headers": {
+          "type": "object",
+          "properties": {
+            "correlationId": {
+              "type": "string",
+              "description": "An optional identifier chosen by the client that can be used to correlate the response from the signaling server with the request. Echoed back in the signaling server response.",
+              "examples": [
+                "ea5c004d-5d23-4c64-bbce-872a22602197"
+              ]
+            }
+          }
+        }
+      },
+      "serverHeader": {
+        "headers": {
+          "type": "object",
+          "properties": {
+            "turnServers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "urls": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "examples": [
+                      [
+                        "turns:turn.example.com:443?transport=tcp",
+                        "turns:turn.example.com:443?transport=udp"
+                      ]
+                    ]
+                  },
+                  "username": {
+                    "type": "string",
+                    "examples": [
+                      "<username>"
+                    ]
+                  },
+                  "password": {
+                    "type": "string",
+                    "examples": [
+                      "<password>"
+                    ]
+                  }
+                }
+              }
+            },
+            "stunServers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "urls": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "examples": [
+                      [
+                        "stun:turn.example.com:5349"
+                      ]
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "httpApiKey": {
+        "type": "httpApiKey",
+        "description": "Provide your access token in the query parameter 'authorization'. The token must be prepended with \"Bearer%20\".",
+        "name": "authorization",
+        "in": "query"
+      }
+    }
+  }
+}
