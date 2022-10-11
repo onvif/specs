@@ -177,8 +177,8 @@ Change Request 2061, 2063, 2065, 2109</revremark>
       <title>Definitions</title>
       <informaltable>
         <tgroup cols="2">
-          <colspec colname="c1" colwidth="24*" />
-          <colspec colname="c2" colwidth="76*" />
+          <colspec colname="c1" colwidth="24*"/>
+          <colspec colname="c2" colwidth="76*"/>
           <tbody valign="top">
             <row>
               <entry align="left">
@@ -423,9 +423,11 @@ Change Request 2061, 2063, 2065, 2109</revremark>
             <listitem><para>Path prefix to be appended to the base URL.</para></listitem>
           </varlistentry>
           <varlistentry>
-            <term>SnippetDuration</term>
-            <listitem><para>Maximum duration of a snippet. The actual duration may differ slighlty to adjust to gop
-                boundaries.</para></listitem>
+            <term>SegmentDuration</term>
+            <listitem>
+              <para>Maximum duration of a segment. The actual duration may differ slighlty to adjust
+                to gop boundaries.</para>
+            </listitem>
           </varlistentry>
           <varlistentry>
             <term>Encryption</term>
@@ -1675,25 +1677,26 @@ SetRecordingJobMode(JobToken, Active)
     </variablelist>
   </appendix>
   <appendix xml:id="_refBlobFormat">
-    <title>Blob recording format (Normative)</title>
+    <title>Object storage recording format (Normative)</title>
     <section>
       <title>Overview</title>
-      <para>This annex describes the ONVIF recording requirements for recording to blob storage.</para>
+      <para>This annex describes the ONVIF recording requirements for recording to object
+        storage.</para>
       <para>A recording consists of one or more continuous spans. Each span consists of one or more
-        snippets. The size of the snippets depends on the constraints of the underlying storage
-        architecture and the configure snippet duration. Each snippet contains  fragements with
+        segments. The size of the segments depends on the constraints of the underlying storage
+        architecture and the configured segment duration. Each segment contains fragements with
         media data according to ISO/IEC 14496-12.</para>
-      <para>In order to ease detection of gaps of a recording the extension of the first snippet of
-        a span differs from continuation snippets. A continuation snippet shall by definition have
-        the same presentation time as the end of the previous snippet.</para>
+      <para>In order to ease detection of gaps of a recording the extension of the first segment of
+        a span differs from continuation segments. A continuation segment shall by definition have
+        the same presentation time as the end of the previous segment.</para>
     </section>
     <section>
       <title>Format mp4</title>
       <para>A recorder that signals support for recording mp4 files via its recording capabilities
-        shall write snippets as mp4 files conforming to ISO/IEC 14496-14. Each snippet shall contain
+        shall write segments as mp4 files conforming to ISO/IEC 14496-14. Each segment shall contain
         one or more tracks for video, audio and metadata. </para>
-      <para>In order to support quick navigation as well as estimation of snippet duration all
-        snippets of a recording shall use the same time scale. Each snippet shall contain a movie
+      <para>In order to support quick navigation as well as estimation of segment duration all
+        segments of a recording shall use the same time scale. Each segment shall contain a movie
         fragment random access box as last box. In order to speed up random playback the first movie
         header shall not reference any media samples. </para>
       <para>A recorder should place the fragment header of the last fragment immediately before the
@@ -1702,23 +1705,22 @@ SetRecordingJobMode(JobToken, Active)
       <para>The path of each file shall be composed from the configured target prefix followed by a
         slash and the utc date and time of the acquisition time of its first frame encoded according
         to ISO 8601 optionally followed by a suffice and a mandatory extension. The extension of the
-        first snippet of a span shall use '.mp4'. Any continuation snippets shall use the extension
+        first segment of a span shall use '.mp4'. Any continuation segments shall use the extension
         <?oxy_comment_start author="hbusch" timestamp="20220929T062706+0200" comment="To be aligned"?>'.x.mp4'<?oxy_comment_end?>.</para>
       <para>A device may store supplemental information at a similar location as long as the
         extension differs from '.mp4'.</para>
       <para>Path example:
         'http://example.com/myRecordings/myFirstCamera/Line1/2022-01-30T08:01:15z.mp4'</para>
-      <para>Note that a client can determine the end of a snippet by reading its last bytes and
+      <para>Note that a client can determine the end of a segment by reading its last bytes and
         analyzing the fragment random access header. The end can be either estimated from adding the
         observed GOP interval to the last sync point or exactly by evaluating the last fragment
         header.</para>
     </section>
     <section>
       <title>Encryption</title>
-      <para>A device signaling support for recording to an external target with ecryption shall 
-        support writing encrypted files according to ISO/IEC 23001-7. The device shall
-        create an individual initialization vector for each file.
-      </para>
+      <para>A device signaling support for recording to an external target with encryption shall
+        support writing encrypted files according to ISO/IEC 23001-7. The device shall create an
+        individual initialization vector for each file. </para>
       <para>
         <variablelist>
           <varlistentry>
@@ -1742,6 +1744,6 @@ SetRecordingJobMode(JobToken, Active)
   </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
-    <para />
+    <para/>
   </appendix>
 </book>
