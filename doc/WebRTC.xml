@@ -240,15 +240,7 @@
         <para>Directly after connecting a WebSocket to the server the client typically gets a hello
           message from the server, with the client's assigned signaling id. Note that this ID is not
           directly used in the Signaling Protocol.</para>
-        <para><emphasis role="bold">Client opens a WebSocket connection to server</emphasis></para>
-        <para><emphasis role="bold">Server sends <code>hello</code> to client</emphasis></para>
       </section>
-      <section>
-        <title>Faults</title>
-        <para>For the WebSocket connection see [RFC 6455]. After the WebSocket is successfully
-          connected, the server may send errors using its own <code>error</code> type message. See
-          section <xref linkend="section_myt_v12_v5b"/> for more info on error handling.</para>
-        </section>
     </section>
     <section xml:id="section_byt_v12_v5b">
       <title>Message structure</title>
@@ -329,7 +321,7 @@
         </para>
       </section>
       <section xml:id="section_ozx_512_v5b">
-        <title>Device level keys inside data blocks</title>
+        <title>Device level keys inside payload</title>
         <para>
           <informaltable>
             <tgroup cols="2">
@@ -468,113 +460,20 @@
         offer using an <code>initSession</code> message.</para>
       <section xml:id="section_fyt_v12_v5b">
         <title>initSession</title>
-        <para><emphasis role="bold">Client sends <code>initSession</code> to server</emphasis></para>
         <para>An <code>initSession</code> message is sent from the client to the signaling server to
-          request a new WebRTC session to a device. The requested properties of the session
-          are passed in the params property in the payload. A message of type <code>live</code>
-          should be used to request a live video and/or audio session.</para>
-        <para><emphasis role="bold">Server sends <code>initSessionResponse</code> to client</emphasis></para>
+          request a new WebRTC session to a device. A message of type <code>live</code> should be
+          used to request a live video and/or audio session.</para>
         <para>The server responds with a copy of the <code>initSession</code> message,
           including details for the STUN and TURN servers that can be used.</para>
-        <para><emphasis role="bold">Server sends <code>initSession</code> to device</emphasis></para>
-        <para><emphasis role="bold">Device sends <code>initSessionAck</code> to client, via server</emphasis></para>
         <para>The device acknowledges that it has received an <code>initSession</code>
           message.</para>
-        <section>
-          <title>Faults</title>
-          <para>The following errors can be set in the <code>initSession</code> messages.
-            The server may also send errors using its own <code>error</code> type message.
-            See section <xref linkend="section_myt_v12_v5b"/> for more details on errors.</para>
-        <informaltable>
-          <tgroup cols="2">
-            <colspec colnum="1" colname="col1" colwidth="1*"/>
-            <colspec colnum="2" colname="col2" colwidth="4*"/>
-            <thead>
-              <row>
-                <entry>
-                  <para>Code</para>
-                </entry>
-                <entry>
-                  <para>Description</para>
-                </entry>
-              </row>
-            </thead>
-            <tbody>
-              <row>
-                <entry>
-                  <para>1100</para>
-                </entry>
-                <entry>
-                  <para>Internal error</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>1101</para>
-                </entry>
-                <entry>
-                  <para>Temporarily unavailable</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>2100</para>
-                </entry>
-                <entry>
-                  <para>API version not supported</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>2101</para>
-                </entry>
-                <entry>
-                  <para>Invalid JSON</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>2102</para>
-                </entry>
-                <entry>
-                  <para>Method not supported</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>2103</para>
-                </entry>
-                <entry>
-                  <para>Required parameter missing</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>2104</para>
-                </entry>
-                <entry>
-                  <para>Invalid parameter value specified</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>2105</para>
-                </entry>
-                <entry>
-                  <para>Authorization failed</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>2106</para>
-                </entry>
-                <entry>
-                  <para>Authentication failed</para>
-                </entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </informaltable></section>
+      </section>
+      <section>
+        <title>Faults</title>
+        <para>The following errors can be set in the <code>initSession</code> messages: 1100,
+          1101, 2100, 2101, 2102, 2103, 2104, 2105, 2106. The server may also send errors using
+          its own <code>error</code> type message. See section <xref linkend="section_myt_v12_v5b"/>
+          for more details on errors.</para>
       </section>
     </section>
     <section xml:id="section_gyt_v12_v5b">
@@ -583,341 +482,41 @@
         the next step is to exchange SDP and ICE candidates. The dynamics and the format of the SDP
         and ICE candidate strings are defined in RFC 8829.</para>
       <section xml:id="section_hyt_v12_v5b">
-        <title>SDP offer</title>
-        <para>An SDP offer is always sent from the device to the client. Note that the contents of
-            <code>params</code> map directly to the contents of the
-            <code>RTCSessionDescription</code> interface described in the W3C WebRTC
-          Specification.</para>
-        <para><emphasis role="bold">Device sends <code>setSdpOffer</code> to client, via server</emphasis></para>
-        <para>This message is an SDP offer sent from the device to the client as a result of an <code>initSession</code> being sent from the client.</para>
-        <para><emphasis role="bold">[Optional] Client sends <code>setSdpOfferAck</code> to device, via server</emphasis></para>
+        <title>setSdpOffer</title>
+        <para>A <code>setSdpOffer</code> message is always sent from the device, via server, to the
+          client.</para>
         <para>The client MAY acknowledge the received SDP offer with a response after validating the
-          message. Altough this is not strictly necessary it can be helpful to send these
+          message. Although this is not strictly necessary it can be helpful to send these
           acknowledgements to ease debugging the signaling flow. </para>
-        <section>
-          <title>Faults</title>
-          <para>The following errors can be set in the <code>setSdpOfferAck</code> response message.
-            See section <xref linkend="section_myt_v12_v5b"/> for more details on errors.</para>
-          <informaltable>
-            <tgroup cols="2">
-              <colspec colnum="1" colname="col1" colwidth="1*"/>
-              <colspec colnum="2" colname="col2" colwidth="4*"/>
-              <thead>
-                <row>
-                  <entry>
-                    <para>Code</para>
-                  </entry>
-                  <entry>
-                    <para>Description</para>
-                  </entry>
-                </row>
-              </thead>
-              <tbody>
-                <row>
-                  <entry>
-                    <para>1100</para>
-                  </entry>
-                  <entry>
-                    <para>Internal error</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>1101</para>
-                  </entry>
-                  <entry>
-                    <para>Temporarily unavailable</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2100</para>
-                  </entry>
-                  <entry>
-                    <para>API version not supported</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2101</para>
-                  </entry>
-                  <entry>
-                    <para>Invalid JSON</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2102</para>
-                  </entry>
-                  <entry>
-                    <para>Method not supported</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2103</para>
-                  </entry>
-                  <entry>
-                    <para>Required parameter missing</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2104</para>
-                  </entry>
-                  <entry>
-                    <para>Invalid parameter value specified</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2105</para>
-                  </entry>
-                  <entry>
-                    <para>Authorization failed</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2106</para>
-                  </entry>
-                  <entry>
-                    <para>Authentication failed</para>
-                  </entry>
-                </row>
-              </tbody>
-            </tgroup>
-          </informaltable>
-        </section>
       </section>
       <section xml:id="section_iyt_v12_v5b">
-        <title>SDP answer</title>
-        <para>An SDP answer is always sent from the client to the device. Note that the contents of
-            <code>params</code> map directly to the contents of the
-            <code>RTCSessionDescription</code> interface described in the W3C WebRTC
-          Specification.</para>
-        <para><emphasis role="bold">Client sends <code>setSdpAnswer</code> to device, via server</emphasis></para>
-         <para>This message contains the SDP answer from the client to the device.</para>
-        <para><emphasis role="bold">Device sends <code>setSdpAnswerAck</code> to client, via server</emphasis></para>
-        <para>A device MUST send a response back to the client after validating the message.
-          This message indicates that the device has successfully validated the <code>setSdpAnswer</code> request.</para>
-        <section>
-          <title>Faults</title>
-          <para>The following errors can be set in the <code>setSdpAnswer</code> or <code>setSdpAnswerAck</code> messages.
-            See section <xref linkend="section_myt_v12_v5b"/> for more details on errors.</para>
-          <informaltable>
-            <tgroup cols="2">
-              <colspec colnum="1" colname="col1" colwidth="1*"/>
-              <colspec colnum="2" colname="col2" colwidth="4*"/>
-              <thead>
-                <row>
-                  <entry>
-                    <para>Code</para>
-                  </entry>
-                  <entry>
-                    <para>Description</para>
-                  </entry>
-                </row>
-              </thead>
-              <tbody>
-                <row>
-                  <entry>
-                    <para>1100</para>
-                  </entry>
-                  <entry>
-                    <para>Internal error</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>1101</para>
-                  </entry>
-                  <entry>
-                    <para>Temporarily unavailable</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2100</para>
-                  </entry>
-                  <entry>
-                    <para>API version not supported</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2101</para>
-                  </entry>
-                  <entry>
-                    <para>Invalid JSON</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2102</para>
-                  </entry>
-                  <entry>
-                    <para>Method not supported</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2103</para>
-                  </entry>
-                  <entry>
-                    <para>Required parameter missing</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2104</para>
-                  </entry>
-                  <entry>
-                    <para>Invalid parameter value specified</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2105</para>
-                  </entry>
-                  <entry>
-                    <para>Authorization failed</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>2106</para>
-                  </entry>
-                  <entry>
-                    <para>Authentication failed</para>
-                  </entry>
-                </row>
-              </tbody>
-            </tgroup>
-          </informaltable>
-        </section>
+        <title>setSdpAnswer</title>
+        <para>A <code>setSdpAnswer</code> message is always sent from the client, via server, to the
+          device.</para>
+        <para>A device MUST send a response back to the client (via server) after validating the
+          message. This message indicates that the device has successfully validated the
+            <code>setSdpAnswer</code> request.</para>
       </section>
       <section xml:id="section_jyt_v12_v5b">
-        <title>ICE candidates</title>
-        <para>Both client and device produce ICE candidates and send them to each other (in any order) using an
-            <code>addIceCandidate</code> message.</para>
+        <title>addIceCandidate</title>
+        <para>Both client and device produce ICE candidates and send them to each other, via server,
+          in any order, using an <code>addIceCandidate</code> message.</para>
         <para>
           <note>
-            <para>Note that ICE candidates can arrive BEFORE the SDP offer and the implementing client
-              needs to handle this.</para>
+            <para>Note that ICE candidates can arrive BEFORE the SDP offer and the implementing
+              client needs to handle this.</para>
           </note>
         </para>
-        <para>Note that the contents of <code>params</code> map directly to the contents of the
-            <code>RTCIceCandidate</code> interface described in the W3C WebRTC Specification.</para>
-        <section xml:id="section_kyt_v12_v5b">
-          <title>addIceCandidate</title>
-          <para><emphasis role="bold">Device sends <code>addIceCandidateFromDevice</code> to client, via server</emphasis></para>
-          <para>This message requests the client to add a remote ICE candidate originating from the device.</para>
-          <para><emphasis role="bold">Client sends <code>addIceCandidateFromDeviceAck</code> to device, via server</emphasis></para>
-          <para>This message acknowledges that the client has successfully validated ICE candidate from the device.</para>
-          <para><emphasis role="bold">Client sends <code>addIceCandidateFromClient</code> to device, via server</emphasis></para>
-          <para>This message requests the device to add a remote ICE candidate originating from the client.</para>
-          <para><emphasis role="bold">Device sends <code>addIceCandidateFromClientAck</code> to client, via server</emphasis></para>
-          <para>This message acknowledges that the device has successfully validated ICE candidate from the client.</para>
-          <para><?oxy_comment_start author="FredrikS" timestamp="20220920T182321+0200" comment="Client can terminate the WebSocket connection after P2P is established? RTCP is used as keep-alive"?>If
-            everything works as it should, a peer-to-peer WebRTC session can be set up between
-            client and device using the above messages.<?oxy_comment_end?></para>
-          <section>
-            <title>Faults</title>
-            <para>The following errors can be set in the <code>addIceCandidateFromDeviceAck</code>
-              or the <code>addIceCandidateFromClientAck</code> messages.
-              See section <xref linkend="section_myt_v12_v5b"/> for more details on errors.</para>
-            <informaltable>
-              <tgroup cols="2">
-                <colspec colnum="1" colname="col1" colwidth="1*"/>
-                <colspec colnum="2" colname="col2" colwidth="4*"/>
-                <thead>
-                  <row>
-                    <entry>
-                      <para>Code</para>
-                    </entry>
-                    <entry>
-                      <para>Description</para>
-                    </entry>
-                  </row>
-                </thead>
-                <tbody>
-                  <row>
-                    <entry>
-                      <para>1100</para>
-                    </entry>
-                    <entry>
-                      <para>Internal error</para>
-                    </entry>
-                  </row>
-                  <row>
-                    <entry>
-                      <para>1101</para>
-                    </entry>
-                    <entry>
-                      <para>Temporarily unavailable</para>
-                    </entry>
-                  </row>
-                  <row>
-                    <entry>
-                      <para>2100</para>
-                    </entry>
-                    <entry>
-                      <para>API version not supported</para>
-                    </entry>
-                  </row>
-                  <row>
-                    <entry>
-                      <para>2101</para>
-                    </entry>
-                    <entry>
-                      <para>Invalid JSON</para>
-                    </entry>
-                  </row>
-                  <row>
-                    <entry>
-                      <para>2102</para>
-                    </entry>
-                    <entry>
-                      <para>Method not supported</para>
-                    </entry>
-                  </row>
-                  <row>
-                    <entry>
-                      <para>2103</para>
-                    </entry>
-                    <entry>
-                      <para>Required parameter missing</para>
-                    </entry>
-                  </row>
-                  <row>
-                    <entry>
-                      <para>2104</para>
-                    </entry>
-                    <entry>
-                      <para>Invalid parameter value specified</para>
-                    </entry>
-                  </row>
-                  <row>
-                    <entry>
-                      <para>2105</para>
-                    </entry>
-                    <entry>
-                      <para>Authorization failed</para>
-                    </entry>
-                  </row>
-                  <row>
-                    <entry>
-                      <para>2106</para>
-                    </entry>
-                    <entry>
-                      <para>Authentication failed</para>
-                    </entry>
-                  </row>
-                </tbody>
-              </tgroup>
-            </informaltable></section>
-        </section>
+        <para><?oxy_comment_start author="FredrikS" timestamp="20220920T182321+0200" comment="Client can terminate the WebSocket connection after P2P is established? RTCP is used as keep-alive"?>If
+          everything works as it should, a peer-to-peer WebRTC session can be set up between client
+          and device<?oxy_comment_end?>.</para>
+      </section>
+        <section>
+        <title>Faults</title>
+        <para>The following errors can be set in the responses to the <code>setSdpOffer</code>,
+            <code>setSdpAnswer</code> or <code>addIceCandidate</code>messages: 1100, 1101, 2100, 2101,
+          2102, 2103, 2104, 2105, 2106. The server may also send errors using its own <code>error</code> type message.
+          See section <xref linkend="section_myt_v12_v5b"/> for more details on errors.</para>
       </section>
     </section>
     <section xml:id="section_myt_v12_v5b">
@@ -926,7 +525,11 @@
         in its corresponding response. However, errors may also occur later during the subsequent
         session setup or after it has been setup and is running. These types of errors are reported
         in an <code>event</code> message. Both 'events' and 'responses' include a numeric error
-        code, and a human-readable message.</para>
+        code, and a human-readable message. When errors are reported by the client or device the
+          <code>error</code> message is encapsulated in a <code>signaling</code> message. The server
+        may itself send errors by using its own <code>error</code> type message.</para>
+    <section xml:id="section_prn_3dj_3vb">
+      <title>Client and device error codes</title>
       <informaltable>
         <tgroup cols="2">
           <colspec colnum="1" colname="col1" colwidth="1*"/>
@@ -1033,110 +636,69 @@
           </tbody>
         </tgroup>
       </informaltable>
-      <para>When errors are reported by the client or device the <code>error</code> message is
-        encapsulated in a <code>signaling</code> message. The server may itself send errors by using
-        its own <code>error</code> type message.</para>
-      <section xml:id="section_nyt_v12_v5b">
-        <title>Device error response</title>
-        <para>Below is an example error response to an <code>initSession</code> request.</para>
-        <para><emphasis role="bold">Sent from device, to client via server:</emphasis></para>
-        <para>
-          <programlisting><code>{
-    "type":"signaling",
-    "targetId":"my_camera",
-    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
-    "data":{
-        "apiVersion": "1.0",
-        "type": "response",
-        "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
-        "method": "initSession",
-        "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
-        "error": {
-            "code": 2103,
-            "message": "Required parameter(s) missing: 'sessionId'"
-        }
-    }
-}</code></programlisting>
-        </para>
-      </section>
-      <section xml:id="section_oyt_v12_v5b">
-        <title>Client error response</title>
-        <para>Below is an example error response to a <code>addIceCandidate</code> request.</para>
-        <para><emphasis role="bold">Sent from client, to device via server:</emphasis></para>
-        <para>
-          <programlisting><code>{
-    "type":"signaling",
-    "targetId":"my_camera",
-    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",    
-    "data":{
-        "apiVersion": "1.0",
-        "type": "response",
-        "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
-        "method": "addIceCandidate",
-        "context": "ee4b07f4-1890-41db-b368-66b246c54fb3",
-        "error": {
-            "code": 2103,
-            "message": "Required parameter(s) missing: 'candidate'"
-        }
-    }
-}</code></programlisting>
-        </para>
-      </section>
-      <section xml:id="section_pyt_v12_v5b">
-        <title>Runtime error</title>
-        <para>Below is an example runtime event error reported by the device.</para>
-        <para><emphasis role="bold">Sent from device, to client via server</emphasis>:</para>
-        <para>
-          <programlisting><code>{
-    "type":"signaling",
-    "targetId":"my_camera",
-    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
-    "data":{
-        "apiVersion": "1.0",
-        "type": "event",
-        "sessionId": "948dd272-f56b-416f-b349-fa1e88578b7c",
-        "error": {
-            "code": 1100,
-            "message": "Media streaming failure",
-            "details": {}
-        }
-    }
-}</code></programlisting>
-        </para>
-      </section>
-      <section xml:id="section_qyt_v12_v5b">
-        <title>Server error response</title>
-        <para>Below is an example response for using an invalid <code>targetID</code> during an
-            <code>initSession</code> request.</para>
-        <para>
-          <note>
-            <para>Note that server errors use different error codes than client and device.</para>
-          </note>
-        </para>
-        <para><emphasis role="bold">Sent from server, to client:</emphasis></para>
-        <programlisting><code>{
-    "type":"error",
-    "targetId":"my_camera",
-    "orgId":"bac02553-eea8-6b52-f369-ac109333091",
-    "correlationId":"bd11c7e1-43ab-408c-b91a-e6c7a026ee3b",
-    "code":"DISCONNECTED",
-    "reason":"Target is not connected"
-}</code></programlisting>
-        <para>Below is another example response to an <code>initSession</code> message with an
-          authorization error.</para>
-        <para><emphasis role="bold">Sent from server, to client:</emphasis></para>
-        <para>
-          <programlisting><code>{
-    "type":"error",
-    "targetId":"my_camera",
-    "orgId":"59bda79d-fb39-0e03-41a2-98f204b35f51",
-    "correlationId":"481d4ece-ebd2-4184-b825-b7f962d8dd0c",
-    "code":"UNAUTHORIZED",
-    "reason":"You are not allowed to access the resource my_camera"
-}</code></programlisting>
-        </para>
-      </section>
     </section>
+      <section xml:id="section_nyt_v12_v5b">
+        <title>Server error codes</title>
+        <informaltable>
+          <tgroup cols="2">
+            <colspec colnum="1" colname="col1" colwidth="1*"/>
+            <colspec colnum="2" colname="col2" colwidth="4*"/>
+            <thead>
+              <row>
+                <entry>
+                  <para>Code</para>
+                </entry>
+                <entry>
+                  <para>Description</para>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry>
+                  <para>DISCONNECTED</para>
+                </entry>
+                <entry>
+                  <para>Client tries to send a message to a targetId that is not available to
+                    receive the mssage</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>SESSION_EXPIRED</para>
+                </entry>
+                <entry>
+                  <para>The access token has expired</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>UNAUTHORIZED</para>
+                </entry>
+                <entry>
+                  <para>Client does not have access to specified target</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>DISABLED</para>
+                </entry>
+                <entry>
+                  <para>Client sends a signal or initSession to a target that has signaling
+                    disabled</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>UNEXPECTED</para>
+                </entry>
+                <entry>Other error</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>
+      </section>
+      </section>
     <section xml:id="section_fks_5rk_v5b">
       <title>Reconnecting</title>
       <para>If a
