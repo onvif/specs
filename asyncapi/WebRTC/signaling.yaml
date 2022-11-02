@@ -48,6 +48,7 @@ channels:
           - $ref: '#/components/messages/addIceCandidateFromDevice'
           - $ref: '#/components/messages/addIceCandidateFromClientAck'
           - $ref: '#/components/messages/errorFromDevice'
+          - $ref: '#/components/messages/errorFromServer'
     bindings:
       ws:
         bindingVersion: 0.1.0
@@ -108,6 +109,7 @@ components:
         oneOf:
           - $ref: '#/components/messages/initSessionResponse'
           - $ref: '#/components/messages/initSessionAck'
+          - $ref: '#/components/messages/errorFromServer'
     initSessionResponse:
       description: >-
         This message is sent from the signaling server to the client in response
@@ -183,7 +185,9 @@ components:
           - $ref: '#/components/schemas/sdpParams'
           - $ref: '#/components/schemas/sdpOfferType'
       x-response:
-        $ref: '#/components/messages/setSdpOfferAck'
+        oneOf:
+          - $ref: '#/components/messages/setSdpOfferAck'
+          - $ref: '#/components/messages/errorFromServer'
       examples:
         - summary: Example SDP offer from device.
           payload:
@@ -250,7 +254,9 @@ components:
           - $ref: '#/components/schemas/sdpParams'
           - $ref: '#/components/schemas/sdpAnswerType'
       x-response:
-        $ref: '#/components/messages/setSdpAnswerAck'
+        oneOf:
+          - $ref: '#/components/messages/setSdpAnswerAck'
+          - $ref: '#/components/messages/errorFromServer'
       examples:
         - summary: Example SDP answer from client.
           payload:
@@ -317,7 +323,9 @@ components:
           - $ref: '#/components/schemas/addIceCandidateMethod'
           - $ref: '#/components/schemas/iceCandidateParams'
       x-response:
-        $ref: '#/components/messages/addIceCandidateFromClientAck'
+        oneOf:
+          - $ref: '#/components/messages/addIceCandidateFromClientAck'
+          - $ref: '#/components/messages/errorFromServer'
       examples:
         - summary: Example request from client to an add ICE candidate to device.
           payload:
@@ -384,7 +392,9 @@ components:
           - $ref: '#/components/schemas/addIceCandidateMethod'
           - $ref: '#/components/schemas/iceCandidateParams'
       x-response:
-        $ref: '#/components/messages/addIceCandidateFromDeviceAck'
+        oneOf:
+          - $ref: '#/components/messages/addIceCandidateFromDeviceAck'
+          - $ref: '#/components/messages/errorFromServer'
       examples:
         - summary: Example request from device to an add ICE candidate to client.
           payload:
@@ -491,6 +501,17 @@ components:
               message: Media streaming failed
               details:
                 comment: Media streaming failure for audio track.
+    errorFromServer:
+      description: >-
+        This message is sent from the signaling server to the client in response
+        to a request if there is an error in the server.
+      correlationId:
+        location: $message.header#/correlationId
+      traits:
+        - $ref: '#/components/messageTraits/commonHeader'
+        - $ref: '#/components/messageTraits/initSessionType'
+        - $ref: '#/components/messageTraits/correlationHeader'
+        - $ref: '#/components/messageTraits/serverError'
   schemas:
     commonPayload:
       type: object
@@ -833,6 +854,32 @@ components:
                     type: string
                   examples:
                     - - stun:turn.example.com:5349
+    serverError:
+      headers:
+        type: object
+        properties:
+          code:
+            type: string
+            examples:
+              - DISCONNECTED
+              - SESSION_EXPIRED
+              - UNAUTHORIZED
+              - DISABLED
+              - UNEXPECTED
+          reason:
+            type: string
+            examples:
+              - Device is not connected
+              - The access token has expired
+              - Client does not have access to specified device
+              - Client sends a message to a device that has signaling disabled
+              - Other error
+        required:
+          - type
+          - deviceId
+          - orgId
+          - code
+          - reason
   securitySchemes:
     httpApiKey:
       type: httpApiKey
