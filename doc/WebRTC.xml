@@ -44,7 +44,7 @@
         <revnumber>22.12</revnumber>
         <date>Dec 2022</date>
         <author>
-          <personname>Fredrik Svensson, Jonas Cremon</personname>
+          <personname>Fredrik Svensson, Jonas Cremon, Karin Hedlund</personname>
         </author>
         <revremark>First release</revremark>
       </revision>
@@ -234,26 +234,24 @@
         token.</para>
       <para>The connection handling is done using WebSocket [RFC 6455]. The WebSocket sub protocol
         defined by this specification is identified with 'client.webrtc.onvif.org'.</para>
-      <para>The signaling messages are then sent as JSON text messages in the WebSocket.</para>
+      <para>The signaling messages are then sent as JSON text messages in the WebSocket. Please
+        refer to the Signaling Protocol AsyncAPI schema for specific details.</para>
       <section>
         <title>hello</title>
-        <para>Directly after connecting a WebSocket to the server the client typically gets a hello
-          message from the server, with the client's assigned signaling id. Note that this ID is not
+        <para>Directly after connecting a WebSocket to the server the client gets a hello message
+          from the server, with the client's assigned signaling ID. Note that this ID is not
           directly used in the Signaling Protocol.</para>
       </section>
     </section>
     <section xml:id="section_byt_v12_v5b">
       <title>Message structure</title>
       <para>Generally a message contains two parts; the first part is processed by the server and
-        the second part is intended for the device. So in essence device bound messages and
-        responses are encapsulated in the <code>payload</code> field.</para>
-      <para>
-        <note>
-          <para>Note that messages sent via the server may be delivered out-of-order; for optimal
-            scalability messages should be handled asynchronously.</para>
-        </note>
-      </para>
-      <para>Below are explanations for some of the key/value pairs that are seen repeatedly.</para>
+        the second part is intended for the peer (device or client). So in essence device bound
+        messages and responses are encapsulated in the <code>payload</code> field.</para>
+      <para><emphasis role="bold">NOTE</emphasis>: Messages sent via the server may be delivered
+        out-of-order; for optimal scalability messages should be handled asynchronously.</para>
+      <para>Below are explanations for some of the key/value pairs that are used in the
+        protocol.</para>
       <section xml:id="section_cyt_v12_v5b">
         <title>Top level keys</title>
         <para>
@@ -275,17 +273,18 @@
                     <para>type</para>
                   </entry>
                   <entry>
-                    <para>Can be "hello", "initSession", "signaling" or "error"</para>
+                    <para>Can be "initSession", "signaling" or "error"</para>
                   </entry>
                 </row>
                 <row>
                   <entry>
-                    <para>targetId</para>
+                    <para>deviceId</para>
                   </entry>
                   <entry>
-                    <para xml:id="para_wff_512_v5b">The ID of the intended device, or the device
-                      that sent the message. This ID is unique within the organization. See section
-                        <xref linkend="chapter_ryt_v12_v5b"/> for how to get available IDs.</para>
+                    <para xml:id="para_wff_512_v5b">The ID of the device to which the message is
+                      intended, or the device that sent the message. This ID is unique within the
+                      organization. See section <xref linkend="chapter_ryt_v12_v5b"/> for how to get
+                      available IDs.</para>
                   </entry>
                 </row>
                 <row>
@@ -293,9 +292,9 @@
                     <para>orgId</para>
                   </entry>
                   <entry>
-                    <para>The related organization's ID. This ID is unique within the directory
-                      server. See section <xref linkend="chapter_ryt_v12_v5b"/> for how to get
-                      available IDs.</para>
+                    <para>The ID of the organization that the device belongs to. This ID is unique
+                      within the signaling server. See section <xref linkend="chapter_ryt_v12_v5b"/>
+                      for how to get available IDs.</para>
                   </entry>
                 </row>
                 <row>
@@ -303,7 +302,7 @@
                     <para>accessToken</para>
                   </entry>
                   <entry>
-                    <para>Client's access token that allows signaling. See section <xref
+                    <para>Access token for the logged in user. See section <xref
                         linkend="chapter_cwp_r2k_v5b"/> for how to get an access token.</para>
                   </entry>
                 </row>
@@ -312,7 +311,9 @@
                     <para>correlationId</para>
                   </entry>
                   <entry>
-                    <para>Optional value that may be useful for logging and debugging</para>
+                    <para>An optional identifier chosen by the client that can be used to correlate
+                      the response from the signaling server with the request. Echoed back in the
+                      signaling server response.</para>
                   </entry>
                 </row>
               </tbody>
@@ -341,33 +342,27 @@
                     <para>apiVersion</para>
                   </entry>
                   <entry>
-                    <para>API version</para>
+                    <para>The API version that should be used in the request.</para>
                   </entry>
                 </row>
                 <row>
                   <entry>
                     <para>type</para>
                   </entry>
-                  <entry>
-                    <para>Can be "request" or "response"</para>
-                  </entry>
+                  <entry>Specifies whether this message is a request or response.</entry>
                 </row>
                 <row>
                   <entry>
                     <para>sessionId</para>
                   </entry>
-                  <entry>
-                    <para>Value chosen by client to identify the p2p session, so that different
-                      sessions can exist between the same client and device</para>
-                  </entry>
+                  <entry>An identifier chosen by the client that should be used for all subsequent
+                    messages belonging to this session to and from the device.</entry>
                 </row>
                 <row>
                   <entry>
                     <para>method</para>
                   </entry>
-                  <entry>
-                    <para>Function of the message</para>
-                  </entry>
+                  <entry>Specifies which request method this message concerns.</entry>
                 </row>
                 <row>
                   <entry>
@@ -381,17 +376,17 @@
                   <entry>
                     <para>context</para>
                   </entry>
-                  <entry>
-                    <para>Optional value that, if present in a request, should be included in the
-                      corresponding response</para>
-                  </entry>
+                  <entry>An optional identifier chosen by the requestor that can be used to
+                    correlate the response from the receiver with the request. Echoed back in the
+                    response.</entry>
                 </row>
                 <row>
                   <entry>
                     <para>id</para>
                   </entry>
                   <entry>
-                    <para>Optional message counter, for debugging</para>
+                    <para>A string chosen by the responder that may be used for debugging purposes,
+                      e.g. as a message counter.</para>
                   </entry>
                 </row>
               </tbody>
@@ -420,7 +415,7 @@
                     <para>type</para>
                   </entry>
                   <entry>
-                    <para>Sub function of the method </para>
+                    <para>Sub function of the method. Can be "offer" or "answer".</para>
                   </entry>
                 </row>
                 <row>
@@ -428,8 +423,9 @@
                     <para>profile</para>
                   </entry>
                   <entry>
-                    <para>Media profile. See section <xref linkend="chapter_ryt_v12_v5b"/> for how
-                      to get available profiles.</para>
+                    <para>The media profile to use for this session. If none is specified the device
+                      will choose a default profile. See section <xref linkend="chapter_ryt_v12_v5b"
+                      /> for how to get available profiles.</para>
                   </entry>
                 </row>
                 <row>
@@ -437,7 +433,7 @@
                     <para>sdp</para>
                   </entry>
                   <entry>
-                    <para>SDP record offer</para>
+                    <para>An SDP record as described in RFC 8829.</para>
                   </entry>
                 </row>
                 <row>
@@ -445,7 +441,7 @@
                     <para>candidate</para>
                   </entry>
                   <entry>
-                    <para>ICE candidate</para>
+                    <para>An SDP ICE candidate formatted according to RFC8839, section 5.1.</para>
                   </entry>
                 </row>
               </tbody>
@@ -501,15 +497,13 @@
         <title>addIceCandidate</title>
         <para>Both client and device produce ICE candidates and send them to each other, via server,
           in any order, using an <code>addIceCandidate</code> message.</para>
-        <para>
-          <note>
-            <para>Note that ICE candidates can arrive BEFORE the SDP offer and the implementing
-              client needs to handle this.</para>
-          </note>
-        </para>
-        <para><?oxy_comment_start author="FredrikS" timestamp="20220920T182321+0200" comment="Client can terminate the WebSocket connection after P2P is established? RTCP is used as keep-alive"?>If
-          everything works as it should, a peer-to-peer WebRTC session can be set up between client
-          and device<?oxy_comment_end?>.</para>
+        <para><emphasis role="bold">NOTE</emphasis>: Note that ICE candidates can arrive BEFORE the
+          SDP offer and the implementing client needs to handle this.</para>
+        <para>If everything works as it should, a peer-to-peer WebRTC session can be set up between
+          client and device. After the session has been established the client can terminate the
+          WebSocket session to the signaling server and the peer-to-peer connection will not be
+          affected. How ever, it's recommended to keep the WebSocket session to the server open to
+          be able to receive event messages from the signaling server.</para>
       </section>
         <section>
         <title>Faults</title>
@@ -701,9 +695,7 @@
       </section>
     <section xml:id="section_fks_5rk_v5b">
       <title>Reconnecting</title>
-      <para>If a
-        <?oxy_comment_start author="FredrikS" timestamp="20220920T175255+0200" comment="Also if the device disconnects"?>client
-        is disconnected<?oxy_comment_end?> it's up to the client to reconnect again using the same
+      <para>If the session is disconnected it's up to the client to reconnect again using the same
         procedure as was used initially, i.e. start from scratch. Each client should use an
         individual ascending interval strategy to avoid that all clients reconnect at the same
         time.</para>
