@@ -73,6 +73,9 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.itu.int/rec/T-REC-X.660/en"></link>&gt;</para>
     <para> Alliance for Open Media | AV1 Bitstream &amp; Decoding Process Specification </para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://aomedia.org/av1/specification/"></link>&gt;</para>
+    <para>Global OID reference database</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="https://oidref.com/"/>&gt;</para>
 
   </chapter>
   <chapter>
@@ -150,9 +153,9 @@
   </chapter>
   <chapter>
     <title>Overview</title>
-    <para><emphasis>Signed Media</emphasis> adds cryptographic signatures to captured media as part
-      of the codec format. The media is, after adding these signatures, protected against
-      manipulations, that is, the authenticity of the media can be validated if needed.</para>
+    <para>Media Signing is the process of adding cryptographic signatures to captured media as part
+      of the codec format. By adding these signatures, the media can be protected against
+      manipulation (tampering) and the authenticity can be validated.</para>
     <para>The public key that is used to verify the signatures is also included in the media as well
       as the certificate to verify the public key.</para>
   </chapter>
@@ -223,12 +226,12 @@
             <para>SPS/PPS/VPS</para>
             <para>These NALUs can be sent once in the beginning of a stream and stored at client
               side to add back when exporting to file. This is a correct process, but ruins the
-              authenticity since Signed Video requires the order to be preserved. There is parts in
+              authenticity since Signed Video requires the order to be preserved. There are parts in
               these NALUs that can change the video behavior.</para>
           </listitem>
           <listitem>
             <para>AUD</para>
-            <para>The Access Unit Delimiter is simply a NALU header used in access unit video
+            <para>The Access Unit Delimiter is simply a NALU header used in Access Unit video
               streams, c.f., bytestream.</para>
           </listitem>
           <listitem>
@@ -243,10 +246,11 @@
     </section>
     <section>
       <title>Signing a GOP</title>
-      <para><?oxy_comment_start author="bjornv" timestamp="20220919T130656+0200" comment="Illustrate linked NALU hash in an diagram"?>Each NALU is hashed in linked manner.<?oxy_comment_end?> 
-        Since every P-frame directly or indirectly refers to the I-frame starting the GOP they are linked
-        together. If the I-frame is modified it indirectly modifies the P-frames. Therefore, each P-frame
-        is hashed together with the dependent I-frame.</para>
+      <para><?oxy_comment_start author="bjornv" timestamp="20220919T130656+0200" comment="Illustrate linked NALU hash in an diagram"?>Each
+        NALU is hashed in linked manner .<?oxy_comment_end?> Since every P-frame directly or
+        indirectly refers to the I-frame starting the GOP they are linked together. If the I-frame
+        is modified it indirectly modifies the P-frames. Therefore, each P-frame is hashed together
+        with the dependent I-frame.</para>
       <para>All NALU data from the NALU header to the last byte (including the stop bit) should be hashed.
         The start code is excluded when hashing.</para>
       <para>Let <code>h(F)</code> denote the hash of a frame <code>F</code>, and <code>href =
@@ -416,7 +420,7 @@
                     <para>7</para>
                   </entry>
                   <entry><para>Optional</para></entry>
-                  <entry><para>You put your weed in there</para></entry>
+                  <entry>Additional data can be put here as a vendor specific blob.</entry>
                 </row>
               </tbody>
             </tgroup>
@@ -524,15 +528,16 @@
       </section>
       <section>
         <title>Arbitrary data</title>
-        <para>This optional field contains Abritrary data that the device manifacturer might want included.
-        There is no guarantee that the Arbitrary data is reasonable or readable by anyone not priviously
-        knowledgable in the area.</para>
+        <para>This optional field contains Abritrary data that the device vendor want to be
+          included. There is no guarantee that the Arbitrary data is reasonable or readable by
+          anyone not previously knowledgable in the area.</para>
       </section>
       <section>
         <title>Certificate</title>
-        <para>This optional field contains the ceritficate corresponding to the public key. This field is optional
-        in order to not put undue bitrate burden on the videostream as x509 certificates can be quite large, especially if 
-        intermediate certificates also are included.</para>
+        <para>This optional field contains the ceritficate corresponding to the public key. This
+          field is optional in order to not put undue bitrate burden on the videostream as x509
+          certificates can be quite large, especially if intermediate certificates are
+          included.</para>
       </section>
     </section>
     <section>
@@ -673,11 +678,22 @@
         End<?oxy_comment_end?>
       </title>
       <para>One special consideration is the possbility of dangling ends, i.e. that the SEI frame
-        containing the verification information for a GOP may be very delayed. This can be due to a
-        number of reasons such as delay in signature generation process, very long GOP lengths when
-        using dynamic GOP and other implementation specific issues. When exporting recording, or
-        trying to verify a dropped videostream, this means that the end of the video may not be
-        covered by the verificaiton information in the current segment. </para>
+        containing the verification information for a GOP may be very delayed. There can be a number
+        of reasons for this happening such as:</para>
+      <itemizedlist>
+        <listitem>
+          <para>Delay in signature generation process</para>
+        </listitem>
+        <listitem>
+          <para>Very long GOP lengths when using dynamic GOP</para>
+        </listitem>
+        <listitem>
+          <para>Other implementation specific issues</para>
+        </listitem>
+      </itemizedlist>
+      <para>When exporting a recording, or trying to verify a dropped videostream, this means that
+        the end of the video may not be covered by the verificaiton information in the current
+        segment. </para>
     </section>
   </chapter>
   <appendix role="revhistory">
