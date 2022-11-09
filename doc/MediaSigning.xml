@@ -52,9 +52,9 @@
   </info>
   <chapter>
     <title>Scope</title>
-    <para>This specification defines
-      how media from ONVIF devices is signed to give a guarantee that the media
-      has not been manipulated since it was transmitted from the device. </para>
+    <para>This specification defines how media from ONVIF devices is signed to give a guarantee that
+      the media has not been manipulated since it was transmitted from the device.  Audio is outside
+      of scope.</para>
   </chapter>
   <chapter>
     <title>Normative references</title>
@@ -539,36 +539,39 @@
       <title><?oxy_comment_start author="FredrikS" timestamp="20220920T130703+0200" comment="Write pseudo code for the generation. Move under section 5.2?"?>How
         to generate the SEI<?oxy_comment_end?></title>
         <itemizedlist>
-          <listitem>
-            <para>Write SEI NALU header</para>
-          </listitem>
-          <listitem>
-            <para>Determine the total payload size, excluding emulation prevention bytes. The total payload includes
-              the UUID (16 bytes) and all TLV data and the stop bit byte.</para>
-          </listitem>
-          <listitem>
-            <para>Write the payload size according to the codec standard.</para>
-          </listitem>
-          <listitem>
-            <para>Write the UUID</para>
-          </listitem>
-          <listitem>
-            <para>Write all TLVs except the signature since it by definition cannot be written yet. Write the TLV data
-              using emulation prevention bytes if it is turned on.</para>
-          </listitem>
-          <listitem>
-            <para>Hash the written data from NALU header to the last written TLV data. Denote this "document hash"</para>
-          </listitem>
-          <listitem>
-            <para>Sign/Encrypt the document hash in a secure environment.</para>
-          </listitem>
-          <listitem>
-            <para>Write the signature data to the Signature tag when signing has been completed.</para>
-          </listitem>
-          <listitem>
-            <para>Write a stop bit byte.</para>
-          </listitem>
-        </itemizedlist>
+        <listitem>
+          <para>Write SEI NALU header</para>
+        </listitem>
+        <listitem>
+          <para>Determine the total payload size, excluding emulation prevention bytes. The total
+            payload includes the UUID (16 bytes) and all TLV data and the stop bit byte.</para>
+        </listitem>
+        <listitem>
+          <para>Write the payload size according to the codec standard.</para>
+        </listitem>
+        <listitem>
+          <para>Write the UUID</para>
+        </listitem>
+        <listitem>
+          <para>Write all TLVs except the signature since it by definition cannot be written yet.
+            Write the TLV data using emulation prevention bytes if it is turned on.</para>
+        </listitem>
+        <listitem>
+          <para>Hash the written data from NALU header to the last written TLV data. Denote this
+            "document hash"</para>
+        </listitem>
+        <?oxy_comment_start author="FredrikS" timestamp="20221109T121014+0100" comment="Clarify that you sign using the private key"?>
+        <listitem>
+          <para>Sign/Encrypt the document hash in a secure environment.<?oxy_comment_end?></para>
+        </listitem>
+        <listitem>
+          <para>Write the signature data to the Signature tag when signing has been
+            completed.</para>
+        </listitem>
+        <listitem>
+          <para>Write a stop bit byte.</para>
+        </listitem>
+      </itemizedlist>
     </section>
     <section>
       <title><?oxy_comment_start author="FredrikS" timestamp="20220922T125620+0200" comment="Move under section 5.2?"?>How
@@ -666,7 +669,7 @@
         path of the video. </para>
     </section>
     <section>
-      <title><?oxy_comment_start author="FredrikS" timestamp="20220922T125248+0200" comment="Informative"?>Dangling
+      <title><?oxy_comment_start author="FredrikS" timestamp="20220922T125248+0200" comment="Informative, move to appendix"?>Dangling
         End<?oxy_comment_end?>
       </title>
       <para>One special consideration is the possbility of dangling ends, i.e. that the SEI frame
@@ -676,11 +679,6 @@
         trying to verify a dropped videostream, this means that the end of the video may not be
         covered by the verificaiton information in the current segment. </para>
     </section>
-  </chapter>
-  <chapter>
-    <title>Audio Signing</title>
-    <para>
-      <?oxy_comment_start author="bjornv" timestamp="20220919T130146+0200" comment="AAC has a H.26x-SEI-frame like block for arbitrary data, however there are size constraints. One could add multiple blocks at increased cost, which will make it very expensive to sign audio indepdendent of video. One could sign video & audio together in order to prevent audio manipulation and/or copy paste from a different point in time. Currently we have no proposal on how to solve this."?>TODO<?oxy_comment_end?></para>
   </chapter>
   <appendix role="revhistory">
     <title>Revision History</title>
