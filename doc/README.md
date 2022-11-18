@@ -14,11 +14,42 @@ Note on branches and forks: the above links do not automatically update.
 For security reasons browsers do not execute stylesheets when accessing local html files.
 Use a web server for serving your specs checkout in order to view both wsdl and DocBook files.
 
-One compact option is to use [MONGOOSE WEB SERVER](https://www.cesanta.com/binary.html) with
-the following configuration
+One compact option is to use [Python 3](https://www.python.org/downloads/) with
+the following script
 
 ```
-document_root <path-to-your-specs-checkout>
-listening_port 80
-extra_mime_types .xslt=application/xml,.wsdl=text/xml
+#!/usr/bin/env python3
+
+import http.server
+import socketserver
+
+HOST = "localhost"
+PORT = 80
+
+
+class HttpRequestHandler(http.server.SimpleHTTPRequestHandler):
+    extensions_map = {
+        "": "application/octet-stream",
+        ".css": "text/css",
+        ".html": "text/html",
+        ".jpg": "image/jpg",
+        ".js": "application/x-javascript",
+        ".json": "application/json",
+        ".manifest": "text/cache-manifest",
+        ".pdf": "application/pdf",
+        ".png": "image/png",
+        ".svg": "image/svg+xml",
+        ".wasm": "application/wasm",
+        ".xml": "application/xml",
+        ".xslt": "application/xml",
+        ".wsdl": "text/xml",
+    }
+
+
+try:
+    with socketserver.TCPServer((HOST, PORT), HttpRequestHandler) as httpd:
+        print(f"serving at http://{HOST}:{PORT}")
+        httpd.serve_forever()
+except KeyboardInterrupt:
+    pass
 ```
