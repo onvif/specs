@@ -135,10 +135,6 @@
               <entry valign="middle"><para>Network Abstraction Layer</para></entry>
             </row>
             <row>
-              <entry valign="middle"><para>NALU</para></entry>
-              <entry valign="middle"><para>NAL Unit</para></entry>
-            </row>
-            <row>
               <entry valign="middle"><para>SEI</para></entry>
               <entry valign="middle"><para>Supplementary Enhancement Information</para></entry>
             </row>
@@ -195,12 +191,12 @@
         transitions may be shorter than the time it takes to perform the signing. Hence, there is a
         limit on how short GOPs a device can allow for to be able to sign a video in
         real-time.</para>
-      <para><emphasis role="bold">Frame drops</emphasis>. Adding a list of hashes of each NALU combats
-        the problem of lost frames, but cannot solve packet losses unless the affected NALU is
+      <para><emphasis role="bold">Frame drops</emphasis>. Adding a list of hashes of each NAL Unit combats
+        the problem of lost frames, but cannot solve packet losses unless the affected NAL Unit is
         completely removed from the stream. Further, the hash list is the most significant contribution
         to the increased bitrate.</para>
       <para><emphasis role="bold">Hashing algorithms</emphasis>. Hashing is used in two contexts.
-        One is to get a short representation of each NALU to put in a list, and the other serves as
+        One is to get a short representation of each NAL Unit to put in a list, and the other serves as
         a message digest to generate a signature. The same hashing algorithms have to be used both
         on the device and in the client. For simplicity the standard specifies which to use, which
         for example limits the ability to put extra security on some videos.</para>
@@ -219,19 +215,19 @@
         frames.</para>
       <para><?oxy_comment_start author="FredrikS" timestamp="20220920T123345+0200" comment="What about frames with multiple NALUs?"?>All
         operations are done on the encoded video stream. Each picture frame is split into NAL Units
-        (NALU) and <emphasis role="italic">Signed Video</emphasis> operates on these
-        NALUs.<?oxy_comment_end?> NALUs that are not part of a picture frame are ignored. These
-        NALUs are:<itemizedlist>
+        and <emphasis role="italic">Signed Video</emphasis> operates on these
+        NAL Units.<?oxy_comment_end?> NAL Units that are not part of a picture frame are ignored. These
+        NAL Units are:<itemizedlist>
           <listitem>
             <para>SPS/PPS/VPS</para>
-            <para>These NALUs can be sent once in the beginning of a stream and stored at client
+            <para>These NAL Units can be sent once in the beginning of a stream and stored at client
               side to add back when exporting to file. This is a correct process, but ruins the
               authenticity since Signed Video requires the order to be preserved. There are parts in
-              these NALUs that can change the video behavior.</para>
+              these NAL Units that can change the video behavior.</para>
           </listitem>
           <listitem>
             <para>AUD</para>
-            <para>The Access Unit Delimiter is simply a NALU header used in Access Unit video
+            <para>The Access Unit Delimiter is simply a NAL Unit header used in Access Unit video
               streams, c.f., bytestream.</para>
           </listitem>
           <listitem>
@@ -247,11 +243,11 @@
     <section>
       <title>Signing a GOP</title>
       <para><?oxy_comment_start author="bjornv" timestamp="20220919T130656+0200" comment="Illustrate linked NALU hash in an diagram"?>Each
-        NALU is hashed in linked manner .<?oxy_comment_end?> Since every P-frame directly or
+        NAL Unit is hashed in linked manner .<?oxy_comment_end?> Since every P-frame directly or
         indirectly refers to the I-frame starting the GOP they are linked together. If the I-frame
         is modified it indirectly modifies the P-frames. Therefore, each P-frame is hashed together
         with the dependent I-frame.</para>
-      <para>All NALU data from the NALU header to the last byte (including the stop bit) should be hashed.
+      <para>All NAL Unit data, from the NAL Unit header to the last byte (including the stop bit), should be hashed.
         The start code is excluded when hashing.</para>
       <para>Let <code>h(F)</code> denote the hash of a frame <code>F</code>, and <code>href =
           h(I)</code> is the hash of the first I-frame in a GOP and used as reference. Then each
@@ -273,7 +269,7 @@
        <title>Bootstrapping the Videostream</title>
         <para>In order to provide an expedient video stream startup experience, one may send an
         empty Hash List TLV in order to indicate to the client which hashing algorithm is used for
-        hashing of the NALUs. Furthermore the device may also pre-compute all the "Send Once" TLVs,
+        hashing of the NAL Units. Furthermore the device may also pre-compute all the "Send Once" TLVs,
         including signing in order to be able to supply the "Send Once" TLVs together with the other
         "Send Once" information such as PPS/SPS/VPS. </para>
     </section>
@@ -292,7 +288,7 @@
             <colspec colname="c5" colnum="5" colwidth="1*"/>
             <tbody>
               <row>
-                <entry align="center"><para>NALU header</para></entry>
+                <entry align="center"><para>NAL Unit header</para></entry>
                 <entry align="center"><para>payload size</para></entry>
                 <entry align="center"><para>UUID</para></entry>
                 <entry align="center"><para>payload</para></entry>
@@ -308,7 +304,7 @@
         </code> in hexadecimal notation. The payload includes the metadata
         and the signature, and is serialized in a TLV structure. The order of the added TLV tags is
         arbitrary except the signature tag which by definition has to come last. By definition the
-        <code>document</code> includes everything from the NALU header (inclusive) to the signature
+        <code>document</code> includes everything from the NAL Unit header (inclusive) to the signature
         tag (exclusive), hence the entire frame is secured.</para>
       <para>
         <table frame="all">
@@ -334,7 +330,7 @@
             </thead>
             <tbody>
               <row>
-                <entry align="center"><para>NALU header</para></entry>
+                <entry align="center"><para>NAL Unit header</para></entry>
                 <entry align="center"><para>payload size</para></entry>
                 <entry align="center"><para>UUID</para></entry>
                 <entry align="center"><para>metadata</para></entry>
@@ -545,7 +541,7 @@
         to generate the SEI<?oxy_comment_end?></title>
         <itemizedlist>
         <listitem>
-          <para>Write SEI NALU header</para>
+          <para>Write SEI NAL Unit header</para>
         </listitem>
         <listitem>
           <para>Determine the total payload size, excluding emulation prevention bytes. The total
@@ -562,7 +558,7 @@
             Write the TLV data using emulation prevention bytes if it is turned on.</para>
         </listitem>
         <listitem>
-          <para>Hash the written data from NALU header to the last written TLV data. Denote this
+          <para>Hash the written data from NAL Unit header to the last written TLV data. Denote this
             "document hash"</para>
         </listitem>
         <?oxy_comment_start author="FredrikS" timestamp="20221109T121014+0100" comment="Clarify that you sign using the private key"?>
@@ -587,7 +583,7 @@
           (<code>S</code>).
         <?oxy_comment_start author="bjornv" timestamp="20220919T115655+0200" comment="Do we have to specify that H.265 allows for SEIs after picture NALUs, but that is way easier to keep the same structure for the same CODEC-formats?"?>The
         SEI should be added to the video stream such that it follows the Access Unit (AU) format,
-        i.e., it has to prepend all picture NALUs in a AU.<?oxy_comment_end?> Each I-frame will
+        i.e., it has to prepend all picture NAL Units in a AU.<?oxy_comment_end?> Each I-frame will
         trigger a signing procedure and ideally the SEI is generated and available instantaneously
         and can be attached to the stream as <code>SIPPPPSIPPPPSIPPPP</code>.</para>
       <para>In practice signing in secure hardware takes time and blocking the video stream while
@@ -625,7 +621,7 @@
             <para>Verify the signature of the SEI.</para>
           </listitem>
           <listitem>
-            <para>Hash all NALUs of the GOP in the same way as is described for the device part
+            <para>Hash all NAL Units of the GOP in the same way as is described for the device part
               above.</para>
           </listitem>
           <listitem>
@@ -634,10 +630,10 @@
           </listitem>
           <listitem>
             <para>The client should signal AUTHENTIC if all computed hashes are verified
-              successfully against the hashes in the SEI, and the order is preserved and no NALUs
+              successfully against the hashes in the SEI, and the order is preserved and no NAL Units
               are missing.</para>
-            <para>If any missing NALU is detected the client should signal AUTHENTIC WITH MISSING
-              NALUS.</para>
+            <para>If any missing NAL Unit is detected the client should signal AUTHENTIC WITH MISSING
+              NAL UNITS.</para>
             <para>If no SEIs are present the client should signal NOT SIGNED.</para>
             <para>If none of the above applies the video is not authentic and the client should
               signal NOT AUTHENTIC.</para>
