@@ -53,7 +53,7 @@
   <chapter>
     <title>Scope</title>
     <para>This specification defines how media from ONVIF devices is signed to give a guarantee that
-      the media has not been manipulated since it was transmitted from the device.  Audio is outside
+      the media has not been manipulated since it was transmitted from the device. Audio is outside
       of scope.</para>
   </chapter>
   <chapter>
@@ -161,15 +161,15 @@
       transmitted or stored for later use and displayed by a third party one would like to be able
       to validate that they have not been manipulated since the time of signing.</para>
     <para>In brief, the principle of signing documents is used, that is, collect information and
-      sign the information using a Private encryption key. Then, packetize the produced signature
-      together with the signed information. For complete validation, the user first verifies the Public key
-      with the certificate, then verifies the signature using the Public key. If successful so far the
-      transmitted information can then be used to validate the video segment.</para>
+      sign the information using a Private signing key. Then, packetize the produced signature
+      together with the collected information. For complete validation, the user first verifies the certificate
+      with a corresponding vendor CA certificate, followed by Public key verification with the certificate,
+      and finally verifies the signature using the Public key. If successful so far, the transmitted
+      information can then be used to validate the video segment.</para>
     <para>On a high level, <emphasis>Signed Video</emphasis> hashes encoded video frames and on a
-      regular basis creates a <code>document</code> representing these hashes together with some metadata
-      and signs that <code>document</code>. This
-      signature, together with the <code>document</code>, is added to the video using Supplementary Enhancement
-      Information (SEI) frames.</para>
+      regular basis creates a <code>document</code> representing these hashes together with some additional
+      metadata and signs that <code>document</code>. This signature, together with the <code>document</code>,
+      is added to the video using Supplementary Enhancement Information (SEI) frames.</para>
     <figure xml:id="signedvideofig">
       <title>Signed video overview</title>
       <mediaobject>
@@ -187,9 +187,9 @@
         Network Abstraction Layer (NAL) concept. Note that raw video is not covered. There exists
         other codec standards where the same technique can be applied, e.g., AV1.</para>
       <para><emphasis role="bold">Signing frequency</emphasis>. Signing is done upon transition
-        between two Group of Pictures (GOP). For short GOP lengths the time between two GOP
-        transitions may be shorter than the time it takes to perform the signing. Hence, there is a
-        limit on how short GOPs a device can allow for to be able to sign a video in
+        between two Group of Pictures (GOP), that is, triggered by an IDR frame. For short GOP lengths,
+        the time between two GOP transitions may be shorter than the time it takes to perform the signing.
+        Hence, there is a limit on how short GOPs a device can allow for to be able to sign a video in
         real-time.</para>
       <para><emphasis role="bold">Frame drops</emphasis>. Adding a list of hashes of each NAL Unit combats
         the problem of lost frames, but cannot solve packet losses unless the affected NAL Unit is
