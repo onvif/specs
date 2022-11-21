@@ -415,29 +415,51 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <variablelist>
           <varlistentry>
             <term>Storage</term>
-            <listitem><para>Token of a storage configuration with base URL and authentication information.</para></listitem>
+            <listitem>
+              <para>Token of a storage configuration.</para>
+            </listitem>
           </varlistentry>
           <varlistentry>
             <term>Format</term>
-            <listitem><para>Format of the recording. Examples are mp4 and DASH.</para></listitem>
+            <listitem>
+              <para>
+                Format of the recording.
+                Examples are <literal>MP4</literal> and <literal>CMAF</literal>.
+              </para>
+            </listitem>
           </varlistentry>
           <varlistentry>
             <term>Prefix</term>
-            <listitem><para>Path prefix to be appended to the base URL.</para></listitem>
+            <listitem>
+              <para>Path prefix to be inserted in the object key.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Postfix</term>
+            <listitem>
+              <para>Path postfix to be inserted in the object key.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>SpanDuration</term>
+            <listitem>
+              <para>Maximum duration of a span.</para>
+            </listitem>
           </varlistentry>
           <varlistentry>
             <term>SegmentDuration</term>
             <listitem>
-              <para>Maximum duration of a segment. The actual duration may differ slighlty to adjust
-                to gop boundaries.</para>
+              <para>Maximum duration of a segment.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
             <term>Encryption</term>
-            <listitem><para>Optional configuration of content encryption.</para></listitem>
+            <listitem>
+              <para>Optional configuration of content encryption.</para>
+            </listitem>
           </varlistentry>
         </variablelist>
-        <para> See <xref linkend="_refBlobFormat"/> for ONVIF defined recording formats.</para>
+        <para> See <xref linkend="_refCloudRecording"/> for ONVIF defined recording formats.</para>
       </section>
       <section>
         <title>TrackConfiguration</title>
@@ -1504,11 +1526,11 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           <listitem><para>Indicates that the device supports after event durations up to the given value.</para></listitem>
         </varlistentry>
         <varlistentry>
-          <term>SupportedTargetFormats</term>
+          <term>SupportedRecordingFormats</term>
           <listitem><para>List of formats supported by the device for recording to an external target. See tt:RecordingFormat for a list of definitions.</para></listitem>
         </varlistentry>
         <varlistentry>
-          <term>TargetEncryption</term>
+          <term>SupportedEncryptionModes</term>
           <listitem><para>Indicates supported encryption modes.</para></listitem>
         </varlistentry>
       </variablelist>
@@ -1733,66 +1755,166 @@ SetRecordingJobMode(JobToken, Active)
       </varlistentry>
     </variablelist>
   </appendix>
-  <appendix xml:id="_refBlobFormat">
+  <appendix xml:id="_refCloudRecording">
     <title>Object storage recording format (Normative)</title>
     <section>
       <title>Overview</title>
-      <para>This annex describes the ONVIF recording requirements for recording to object
-        storage.</para>
-      <para>A recording consists of one or more continuous spans. Each span consists of one or more
-        segments. The size of the segments depends on the constraints of the underlying storage
-        architecture and the configured segment duration. Each segment contains fragements with
-        media data according to ISO/IEC 14496-12.</para>
-      <para>In order to ease detection of gaps of a recording the extension of the first segment of
-        a span differs from continuation segments. A continuation segment shall by definition have
-        the same presentation time as the end of the previous segment.</para>
+      <para>
+        This annex describes the requirements for recording from a device to an object storage for later use by a receiver.
+        For this, the device uploads objects to the object storage.
+        The device could be a camera, the receiver could be a video player.
+        The object storage typically resides in the cloud or network.
+        <xref linkend="_refCloudRecordingDataFlow" /> shows the data flow for object storage recording.
+      </para>
+      <figure xml:id="_refCloudRecordingDataFlow">
+        <title>Data flow for object storage recording</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="media/RecordingControl/cloud-recording-data-flow.svg" contentdepth="3.5em" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+      <para>
+        A configured recording consists of spans.
+        A span consists of one or more segments without time gaps in between.
+        A span can consist of more than one segment at any given time if required by the recording format.
+        Each segment is generated as a fragmented file according to ISO/IEC 14496-12, the ISO base media file format, consisting of a header followed by fragments.
+        <xref linkend="_refCloudRecordingLogicalModel" /> shows an overview of the logical model for object storage recording.
+      </para>
+      <figure xml:id="_refCloudRecordingLogicalModel">
+        <title>Logical model for object storage recording</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="media/RecordingControl/cloud-recording-logical-model.svg" contentdepth="9.6em" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+      <para>
+        Each segment is uploaded as one object to the object storage.
+        This annex also defines other object types to help the receiver process the data.
+      </para>
     </section>
     <section>
-      <title>Format mp4</title>
-      <para>A recorder that signals support for recording mp4 files via its recording capabilities
-        shall write segments as mp4 files conforming to ISO/IEC 14496-14. Each segment shall contain
-        one or more tracks for video, audio and metadata. </para>
-      <para>In order to support quick navigation as well as estimation of segment duration all
-        segments of a recording shall use the same time scale. Each segment shall contain a movie
-        fragment random access box as last box. In order to speed up random playback the first movie
-        header shall not reference any media samples. </para>
-      <para>A recorder should place the fragment header of the last fragment immediately before the
-        movie fragment random access header such that a client can read its content together with
-        the movie fragment random access header.</para>
-      <para>The path of each file shall be composed from the configured target prefix followed by a
-        slash and the utc date and time of the acquisition time of its first frame encoded according
-        to ISO 8601 optionally followed by a suffice and a mandatory extension. The extension of the
-        first segment of a span shall use '.mp4'. Any continuation segments shall use the extension
-        <?oxy_comment_start author="hbusch" timestamp="20220929T062706+0200" comment="To be aligned"?>'.x.mp4'<?oxy_comment_end?>.</para>
-      <para>A device may store supplemental information at a similar location as long as the
-        extension differs from '.mp4'.</para>
-      <para>Path example:
-        'http://example.com/myRecordings/myFirstCamera/Line1/2022-01-30T08:01:15z.mp4'</para>
-      <para>Note that a client can determine the end of a segment by reading its last bytes and
-        analyzing the fragment random access header. The end can be either estimated from adding the
-        observed GOP interval to the last sync point or exactly by evaluating the last fragment
-        header.</para>
+      <title>Spans</title>
+      <para>
+        The device shall start a new span when the underlying recording is started and close the current span of the underlying recording when it is stopped.
+        While the underlying recording is active and if a <literal>SpanDuration</literal> is configured, the device shall close the current span of the underlying recording and start a new span when the duration of the current span reaches the configured <literal>SpanDuration</literal>.
+      </para>
+      <para>
+        All fragments of a span shall be independently processable and presentable with the information of a <literal>MovieBox</literal> in any of the segments of the span.
+        If the information in the <literal>MovieBox</literal> required to process the fragments needs to change while the underlying recording is active, the device shall close the current span of the underlying recording and start a new span.
+      </para>
+    </section>
+    <section>
+      <title>Segments</title>
+      <para>
+        The device shall start new segments when a span is started and close all current segments of the underlying span when it is closed.
+        The device shall close the current segments of the underlying span and start new segments when the duration of the current segments of the underlying span reaches the configured <literal>SegmentDuration</literal>.
+      </para>
+      <para>
+        The device shall generate each segment as a fragmented file according to ISO/IEC 14496-12, the ISO base media file format.
+        The recording formats provide specification about segment types, their contents, and restrictions on the ISO base media file format in the following sections.
+      </para>
+    </section>
+    <section xml:id="_refCloudRecordingSegmentObjects">
+      <title>Segment objects</title>
+      <para>
+        The device shall upload each segment as one object to the object storage.
+        Each object and corresponding segment is identified by its object key.
+        The device shall generate the object key for a segment according to the following ABNF <literal>key</literal> rule (according to RFC 5234):
+      </para>
+      <programlisting>key      = lead "/" time "." counter "." extension
+lead     = [prefix "/"] date ["/" postfix]
+counter  = 1*DIGIT
+date     = fullyear "-" month "-" mday
+time     = hour "-" minute "-" second [secfrac] "Z"
+fullyear = 4DIGIT
+month    = 2DIGIT ; 01-12
+mday     = 2DIGIT ; 01-31
+hour     = 2DIGIT ; 00-23
+minute   = 2DIGIT ; 00-59
+second   = 2DIGIT ; 00-60 (due to leap second rules)
+secfrac  = "." 1*DIGIT</programlisting>
+      <para>
+        If a <literal>Prefix</literal> is configured, the device shall include <literal>prefix</literal> in <literal>lead</literal> and replace it with the configured <literal>Prefix</literal>.
+        If a <literal>Postfix</literal> is configured, the device shall include <literal>postfix</literal> in <literal>lead</literal> and replace it with the configured <literal>Postfix</literal>.
+        The device shall replace <literal>date</literal> and <literal>time</literal> respectively with the date and time portion of the segment start in Universal Coordinated Time (UTC), following the ABNF rules.
+        The device shall replace <literal>counter</literal> with a counter reset to 0 for a new span and incremented by 1 when closing segments of the underlying span.
+        The device shall replace <literal>extension</literal> with a value defined by the recording formats in the following sections.
+      </para>
+      <para>
+        Note: <literal>date</literal> is conformant to the extended date format defined in ISO 8601.
+        <literal>time</literal> is not conformant to the extended time format defined in ISO 8601, as it replaces <literal>":"</literal> with <literal>"-"</literal> compared to that format.
+      </para>
+    </section>
+    <section>
+      <title>Span end objects</title>
+      <para>
+        To store the end time of of a span, the device should store an additional empty object after closing a span.
+        The device shall generate the object key for this object according to the ABNF <literal>key</literal> rule and replacement rules defined in <xref linkend="_refCloudRecordingSegmentObjects" />.
+        The device shall replace <literal>date</literal> and <literal>time</literal> respectively with the date and time portion of the span end in Universal Coordinated Time (UTC), following the ABNF rules.
+        The device shall replace <literal>counter</literal> by a value equal to the counter of the last segments of the span plus 1.
+        The device shall replace <literal>extension</literal> with <literal>"end"</literal>.
+      </para>
+    </section>
+    <section>
+      <title>Other objects</title>
+      <para>
+        The device may store additional objects with object keys starting with <literal>lead "/"</literal> according to the ABNF rules and replacement rules defined in <xref linkend="_refCloudRecordingSegmentObjects" />, as long as their object keys do not end in an extension defined in this annex.
+      </para>
+    </section>
+    <section>
+      <title>Recording format MP4</title>
+      <para>
+        For the recording format <literal>MP4</literal>, the recording information shall be written as multiplexed tracks into a single segment.
+        Each segment shall contain zero or one tracks with video data, zero or one tracks with audio data, and zero or one tracks with metadata.
+        The device shall generate the object key for each segment with the <literal>extension</literal> <literal>"mp4"</literal>.
+      </para>
+      <para>
+        The <literal>MovieBox</literal> shall not reference any samples.
+      </para>
+      <para>
+        A segment shall contain a <literal>MovieFragmentRandomAccessBox</literal> as the last box.
+        The <literal>MovieFragmentRandomAccessBox</literal> shall provide references for all tracks and their applicable <literal>MovieFragmentBox</literal> instances.
+      </para>
+    </section>
+    <section>
+      <title>Recording format CMAF</title>
+      <para>
+        For the recording format <literal>CMAF</literal>, the recording information shall be written as as one track per segment.
+        Each segment either contains one track with video data, one track with audio data, or one track with metadata, indicated by the extension.
+        When closing multiple types of segments of an underlying span at the same time, the device shall only increment the segment counter by 1.
+        The device shall generate the object key for each segment with the <literal>extension</literal> based on the type of data contained in the segment:
+        <itemizedlist>
+          <listitem>
+            <para>Video data: <literal>"m4v"</literal></para>
+          </listitem>
+          <listitem>
+            <para>Audio data: <literal>"m4a"</literal></para>
+          </listitem>
+          <listitem>
+            <para>Metadata: <literal>"m4m"</literal></para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>
+        The device shall generate each segment according to ISO/IEC 23000-19, the common media application format (CMAF) for segmented media.
+      </para>
     </section>
     <section>
       <title>Encryption</title>
-      <para>A device signaling support for recording to an external target with encryption shall
-        support writing encrypted files according to ISO/IEC 23001-7. The device shall create an
-        individual initialization vector for each file. </para>
+      <para>
+        A device signaling support for recording to an external target with encryption shall support writing encrypted files according to ISO/IEC 23001-7.
+        The device shall create an individual initialization vector for each segment.
+      </para>
       <para>
         <variablelist>
           <varlistentry>
-            <term>cenc</term>
+            <term>CENC</term>
             <listitem>
-              <para>Basic symmetric payload encryption as specified in ISO/IEC 23001-7 with off-band
-                key transmission.</para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term><?oxy_comment_start author="hbusch" timestamp="20220929T071826+0200" comment="Does ONVIF want to define this?"?>asym</term>
-            <?oxy_comment_end?>
-            <listitem>
-              <para>One or more assymetrically encrypted keys are provided within the mp4 file. The
-                client is expected to have the required private key to decrypt the content.</para>
+              <para>
+                Basic symmetric payload encryption as specified in ISO/IEC 23001-7 with off-band key transmission.
+              </para>
             </listitem>
           </varlistentry>
         </variablelist>

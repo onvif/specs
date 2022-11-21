@@ -7633,23 +7633,64 @@ and sample rate. </xs:documentation>
 	<!--===============================-->
 	<xs:simpleType name="RecordingFormat">
 		<xs:restriction base="xs:string">
-			<xs:enumeration value="mp4"/>
-			<xs:enumeration value="CMAF"/>
+			<xs:enumeration value="MP4">
+				<xs:annotation>
+					<xs:documentation>
+						MP4 files with all tracks in a single file.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="CMAF">
+				<xs:annotation>
+					<xs:documentation>
+						CMAF compliant MP4 files with 1 track per file.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--===============================-->
+	<xs:simpleType name="EncryptionMode">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="CENC">
+				<xs:annotation>
+					<xs:documentation>
+						Basic symmetric payload encryption as specified in ISO/IEC 23001-7.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
 		</xs:restriction>
 	</xs:simpleType>
 	<!--===============================-->
 	<xs:complexType name="RecordingEncryption">
 		<xs:sequence>
 			<xs:element name="KID" type="xs:hexBinary">
-				<xs:annotation><xs:documentation>Key ID of the associated key for encryption.</xs:documentation></xs:annotation>
+				<xs:annotation>
+					<xs:documentation>Key ID of the associated key for encryption.</xs:documentation>
+				</xs:annotation>
 			</xs:element>
 			<xs:element name="Key" type="xs:hexBinary">
-				<xs:annotation><xs:documentation>Key for encrypting content.</xs:documentation></xs:annotation>
+				<xs:annotation>
+					<xs:documentation>Key for encrypting content.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Track" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						Optional list of track tokens to be encrypted.
+						If no track tokens are specified, all tracks are encrypted.
+					</xs:documentation>
+				</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 		</xs:sequence>
-		<xs:attribute name="Track" type="tt:IntList">
-			<xs:annotation><xs:documentation>Optional list of track IDs to be enctryped. Defaults to any.</xs:documentation></xs:annotation>
+		<xs:attribute name="mode" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					Mode of encryption.
+					See tt:EncryptionMode for a list of definitions.
+				</xs:documentation>
+			</xs:annotation>
 		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
@@ -7657,22 +7698,39 @@ and sample rate. </xs:documentation>
 	<xs:complexType name="RecordingTargetConfiguration">
 		<xs:sequence>
 			<xs:element name="Storage" type="tt:ReferenceToken">
-				<xs:annotation><xs:documentation>Token of a storage configuration.</xs:documentation></xs:annotation>
+				<xs:annotation>
+					<xs:documentation>Token of a storage configuration.</xs:documentation>
+				</xs:annotation>
 			</xs:element>
 			<xs:element name="Format" type="xs:string">
-				<xs:annotation><xs:documentation>Recording format as defined in tt:RecordingFormat.</xs:documentation></xs:annotation>
+				<xs:annotation>
+					<xs:documentation>Format of the recording, tt:RecordingFormat lists allowed values.</xs:documentation>
+				</xs:annotation>
 			</xs:element>
-			<xs:element name="Prefix" type="xs:string">
-				<xs:annotation><xs:documentation>Uri path prefix.</xs:documentation></xs:annotation>
+			<xs:element name="Prefix" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Path prefix to be inserted in the object key.</xs:documentation>
+				</xs:annotation>
 			</xs:element>
-			<xs:element name="Suffix" type="xs:string" minOccurs="0">
-				<xs:annotation><xs:documentation>Optional Uri path suffix to be appended after date and time and before the extension.</xs:documentation></xs:annotation>
+			<xs:element name="Postfix" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Path postfix to be inserted in the object key.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="SpanDuration" type="xs:duration" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Maximum duration of a span.</xs:documentation>
+				</xs:annotation>
 			</xs:element>
 			<xs:element name="SegmentDuration" type="xs:duration">
-				<xs:annotation><xs:documentation>Default length of a segment. Note that the actual duration may vary because segments have to start at gop boundaries.</xs:documentation></xs:annotation>
+				<xs:annotation>
+					<xs:documentation>Maximum duration of a segment.</xs:documentation>
+				</xs:annotation>
 			</xs:element>
 			<xs:element name="Encryption" type="tt:RecordingEncryption" minOccurs="0" maxOccurs="unbounded">
-				<xs:annotation><xs:documentation>Optional encryption configuration. See capability trc:Encryption for number of supported entries.</xs:documentation></xs:annotation>
+				<xs:annotation>
+					<xs:documentation>Optional encryption configuration, see capability trc:Encryption for number of supported entries.</xs:documentation>
+				</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 		</xs:sequence>
