@@ -209,10 +209,11 @@
         through SEI frames of type user data unregistered. <emphasis>Signed Video</emphasis> puts
         the produced signatures and additional metadata in such frames. These SEI frames are ignored
         by the decoder and will therefore not affect the video rendering. One obvious drawback is
-        that it is easy to modify the signed video and make it unsigned by simply dropping those
-        SEI frames. In some cases this can also be beneficial if, e.g., the user is no longer
-        interested in its authenticity. It is out of scope to protect against lost SEI
-        frames.</para>
+        that it is easy to change the video from signed to unsigned by dropping those SEI frames.
+        In some cases this can also be beneficial, if, e.g., the user is no longer interested in its
+        authenticity, the SEI frames can be removed with a lower bitrate as a result. It is out of
+        scope to protect against lost SEI frames. Validating a video where SEIs have been lost or
+        removed will anyhow be marked as not authentic, or unsiged (if no SEIs are present).</para>
       <para><?oxy_comment_start author="FredrikS" timestamp="20220920T123345+0200" comment="What about frames with multiple NALUs?"?>All
         operations are done on the encoded video stream. Each picture frame is split into NAL Units
         and <emphasis role="italic">Signed Video</emphasis> operates on these
@@ -221,46 +222,60 @@
           <listitem>
             <para>SPS/PPS/VPS</para>
             <para>These NAL Units can be sent once in the beginning of a stream and stored at client
-              side to add back when exporting to file. This is a correct process, but ruins the
+              side to add back when exporting to file. This is a correct process, but affects the
               authenticity since Signed Video requires the order to be preserved. There are parts in
-              these NAL Units that can change the video behavior.</para>
+              these NAL Units that can change the video behavior, but not to question its
+              authenticity.</para>
           </listitem>
           <listitem>
             <para>AUD</para>
-            <para>The Access Unit Delimiter is simply a NAL Unit header used in Access Unit video
-              streams, c.f., bytestream.</para>
+            <para>The Access Unit Delimiter is simply a NAL Unit header used in Access Unit (AU) video
+              streams, c.f., bytestream. This NAL Unit has no impact on the video and can safely be
+              ignored. By ignoring them, the authenticity is preserved when converting between AU
+              streams and bytestreams.</para>
           </listitem>
           <listitem>
             <para><?oxy_comment_start author="FredrikS" timestamp="20220920T123837+0200" comment="There could be information from the device that would be useful to guarantee authenticity for"?>SEIs
               other than Signed Video specific<?oxy_comment_end?></para>
             <para>SEI frames are in general information frames that usually has no visible impact on
-              the video. Some of them can correctly be added to, or removed from, the stream at a
-              later stage.</para>
+              the video. Some of them can correctly be added to, or removed from, the stream at any
+              time. This makes it difficult to handle from an authenticity point of view. Therefore,
+              all SEI frames are ignored.</para>
           </listitem>
         </itemizedlist></para>
-      <para>Note that these can still affect the visual aspect of a video, but are excluded for simplicity.</para>
+      <para>Note that these can still affect the visual aspect of a video, but are excluded for simplicity.
+        The authenticity of the video is still preserved.</para>
     </section>
     <section>
       <title>Signing a GOP</title>
-      <para><?oxy_comment_start author="bjornv" timestamp="20220919T130656+0200" comment="Illustrate linked NALU hash in an diagram"?>Each
-        NAL Unit is hashed in linked manner .<?oxy_comment_end?> Since every P-frame directly or
-        indirectly refers to the I-frame starting the GOP they are linked together. If the I-frame
+      <para>A GOP is defined as all frames between two IDR-frames, including the first IDR. Frames
+        between these IDRs are prediction frames and can be either P- or B-frames. Without loss of
+        generality, both of these are throughout the text denoted P-frames. Further, IDRs are
+        referred to as I-frames in this context.</para>
+      <para><?oxy_comment_start author="bjornv" timestamp="20220919T130656+0200" comment="Illustrate linked NALU hash in a diagram"?>Each
+        NAL Unit (except those ignored; See above) is hashed in a linked manner.<?oxy_comment_end?>
+        Since every P-frame directly or indirectly refers to the I-frame starting the GOP they are linked together. If the I-frame
         is modified it indirectly modifies the P-frames. Therefore, each P-frame is hashed together
         with the dependent I-frame.</para>
       <para>All NAL Unit data, from the NAL Unit header to the last byte (including the stop bit), should be hashed.
         The start code is excluded when hashing.</para>
-      <para>Let <code>h(F)</code> denote the hash of a frame <code>F</code>, and <code>href =
+      <para>Let <code>h(F)</code> denote the hash of a NAL Unit <code>F</code>, and <code>href =
           h(I)</code> is the hash of the first I-frame in a GOP and used as reference. Then each
         frame in a GOP is hashed according to <code>hash(F) = h(href, h(F))</code> where
-          <code>href</code> and <code>h(F)</code> have been aligned in memory. All hashes are
+        <code>href</code> and <code>h(F)</code> have been aligned in memory. All hashes are
         collected in a list and together with some metadata form a <code>document</code>, which
         later will be signed.</para>
+      <para>A hash (<code>gophash</code>) of the list of hashes is added to metadata,
+        <code>gophash = h(href, hash(P1), hash(P2), ..., hash(PN))</code>. The <code>gophash</code>
+        simplifies validation, since verifying each hash in the list of hashes is only necessary
+        when verifying the <code>gophash</code> fails. Another benefit is that the bytestream is
+        prepared for the future, where a low-bitrate alternative can be added by omitting the list
+        of hashes.</para>
       <para>To preserve the order of GOPs the I-frame of the
         <?oxy_comment_start author="FredrikS" timestamp="20220920T124438+0200" comment="Should be previous?"?>next<?oxy_comment_end?>
-        GOP is also included in the list of hashes, that is, <code>hash(Inext) = h(href,
-          h(Inext))</code> is added as well.</para>
-      <para>This <code>document</code> is then signed (hashed and encrypted) to produce a signature
-        as <code>signature = encrypt(h(document))</code>
+        GOP is also added to metadata, that is, <code>hash(Inext) = h(href,
+          h(Inext))</code>.</para>
+      <para>This <code>document</code> is then signed to produce a signature as <code>signature = sign(h(document))</code>
         and together with the <code>document</code> itself is added to the stream in a SEI, that
         is, SEI = <code>document + signature</code>. The next GOP is initiated with a new <code>href</code>
         using the very same I-frame that closed the previous GOP.</para>
@@ -300,16 +315,16 @@
       </para>
       <para>The UUID is used to put a <emphasis role="italic">Signed Video</emphasis> identity to
         the SEI.
-        UUID for Signed Video is <code>59, 89, d8, 92, 07, 2f, 49, ef, 94, 95, 40, 6d, bb, a9, ca, 35
-        </code> in hexadecimal notation. The payload includes the metadata
-        and the signature, and is serialized in a TLV structure. The order of the added TLV tags is
-        arbitrary except the signature tag which by definition has to come last. By definition the
-        <code>document</code> includes everything from the NAL Unit header (inclusive) to the signature
-        tag (exclusive), hence the entire frame is secured.</para>
+        UUID for Signed Video is <code>005bc93f-2d71-5e95-ada4-796f90877a6f</code>. The payload
+        includes the metadata, the list of hashes and the signature, and is serialized in a TLV
+        structure. The order of the added TLV tags is arbitrary except the signature tag which by
+        definition has to come last. By definition the <code>document</code> includes everything
+        from the NAL Unit header (inclusive) to the signature tag (exclusive), hence the entire
+        frame is secured.</para>
       <para>
         <table frame="all">
           <title>Signed video SEI</title>
-          <tgroup cols="7" align="center">
+          <tgroup cols="8" align="center">
             <colspec colname="c1" colnum="1" colwidth="1*"/>
             <colspec colname="c2" colnum="2" colwidth="1*"/>
             <colspec colname="c3" colnum="3" colwidth="1*"/>
@@ -317,9 +332,10 @@
             <colspec colname="c5" colnum="5" colwidth="1*"/>
             <colspec colname="c6" colnum="6" colwidth="1*"/>
             <colspec colname="c7" colnum="7" colwidth="1*"/>
+            <colspec colname="c8" colnum="8" colwidth="1*"/>
             <thead>
               <row>
-                <entry align="center" namest="c1" nameend="c5">
+                <entry align="center" namest="c1" nameend="c6">
                   <para>document</para>
                 </entry>
                 <entry align="center"/>
@@ -333,6 +349,7 @@
                 <entry align="center"><para>NAL Unit header</para></entry>
                 <entry align="center"><para>payload size</para></entry>
                 <entry align="center"><para>UUID</para></entry>
+                <entry align="center"><para>reserved byte</para></entry>
                 <entry align="center"><para>metadata</para></entry>
                 <entry align="center"><para>list of hashes</para></entry>
                 <entry align="center"><para>signature</para></entry>
