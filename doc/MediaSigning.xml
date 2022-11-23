@@ -442,27 +442,50 @@
       </section>
       <section>
         <title>General GOP info</title>
-        <para>Includes GOP specific information like a GOP counter and a timestamp of the first frame.</para>
+        <para>Includes GOP specific information like a GOP counter, a timestamp of the first frame and
+          the GOP-hash.</para>
         <itemizedlist>
           <listitem>
             <para>Tag version (1 byte)</para>
           </listitem>
           <listitem>
-            <para>GOP counter (4 bytes)</para>
-          </listitem>
-          <listitem>
-            <para>ONVIF Signed Media version (X bytes)</para>
-            <para>This will prevent version mismatch between device and client.</para>
-          </listitem>
-          <listitem>
-            <para>The UTC (8 bytes) based time represented by the number of 100-nanosecond intervals since
-              January 1, 1601 of the first media sample in the first fragment.</para>
-          </listitem>
-          <listitem>
             <para>Flags (Y bytes)</para>
             <para>Examples: emulation prevention bytes used</para>
           </listitem>
+          <listitem>
+            <para>ONVIF Signed Media version (3 bytes)</para>
+            <para>This will prevent version mismatch between device and client. The version
+              in clear text is of the form major.minor.patch and each of these are seriealized
+              into one byte. Hence any one of them cannot exceed 255. For example,
+              "ONVIF version 1.2.42" is written as the three bytes "1, 2, 42".</para>
+          </listitem>
+          <listitem>
+            <para>The UTC (8 bytes) based time represented by the number of 100-nanosecond intervals since
+              January 1, 1601 of the first media sample in the first fragment. IS THIS
+              THE SAME TIMESTAMP FORMAT AS IN OTHER ONVIF PLACES?</para>
+          </listitem>
+          <listitem>
+            <para>GOP counter (4 bytes)</para>
+            <para>A running counter that should increment by 1 for each GOP.
+              This counter is a helper in detecting lost SEIs and syncing SEIs with the
+              associated GOP.</para>
+          </listitem>
+          <listitem>
+            <para>GOP hash (H bytes)</para>
+            <para>The hash of the list of NAL Unit hashes. This hash is used to verify
+              the entire GOP in one operation. Upon failure, the list of hashes, if
+              present, is used to detect missing NAL Units. Number of bytes depends on the
+              hash function used.</para>
+          </listitem>
+          <listitem>
+            <para>Linked IDR hash (H bytes)</para>
+            <para>This is the hash of the linked IDR, that is, the IDR following the signed GOP.
+              This is by definition the same NAL Unit that triggers a signing. Number of bytes
+              depends on the hash function used.</para>
+          </listitem>
         </itemizedlist>
+        <para>It is not necessary to specify the H bytes in this tag. The validation side can
+          compute H since the total tag length is known. <code>H = (length - Y - 16) / 2</code></para>
       </section>
       <section>
         <title>Public key</title>
