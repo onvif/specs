@@ -22,6 +22,9 @@ the following script
 
 import http.server
 import socketserver
+import threading
+import webbrowser
+import time
 
 HOST = "localhost"
 PORT = 80
@@ -45,10 +48,15 @@ class HttpRequestHandler(http.server.SimpleHTTPRequestHandler):
         ".wsdl": "text/xml",
     }
 
+def spawn_browser():
+    time.sleep (1)
+    webbrowser.open(f"http://{HOST}:{PORT}")
 
 try:
     with socketserver.TCPServer((HOST, PORT), HttpRequestHandler) as httpd:
         print(f"serving at http://{HOST}:{PORT}")
+        print(f"to stop, close the browser and press CTRL+C")
+        threading.Thread(target=spawn_browser).start()
         httpd.serve_forever()
 except KeyboardInterrupt:
     pass
