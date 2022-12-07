@@ -579,32 +579,90 @@
         <title>Arbitrary data</title>
         <para>This optional field contains Abritrary data that the device vendor want to be
           included. There is no guarantee that the Arbitrary data is reasonable or readable by
-          anyone not previously knowledgable in the area.</para>
+          anyone not previously knowledgeable in the area.</para>
       </section>
       <section>
         <title>Certificate</title>
-        <para>This optional field contains the ceritficate corresponding to the public key. This
+        <para>This optional field contains the certificate corresponding to the public key. This
           field is optional in order to not put undue bitrate burden on the videostream as x509
           certificates can be quite large, especially if intermediate certificates are
           included.</para>
+        <para>Note that this tag is optional in any SEI, but the first one where it is mandatory.</para>
       </section>
     </section>
     <section>
-      <title><?oxy_comment_start author="FredrikS" timestamp="20220920T130703+0200" comment="Write pseudo code for the generation. Move under section 5.2?"?>How
-        to generate the SEI<?oxy_comment_end?></title>
+      <titleHow to generate the first, send-only-once, SEI</title>
         <itemizedlist>
         <listitem>
           <para>Write SEI NAL Unit header</para>
+          <para>H.264: <code>0x06 0x05</code></para>
+          <para>H.265: <code>0x4e 0x01 0x05</code></para>
         </listitem>
         <listitem>
           <para>Determine the total payload size, excluding emulation prevention bytes. The total
-            payload includes the UUID (16 bytes) and all TLV data and the stop bit byte.</para>
+            payload includes the UUID (16 bytes) and all TLV data.</para>
         </listitem>
         <listitem>
           <para>Write the payload size according to the codec standard.</para>
+          <para><code>while (payload_size >= 0xff) {
+                        *nal_ptr++ = 0xff;
+                        payload_size -= 0xff;
+                       }
+                       *nal_ptr++ = payload_size;</code></para>
         </listitem>
         <listitem>
           <para>Write the UUID</para>
+          <para><code>0x00 0x5b 0xc9 0x3f 0x2d 0x71 0x5e 0x95 0xad 0xa4 0x79 0x6f 0x90 0x87 0x7a 0x6f</code></para>
+        </listitem>
+        <listitem>
+          <para>Write the reserved byte with the only-sent-once flag set.</para>
+        </listitem>
+        <listitem>
+          <para>Write all TLVs except the signature since it by definition cannot be written yet.
+            Write the TLV data using emulation prevention bytes if it is turned on.</para>
+          <para>The mandatory tags are the Public Key and the Certificate.</para>
+        </listitem>
+        <listitem>
+          <para>Hash the written data from NAL Unit header to the last written TLV data. Denote this
+            "document hash"</para>
+        </listitem>
+        <listitem>
+          <para>Sign the document hash using the Private key, stored in a secure environment.</para>
+        </listitem>
+        <listitem>
+          <para>Write the signature data to the Signature tag when signing has been
+            completed.</para>
+        </listitem>
+        <listitem>
+          <para>Write a stop bit byte; 0x80.</para>
+        </listitem>
+      </itemizedlist>
+      <title><?oxy_comment_start author="FredrikS" timestamp="20220920T130703+0200" comment="Write pseudo code for the generation. Move under section 5.2?"?>How
+        to generate the SEI signing a GOP<?oxy_comment_end?></title>
+        <itemizedlist>
+        <listitem>
+          <para>Write SEI NAL Unit header</para>
+          <para>H.264: <code>0x06 0x05</code></para>
+          <para>H.265: <code>0x4e 0x01 0x05</code></para>
+        </listitem>
+        <listitem>
+          <para>Determine the total payload size, excluding emulation prevention bytes. The total
+            payload includes the UUID (16 bytes) and all TLV data.</para>
+        </listitem>
+        <listitem>
+          <para>Write the payload size according to the codec standard.</para>
+          <para><code>while (payload_size >= 0xff) {
+                        *nal_ptr++ = 0xff;
+                        payload_size -= 0xff;
+                       }
+                       *nal_ptr++ = payload_size;</code></para>
+        </listitem>
+        <listitem>
+          <para>Write the UUID</para>
+          <para><code>0x00 0x5b 0xc9 0x3f 0x2d 0x71 0x5e 0x95 0xad 0xa4 0x79 0x6f 0x90 0x87 0x7a 0x6f</code></para>
+        </listitem>
+        <listitem>
+          <para>Write the reserved byte with the only-sent-once flag set.</para>
         </listitem>
         <listitem>
           <para>Write all TLVs except the signature since it by definition cannot be written yet.
@@ -614,16 +672,16 @@
           <para>Hash the written data from NAL Unit header to the last written TLV data. Denote this
             "document hash"</para>
         </listitem>
-        <?oxy_comment_start author="FredrikS" timestamp="20221109T121014+0100" comment="Clarify that you sign using the private key"?>
+        <?oxy_comment_start author="FredrikS" timestamp="20221109T121014+0100" comment="Clarify that you sign using the private key" flag="done"?>
         <listitem>
-          <para>Sign/Encrypt the document hash in a secure environment.<?oxy_comment_end?></para>
+          <para>Sign the document hash in a secure environment using the Private key.<?oxy_comment_end?></para>
         </listitem>
         <listitem>
           <para>Write the signature data to the Signature tag when signing has been
             completed.</para>
         </listitem>
         <listitem>
-          <para>Write a stop bit byte.</para>
+          <para>Write a stop bit byte; 0x80.</para>
         </listitem>
       </itemizedlist>
     </section>
@@ -634,7 +692,7 @@
         (I-frame) followed by 4 non-IDRs (P- or B-frames). In text format it would look like
           <code>IPPPPIPPPPIPPPP</code>. The signing information is collected in a SEI frame
           (<code>S</code>).
-        <?oxy_comment_start author="bjornv" timestamp="20220919T115655+0200" comment="Do we have to specify that H.265 allows for SEIs after picture NALUs, but that is way easier to keep the same structure for the same CODEC-formats?"?>The
+        <?oxy_comment_start author="bjornv" timestamp="20220919T115655+0200" comment="Do we have to specify that H.265 allows for SEIs after picture NALUs, but that is way easier to keep the same structure for the same CODEC-formats? - NO" flag="done"?>The
         SEI should be added to the video stream such that it follows the Access Unit (AU) format,
         i.e., it has to prepend all picture NAL Units in a AU.<?oxy_comment_end?> Each I-frame will
         trigger a signing procedure and ideally the SEI is generated and available instantaneously
