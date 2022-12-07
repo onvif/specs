@@ -512,12 +512,16 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc3986.txt"></link>&gt;</para>
     <para>IETF RFC  4122, A Universally Unique IDentifier (UUID) URN Namespace</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc4122.txt"></link>&gt;</para>
-    <para>IETF  4702, The Dynamic Host Configuration Protocol (DHCP) Client Fully Qualified Domain Name (FQDN) Option</para>
+    <para>IETF RFC 4702, The Dynamic Host Configuration Protocol (DHCP) Client Fully Qualified
+      Domain Name (FQDN) Option</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc4702.txt"></link>&gt;</para>
     <para>IETF  4861, Neighbor Discovery for IP version 6 (IPv6)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc4861.txt"></link>&gt;</para>
     <para>IETF  4862, IPv6 Stateless Address Auto configuration</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc4862.txt"></link>&gt;</para>
+    <para>IETF 7519, JSON Web Token (JWT)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://www.ietf.org/rfc/rfc7519.txt"/>&gt;</para>
     <para>W3C SOAP Message Transmission Optimization Mechanism,</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.w3.org/TR/soap12-mtom/"></link>&gt;</para>
     <para>W3C SOAP 1.2, Part 1, <emphasis>Messaging Framework</emphasis></para>
@@ -805,6 +809,10 @@
               <entry valign="middle">
                 <para>Internet Protocol Version 6</para>
               </entry>
+            </row>
+            <row>
+              <entry valign="middle">JWT</entry>
+              <entry valign="middle">JSON Web Token</entry>
             </row>
             <row>
               <entry valign="middle">
@@ -2181,10 +2189,19 @@ DATE: when response was generated
             <para>legacy devices supporting [WS-UsernameToken] and</para>
           </listitem>
           <listitem>
-            <para>TLS client authorization. </para>
+            <para>TLS client authorization and</para>
+          </listitem>
+          <listitem>
+            <para>devices supporting JWT client authorization based on
+              [WS-BinarySecurityToken].</para>
           </listitem>
         </itemizedlist>
+        <para>WS-Security UsernameToken and BinarySecurityToken are mutually exclusive, therefore
+          they shall not be used at the same time in the same request.</para>
         <para>If server supports both digest authentication as specified in [RFC 2617] and the user name token profile as specified in WS-Security the following behavior shall be adapted: a web service request can be authenticated on the HTTP level via digest authentication [RFC 2617] or on the web service level via the WS-Security (WSS) framework. If a client does not supply authentication credentials along with a web service request, the server shall assume that the client intends to use digest authentication [RFC 2617], if required. Hence, if a client does not provide authentication credentials when requesting a service that requires authentication, it will receive an HTTP 401 error according to [RFC 2617]. Note that this behaviour on the server’s side differs from the case of supporting only username token profile, which requires for this case an HTTP 400 error on the HTTP level and a SOAP:Fault env:Sender ter:NotAuthorized error on the WS level.</para>
+        <para>The same behaviour shall be adopted in case the server supports  both digest
+          authentication as specified in [RFC 2617] and the binary security token profile as
+          specified in WS-Security.</para>
         <para>A client should not simultaneously supply authentication credentials on both the HTTP level and the WS level. If a server receives a web service request that contains authentication credentials on both the HTTP level and the WS level, it shall first validate the credentials provided on the HTTP layer. If this validation was successful, the server shall finally validate the authentication credentials provided on the WS layer.</para>
         <para>
           <xref linkend="AuthenticationFlow" /> summarizes the authentication of a web service request by a server.</para>
@@ -2515,7 +2532,7 @@ X-Frame-Options: SAMEORIGIN]]></programlisting>
       </section>
       <section>
         <title>Username token profile</title>
-        <para>A client shall use both nonce and timestamps as defined in [WS-UsernameToken]. The server shall reject any Username Token not using <emphasis>both </emphasis>nonce <emphasis>and creation </emphasis>timestamps<emphasis>.</emphasis></para>
+        <para>A client shall use both nonce and timestamps as defined in [WS-UsernameToken]. The server shall reject any Username Token not using both <emphasis>nonce</emphasis>and creation <emphasis>timestamps</emphasis>.</para>
         <para>This specification defines a set of command for managing the user credentials, see <xref linkend="_Ref474427788" />. These commands allow associating users with the different user levels defined in <xref linkend="_Ref306200377" />.</para>
       </section>
     </section>
@@ -8294,7 +8311,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry morerows="11">
+            <entry morerows="12">
               <para>Device – Security</para>
             </entry>
             <entry>
@@ -8367,6 +8384,11 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             <entry>
               <para>Indication if the device supports the WS-Security REL token [WS-RELToken].</para>
             </entry>
+          </row>
+          <row>
+            <entry>JsonWebToken</entry>
+            <entry>Indication if the devices supports the JWT-based authentication withWS-Security
+              Binary Security Token [WS-BinarySecurityToken]</entry>
           </row>
           <row>
             <entry>
@@ -8732,6 +8754,10 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
 ]]></programlisting>
     <para>[WS-RELToken]	“Web Services Security Rights Expression Language (REL) Token Profile 1.1”,  OASIS Standard, 1 February 2006</para>
     <programlisting><![CDATA[http://www.oasis-open.org/committees/download.php/16687/oasis-wss-rel-token-profile-1.1.pdf
+]]></programlisting>
+    <para>[WS-BinarySecurityToken] “Basic Security Profile Version 1.1 Committee Specification 01”,
+      OASIS Standard, 22 October 2004</para>
+    <programlisting><![CDATA[https://docs.oasis-open.org/ws-brsp/BasicSecurityProfile/v1.1/cs01/BasicSecurityProfile-v1.1-cs01.pdf
 ]]></programlisting>
     <para>[X.680]	ITU-T Recommendation X.680 (1997) | ISO/IEC 8824-1:1998, Information</para>
     <para>Technology - Abstract Syntax Notation One (ASN.1): Specification of Basic</para>

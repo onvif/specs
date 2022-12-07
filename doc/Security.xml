@@ -144,9 +144,10 @@ Added certificate-based client authentication</revremark>
   </chapter>
   <chapter>
     <title>Normative References</title>
+    <para>Basic Security Profile Version 1.1 Committee Specification 01,  OASIS Standard, 22 October 2004</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://docs.oasis-open.org/ws-brsp/BasicSecurityProfile/v1.1/cs01/BasicSecurityProfile-v1.1-cs01.pdf">https://docs.oasis-open.org/ws-brsp/BasicSecurityProfile/v1.1/cs01/BasicSecurityProfile-v1.1-cs01.pdf</link>&gt;</para>
     <para>IEEE 802.1X, Port-Based Network Access Control</para>
-    <programlisting><![CDATA[<http://standards.ieee.org/getieee802/download/802.1X-2004.pdf>
-]]></programlisting>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://standards.ieee.org/getieee802/download/802.1X-2004.pdf">http://standards.ieee.org/getieee802/download/802.1X-2004.pdf</link>&gt;</para>
     <para>ONVIF Core Specification</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf">http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf</link>&gt;</para>
     <para>RFC 2246 The TLS Protocol Version 1.0</para>
@@ -342,6 +343,10 @@ Added certificate-based client authentication</revremark>
         <varlistentry>
           <term>IEEE</term>
           <listitem><para>Institute of Electrical and Electronics Engineers</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>JWT</term>
+          <listitem><para>JSON Web Token</para></listitem>
         </varlistentry>
         <varlistentry>
           <term>MAC</term>
@@ -946,6 +951,62 @@ Added certificate-based client authentication</revremark>
           </listitem>
         </orderedlist>
       </section>
+    </section>
+    <section>
+      <title>JWT-based client authorization</title>
+      <para>Unlike with Digest and Ws-USernameToken authentication, this specification defines how
+        to associate clients with the different User Levels as defined in the ONVIF Core
+        Specification. Devices are not expected to have the user credentials stored in their memory,
+        instead they will verify that the user has been correctly authenticated by an external
+        service and authorize accessing different functions, based on the user level presented in
+        the supplied JWT embedded in the binary security token.</para>
+      <para>A client shall use both ValueType and EncodingType as defined in the WS-Security Basic
+        Security Profile. The server shall reject any Binary Security Token not using both
+          <emphasis>ValueType</emphasis> and <emphasis>EncodingType</emphasis>.</para>
+      <para>EncodingType attribute shall have the value of</para>
+      <programlisting>http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#BinarySecurityToken</programlisting>
+      <para>ValueType attribute shall have the value of</para>
+      <programlisting>urn:ietf:params:oauth:token-type:jwt</programlisting>
+      <para>The inhalt of the binary security token is the base64-encoded JWT according to [RFC
+        7519].</para>
+      <para>The JOSE header shall declare that the encoded object is a JWT, and the JWT is a JWS
+        that is MACed using the HMAC SHA-256:</para>
+      <programlisting>{"typ":"JWT",
+ "alg":"HS256"}</programlisting>
+      <para>The JWT shall include the following standard claims:</para>
+      <para>
+        <itemizedlist>
+          <listitem>
+            <para>iss: Issuer, the KeyID associated to the public key that shall be used to validate
+              the signature;</para>
+          </listitem>
+          <listitem>
+            <para>exp: Expiration Time, a numeric date value identifying the time after which the
+              JWT shall not be accepted for processing;</para>
+          </listitem>
+          <listitem>
+            <para>nbf: Not before, a numeric date value identifying the time before which the JWT
+              shall not be accepted for processing;</para>
+          </listitem>
+          <listitem>
+            <para>iat: Issued At, a numeric date value identifying the time at which the JWT was
+              issued.</para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>For the exp, nbf and iat claims, the numeric date value shall be a JSON numeric value
+        representing the number of seconds from 1970-01-01T00:00:00Z UTC until the specified UTC
+        date/time, ignoring leap seconds, as specified by [RFC 7519].</para>
+      <para>The JWT shall include the following ONVIF-specific claim:</para>
+      <para>
+        <itemizedlist>
+          <listitem>
+            <para>ac: Access class, one of the authenticated classes of the default access policy,
+              i.e. "Administrator", "Operator" or "User". This access level will be used to
+              authorize access to the required function.</para>
+          </listitem>
+        </itemizedlist>
+      </para>
     </section>
     <section>
       <title>IEEE 802.1X</title>
@@ -3993,6 +4054,54 @@ Added certificate-based client authentication</revremark>
       <para>All other configuration of the TLS server on a device is outside the scope of this specification revision and may be addressed by later revisions of this document.</para>
     </section>
   </chapter>
+  <appendix>
+    <title>JWT format example</title>
+    <para>The JWT shall have the following inhalt</para>
+    <programlisting><![CDATA[{
+    "typ":"JWT",
+    "alg":"HS256"
+}.{
+    "iss":"Key0001", // KeyID
+    "nbf":1670482800, // not before Thursday, December 8, 2022 7:00:00 AM (GMT)
+    "exp":1670572800, // expire at Friday, December 9, 2022 8:00:00 AM (GMT)
+    "iat":1670481000, // issued at Thursday, December 8, 2022 6:30:00 AM
+    "role":"Operator"
+}
+]]></programlisting>
+    <para>which is base64-encoded as</para>
+    <programlisting>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJLZXkwMDAxIiwibmJmIjoxNjcwNDgyODAwLCJle
+HAiOjE2NzA1NzI4MDAsImlhdCI6MTY3MDQ4MTAwMCwicm9sZSI6Ik9wZXJhdG9yIn0=.SflKxwRJSMeKKF2QT4
+fwpMeJf36POk6yJV_adQssw5c</programlisting>
+    <para>While the individual components of the JWT are already base64-encoded, the whole structure is not technically base64-encoded. Therefore it is necessary to base64-encode it again, leading to</para>
+    <programlisting>ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKTFpYa3dNREF4SWl3aWJtSm
+1Jam94Tmpjd05EZ3lPREF3TENKbGVIQWlPakUyTnpBMU56STRNREFzSW1saGRDSTZNVFkzTURRNE1UQXdNQ3dp
+Y205c1pTSTZJazl3WlhKaGRHOXlJbjA9LlNmbEt4d1JKU01lS0tGMlFUNGZ3cE1lSmYzNlBPazZ5SlZfYWRRc3
+N3NWM=</programlisting>
+    <para>At this point, the JWT can be used in the WS-Security header of the SOAP request:</para>
+    <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?>
+&lt;env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"
+              xmlns:enc="http://www.w3.org/2003/05/soap-encoding"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+              xmlns:xop="http://www.w3.org/2004/08/xop/include"
+              xmlns:tds="http://www.onvif.org/ver10/device/wsdl"
+              xmlns:tt="http://www.onvif.org/ver10/schema">
+  &lt;env:Header>
+    &lt;wsse:Security>
+      &lt;wsse:BinarySecurityToken EncodingType=”http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#BinarySecurityToken”
+                                ValueType="urn:ietf:params:oauth:token-type:jwt">
+ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKTFpYa3dNREF4SWl3aWJtSm
+1Jam94Tmpjd05EZ3lPREF3TENKbGVIQWlPakUyTnpBMU56STRNREFzSW1saGRDSTZNVFkzTURRNE1UQXdNQ3dp
+Y205c1pTSTZJazl3WlhKaGRHOXlJbjA9LlNmbEt4d1JKU01lS0tGMlFUNGZ3cE1lSmYzNlBPazZ5SlZfYWRRc3
+N3NWM=
+      &lt;/wsse:BinarySecurityToken>
+    &lt;/wsse:Security>
+  &lt;/env:Header>
+  &lt;env:Body>
+    &lt;tds:GetDNS />
+  &lt;env:Body>
+&lt;/env:Envelope></programlisting>
+  </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
     <para />
