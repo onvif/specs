@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--<?xml-stylesheet type="text/xsl" href="onvif-schema-viewer.xsl"?>-->
 <!--
-Copyright (c) 2008-2021 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2022 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
 THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
 IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.
 -->
-<xs:schema xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="21.12">
+<xs:schema xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="22.12">
 	<xs:include schemaLocation="common.xsd"/>
 	<xs:import namespace="http://www.w3.org/2005/05/xmlmime" schemaLocation="http://www.w3.org/2005/05/xmlmime"/>
 	<xs:import namespace="http://www.w3.org/2003/05/soap-envelope" schemaLocation="http://www.w3.org/2003/05/soap-envelope"/>
@@ -2489,12 +2489,12 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 		<xs:sequence>
 			<xs:element name="FromDHCP" type="xs:boolean">
 				<xs:annotation>
-					<xs:documentation>Indicates whether the hostname is obtained from DHCP or not.</xs:documentation>
+					<xs:documentation>Indicates whether the hostname has been obtained from DHCP or not.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Name" type="xs:token" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation>Indicates the hostname.</xs:documentation>
+					<xs:documentation>Indicates the device hostname or an empty string if no hostname has been assigned.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Extension" type="tt:HostnameInformationExtension" minOccurs="0"/>
@@ -7967,6 +7967,10 @@ and sample rate. </xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Extension" type="tt:RecordingJobConfigurationExtension" minOccurs="0"/>
+			<xs:element name="EventFilter" type="tt:RecordingEventFilter" minOccurs="0">
+				<xs:annotation><xs:documentation>Optional filter defining on which event condition a recording job gets active.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- ONVIF only -->
 		</xs:sequence>
 		<xs:attribute name="ScheduleToken">
 			<xs:annotation>
@@ -7977,6 +7981,33 @@ and sample rate. </xs:documentation>
 		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
+
+	<xs:complexType name="RecordingEventFilter">
+		<xs:sequence>
+			<xs:element name="Filter" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Topic" type="xs:string">
+							<xs:annotation><xs:documentation>Topic filter as defined in section 9.6.3 of the ONVIF Core Specification.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="Source" type="xs:string" minOccurs="0">
+							<xs:annotation><xs:documentation>Optional message source content filter as defined in section 9.4.4 of the ONVIF Core Specification.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then vendor -->
+					</xs:sequence>
+					<xs:anyAttribute processContents="lax"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Before" type="xs:duration" minOccurs="0">
+				<xs:annotation><xs:documentation>Optional timespan to record before the actual event condition became active.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="After" type="xs:duration" minOccurs="0">
+				<xs:annotation><xs:documentation>Optional timespan to record after the actual event condition becomes inactive.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then vendor -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
 	<!--===============================-->
 	<xs:simpleType name="RecordingJobMode">
 		<xs:restriction base="xs:string"/>
@@ -7984,7 +8015,7 @@ and sample rate. </xs:documentation>
 	<!--===============================-->
 	<xs:complexType name="RecordingJobConfigurationExtension">
 		<xs:sequence>
-			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- Vendor only -->
 		</xs:sequence>
 	</xs:complexType>
 	<!--===============================-->

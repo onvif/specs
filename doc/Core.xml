@@ -4,12 +4,12 @@
   <info>
     <title>ONVIF Core Specification</title>
     <titleabbrev>ONVIF Core Spec</titleabbrev>
-    <releaseinfo>22.06</releaseinfo>
+    <releaseinfo>22.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June, 2022</pubdate>
+    <pubdate>December, 2022</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -271,6 +271,14 @@
         </author>
         <revremark>Restructure MQTT topic and payload sections. Include metadata filter. Add Addon capability. Rename sections to show real name of service command.</revremark>
       </revision>
+      <revision>
+        <revnumber>22.12</revnumber>
+        <date>Dec-2022</date>
+        <author>
+          <personname>Venkateswara Rao, Hans Busch</personname>
+        </author>
+        <revremark>HTTP Digest Authentication - SHA 256 support as per RFC 7616. Clarify behavior in case no hostname has been assigned. Unify analytics and core attribute and value handling.</revremark>
+      </revision>
     </revhistory>
   </info>
   <preface>
@@ -492,6 +500,8 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc2616.txt"></link>&gt;</para>
     <para>IETF RFC 2617, HTTP Authentication: Basic and Digest Access Authentication</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc2617.txt"></link>&gt;</para>
+	<para>IETF RFC 7616, HTTP Digest Access Authentication</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7616.txt"></link>&gt;</para>
     <para>IETF RFC 3315, Dynamic Host Configuration Protocol for IPv6 (DHCPv6)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc3315.txt"></link>&gt;</para>
     <para>IETF RFC 3548, The Base16, Base32, and Base64 Data Encodings</para>
@@ -2190,6 +2200,120 @@ DATE: when response was generated
         <para>An ONVIF compliant device should authenticate an RTSP request at the RTSP level. If HTTP is used to tunnel the RTSP request the device shall not authenticate on the HTTP level.</para>
         <para>When authenticating RTSP or HTTP methods, an ONVIF compliant device shall use digest authentication [RFC 2617]. The credentials shall be managed with the GetUsers, CreateUsers, DeleteUsers and SetUser methods. If the device also supports WS-Security, the same set of credentials shall be used.</para>
       </section>
+	  <section>
+        <title>SHA-256 Support in HTTP and RTSP digest authentication</title>
+        <para>To support SHA-256 hashing algorithm in HTTP and RTSP digest authentication, an ONVIF compliant device and client should follow [RFC 7616].</para>
+        <para>Below table explains the default and optional parameters for ONVIF compliant devices:</para>
+		 <table>
+			<title>Device authentication Behavior</title>
+            <tgroup cols="3">
+              <colspec colname="c1" colwidth="49*" />
+              <colspec colname="c2" colwidth="13*" />
+              <colspec colname="c3" colwidth="37*" />
+              <thead>
+                <row>
+                  <entry>
+                    <para>Default Behavior</para>
+                  </entry>
+                  <entry>
+                    <para>Default Hashing Algorithm Used</para>
+                  </entry>
+                  <entry>
+                    <para>Optional(In Digest authentication)</para>
+                  </entry>
+                </row>
+              </thead>
+              <tbody valign="top">
+                <row>
+                  <entry>
+                    <para>An ONVIF compliant device and client should follow [RFC 2617] digest authentication.</para>
+                  </entry>
+                  <entry>
+                    <para>MD5</para>
+                  </entry>
+                  <entry>
+                    <para>Support of SHA-256 hashing algorithm is optional for both ONVIF device and client.</para>
+                  </entry>
+                </row>                
+              </tbody>
+            </tgroup>
+          </table>
+		<para>Client can check the supported hashing algorithms in “HashingAlgorithms” field under “SecurityCapabilities” section of capabilities response. If this field is absent or empty by default only “MD5” is applicable.</para>		
+	 	<section>
+        <title>SetHashingAlgorithm</title>
+        <para>How to set HashingAlgorithm for an ONVIF Device/Client</para>
+		<para>•	ONVIF client should use SetHashingAlgorithm API to modify the current hashing algorithm of a device.</para>
+		<para>•	SetHashingAlgorithm API sets the hashing algorithm(s) to be used in HTTP and RTSP Digest Authentication.</para>
+		<para>Note: ONVIF devices that follows [RFC 7616] will support this operation</para>
+		<para>Post changing the Hashing Algorithm:</para>        
+        <para>1.After changing the hashing algorithm of an ONVIF device, the device should use the new hashing algorithm in the digest challenge for the upcoming HTTP and RTSP request.</para>
+		<para>Below request needs to be posted:</para>
+		<variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Algorithm [tds:StringList]</para>
+              <para role="text">Hashing algorithm(s) used in HTTP and RTSP Digest Authentication</para>              
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:Argument Value Invalid</para>
+              <para role="text">The requested hashing algorithm(s) is invalid.</para>            
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+	  <section>
+	  <title>Get Device Hashing Algorithm</title>               
+          <para>Follow the below workflow to get the latest device Hashing Algorithm:</para>
+		  <para>1. The ONVIF client should send a HTTP or RTSP requests without an Authorization header.</para>
+		  <para>2. The device responds with a HTTP or RTSP 401 message, that includes a challenge for each digest algorithm currently it was set, in its order of preference.</para>
+		  <para>Note: There is no ONVIF API to get the current hashing algorithm of a device, ONVIF clients should depend on HTTP or RTSP digest challenge response.</para>
+      <para>See differing example responses below for the given HTTP request:</para>
+      <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
+Host: 10.XX.XX.XX
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: 299
+
+<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>
+</s:Body></s:Envelope>]]></programlisting>             
+      <para>Response from a device if the hashing algorithm is set to MD5, SHA-256:</para>
+      <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Digest algorithm=MD5, realm="Silvan_http_digest", qop="auth", 
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+WWW-Authenticate: Digest algorithm=SHA-256, realm="Silvan_http_digest", qop="auth", 
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+X-Frame-Options: SAMEORIGIN]]></programlisting>
+      <para>Response from a device if the hashing algorithm is set to SHA-256:</para>
+      <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Digest algorithm=SHA-256, realm="Silvan_http_digest", qop="auth", 
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+X-Frame-Options: SAMEORIGIN]]></programlisting>
+      <para>Response from a device if the hashing algorithm is set to MD5:</para>
+      <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Digest algorithm=MD5, realm="Silvan_http_digest", qop="auth", 
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+X-Frame-Options: SAMEORIGIN]]></programlisting>
+      </section>	 
+	  </section>	  
       <section>
         <title>User-based access control</title>
         <section>
@@ -2968,7 +3092,7 @@ onvif://www.onvif.org/name/ARV-453
                   </entry>
                 </row>
                 <row>
-                  <entry morerows="15">
+                  <entry morerows="16">
                     <para>Security</para>
                   </entry>
                   <entry>
@@ -3098,6 +3222,14 @@ onvif://www.onvif.org/name/ARV-453
                     <para>Maximum number of passwords that the device can remember for each user. If the device does not support the password history this attribute should be zero or not present</para>
                   </entry>
                 </row>
+				 <row>
+                  <entry>
+                    <para>HashingAlgorithms</para>
+                  </entry>
+                  <entry>
+                    <para>Indicates which hashing algorithms are supported as part of HTTP and RTSP digest authentication.</para>
+                  </entry>
+                </row>
                 <row>
                   <entry>
                     <para>Misc</para>
@@ -3157,7 +3289,8 @@ onvif://www.onvif.org/name/ARV-453
 	  <para> A device shall support the commands defined in this section unless the NetworkConfigNotSupported capability is signalled as 'True' confirming it doesn’t support network configuration. </para>
       <section>
         <title>GetHostname</title>
-        <para>This operation is used by an endpoint to get the hostname from a device. The device shall return its hostname configurations through the GetHostname command.</para>
+        <para>This operation is used by an endpoint to get the hostname from a device. The device shall return its hostname configurations through the GetHostname command. 
+          The device shall return an empty string if no hostname has been assigned.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -7751,8 +7884,8 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
         <para>Topics are published according to the following structure, expressed as ABNF rules
           according to RFC 5234. Note that special characters like, '#' and '+' shall be omitted
           from the topic. For an example, see section <xref linkend="_Ref19678957"/>.</para>
-        <para>Topic = TopicPrefix "/" PayloadPrefix "/" LocalTopic [ "&amp;" Source ]</para>
-        <para>Source = *("/" SVALUE)</para>
+        <para>Topic = TopicPrefix "/" PayloadPrefix "/" LocalTopic [ "/&amp;" Source ]</para>
+        <para>Source = SVALUE *("/" SVALUE)</para>
         <para>with<itemizedlist>
             <listitem>
               <para>TopicPrefix - uniquely identifies the producer and is configurable through the
@@ -7824,7 +7957,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
         <para>SIMPLEITEM = DQUOTE SNAME DQUOTE ":" DQUOTE SVALUE DQUOTE</para>
         <para>ELEMENTITEM = DQUOTE ENAME DQUOTE ": {" [ TYPE *("," TYPE)] "}"</para>
         <para>TYPE = ATTRIBUTE / SIMPLETYPE / COMPLEXTYPE</para>
-        <para>ATTRIBUTE = DQUOTE ANAME DQUOTE ": " DQUOTE AVALUE DQUOTE</para>
+        <para>ATTRIBUTE = DQUOTE "@" ANAME DQUOTE ": " DQUOTE AVALUE DQUOTE</para>
         <para>SIMPLETYPE = DQUOTE NAME DQUOTE ": " DQUOTE VALUE DQUOTE</para>
         <para>COMPLEXTYPE = DQUOTE NAME DQUOTE ": {" [TYPE *("," TYPE)] "}"</para>
         <para>with </para>
@@ -7857,6 +7990,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             <para>VALUE being the value of the corresponding XML element</para>
           </listitem>
         </itemizedlist>
+        <para>Note, that quotes may be omitted for integer and floating point values as well as logical states true and false.</para>
         <para>The parser shall parse the elements recursively in the order they are present in the XML representation.</para>
         <para>The output shall be generated according above described rules.</para>
         <section xml:id="_Ref19678957">
@@ -7866,7 +8000,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             corresponding MQTT topics and JSON payload. In these examples TopicPrefix has been set
             to "MyDevice".</para>
           <para>Topic for the first message:</para>
-          <programlisting>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed&amp;/1/2/MyImportantFence1</programlisting>
+          <programlisting>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed/&amp;1/2/MyImportantFence1</programlisting>
           <para>Payload for the first message:</para>
           <programlisting>{
   "UtcTime": "2008-10-10T12:24:57.321Z", 	
@@ -7880,7 +8014,9 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
   }
 }</programlisting>
           <para>Topic for the second message:</para>
-          <programlisting>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed&amp;/1/2/MyImportantFence2
+          <programlisting>MyDevice/onvif-ej/RuleEngine/LineDetector/Crossed/&amp;1/2/MyImportantFence2</programlisting>
+          <para>Payload for the second message:</para>
+          <programlisting>{
   "UtcTime": "2008-10-10T12:24:57.789Z
   "Source": {
     "VideoSource": "1",
@@ -7889,6 +8025,29 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
   },
   "Data": {
     "ObjectId": "19" 	
+  }
+}</programlisting>
+  <para>Third message with the following complex xml data content:</para>
+  <programlisting><![CDATA[<tt:ElementItem Name="Segments">
+  <tt:Polyline>
+    <tt:Point x="0.10" y="0.50"/>
+    <tt:Point x="1.0" y="0.50"/>
+  </tt:Polyline>
+</tt:ElementItem>
+]]></programlisting>
+          <para>Payload for third message:</para>
+          <programlisting>
+"UtcTime": "2008-10-10T12:24:57.789Z
+  "Source": {
+    "VideoSource": "1",
+    "Rule": "MyLineInfo"
+  },
+  "Data": {
+    "Segments": {
+      "Polyline": {
+        "Point": [ { "@x": 0.10, "@y", 0.50}, {"@x": 1.0, "@y": 0.50} ]
+      }
+    }
   }
 }</programlisting>
         </section>

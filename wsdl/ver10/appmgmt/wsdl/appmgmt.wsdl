@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="../../../ver20/util/onvif-wsdl-viewer.xsl"?>
 <!--
-Copyright (c) 2008-2021 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2022 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
@@ -17,7 +17,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
         targetNamespace="http://www.onvif.org/ver10/appmgmt/wsdl">
 
     <wsdl:types>
-        <xs:schema targetNamespace="http://www.onvif.org/ver10/appmgmt/wsdl" version="21.12">
+        <xs:schema targetNamespace="http://www.onvif.org/ver10/appmgmt/wsdl" version="22.12">
             <xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="http://www.onvif.org/ver10/schema/onvif.xsd"/>
 
             <xs:simpleType name="AppState">
@@ -27,6 +27,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
                     <xs:enumeration value="Installing"/>
                     <xs:enumeration value="Uninstalling"/>
                     <xs:enumeration value="Removed"/>
+                    <xs:enumeration value="InstallationFailed"/>
                 </xs:restriction>
             </xs:simpleType>
 
@@ -90,7 +91,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
                             <xs:documentation>Time of last update to this app, i.e. the time when this particular version was installed.</xs:documentation>
                         </xs:annotation>
                     </xs:element>
-                    <xs:element name="State" type="ans:AppState"/>
+                    <xs:element name="State" type="ans:AppState">
+                        <xs:annotation>
+                            <xs:documentation>InstallationFailed state shall not be used here.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
                     <xs:element name="Status" type="xs:string">
                         <xs:annotation><xs:documentation>Supplemental information why the application is in the current state. In error cases this field contains the error reason.</xs:documentation></xs:annotation>
                     </xs:element>
@@ -262,6 +267,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
                     <xs:annotation>
                         <xs:documentation>Path part of the URI to which applications can be uploaded via http POST. 
                             Clients shall use protocol, hostname and port of the service address since the device may e.g. reside behind NAT translation firewall.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="EventTopicPrefix" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Optional Event Topic prefix used when delivering app events in eventservice.</xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
                 <xs:anyAttribute processContents="lax"/>

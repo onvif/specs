@@ -4,12 +4,12 @@
   <info>
     <title>Analytics Service Specification</title>
     <titleabbrev>Analytics</titleabbrev>
-    <releaseinfo>22.06</releaseinfo>
+    <releaseinfo>22.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June, 2022</pubdate>
+    <pubdate>December, 2022</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -243,6 +243,14 @@
         <revremark>Move scene description to separate chapter and append section on JSON syntax. 
           Clarify color value range. Add missing Access Class for DeleteAnalyticsModule. Update license plate rule configuration.</revremark>
       </revision>
+      <revision>
+        <revnumber>22.12</revnumber>
+        <date>Dec-2022</date>
+        <author>
+          <personname>Fredrik Svensson, Hans Busch</personname>
+        </author>
+        <revremark>Unify analytics and core mqtt attribute and value handling. Add Likelihood attribute to color type</revremark>
+      </revision>
     </revhistory>
   </info>
   <chapter>
@@ -263,7 +271,9 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.iso.org/iso/iso_catalogue/catalogue_ics/catalogue_detail_ics.htm?csnumber=34342"></link>&gt;</para>
     <para>ISO 3166-1:2013 Codes for the representation of names of countries and their subdivisions -- Part 1: Country codes</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/63545.html"></link>&gt;</para>
-	<para>JSON-LD 1.1 A JSON-based Serialization for Linked Data</para>
+    <para>RFC 7159 The JavaScript Object Notation (JSON) Data Interchange Format</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.rfc-editor.org/rfc/rfc7159.txt"></link>&gt;</para>
+    <para>JSON-LD 1.1 A JSON-based Serialization for Linked Data</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://json-ld.org/spec/latest/json-ld/"></link>&gt;</para>
   </chapter>
   <chapter>
@@ -883,6 +893,49 @@
   </tt:Object>
 </tt:Frame>
 ]]></programlisting>
+          <para>An alternative representation of color can be used by adding a likelihood attribute to the color element.</para>
+          <para>Its likelihood denotes how confident the algorithm is that the color is correct. The
+          range of likelihood is [0 .. 1].</para>
+          <para>When using the likelihood attribute the weight and covariance should not be used
+          as they are missing a meaningful definition in this case.</para>
+          <para>When using the likelihood attribute the meaning of multiple color clusters in the same color descriptor
+          changes. Multiple color clusters with likelihood should be interpreted as different color candidates
+          with different likelihoods, not as different regions of colors on the object.</para>
+          <para>An example metadata containing color information of the detected object using a color cluster with a
+          likelihood attribute is given below.</para>
+          <programlisting><![CDATA[<tt:Frame UtcTime="2010-09-10T12:24:57.721" Colorspace="RGB">
+  <tt:Transformation>
+    <tt:Translate x="-1.0" y="-1.0"/>
+    <tt:Scale x="0.003125" y="0.00416667"/>
+  </tt:Transformation>
+  <tt:Object ObjectId="34">
+    <tt:Appearance>
+      <tt:Shape>
+        <tt:BoundingBox left="20.0" top="80.0" right="100.0" bottom="30.0"/>
+        <tt:CenterOfGravity x="60.0" y="50.0"/>
+      </tt:Shape>
+      <tt:Color>
+        <tt:ColorCluster>
+          <tt:Color X="0" Y="0" Z="255" Likelihood="0.93"/>
+        </tt:ColorCluster>
+        <tt:ColorCluster>
+          <tt:Color X="255" Y="255" Z="255" Likelihood="0.87"/>
+        </tt:ColorCluster>
+        <tt:ColorCluster>
+          <tt:Color X="0" Y="0" Z="0" Likelihood="0.12"/>
+        </tt:ColorCluster>
+        <tt:ColorCluster>
+          <tt:Color X="0" Y="128" Z="0" Likelihood="0.08"/>
+        </tt:ColorCluster>
+        <tt:ColorCluster>
+          <tt:Color X="255" Y="0" Z="0" Likelihood="0.04"/>
+        </tt:ColorCluster>
+      </tt:Color>
+    </tt:Appearance>
+  </tt:Object>
+</tt:Frame>
+]]></programlisting>
+
           <para>The following table lists the acceptable values for colorspace attribute</para>
           <table xml:id="_colorspaces">
             <title>Colorspace namespace values</title>
@@ -2385,10 +2438,9 @@
       <section>
         <title>JSON payload format</title>
 
-        <para>Instead of creating a full fledged schema for XML to JSON
-          conversion, <xref linkend="xmlToJson" /> provides a set of generic rules that devices
-        shall need to implement to express ONVIF metadata in JSON
-        format.</para>
+        <para>Instead of creating a full fledged schema for XML to JSON conversion, <xref
+            linkend="xmlToJson"/> provides a set of generic rules that devices shall need to
+          implement to express ONVIF metadata in JSON format as defined by RFC 7159.</para>
 
         <table xml:id="xmlToJson">
           <title>ONVIF Metadata XML to JSON conversion</title>
@@ -2466,7 +2518,7 @@
 
         <para>All extension elements and attributes shall be included within
         the same parent JSON object.</para>
-
+        <para>Note, that quotes may be omitted for integer and floating point values as well as logical states true and false.</para>
         <para>Namespace prefixes for ONVIF defined namespaces shall be
         dropped, i.e. elements and attributes that belong to the following
         namespaces:</para>
@@ -2593,62 +2645,64 @@ xmlns:acme="http://www.acme.com/schema"&gt;
 	},
     "Transformation": {
       "Translate": {
-        "@x": "-1.0", "@y": "-1.0"
+        "@x": -1.0, "@y": -1.0
       },
       "Scale": {
-        "@x": "0.003125", "@y": "0.00416667"
+        "@x": 0.003125, "@y": 0.00416667
       }
     },
     "Object": [{
-      "@ObjectId": "15",
+      "@ObjectId": 15,
       "Appearance": {
         "Shape": {
           "BoundingBox": {
-            "@left": "20.0", "@top": "20.0", "@right": "100.0", "@bottom": "30.0"
+            "@left": 20.0, "@top": 20.0, "@right": 100.0, "@bottom": 30.0
           },
           "CenterOfGravity": {
-            "@x": "60.0", "@y": "50.0"
+            "@x": 60.0, "@y": 50.0
           },
           "Polygon": [{
-            "@x": "20.0", "@y": "30.0"
+            "@x": 20.0, "@y": 30.0
           }, {
-            "@x": "100.0", "@y": "30.0"
+            "@x": 100.0, "@y": 30.0
           }, {
-            "@x": "100.0", "@y": "80.0"
+            "@x": 100.0, "@y": 80.0
           }, {
-            "@x": "20.0", "@y": "80.0"
+            "@x": 20.0, "@y": 80.0
           }]
         },
         "Color": {
           "ColorCluster": [{
             "Color": {
-              "@X": "213", "@Y": "135", "@Z": "126"
+              "@X": 213, "@Y": 135, "@Z": 126
             },
             "Weight": 0.9,
             "acme:ColorName": "White"
           }, {
             "Color": {
-              "@X": "102", "@Y": "176", "@Z": "119"
+              "@X": 102, "@Y": 176, "@Z": 119
             },
             "Weight": 0.5,
             "acme:ColorName": "Blue"
           }]
         },
         "Class": {
-          "@Likelihood": "0.8",
-          "#text": "Human"
+          "Type": [{
+            "@Likelihood": 0.8,
+            "#text": "Human"
+          }]
         },
         "HumanFace": {
           "Gender:": "Male",
           "Age": {
-            "@Min": "20", "@Max": "30"
+            "@Min": 20, "@Max": 30
           },
           "Accessory": {
             "Opticals": {
-              "Wear": "true"
+              "Wear": true
             },
             "Hat": {
-              "Wear": "true"
+              "Wear": true
             }
           }
         },
