@@ -20,13 +20,10 @@ ONVIF will maintain the following active branches:
 * master - Current stable version reflecting the released specifications.  
   Update from development branches only.
 
-* xx.nn - Development branch for next version  
+* development - Development branch for next version  
   Change requests for clarifications and consistency should be submitted to this branch. Minimal additions or features in 
   IPR review may be submitted to this branch.
   Implementers may use this branch. However in the unlikely case of IPR notices indiviual changes may be revoked.
-
-* xx.oo - Development branch for version after next version  
-  Feature requests pending for IPR review shall be submitted to this branch.
 
 Beside the above branches the following temporary branches may be established:  
 * issue-xx-yyyyy - Change request for issue XX with short title YYYY.  
