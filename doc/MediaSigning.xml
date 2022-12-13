@@ -89,7 +89,7 @@
           <tbody valign="top">
             <row>
               <entry align="left"><para>Document</para></entry>
-              <entry align="left"><para>A document in this spec refers to a codec specific document that
+              <entry align="left"><para>A document in this specification refers to a codec specific document that
                 includes hashes of all media frames since previous signing occasion together with
                 other metadata. For H.264 and H.265 a document is encoded into a SEI frame.</para></entry>
             </row>
@@ -158,8 +158,8 @@
   <chapter>
     <title>Signed Video</title>
     <para>A video consists of picture frames displayed at a certain frame rate. If these frames are
-      transmitted or stored for later use and displayed by a third party one would like to be able
-      to validate that they have not been manipulated since the time of signing.</para>
+      transmitted or stored for later use and displayed by a third party it is very valuable if it is
+      possible to validate that the video has not been manipulated since the time of signing.</para>
     <para>In brief, the principle of signing documents is used, that is, collect information and
       sign the information using a Private signing key. Then, packetize the produced signature
       together with the collected information. For complete validation, the user first verifies the certificate
@@ -184,8 +184,9 @@
       <title>Limitations</title>
       <para><emphasis role="bold">Codecs</emphasis>. <emphasis>Signed Video</emphasis> is defined
         for the H.264 and H.265 video codec formats. Therefore, most of the description uses the
-        Network Abstraction Layer (NAL) concept. Note that raw video is not covered. There exists
-        other codec standards where the same technique can be applied, e.g., AV1.</para>
+        Network Abstraction Layer (NAL) concept. Note that raw video is not covered, since there is no
+        way to add signatures within the video format. There exists other codec standards where the
+        same technique can be applied though, e.g., AV1.</para>
       <para><emphasis role="bold">Signing frequency</emphasis>. Signing is done upon transition
         between two Group of Pictures (GOP), that is, triggered by an IDR frame. For short GOP lengths,
         the time between two GOP transitions may be shorter than the time it takes to perform the signing.
@@ -210,14 +211,16 @@
         the produced signatures and additional metadata in such frames. These SEI frames are ignored
         by the decoder and will therefore not affect the video rendering. One obvious drawback is
         that it is easy to change the video from signed to unsigned by dropping those SEI frames.
-        In some cases this can also be beneficial, if, e.g., the user is no longer interested in its
-        authenticity, the SEI frames can be removed with a lower bitrate as a result. It is out of
+        In some cases this can also be beneficial. For example, if the user is no longer interested
+        in its authenticity, the SEI frames can be removed reducing the bitrate. It is out of
         scope to protect against lost SEI frames. Validating a video where SEIs have been lost or
-        removed will anyhow be marked as not authentic, or unsiged (if no SEIs are present).</para>
-      <para><?oxy_comment_start author="FredrikS" timestamp="20220920T123345+0200" comment="What about frames with multiple NALUs?" flag="done"?>All
-        operations are done on the encoded video stream. Each picture frame is split into NAL Units
-        and <emphasis role="italic">Signed Video</emphasis> operates on these
-        NAL Units.<?oxy_comment_end?> NAL Units that are not part of a picture frame are ignored:
+        removed will anyhow be marked as not authentic, or unsigned (if no SEIs are present).</para>
+      <para>All operations are done on the encoded video stream. Each picture frame is split into NAL
+        Units and <emphasis role="italic">Signed Video</emphasis> operates on these NAL Units. Note
+        that there is not a one-to-one correspondance between frames and NAL Units. A frame split into
+        slices will generate multiple hashes. In this specification, unless explicitly stated, hashing
+        a frame means hashing frame NAL Units.</para>
+      <para>Some NAL Units have no or limited impact on the visual video and are ignored:
         <itemizedlist>
           <listitem>
             <para>SPS/PPS/VPS</para>
@@ -235,8 +238,7 @@
               streams and bytestreams.</para>
           </listitem>
           <listitem>
-            <para><?oxy_comment_start author="FredrikS" timestamp="20220920T123837+0200" comment="There could be information from the device that would be useful to guarantee authenticity for" flag="done"?>SEIs
-              other than Signed Video specific<?oxy_comment_end?></para>
+            <para>SEIs other than Signed Video specific</para>
             <para>SEI frames are in general information frames that usually has no visible impact on
               the video. Some of them can correctly be added to, or removed from, the stream at any
               time. This makes it difficult to handle from an authenticity point of view. Therefore,
@@ -260,21 +262,22 @@
       <para>All NAL Unit data, from the NAL Unit header to the last byte (including the stop bit), should be hashed.
         The start code is excluded when hashing.</para>
       <para>Let <code>h(F)</code> denote the hash of a NAL Unit <code>F</code>, and <code>href =
-          h(I)</code> is the hash of the first I-frame in a GOP and used as reference. Then each
+          h(I)</code> is the hash of the leading I-frame in a GOP and used as reference. Then each
         frame in a GOP is hashed according to <code>hash(F) = h(href, h(F))</code> where
         <code>href</code> and <code>h(F)</code> have been aligned in memory. All hashes are
         collected in a list and together with some metadata form a <code>document</code>, which
         later will be signed.</para>
+      <para>If the I-frame is sliced into multiple NAL Uints, the hash of the primary slice should
+        be used as <code>href = h(Iprimaryslice)</code>. The other NAL Units of the I-frame are hashed
+        in the linked manner described above.</para>
       <para>A hash (<code>gophash</code>) of the list of hashes is added to metadata,
         <code>gophash = h(href, hash(P1), hash(P2), ..., hash(PN))</code>. The <code>gophash</code>
         simplifies validation, since verifying each hash in the list of hashes is only necessary
         when verifying the <code>gophash</code> fails. Another benefit is that the bytestream is
         prepared for the future, where a low-bitrate alternative can be added by omitting the list
         of hashes.</para>
-      <para>To preserve the order of GOPs the I-frame of the
-        <?oxy_comment_start author="FredrikS" timestamp="20220920T124438+0200" comment="Should be previous?"?>next<?oxy_comment_end?>
-        GOP is also added to metadata, that is, <code>hash(Inext) = h(href,
-          h(Inext))</code>.</para>
+      <para>To preserve the order of GOPs the hash of the I-frame of the previous GOP is also added
+        to metadata, that is, <code>hash(Iprevious) = href_previous</code>.</para>
       <para>This <code>document</code> is then signed to produce a signature as <code>signature = sign(h(document))</code>
         and together with the <code>document</code> itself is added to the stream in a SEI, that
         is, SEI = <code>document + signature</code>. The next GOP is initiated with a new <code>href</code>
@@ -359,6 +362,12 @@
           </tgroup>
         </table>
       </para>
+      <section>
+        <title>The reserved byte</title>
+        <para>The first bit should always be set to 0</para>
+        <para>The second bit should be set to 1 if this is a "only sent once" SEI.</para>
+        <para>The last bit should be set to 1 if there is another reserved byte following this.</para>
+      </section>
       <section>
         <title>Information sent only once</title>
         <para><?oxy_comment_start author="FredrikS" timestamp="20220922T101952+0200" comment="UUID/version byte in order to be able to show which NALUs are movable? -> No" flag="done"?>Large
@@ -455,14 +464,13 @@
           <listitem>
             <para>ONVIF Signed Media version (3 bytes)</para>
             <para>This will prevent version mismatch between device and client. The version
-              in clear text is of the form major.minor.patch and each of these are seriealized
+              in clear text is of the form major.minor.patch and each of these are serialized
               into one byte. Hence any one of them cannot exceed 255. For example,
-              "ONVIF version 1.2.42" is written as the three bytes "1, 2, 42".</para>
+              "ONVIF Signed Media version 1.2.42" is written as the three bytes "1, 2, 42".</para>
           </listitem>
           <listitem>
             <para>The UTC (8 bytes) based time represented by the number of 100-nanosecond intervals since
-              January 1, 1601 of the first media sample in the first fragment. IS THIS
-              THE SAME TIMESTAMP FORMAT AS IN OTHER ONVIF PLACES?</para>
+              January 1, 1601 of the first media sample in the first fragment.</para>
           </listitem>
           <listitem>
             <para>GOP counter (4 bytes)</para>
@@ -479,9 +487,10 @@
           </listitem>
           <listitem>
             <para>Linked IDR hash (H bytes)</para>
-            <para>This is the hash of the linked IDR, that is, the IDR following the signed GOP.
-              This is by definition the same NAL Unit that triggers a signing. Number of bytes
-              depends on the hash function used.</para>
+            <para>This is the hash of the linked IDR, that is, the IDR leading the previously
+              signed GOP. Number of bytes depends on the hash function used.</para>
+            <para>For the first signed GOP these <code>H</code> bytes should be set to
+              <code>0xff</code>.</para>
           </listitem>
         </itemizedlist>
         <para>It is not necessary to specify <code>H</code> in this tag. The validation side can
@@ -516,8 +525,7 @@
             <para>The size of the FW version as a character string, excluding termination character. If no FW version is written, set size to 0.</para>
           </listitem>
           <listitem>
-            <para><?oxy_comment_start author="FredrikS" timestamp="20220920T130019+0200" comment="Is this useful? If fw is compromised you can change this information too to write a different fw version" id="ep5_5d5_tvb"?><?oxy_comment_start author="bjornw" timestamp="20221208T113721+0100" parentID="ep5_5d5_tvb" comment="yes but a nice camera will still provide information that may be actionable by a client, as it pertains to feature set and so on assesing the quality of a specific device." mid="9"?>Firmware
-              version<?oxy_comment_end mid="9"?><?oxy_comment_end?></para>
+            <para>Firmware version</para>
           </listitem>
           <listitem>
             <para>Size of Serial Number (1 byte)</para>
@@ -562,14 +570,15 @@
             <para>Message digest hash selected from a list of supported hashing algorithms (1 byte)</para>
           </listitem>
           <listitem>
-            <para><?oxy_comment_start author="FredrikS" timestamp="20220920T130305+0200" comment="Add reason why this is needed" flag="done"?>Actual
-              size of signature<?oxy_comment_end?> (2 bytes)</para>
-            <para>Not all signing algorithms generate a fixed size.</para>
+            <para>Actual size of signature (2 bytes)</para>
+            <para>This is the written size, since not all signing algorithms generate a fixed size.</para>
           </listitem>
           <listitem>
             <para>The signature (max signature size bytes)</para>
             <para>A fixed size is reserved to be able to determine the payload size of the SEI.
-              This is necessary to be able to hash the SEI and generate the message digest.</para>
+              This makes the total size of the TLV tag fixed, hence known in advance. A known size
+              is necessary to write the SEI payload size in advance and then hash the SEI and
+              generate the message digest for signing.</para>
           </listitem>
         </itemizedlist>
       </section>
@@ -585,7 +594,15 @@
           field is optional in order to not put undue bitrate burden on the videostream as x509
           certificates can be quite large, especially if intermediate certificates are
           included.</para>
-        <para>Note that this tag is optional in any SEI, but the first one where it is mandatory.</para>
+        <para>Note that this tag is mandatory in the first SEI and optional thereafter.</para>
+        <itemizedlist>
+          <listitem>
+            <para>Tag version (1 byte)</para>
+          </listitem>
+          <listitem>
+            <para>The certificate(s) in PEM format (variable bytes)</para>
+          </listitem>
+        </itemizedlist>
       </section>
     </section>
     <section>
@@ -598,7 +615,8 @@
         </listitem>
         <listitem>
           <para>Determine the total payload size, excluding emulation prevention bytes. The total
-            payload includes the UUID (16 bytes) and all TLV data.</para>
+            payload includes the UUID (16 bytes) and all TLV data. The final stop bit byte is
+            excluded from the payload size.</para>
         </listitem>
         <listitem>
           <para>Write the payload size according to the codec standard.</para>
@@ -613,12 +631,12 @@
           <para><code>0x00 0x5b 0xc9 0x3f 0x2d 0x71 0x5e 0x95 0xad 0xa4 0x79 0x6f 0x90 0x87 0x7a 0x6f</code></para>
         </listitem>
         <listitem>
-          <para>Write the reserved byte with the only-sent-once flag set.</para>
+          <para>Write the reserved byte with the only-sent-once flag set; <code>0x40</code>.</para>
         </listitem>
         <listitem>
           <para>Write all TLVs except the signature since it by definition cannot be written yet.
             Write the TLV data using emulation prevention bytes if it is turned on.</para>
-          <para>The mandatory tags are the Public Key and the Certificate.</para>
+          <para>The mandatory tags are the Public Key, the Certificate and an empty hash list (to get the hash type).</para>
         </listitem>
         <listitem>
           <para>Hash the written data from NAL Unit header to the last written TLV data. Denote this
@@ -662,7 +680,7 @@
           <para><code>0x00 0x5b 0xc9 0x3f 0x2d 0x71 0x5e 0x95 0xad 0xa4 0x79 0x6f 0x90 0x87 0x7a 0x6f</code></para>
         </listitem>
         <listitem>
-          <para>Write the reserved byte with the only-sent-once flag set.</para>
+          <para>Write the reserved byte without the only-sent-once flag set; <code>0x00</code>.</para>
         </listitem>
         <listitem>
           <para>Write all TLVs except the signature since it by definition cannot be written yet.
@@ -672,9 +690,8 @@
           <para>Hash the written data from NAL Unit header to the last written TLV data. Denote this
             "document hash"</para>
         </listitem>
-        <?oxy_comment_start author="FredrikS" timestamp="20221109T121014+0100" comment="Clarify that you sign using the private key" flag="done"?>
         <listitem>
-          <para>Sign the document hash in a secure environment using the Private key.<?oxy_comment_end?></para>
+          <para>Sign the document hash in a secure environment using the Private key.</para>
         </listitem>
         <listitem>
           <para>Write the signature data to the Signature tag when signing has been
