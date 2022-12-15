@@ -165,9 +165,10 @@ Change Request 2061, 2063, 2065, 2109</revremark>
   </chapter>
   <chapter>
     <title>Normative references</title>
-    <para role="reference">ISO/IEC 14496-12:2015 - Coding of audio-visual objects — Part 12: ISO base media file format <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/68960.html"/></para>
-    <para role="reference">ISO/IEC 14496-14:2003 - Coding of audio-visual objects — Part 14: MP4 file format <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/68960.html"/></para>
-    <para role="reference">ISO/IEC 23001-7:2016 - Information technology — MPEG systems technologies — Part 7: Common encryption in ISO base media file format files <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/68042.html"/></para>
+    <para role="reference">ISO/IEC 14496-12:2022 — Coding of audio-visual objects — Part 12: ISO base media file format <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/83102.html" /></para>
+    <para role="reference">ISO/IEC 14496-14:2020 — Coding of audio-visual objects — Part 14: MP4 file format <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/79110.html" /></para>
+    <para role="reference">ISO/IEC 23000-19:2020 — Multimedia application format (MPEG-A) — Part 19: Common media application format (CMAF) for segmented media <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/79106.html" /></para>
+    <para role="reference">ISO/IEC 23001-7:2016 — MPEG systems technologies — Part 7: Common encryption in ISO base media file format files <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/68042.html" /></para>
     <para role="reference">ONVIF Core Specification &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
     <para role="reference">ONVIF Schedule Service Specification &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/srv/sched/ONVIF-Scheduler-Service-Spec.pdf"></link>&gt; </para>
   </chapter>
@@ -360,14 +361,16 @@ Change Request 2061, 2063, 2065, 2109</revremark>
       </section>
       <section>
         <title>External targets</title>
-        <para>The target interface allows configuration for devices that support recording to external storage targets. 
+        <para>
+          The target interface allows configuration for devices that support recording to external storage targets. 
           For authentication configuration see the related storage configuration APIs of the core specification.
         </para>
-        <para>The target API defines for each recording a path on the storage device where
-          the related recordings should be stored. In order to keep reasonably sized files the
-          recordings are split into snippets. This specification defines a date and time based
-          index. Indexing according to events and video content is outside of the scope of this
-          specification.</para>
+        <para>
+          The target API defines for each recording a path on the storage device where the related recordings should be stored.
+          In order to keep reasonably sized files the recordings are split into segments.
+          This specification defines a date and time based index.
+          Indexing according to events and video content is outside of the scope of this specification.
+        </para>
         <para>An encryption configuration interface allows to encrypt the content according to well defined standards.</para>
       </section>
     </section>
@@ -409,9 +412,16 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <para>The RecordingConfiguration structure shall be used to configure recordings through CreateRecordings and Get/SetRecordingConfiguration.</para>
         <para>
           <emphasis role="bold">MaximumRetentionTime</emphasis> specifies the maximum time that data in any track within the recording shall be stored. The device shall delete any data older than the maximum retention time. Such data shall not be accessible anymore. If the MaximumRetentionPeriod is set to 0, the device shall not limit the retention time of stored data, except by resource constraints. Whatever the value of MaximumRetentionTime, the device may automatically delete recordings to free up storage space for new recordings.</para>
-        <para>None of the other fields defined in this structure shall be used by the device. Instead, it simply stores this information, and it shall return it through the <emphasis>GetRecordingConfiguration</emphasis> and <emphasis>GetRecordingInformation</emphasis> (see ONVIF Recording Search Service Specification) methods.</para>
-        <para>A device may truncate any descriptive string without causing a fault if it exceeds the supported length. Descriptive strings are Location, Description and Content.</para>
-        <para>A device signaling support for recording to external targets via the SupportedRecordingFormats capability shall support the target configuration with the following parameters:</para>
+        <para>
+          None of the other fields defined in this structure shall be used by the device.
+          Instead, it simply stores this information, and it shall return it through the <emphasis>GetRecordingConfiguration</emphasis> and <emphasis>GetRecordingInformation</emphasis> (see ONVIF Recording Search Service Specification) methods.</para>
+        <para>
+          A device may truncate any descriptive string without causing a fault if it exceeds the supported length.
+          Descriptive strings are Location, Description and Content.
+        </para>
+        <para>
+          A device signaling support for recording to external targets via the SupportedExternalRecordingFormats capability shall support the target configuration with the following parameters:
+        </para>
         <variablelist>
           <varlistentry>
             <term>Storage</term>
@@ -1526,8 +1536,8 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           <listitem><para>Indicates that the device supports after event durations up to the given value.</para></listitem>
         </varlistentry>
         <varlistentry>
-          <term>SupportedRecordingFormats</term>
-          <listitem><para>List of formats supported by the device for recording to an external target. See tt:RecordingFormat for a list of definitions.</para></listitem>
+          <term>SupportedExternalRecordingFormats</term>
+          <listitem><para>List of formats supported by the device for recording to an external target. See tt:ExternalRecordingFormat for a list of definitions.</para></listitem>
         </varlistentry>
         <varlistentry>
           <term>SupportedEncryptionModes</term>
@@ -1763,7 +1773,6 @@ SetRecordingJobMode(JobToken, Active)
         This annex describes the requirements for recording from a device to an object storage for later use by a receiver.
         For this, the device uploads objects to the object storage.
         The device could be a camera, the receiver could be a video player.
-        The object storage typically resides in the cloud or network.
         <xref linkend="_refCloudRecordingDataFlow" /> shows the data flow for object storage recording.
       </para>
       <figure xml:id="_refCloudRecordingDataFlow">
