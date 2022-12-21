@@ -129,7 +129,7 @@ components:
         a new WebRTC session to a device. The requested properties of the
         session are passed in the `params` property in the payload.
       correlationId:
-        location: $message.header#/correlationId
+        location: $message.payload#/context
       traits:
         - $ref: '#/components/messageTraits/commonHeader'
         - $ref: '#/components/messageTraits/initSessionType'
@@ -154,7 +154,7 @@ components:
         adds details for the STUN and TURN servers that can be used. The payload
         contains the exact same data that was sent in the request message.
       correlationId:
-        location: $message.header#/correlationId
+        location: $message.payload#/context
       traits:
         - $ref: '#/components/messageTraits/commonHeader'
         - $ref: '#/components/messageTraits/initSessionType'
@@ -393,7 +393,7 @@ components:
     setSdpAnswer:
       description: This message contains the SDP answer from the client to the device.
       correlationId:
-        location: $message.header#/correlationId
+        location: $message.payload#/context
       traits:
         - $ref: '#/components/messageTraits/commonHeader'
         - $ref: '#/components/messageTraits/signalingType'
@@ -795,8 +795,6 @@ components:
       description: >-
         This message notifies the receiver of an error that occurred outside of
         the normal signaling flow.
-      correlationId:
-        location: $message.header#/correlationId
       traits:
         - $ref: '#/components/messageTraits/commonHeader'
         - $ref: '#/components/messageTraits/signalingType'
@@ -821,8 +819,6 @@ components:
       description: >-
         This message notifies the receiver of an error that occurred outside of
         the normal signaling flow.
-      correlationId:
-        location: $message.header#/correlationId
       traits:
         - $ref: '#/components/messageTraits/commonHeader'
         - $ref: '#/components/messageTraits/signalingType'
@@ -848,8 +844,6 @@ components:
       description: >-
         This message is sent from the signaling server to the client or device in response
         to a request if there is an error in the server.
-      correlationId:
-        location: $message.header#/correlationId
       traits:
         - $ref: '#/components/messageTraits/commonHeader'
         - $ref: '#/components/messageTraits/errorType'
@@ -913,13 +907,6 @@ components:
       properties:
         type:
           const: response
-        id:
-          type: string
-          examples:
-            - 6582ff03-1280-4254-9dbb-7c8a8f455d1f
-          description: >-
-            A string chosen by the responder that may be used for debugging
-            purposes. Better example???
     eventType:
       type: object
       properties:
