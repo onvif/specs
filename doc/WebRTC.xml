@@ -103,6 +103,26 @@
                   devices.</para>
               </entry>
             </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">client-facing</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>Messages that are sent between Signaling Server and clients in either
+                  direction.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">device-facing</emphasis>
+                </para>
+              </entry>
+              <entry align="left">Messages that are sent between Signaling Server and devices in
+                either direction.</entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -177,16 +197,21 @@
   </chapter>
   <chapter xml:id="chapter_yxt_v12_v5b">
     <title>Overview</title>
-    <para>This specification contains documentation and examples of the signaling protocol used to
-      set up a WebRTC peer-to-peer connection. The setup involves three participants: <emphasis
-        role="italic">client</emphasis>, <emphasis role="italic">device</emphasis> and <emphasis
-        role="italic">signaling server</emphasis>.</para>
+    <para>The WebRTC standard includes APIs for communicating with an ICE Server, but the signaling
+      component is not part of it. Signaling is needed in order for two peers to share how they
+      should connect.</para>
+    <para>Signaling can be implemented in many different ways, and the WebRTC standard doesn't
+      prefer any specific solution.</para>
+    <para>This specification contains documentation and examples of the signaling protocol used in
+      ONVIF to set up a WebRTC peer-to-peer connection. The setup involves three participants:
+        <emphasis role="italic">client</emphasis>, <emphasis role="italic">device</emphasis> and
+        <emphasis role="italic">signaling server</emphasis>.</para>
     <figure xml:id="_Ref493258796">
       <title>Client, device, signaling server</title>
       <mediaobject>
         <imageobject>
-          <imagedata fileref="media/WebRTC/client_device_server_triangle.png"
-            contentwidth="158.75mm"/>
+          <imagedata fileref="media/WebRTC/client_device_server_triangle.svg"
+            contentwidth="120mm"/>
         </imageobject>
       </mediaobject>
     </figure>
@@ -218,11 +243,16 @@
         <emphasis role="italic">client</emphasis> and a <emphasis role="italic">device</emphasis> in
       a WebRTC system. The messages are always sent via the <emphasis>signaling server</emphasis>
       called <emphasis>server</emphasis> from now on.</para>
+    <para>Since the headers of the messages differ depending on whether the message is sent between
+      client and server, or between device and server, we specify two separate versions of the
+      interface. One between client and server, called <emphasis>client-facing</emphasis> from now
+      on, and one between device and server, called <emphasis>device-facing</emphasis> from now
+      on.</para>
     <figure xml:id="_Ref493258797">
       <title>Signaling flow sequence diagram</title>
       <mediaobject>
         <imageobject>
-          <imagedata fileref="media/WebRTC/webrtc_signaling_flow.svg" contentwidth="160mm"/>
+          <imagedata fileref="media/WebRTC/webrtc_signaling_flow.svg" contentwidth="180mm"/>
         </imageobject>
       </mediaobject>
     </figure>
@@ -252,12 +282,17 @@
       <title>Message structure</title>
       <para>Generally a message contains two parts: header and payload. The header part is processed
         by the server and the payload part is intended for the peer (device or client).</para>
+      <para>Since message header content differs depending on whether the message is client- or
+        device-facing, the header keys are grouped accordingly while the payload keys are not. The
+        payload keys remain the same, regardless of peer.</para>
       <para><emphasis role="bold">NOTE</emphasis>: Messages sent via the server may be delivered
         out-of-order; for optimal scalability messages should be handled asynchronously.</para>
       <para>Below are explanations for some of the key/value pairs that are used in the
         protocol.</para>
       <section xml:id="section_cyt_v12_v5b">
-        <title>Header keys</title>
+        <title>General header keys</title>
+        <para>The following key/value pair is used in both client- and device-facing
+          messages.</para>
         <para>
           <informaltable>
             <tgroup cols="2">
@@ -280,15 +315,35 @@
                     <para>Can be "initSession", "signaling" or "error"</para>
                   </entry>
                 </row>
+              </tbody>
+            </tgroup>
+          </informaltable>
+        </para>
+      </section>
+      <section>
+        <title>Client-facing header keys</title>
+        <para>
+          <informaltable>
+            <tgroup cols="2">
+              <colspec colnum="1" colname="c1" colwidth="1*"/>
+              <colspec colnum="2" colname="c2" colwidth="3.55*"/>
+              <tbody>
+                <row>
+                  <entry>
+                    <para><emphasis role="bold">Key</emphasis></para>
+                  </entry>
+                  <entry>
+                    <para><emphasis role="bold">Description</emphasis></para>
+                  </entry>
+                </row>
                 <row>
                   <entry>
                     <para>deviceId</para>
                   </entry>
                   <entry>
-                    <para xml:id="para_wff_512_v5b">The ID of the device to which the message is
-                      intended, or the device that sent the message. This ID is unique within the
-                      organization. See section <xref linkend="chapter_ryt_v12_v5b"/> for how to get
-                      available IDs.</para>
+                    <para>The ID of the device to which the message is intended, or the device that
+                      sent the message. This ID is unique within the organization. See section <xref
+                        linkend="chapter_ryt_v12_v5b"/> for how to get available IDs.</para>
                   </entry>
                 </row>
                 <row>
@@ -327,6 +382,31 @@
             </tgroup>
           </informaltable>
         </para>
+      </section>
+      <section>
+        <title>Device-facing header keys</title>
+        <informaltable>
+          <tgroup cols="2">
+            <colspec colnum="1" colname="c1" colwidth="1*"/>
+            <colspec colnum="2" colname="c2" colwidth="3.55*"/>
+            <tbody>
+              <row>
+                <entry>
+                  <para><emphasis role="bold">Key</emphasis></para>
+                </entry>
+                <entry>
+                  <para><emphasis role="bold">Description</emphasis></para>
+                </entry>
+              </row>
+              <row>
+                <entry>clientId</entry>
+                <entry>The ID of the client to which the message is intended, or the client that
+                  sent the message. This ID is unique within the organization and the device gets
+                  this id from server during initSession.</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>
       </section>
       <section xml:id="section_ozx_512_v5b">
         <title>Payload keys</title>
@@ -386,15 +466,6 @@
                   <entry>An optional identifier chosen by the requestor that can be used to
                     correlate the response from the receiver with the request. Echoed back in the
                     response.</entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>id</para>
-                  </entry>
-                  <entry>
-                    <para>A string chosen by the responder that may be used for debugging purposes,
-                      e.g. as a message counter.</para>
-                  </entry>
                 </row>
               </tbody>
             </tgroup>
@@ -466,17 +537,20 @@
         <para>An <code>initSession</code> message is sent from the client to the signaling server to
           request a new WebRTC session to a device. A message of type <code>live</code> should be
           used to request a live video and/or audio session.</para>
-        <para>The server responds with a copy of the <code>initSession</code> message,
-          including details for the STUN and TURN servers that can be used.</para>
-        <para>The device acknowledges that it has received an <code>initSession</code>
-          message.</para>
+        <para>The server sends a copy of the message, with updated headers, to the device; the
+          device-facing initSession message, called <code>initSession2</code>. Essentially identical
+          to the client-facing <code>initSession</code>, just with slightly different header
+          content.</para>
+        <para>The server also responds to the client with a copy of the <code>initSession</code>
+          message, including details for the STUN and TURN servers that can be used.(<code>initSessionResponse</code>)</para>
+        <para>The device acknowledges that it has received the <code>initSession</code>
+          message.(<code>initSessionAck2</code>,<code>initSessionAck</code>)</para>
       </section>
       <section xml:id="section_a2t_ypd_svb">
         <title>Faults</title>
         <para>The following errors can be set in the <code>initSession</code> messages: 1100, 1101,
-          2100, 2101, 2102, 2103, 2104, 2105, 2106. The server may also send errors using its own
-            <code>error</code> type message. See section <xref linkend="section_myt_v12_v5b"/> for
-          more details on errors.</para>
+          2100, 2101, 2102, 2103, 2104, 2105, 2106, 2107, 2108, 2109, 2110. See section <xref
+            linkend="section_myt_v12_v5b"/> for more details on errors.</para>
       </section>
     </section>
     <section xml:id="section_gyt_v12_v5b">
@@ -488,6 +562,9 @@
         <title>setSdpOffer</title>
         <para>A <code>setSdpOffer</code> message is always sent from the device, via server, to the
           client.</para>
+        <para>Since the communication is initiated in the device-facing side, the actual signaling
+          protocol API message sent is the <code>setSdpOffer2</code>, which via the server, with
+          updated headers, becomes <code>setSdpOffer</code></para>
         <para>The client MAY acknowledge the received SDP offer with a response after validating the
           message. Although this is not strictly necessary it can be helpful to send these
           acknowledgements to ease debugging the signaling flow. </para>
@@ -504,8 +581,8 @@
         <title>Faults</title>
         <para>The following errors can be set in the responses to the <code>setSdpOffer</code> or
             <code>setSdpAnswer</code> messages: 1100, 1101, 2100, 2101, 2102, 2103, 2104, 2105,
-          2106. The server may also send errors using its own <code>error</code> type message. See
-          section <xref linkend="section_myt_v12_v5b"/> for more details on errors.</para>
+          2106, 2107, 2108, 2109, 2110. See section <xref linkend="section_myt_v12_v5b"/> for more
+          details on errors.</para>
       </section>
     </section>
     <section xml:id="section_c2t_ypd_svb">
@@ -522,15 +599,14 @@
         <para>If everything works as it should, a peer-to-peer WebRTC session can be set up between
           client and device. After the session has been established the client can terminate the
           WebSocket session to the signaling server and the peer-to-peer connection will not be
-          affected. How ever, it's recommended to keep the WebSocket session to the server open to
-          be able to receive event messages from the signaling server.</para>
+          affected. However, it's recommended to keep the WebSocket session to the server open to be
+          able to receive event messages from the signaling server.</para>
       </section>
       <section xml:id="section_d2t_ypd_svb">
         <title>Faults</title>
         <para>The following errors can be set in the response to the <code>addIceCandidate</code>
-          message: 1100, 1101, 2100, 2101, 2102, 2103, 2104, 2105, 2106. The server may also send
-          errors using its own <code>error</code> type message. See section <xref
-            linkend="section_myt_v12_v5b"/> for more details on errors.</para>
+          message: 1100, 1101, 2100, 2101, 2102, 2103, 2104, 2105, 2106, 2107, 2108, 2109, 2110. See
+          section <xref linkend="section_myt_v12_v5b"/> for more details on errors.</para>
       </section>
     </section>
     <section xml:id="section_myt_v12_v5b">
@@ -543,7 +619,7 @@
           <code>error</code> message is encapsulated in a <code>signaling</code> message. The server
         may itself send errors by using its own <code>error</code> type message.</para>
     <section xml:id="section_prn_3dj_3vb">
-      <title><?oxy_comment_start author="FredrikS" timestamp="20221109T102135+0100" comment="Use HTTP error codes?" id="bj2_jjg_tvb"?><?oxy_comment_start author="fredriks" timestamp="20221206T140720+0100" parentID="bj2_jjg_tvb" comment="Almost all the errors would be under the same error code 400 in that case which make them less useful" mid="1"?>Client
+      <title><?oxy_comment_start author="FredrikS" timestamp="20221109T102135+0100" comment="Use HTTP error codes?" id="bj2_jjg_tvb" flag="done"?><?oxy_comment_start author="fredriks" timestamp="20221206T140720+0100" parentID="bj2_jjg_tvb" comment="Almost all the errors would be under the same error code 400 in that case which make them less useful" flag="done" mid="1"?>Client
           and device error codes<?oxy_comment_end mid="1"?><?oxy_comment_end?></title>
       <informaltable>
         <tgroup cols="2">
@@ -653,7 +729,7 @@
       </informaltable>
     </section>
       <section xml:id="section_nyt_v12_v5b">
-        <title><?oxy_comment_start author="FredrikS" timestamp="20221109T102218+0100" comment="Align with device error codes" id="zxm_rxm_tvb"?><?oxy_comment_start author="fredriks" timestamp="20221207T114432+0100" parentID="zxm_rxm_tvb" comment="Changed text to codes" mid="3"?>Server
+        <title><?oxy_comment_start author="FredrikS" timestamp="20221109T102218+0100" comment="Align with device error codes" id="zxm_rxm_tvb" flag="done"?><?oxy_comment_start author="fredriks" timestamp="20221207T114432+0100" parentID="zxm_rxm_tvb" comment="Changed text to codes" flag="done" mid="3"?>Server
           error codes<?oxy_comment_end mid="3"?><?oxy_comment_end?></title>
         <informaltable>
           <tgroup cols="2">
@@ -723,7 +799,7 @@
     </section>
   </chapter>
   <chapter xml:id="chapter_uyt_v12_v5b">
-    <title><?oxy_comment_start author="FredrikS" timestamp="20221109T150044+0100" comment="What happens when the access token expires?"?>WebRTC
+    <title><?oxy_comment_start author="FredrikS" timestamp="20221109T150044+0100" comment="What happens when the access token expires?" flag="done"?>WebRTC
       Usage<?oxy_comment_end?></title>
     <para>This chapter describes ONVIF specific usage of WebRTC regarding how to send data between
       the client and device on the peer-to-peer connection.</para>
@@ -731,14 +807,14 @@
       client based on the available bandwidth or other limiting factors. For example, a specific
       profile for mobile clients, another one for high quality streaming, etc.</para>
     <section xml:id="section_vyt_v12_v5b">
-      <title><?oxy_comment_start author="FredrikS" timestamp="20221109T102104+0100" comment="Congestion control mechanisms?"?>Video<?oxy_comment_end?></title>
+      <title><?oxy_comment_start author="FredrikS" timestamp="20221109T102104+0100" comment="Congestion control mechanisms?" id="jl3_2bm_xvb"?><?oxy_comment_start author="karinh" timestamp="20221221T160730+0100" parentID="jl3_2bm_xvb" comment="Is the sentence added here enough?" mid="6"?>Video<?oxy_comment_end mid="6"?><?oxy_comment_end?></title>
       <para>When using WebRTC with a web browser only certain codecs will work. Because of this
         ONVIF recommends to use the h.264 codec.</para>
-      <para>In line with WebRTC standard ONVIF also recommends to always use congestion control to
+      <para>In line with WebRTC standard, ONVIF also recommends to always use congestion control to
         ensure that WebRTC cannot be used to flood the network.</para>
     </section>
     <section xml:id="section_wyt_v12_v5b">
-      <title><?oxy_comment_start author="FredrikS" timestamp="20221108T140034+0100" comment="Add info about prioritizing audio vs video in case of congestion. Recommend echo cancellation."?>Audio<?oxy_comment_end?></title>
+      <title><?oxy_comment_start author="FredrikS" timestamp="20221108T140034+0100" comment="Add info about prioritizing audio vs video in case of congestion. Recommend echo cancellation." id="wbt_bbm_xvb" flag="done"?><?oxy_comment_start author="karinh" timestamp="20221221T160645+0100" parentID="wbt_bbm_xvb" comment="Won&apos;t do. This is not specific to webRTC." flag="done" mid="8"?>Audio<?oxy_comment_end mid="8"?><?oxy_comment_end?></title>
       <para>When using WebRTC with a web browser only certain codecs will work. Because of this
         ONVIF recommends to use the Opus or PCMU codec.</para>
       <para>For two-way audio it's recommended to use echo cancellation to avoid feedback
@@ -747,7 +823,7 @@
     <section xml:id="section_xyt_v12_v5b">
       <title>Metadata</title>
       <para>A device could send event and analytics metadata on a WebRTC datachannel. This is not
-        covered in the this version of this specifcation but may be added in future versions.</para>
+        covered in this version of this specifcation but may be added in future versions.</para>
     </section>
     <section xml:id="section_yyt_v12_v5b">
       <title>Commands</title>
