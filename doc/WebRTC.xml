@@ -4,19 +4,19 @@
   <info>
     <title>WebRTC Specification</title>
     <titleabbrev>WebRTC</titleabbrev>
-    <releaseinfo>22.12</releaseinfo>
+    <releaseinfo>23.06</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate> December, 2022</pubdate>
+    <pubdate> June, 2023</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
       </imageobject>
     </mediaobject>
     <copyright>
-      <year>2008-2022</year>
+      <year>2008-2023</year>
       <holder>ONVIF™ All rights reserved.</holder>
     </copyright>
     <legalnotice>
@@ -41,7 +41,7 @@
     </legalnotice>
     <revhistory>
       <revision>
-        <revnumber>22.12</revnumber>
+        <revnumber>23.06</revnumber>
         <date>Dec 2022</date>
         <author>
           <personname>Fredrik Svensson, Jonas Cremon, Karin Hedlund</personname>
@@ -89,8 +89,8 @@
       <title>Definitions</title>
       <informaltable>
         <tgroup cols="2">
-          <colspec colname="c1" colwidth="24*"/>
-          <colspec colname="c2" colwidth="76*"/>
+          <colspec colname="c1" colwidth="1*"/>
+          <colspec colname="c2" colwidth="2.45*"/>
           <tbody valign="top">
             <row>
               <entry align="left">
@@ -110,7 +110,7 @@
                 </para>
               </entry>
               <entry align="left">
-                <para>Messages that are sent between Signaling Server and clients in either
+                <para>Messages that are sent between the Signaling Server and clients in either
                   direction.</para>
               </entry>
             </row>
@@ -120,7 +120,7 @@
                   <emphasis role="bold">device-facing</emphasis>
                 </para>
               </entry>
-              <entry align="left">Messages that are sent between Signaling Server and devices in
+              <entry align="left">Messages that are sent between the Signaling Server and devices in
                 either direction.</entry>
             </row>
           </tbody>
@@ -217,8 +217,9 @@
     </figure>
     <para>In this figure,<itemizedlist>
         <listitem>
+          <?oxy_comment_start author="fredriks" timestamp="20230104T102815+0100" comment="We should add a stick figure user to the picture to illustrate this"?>
           <para>The <emphasis role="italic">client</emphasis> represents a real user who initiates
-            the WebRTC session.</para>
+            the WebRTC session.<?oxy_comment_end?></para>
         </listitem>
         <listitem>
           <para>The <emphasis role="italic">device</emphasis> is the resource delivering the media,
@@ -232,8 +233,9 @@
         </listitem>
       </itemizedlist></para>
     <para>The <emphasis>Signaling Protocol</emphasis> described in this specification details the
-      data exchange between client and device via the signaling server. The formal API
-      is defined in separate JSON schema files.</para>
+      data exchange between client and device via the signaling server.
+      <?oxy_comment_start author="fredriks" timestamp="20230104T103210+0100" comment="How do we make this clear, i.e. how to refer from this spec to the schema?"?>The
+      formal API is defined in a separate AsyncAPI schema file.<?oxy_comment_end?></para>
     <para>Once a peer-to-peer connection has been established, how WebRTC is used is described in the
       WebRTC usage chapter.</para>
   </chapter>
@@ -241,8 +243,12 @@
     <title>Signaling Protocol</title>
     <para>The <emphasis role="italic">Signaling Protocol</emphasis> defines the messages between a
         <emphasis role="italic">client</emphasis> and a <emphasis role="italic">device</emphasis> in
-      a WebRTC system. The messages are always sent via the <emphasis>signaling server</emphasis>
-      called <emphasis>server</emphasis> from now on.</para>
+      a WebRTC system with the intension of esatblishing a peer-to-peer connection between the
+      client and a device. The messages are always sent via the <emphasis>signaling
+        server</emphasis> called <emphasis>server</emphasis> from now on. Once a peer-to-peer
+      connection has been established the connection with the server can be dropped without
+      affecting the peer-to-peer connection. It's however recommended to keep the server connection
+      open to be able receive error messages from the server.</para>
     <para>Since the headers of the messages differ depending on whether the message is sent between
       client and server, or between device and server, we specify two separate versions of the
       interface. One between client and server, called <emphasis>client-facing</emphasis> from now
@@ -265,17 +271,21 @@
         and <code>access_token</code> should be replaced with a valid access token that the server
         will accept. See section <xref linkend="chapter_cwp_r2k_v5b"/> for how to get an access
         token.</para>
-      <para>The device also needs to persistently have a WebSocket connection to the signaling server
-        open to be able to accept connections.</para>
+      <para><?oxy_comment_start author="fredriks" timestamp="20230104T110449+0100" comment="Should we and an example URL for the device? Are access tokens used here?"?>The
+        device also needs to persistently have a WebSocket connection to the signaling server open
+        to be able to accept connections.<?oxy_comment_end?></para>
       <para>The connection handling is done using WebSocket [RFC 6455]. The WebSocket sub protocol
         defined by this specification is identified with 'client.webrtc.onvif.org'.</para>
       <para>The signaling messages are then sent as JSON text messages in the WebSocket. Please
         refer to the Signaling Protocol AsyncAPI schema for specific details.</para>
       <section xml:id="section_zdt_ypd_svb">
         <title>hello</title>
-        <para>Directly after connecting a WebSocket to the server the client or device gets a hello message
-          from the server, with the client's or device's assigned signaling ID. Note that this ID is not
-          directly used in the Signaling Protocol.</para>
+        <para>Directly after connecting a WebSocket to the server the client or device gets a hello
+          message from the server, with the peer's assigned
+          <?oxy_comment_start author="fredriks" timestamp="20230104T111000+0100" comment="Maybe this should go into definitions and be used constistently in this spec instead of just ID"?>signaling
+          ID<?oxy_comment_end?>.
+          <?oxy_comment_start author="fredriks" timestamp="20230104T110730+0100" comment="Probably we should change this now because it will be used as deviceId or clientId."?>Note
+          that this ID is not directly used in the Signaling Protocol.<?oxy_comment_end?></para>
       </section>
     </section>
     <section xml:id="section_byt_v12_v5b">
@@ -287,11 +297,14 @@
         payload keys remain the same, regardless of peer.</para>
       <para><emphasis role="bold">NOTE</emphasis>: Messages sent via the server may be delivered
         out-of-order; for optimal scalability messages should be handled asynchronously.</para>
-      <para>Below are explanations for some of the key/value pairs that are used in the
-        protocol.</para>
+      <para>Below are explanations of key/value pairs that are used in the protocol.</para>
       <section xml:id="section_cyt_v12_v5b">
-        <title>General header keys</title>
-        <para>The following key/value pair is used in both client- and device-facing
+        <title><?oxy_comment_start author="fredriks" timestamp="20230104T111336+0100" comment="Better to have a structure like
+5.2.1 Header keys
+5.2.1.1 General keys
+5.2.1.2 Client-facing keys
+5.2.1.3 Device-facing keys"?>General header keys<?oxy_comment_end?></title>
+        <para>The following key/value pairs are used in both client- and device-facing
           messages.</para>
         <para>
           <informaltable>
@@ -341,8 +354,10 @@
                     <para>deviceId</para>
                   </entry>
                   <entry>
-                    <para>The ID of the device to which the message is intended, or the device that
-                      sent the message. This ID is unique within the organization. See section <xref
+                    <para>The
+                      <?oxy_comment_start author="fredriks" timestamp="20230104T111015+0100" comment="Signaling ID"?>ID<?oxy_comment_end?>
+                      of the device to which the message is intended, or the device that sent the
+                      message. This ID is unique within the organization. See section <xref
                         linkend="chapter_ryt_v12_v5b"/> for how to get available IDs.</para>
                   </entry>
                 </row>
@@ -400,9 +415,11 @@
               </row>
               <row>
                 <entry>clientId</entry>
-                <entry>The ID of the client to which the message is intended, or the client that
-                  sent the message. This ID is unique within the organization and the device gets
-                  this id from server during initSession.</entry>
+                <entry>The
+                  <?oxy_comment_start author="fredriks" timestamp="20230104T111032+0100" comment="Signaling ID"?>ID<?oxy_comment_end?>
+                  of the client to which the message is intended, or the client that sent the
+                  message. This ID is unique within the organization and the device gets this id
+                  from server during initSession.</entry>
               </row>
             </tbody>
           </tgroup>
@@ -542,9 +559,10 @@
           to the client-facing <code>initSession</code>, just with slightly different header
           content.</para>
         <para>The server also responds to the client with a copy of the <code>initSession</code>
-          message, including details for the STUN and TURN servers that can be used.(<code>initSessionResponse</code>)</para>
-        <para>The device acknowledges that it has received the <code>initSession</code>
-          message.(<code>initSessionAck2</code>,<code>initSessionAck</code>)</para>
+          message, including details for the STUN and TURN servers that can be used as an
+            <code>initSessionResponse</code> message.</para>
+        <para>The device acknowledges that it has received the <code>initSession</code> message,
+            <code>initSessionAck2</code>, <code>initSessionAck</code>.</para>
       </section>
       <section xml:id="section_a2t_ypd_svb">
         <title>Faults</title>
