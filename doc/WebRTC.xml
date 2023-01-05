@@ -106,7 +106,7 @@
             <row>
               <entry align="left">
                 <para>
-                  <emphasis role="bold">signaling ID</emphasis>
+                  <emphasis role="bold">Signaling ID</emphasis>
                 </para>
               </entry>
               <entry>A peer's assigned ID provided by the signaling server in the <emphasis
@@ -267,33 +267,34 @@
       <title>Signaling flow sequence diagram</title>
       <mediaobject>
         <imageobject>
-          <imagedata fileref="media/WebRTC/webrtc_signaling_flow.svg" contentwidth="180mm"/>
+          <imagedata fileref="media/WebRTC/webrtc_signaling_flow.svg" contentwidth="160mm"/>
         </imageobject>
       </mediaobject>
     </figure>
     <section xml:id="section_ayt_v12_v5b">
-      <title>Connecting to the signaling server</title>
+      <title><?oxy_comment_start author="fredriks" timestamp="20230105T155830+0100" comment="Split this in two under-sections for client and device "?>Connecting
+        to the signaling server</title><?oxy_comment_end?>
       <para>To be able to accept connections, a device needs to connect to the server, by setting up
         a WebSocket to, for example, the URL:</para>
       <programlisting>https://signaling.example.com/device?authorization=access_token</programlisting>
-      <para>where <code>signaling.example.com</code> should be replaced with the server's address,
-        and <code>access_token</code> should be replaced with a valid access token that the server
-        will accept.</para>
+      <para>Where <code>signaling.example.com</code> should be replaced with the server's address,
+        and <code>access_token</code> should be replaced with a valid
+        <?oxy_comment_start author="fredriks" timestamp="20230105T145309+0100" comment="Add info on how to generate access token"?>access
+        token that the server will accept<?oxy_comment_end?>.</para>
+      <para>The connection handling is done using WebSocket [RFC 6455]. The WebSocket sub protocol
+        defined by this specification is identified with 'device.webrtc.onvif.org'.</para>
       <para>Similarly, a client also needs to first connect to the server, by setting up a WebSocket
         to, for example:
-        <programlisting>https://signaling.example.com/client?authorization=Bearer%20access_token"</programlisting>
-        where again, signaling.example.com should be replaced with the server's address, and
-        access_token should be replaced with a valid access token that the server will
-        accept.</para>
+        <programlisting>https://signaling.example.com/client?authorization=Bearer%20access_token</programlisting></para>
       <para>See section <xref linkend="chapter_cwp_r2k_v5b"/> for how to get an access token.</para>
-      <para>The connection handling is done using WebSocket [RFC 6455]. The WebSocket sub protocol
-        defined by this specification is identified with 'client.webrtc.onvif.org'.</para>
+      <para>The WebSocket sub protocol shall be set to 'client.webrtc.onvif.org' for the
+        client.</para>
       <para>The signaling messages are then sent as JSON text messages in the WebSocket. Please
         refer to the Signaling Protocol AsyncAPI schema for specific details.</para>
       <section xml:id="section_zdt_ypd_svb">
         <title>hello</title>
         <para>Directly after connecting a WebSocket to the server the client or device gets a hello
-          message from the server, with the peer's assigned signaling ID.</para>
+          message from the server, with the peer's assigned Signaling ID.</para>
       </section>
     </section>
     <section xml:id="section_byt_v12_v5b">
@@ -310,8 +311,8 @@
         <title>Header keys</title>
         <section xml:id="section_cyt_v12_v5b">
           <title>General header keys</title>
-          <para>The following key/value pairs are used in both client- and device-facing
-            messages.</para>
+          <para>The following key/value pairs are used in the header of both client- and
+            device-facing messages.</para>
           <para>
             <informaltable>
               <tgroup cols="2">
@@ -341,6 +342,7 @@
         </section>
         <section>
           <title>Client-facing header keys</title>
+          <para>The following key/value pairs are used in the header part in client messages.</para>
           <para>
             <informaltable>
               <tgroup cols="2">
@@ -360,7 +362,7 @@
                       <para>deviceId</para>
                     </entry>
                     <entry>
-                      <para>The signaling ID of the device to which the message is intended, or the
+                      <para>The Signaling ID of the device to which the message is intended, or the
                         device that sent the message. This ID is unique within the organization. See
                         section <xref linkend="chapter_ryt_v12_v5b"/> for how to get available
                         IDs.</para>
@@ -405,6 +407,7 @@
         </section>
         <section>
           <title>Device-facing header keys</title>
+          <para>The following key/value pairs are used in the header part in device messages.</para>
           <informaltable>
             <tgroup cols="2">
               <colspec colnum="1" colname="c1" colwidth="1*"/>
@@ -420,7 +423,7 @@
                 </row>
                 <row>
                   <entry>clientId</entry>
-                  <entry>The signaling ID of the client to which the message is intended, or the
+                  <entry>The Signaling ID of the client to which the message is intended, or the
                     client that sent the message. This ID is unique within the organization and the
                     device gets this id from server during initSession.</entry>
                 </row>
@@ -431,6 +434,7 @@
       </section>
       <section xml:id="section_ozx_512_v5b">
         <title>Payload keys</title>
+        <para>The following key/value pairs are used in the payload part of messages.</para>
         <para>
           <informaltable>
             <tgroup cols="2">
@@ -495,6 +499,8 @@
       </section>
       <section xml:id="section_dyt_v12_v5b">
         <title>Param level keys inside params blocks</title>
+        <para>The following key/value pairs are used inside <code>params</code> blocks in the
+          payload part of messages.</para>
         <para>
           <informaltable>
             <tgroup cols="2">
