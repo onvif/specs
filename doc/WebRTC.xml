@@ -273,24 +273,61 @@
     </figure>
     <section xml:id="section_ayt_v12_v5b">
       <title><?oxy_comment_start author="fredriks" timestamp="20230105T155830+0100" comment="Split this in two under-sections for client and device "?>Connecting
-        to the signaling server</title><?oxy_comment_end?>
-      <para>To be able to accept connections, a device needs to connect to the server, by setting up
-        a WebSocket to, for example, the URL:</para>
-      <programlisting>https://signaling.example.com/device?authorization=access_token</programlisting>
-      <para>Where <code>signaling.example.com</code> should be replaced with the server's address,
-        and <code>access_token</code> should be replaced with a valid
-        <?oxy_comment_start author="fredriks" timestamp="20230105T145309+0100" comment="Add info on how to generate access token"?>access
-        token that the server will accept<?oxy_comment_end?>.</para>
-      <para>The connection handling is done using WebSocket [RFC 6455]. The WebSocket sub protocol
-        defined by this specification is identified with 'device.webrtc.onvif.org'.</para>
-      <para>Similarly, a client also needs to first connect to the server, by setting up a WebSocket
-        to, for example:
-        <programlisting>https://signaling.example.com/client?authorization=Bearer%20access_token</programlisting></para>
-      <para>See section <xref linkend="chapter_cwp_r2k_v5b"/> for how to get an access token.</para>
-      <para>The WebSocket sub protocol shall be set to 'client.webrtc.onvif.org' for the
-        client.</para>
+        to the signaling server</title>
+      <para>Both a client and a device need to connect to the server by setting up a WebSocket with
+        valid access tokens that the server will accept. The connection handling is done using
+        WebSocket [RFC 6455].</para>
       <para>The signaling messages are then sent as JSON text messages in the WebSocket. Please
-        refer to the Signaling Protocol AsyncAPI schema for specific details.</para>
+        refer to the Signaling Protocol AsyncAPI schema for specific details regarding the Signaling
+        Protocol.</para><?oxy_comment_end?>
+      <section>
+        <title>Client</title>
+        <para>A client connects to the server by setting up a WebSocket to, for example:
+          <programlisting>https://signaling.example.com/client?authorization=Bearer%20access_token</programlisting></para>
+        <para>Where <code>signaling.example.com</code> should be replaced with the server's address,
+          and <code>access_token</code> should be replaced with a valid
+          <?oxy_comment_start author="fredriks" timestamp="20230105T145309+0100" comment="Add info on how to generate access token"?>access
+          token that the server will accept<?oxy_comment_end?>.</para>
+        <para>See section <xref linkend="chapter_cwp_r2k_v5b"/> for how to get an access
+          token.</para>
+        <para>The WebSocket sub protocol shall be set to 'client.webrtc.onvif.org' for the
+          client.</para>
+      </section>
+      <section>
+        <title>Device</title>
+        <para>A device must first be onboarded in order to be able to set up a WebSocket to the
+          server. See &lt;??> for how to onboard a device.</para>
+        <para>An onboarded device then connects by setting up a WebSocket to, for example:</para>
+        <programlisting>wss://signaling.example.com/device? deviceId=myDeviceId&amp;orgId=myOrgId&amp;token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjI4NjYzNjg1NDgsInRhcmdldElkIjoiTXlUZXN0VGFyZ</programlisting>
+        <para>Where <code>signaling.example.com</code> should be replaced with the server's address
+          and the <code>deviceId</code> and <code>orgId</code> (decided when onboarding) have to be
+          used as query strings when connecting. An RS256 signed JWT also needs to be provided
+            (<code>token</code>). This must be signed using the device's private key that correspond
+          to the device's public key that was used when onboarding. The JWT needs to contain three
+          claims:</para>
+        <informaltable>
+          <tgroup cols="2">
+            <colspec colname="c1" colnum="1" colwidth="1*"/>
+            <colspec colname="c2" colnum="2" colwidth="1*"/>
+            <tbody>
+              <row>
+                <entry>deviceId</entry>
+                <entry>the ID of the device that connects</entry>
+              </row>
+              <row>
+                <entry>orgId</entry>
+                <entry>the Organization ID that the device belongs to</entry>
+              </row>
+              <row>
+                <entry>exp</entry>
+                <entry>date (int64) when the token should expire</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>
+        <para>The WebSocket sub protocol shall be set to 'device.webrtc.onvif.org' for the
+          device.</para>
+      </section>
       <section xml:id="section_zdt_ypd_svb">
         <title>hello</title>
         <para>Directly after connecting a WebSocket to the server the client or device gets a hello
