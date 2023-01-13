@@ -1863,7 +1863,7 @@ secfrac  = "." 1*DIGIT</programlisting>
         The device shall generate the object key for this object according to the ABNF <literal>key</literal> rule and replacement rules defined in <xref linkend="_refCloudRecordingSegmentObjects" />.
         The device shall replace <literal>date</literal> and <literal>time</literal> respectively with the date and time portion of the span end in Universal Coordinated Time (UTC), following the ABNF rules.
         The device shall replace <literal>counter</literal> by a value equal to the counter of the last segments of the span plus 1.
-        The device shall replace <literal>extension</literal> with <literal>"end"</literal>.
+        The device shall replace <literal>extension</literal> with a value defined by the recording formats in the following sections.
       </para>
     </section>
     <section>
@@ -1889,6 +1889,10 @@ secfrac  = "." 1*DIGIT</programlisting>
       <para>
         A segment shall contain a <literal>MovieFragmentRandomAccessBox</literal> as the last box.
         The <literal>MovieFragmentRandomAccessBox</literal> shall provide references for all tracks and their applicable <literal>MovieFragmentBox</literal> instances.
+      </para>
+      <para>
+        The device shall upload a span end object.
+        It should generate the object key for a span object with the <literal>"mp4_end"</literal> as the <literal>extension</literal>.
       </para>
     </section>
     <section>
@@ -1927,6 +1931,21 @@ secfrac  = "." 1*DIGIT</programlisting>
       </para>
       <para>
         The device shall generate each segment according to ISO/IEC 23000-19, the common media application format (CMAF) for segmented media.
+      </para>
+      <para>
+        The device shall upload a span end object for each segment type.
+        It should generate the object key for each span end object with the <literal>extension</literal> based on the type of data contained in the segments:
+        <itemizedlist>
+          <listitem>
+            <para>Video data: <literal>"m4v_end"</literal></para>
+          </listitem>
+          <listitem>
+            <para>Audio data: <literal>"m4a_end"</literal></para>
+          </listitem>
+          <listitem>
+            <para>Metadata: <literal>"m4m_end"</literal></para>
+          </listitem>
+        </itemizedlist>
       </para>
     </section>
     <section>
