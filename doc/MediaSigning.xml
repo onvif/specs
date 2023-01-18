@@ -855,7 +855,7 @@
         </listitem>
         <listitem>
           <para>Determine the total payload size, excluding emulation prevention bytes. The total
-            payload includes the UUID (16 bytes) and all TLV data. The final stop bit byte is
+            payload includes the UUID (16 bytes) and all TLV data. The final stop-bit byte is
             excluded from the payload size.</para>
         </listitem>
         <listitem>
@@ -871,7 +871,7 @@
         <listitem>
           <para>Write the reserved byte with the only-sent-once flag set; <code>0x80</code>.</para>
           <para>If the SEI is written with emulation prevention bytes at once, set the emulation
-            prevention byte flag; <code>0x40</code>.</para>
+            prevention byte flag; <code>0xc0</code>.</para>
         </listitem>
         <listitem>
           <para>Write all TLVs except the signature since it by definition cannot be written yet.
@@ -951,11 +951,10 @@
         (I-frame) followed by 4 non-IDRs (P- or B-frames). In text format it would look like
           <code>IPPPPIPPPPIPPPP</code>. The signing information is collected in a SEI frame
           (<code>S</code>).
-        <?oxy_comment_start author="bjornv" timestamp="20220919T115655+0200" comment="Do we have to specify that H.265 allows for SEIs after picture NALUs, but that is way easier to keep the same structure for the same CODEC-formats? - NO" flag="done"?>The
-        SEI should be added to the video stream such that it follows the Access Unit (AU) format,
-        i.e., it has to prepend all picture NAL Units in a AU.<?oxy_comment_end?> Each I-frame will
-        trigger a signing procedure and ideally the SEI is generated and available instantaneously
-        and can be attached to the stream as <code>SIPPPPSIPPPPSIPPPP</code>.</para>
+        The SEI should be added to the video stream such that it follows the Access Unit (AU) format,
+        i.e., it has to prepend all picture NAL Units in an AU. Each I-frame will trigger a
+        signing procedure and ideally the SEI is generated and available instantaneously and can
+        be attached to the stream as <code>SIPPPPSIPPPPSIPPPP</code>.</para>
       <para>In practice signing in secure hardware takes time and blocking the video stream while
         waiting adds jitter to the video stream. The device therefore has the option to add it to
         the video stream later, when signing has been completed. In such a case the text-ified
@@ -969,12 +968,13 @@
   <appendix>
     <title>Client considerations (informative)</title>
     <section xml:id="section_z3s_njq_bwb">
-      <title>Client handling of a signed video stream</title>
-      <para><?oxy_comment_start author="bjornv" timestamp="20220919T115556+0200" comment="Should we mention that a client can help future validation by moving SEIs to the correct GOP?"?>Attached
-        to the first AU of a signed video stream is the SEI including all information that is only
-        sent once. This SEI should be stored for later validation. Further, when exporting a video
-        segment to file, this SEI should be added to the first AU of that
-        recording.<?oxy_comment_end?></para>
+      <title>Minimum requirements for client handling of a signed video stream</title>
+      <para>Attached to the first AU of a signed video stream may be a SEI including all
+        information that is only sent once; The only-sent-once bit is set. This SEI
+        should be stored for later use. Further, when exporting a video segment to file,
+        this SEI should be added to the first AU of that recording.</para>
+      <para>The client must not remove any SEI-frames from the stream. It is possible to move
+        them to the AU including the I-frame of the GOP the particular SEI did sign.</para>
     </section>
     <section xml:id="section_ajs_njq_bwb">
       <title><?oxy_comment_start author="FredrikS" timestamp="20220920T130635+0200" comment="Make this section informative? Since it&apos;s difficult to test clients. Make appendix" flag="done"?>Client
