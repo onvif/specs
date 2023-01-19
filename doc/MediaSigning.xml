@@ -338,29 +338,29 @@
           </imageobject>
         </mediaobject>
       </figure>
-      <para>Let <code>h(F)</code> denote the hash of a NAL Unit <code>F</code>, and <code>href =
-          h(I)</code> is the hash of the leading I-frame in a GOP and used as reference (linked
-        hash). Then each frame in a GOP is hashed according to <code>hash(F) = h(href, h(F))</code>
-        where <code>href</code> and <code>h(F)</code> should be hashed as if they were aligned in
+      <para>Let <code>h(F)</code> denote the hash of a NAL Unit <code>F</code>, and <code>h_anch =
+          h(I)</code> is the hash of the leading I-frame in a GOP and used as anchor (linked
+        hash). Then each frame in a GOP is hashed according to <code>hash(F) = h(h_anch, h(F))</code>
+        where <code>h_anch</code> and <code>h(F)</code> should be hashed as if they were aligned in
         memory. All hashes are collected in a list and together with some metadata form a
           <code>document</code>, which later will be signed.</para>
       <para>All NAL Unit data, from the NAL Unit header to the last byte (including the stop bit),
         should be hashed. The start code is excluded when hashing.</para>
       <para>If the I-frame is sliced into multiple NAL Uints, the hash of the primary slice should
-        be used as <code>href = h(Iprimaryslice)</code>. The other NAL Units of the I-frame are
+        be used as <code>h_anch = h(Iprimaryslice)</code>. The other NAL Units of the I-frame are
         hashed in the linked manner described above.</para>
       <para>A hash (<code>gophash</code>) of the list of hashes is added to metadata, <code>gophash
-          = h(href, hash(P1), hash(P2), ..., hash(PN))</code>. The <code>gophash</code> simplifies
+          = h(h_anch, hash(P1), hash(P2), ..., hash(PN))</code>. The <code>gophash</code> simplifies
         validation, since verifying each hash in the list of hashes is only necessary when verifying
         the <code>gophash</code> fails. Another benefit is that the bytestream is prepared for the
         future, where a low-bitrate alternative can be added by omitting the list of hashes.</para>
       <para>To preserve the order of GOPs the hash of the I-frame of the previous GOP is also added
-        to metadata, that is, <code>hash(Iprevious) = href_previous</code>. For the very first GOP a
+        to metadata, that is, <code>hash(Iprevious) = h_anch_previous</code>. For the very first GOP a
         static and pre-defined hash should be used; See the TLV section below.</para>
       <para>This <code>document</code> is then signed to produce a signature as <code>signature =
           sign(h(document))</code> and together with the <code>document</code> itself added to the
         stream in a SEI, that is, SEI = <code>document + signature</code>. The next GOP is initiated
-        with a new <code>href</code> using the very same I-frame that triggered the end of current
+        with a new <code>h_anch</code> using the very same I-frame that triggered the end of current
         GOP.</para>
     </section>
     <section xml:id="section_j3s_njq_bwb">
@@ -668,7 +668,7 @@
           <listitem>
             <para>Linked IDR hash (H bytes)</para>
             <para>This is the hash of the linked IDR, that is, the IDR leading the previously signed
-              GOP. Number of bytes depends on the hash function used.</para>
+              GOP (<code>h_anch_previous</code>). Number of bytes depends on the hash function used.</para>
             <para>For the first signed GOP these <code>H</code> bytes should be set to
                 <code>0xff</code>.</para>
           </listitem>
