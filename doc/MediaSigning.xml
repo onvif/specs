@@ -515,7 +515,7 @@
               <tbody>
                 <row>
                   <entry>
-                    <para>General GOP info</para>
+                    <para>General GOP information</para>
                   </entry>
                   <entry>
                     <para>1</para>
@@ -524,7 +524,7 @@
                     <para>Every document</para>
                   </entry>
                   <entry>
-                    <para>General info like GOP number</para>
+                    <para>General information like GOP number</para>
                   </entry>
                 </row>
                 <row>
@@ -538,7 +538,7 @@
                     <para>Every document</para>
                   </entry>
                   <entry>
-                    <para>List of frame hashes</para>
+                    <para>List of NAL Unit hashes</para>
                   </entry>
                 </row>
                 <row>
@@ -557,7 +557,7 @@
                 </row>
                 <row>
                   <entry>
-                    <para>Cryptographic info</para>
+                    <para>Cryptographic information</para>
                   </entry>
                   <entry>
                     <para>4</para>
@@ -585,7 +585,7 @@
                 </row>
                 <row>
                   <entry>
-                    <para>ONVIF vendor info</para>
+                    <para>ONVIF vendor information</para>
                   </entry>
                   <entry>
                     <para>6</para>
@@ -599,7 +599,7 @@
                 </row>
                 <row>
                   <entry>
-                    <para>Certificate</para>
+                    <para>Certificate chain</para>
                   </entry>
                   <entry>
                     <para>7</para>
@@ -608,8 +608,7 @@
                     <para>Once or at any arbitrary cadence</para>
                   </entry>
                   <entry>
-                    <para>The device video signing key certificate and the intermediate CA signing
-                      certificate.</para>
+                    <para>The device video signing key certificate chain.</para>
                   </entry>
                 </row>
                 <row>
@@ -630,18 +629,13 @@
         </para>
       </section>
       <section xml:id="section_o3s_njq_bwb">
-        <title>General GOP info</title>
+        <title>General GOP information</title>
         <para>A mandatory field that includes GOP specific information like a GOP counter, a
           timestamp of the first frame and the GOP-hash.</para>
         <itemizedlist>
           <listitem>
             <para>Tag version (1 byte)</para>
-          </listitem>
-          <listitem>
-            <para>Flags (1 byte)</para>
-            <para>Currently no specified flags, but can for example be whether the encoding
-              experienced issues</para>
-            <para>Last bit reserved to signal that the flags continue in the next byte</para>
+            <para>Version = 1</para>
           </listitem>
           <listitem>
             <para>ONVIF Signed Media version (3 bytes)</para>
@@ -657,7 +651,8 @@
           <listitem>
             <para>GOP counter (4 bytes)</para>
             <para>A running counter that should increment by 1 for each GOP. This counter is a
-              helper in detecting lost SEIs and syncing SEIs with the associated GOP.</para>
+              helper during validation when detecting lost SEIs and syncing SEIs with the
+              associated GOP.</para>
           </listitem>
           <listitem>
             <para>GOP hash (H bytes)</para>
@@ -674,8 +669,7 @@
           </listitem>
         </itemizedlist>
         <para>It is not necessary to specify <code>H</code> in this tag. The validation side can
-          compute H since the total tag length is known. <code>H = (length - Y - 16) /
-          2</code></para>
+          compute H since the total tag length is known. <code>H = (length - 16) / 2</code></para>
       </section>
       <section xml:id="section_p3s_njq_bwb">
         <title>Cryptographic information</title>
@@ -684,6 +678,7 @@
         <itemizedlist>
           <listitem>
             <para>Tag version (1 byte)</para>
+            <para>Version = 1</para>
           </listitem>
           <listitem>
             <para>Algorithm used to hash NAL Units, selected from a list of supported hashing
@@ -691,15 +686,19 @@
             <itemizedlist>
               <listitem>
                 <para>SHA-224: Hash length <code>H = 28</code> bytes</para>
+                <para>Byte value set to 0x00</para>
               </listitem>
               <listitem>
                 <para>SHA-256: Hash length <code>H = 32</code> bytes</para>
+                <para>Byte value set to 0x01 (Recommended)</para>
               </listitem>
               <listitem>
                 <para>SHA-384: Hash length <code>H = 48</code> bytes</para>
+                <para>Byte value set to 0x02</para>
               </listitem>
               <listitem>
                 <para>SHA-512: Hash length <code>H = 64</code> bytes</para>
+                <para>Byte value set to 0x03</para>
               </listitem>
             </itemizedlist>
           </listitem>
@@ -709,12 +708,15 @@
             <itemizedlist>
               <listitem>
                 <para>SHA-256</para>
+                <para>Byte value set to 0x01</para>
               </listitem>
               <listitem>
                 <para>SHA-384</para>
+                <para>Byte value set to 0x02</para>
               </listitem>
               <listitem>
                 <para>SHA-512</para>
+                <para>Byte value set to 0x03</para>
               </listitem>
             </itemizedlist>
           </listitem>
@@ -729,7 +731,7 @@
                 <para>ECDSA</para>
               </listitem>
               <listitem>
-                <para>DSA</para>
+                <para>DSA?</para>
               </listitem>
             </itemizedlist>
           </listitem>
@@ -739,14 +741,20 @@
       </section>
       <section xml:id="section_q3s_njq_bwb">
         <title>Public key</title>
-        <para>This mandatory field contains the Public key used to sign the video.</para>
+        <para>This mandatory field contains the Public key used to verify signatures.</para>
         <itemizedlist>
           <listitem>
             <para>Tag version (1 byte)</para>
+            <para>Version = 1</para>
+          </listitem>
+          <listitem>
+            <para>External key (1 byte)</para>
+            <para>Set this byte to 0x01 if the key in this TLV is an externally set key.</para>
           </listitem>
           <listitem>
             <para>Signing algorithm OID (8 bytes)</para>
             <para>Signing algorithm identifier as specified by OID.</para>
+            <para>Isn't this what we specify in Cryptographic Information?</para>
           </listitem>
           <listitem>
             <para>Public key in PEM format (variable bytes)</para>
@@ -754,7 +762,7 @@
         </itemizedlist>
         <para>It is not necessary to specify the size of the Public key in this tag. The validation
           side can read the Public key and specify the size as <code>public_key_size = length -
-            9</code></para>
+            10</code></para>
       </section>
       <section xml:id="section_r3s_njq_bwb">
         <title>ONVIF vendor info</title>
@@ -762,6 +770,10 @@
           supported. These fields are only for easy parsing by a player. The true device information
           is present in the certificate.</para>
         <itemizedlist>
+          <listitem>
+            <para>Tag version (1 byte)</para>
+            <para>Version = 1</para>
+          </listitem>
           <listitem>
             <para>Size of FW version (1 byte)</para>
             <para>The size of the FW version as a character string, excluding termination character.
@@ -795,6 +807,7 @@
         <itemizedlist>
           <listitem>
             <para>Tag version (1 byte)</para>
+            <para>Version = 1</para>
           </listitem>
           <listitem>
             <para>All hashes aligned byte by byte (N*H bytes)</para>
@@ -807,6 +820,7 @@
         <itemizedlist>
           <listitem>
             <para>Tag version (1 byte)</para>
+            <para>Version = 1</para>
           </listitem>
           <listitem>
             <para>Actual size of signature (2 bytes)</para>
@@ -822,27 +836,33 @@
           </listitem>
         </itemizedlist>
       </section>
+      <section xml:id="section_v3s_njq_bwb">
+        <title>Certificate chain</title>
+        <para>This field contains the certificate chain necessary to verify the public
+          key.</para>
+        <para>Note that the certificate chain must not include the CA certificate.</para>
+        <para>Note that this tag is mandatory in the first SEI and optional thereafter. If sent
+          only once, it has to be part of a SEI marked with the "sent only once" flag.</para>
+        <itemizedlist>
+          <listitem>
+            <para>Tag version (1 byte)</para>
+            <para>Version = 1</para>
+          </listitem>
+          <listitem>
+            <para>External key (1 byte)</para>
+            <para>Set this byte to 0x01 if the certificate chain in this TLV is an externally set
+              certificate chain.</para>
+          </listitem>
+          <listitem>
+            <para>The certificate chain in PEM format (variable bytes)</para>
+          </listitem>
+        </itemizedlist>
+      </section>
       <section xml:id="section_u3s_njq_bwb">
         <title>Arbitrary data</title>
         <para>This optional field contains Abritrary data that the device vendor want to be
           included. There is no guarantee that the Arbitrary data is reasonable or readable by
           anyone not previously knowledgeable in the area.</para>
-      </section>
-      <section xml:id="section_v3s_njq_bwb">
-        <title>Certificate</title>
-        <para>This optional field contains the certificate corresponding to the public key. This
-          field is optional in order to not put undue bitrate burden on the videostream as x509
-          certificates can be quite large, especially if intermediate certificates are
-          included.</para>
-        <para>Note that this tag is mandatory in the first SEI and optional thereafter.</para>
-        <itemizedlist>
-          <listitem>
-            <para>Tag version (1 byte)</para>
-          </listitem>
-          <listitem>
-            <para>The certificate(s) in PEM format (variable bytes)</para>
-          </listitem>
-        </itemizedlist>
       </section>
     </section>
     <section xml:id="section_w3s_njq_bwb">
