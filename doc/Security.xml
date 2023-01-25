@@ -174,6 +174,14 @@ Added certificate-based client authentication</revremark>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc5958.txt">http://www.ietf.org/rfc/rfc5958.txt</link>&gt;</para>
     <para>RFC 5959 Algorithms for Asymmetric Key Package Content Type</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc5959.txt">http://www.ietf.org/rfc/rfc5959.txt</link>&gt;</para>
+    <para>RFC 6750 The OAuth 2.0 Authorization Framework: Bearer Token Usage</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc6750.txt">http://www.ietf.org/rfc/rfc6750.txt</link>&gt;</para>
+    <para>RFC 7517 JSON Web Key (JWK)</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7517.txt">http://www.ietf.org/rfc/rfc7517.txt</link>&gt;</para>
+    <para>RFC 7519 JSON Web Token (JWT)</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7519.txt">http://www.ietf.org/rfc/rfc7519.txt</link>&gt;</para>
+    <para>RFC 7643 System for Cross-domain Identity Management: Core Schema</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7643.txt">http://www.ietf.org/rfc/rfc7643.txt</link>&gt;</para>
     <para>Unified Modeling Language (UML) </para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.omg.org/spec/UML">http://www.omg.org/spec/UML</link>&gt;</para>
     <para>PKCS#5 Password-based Encryption Standard v1.5, RSA Laboratories, 1993</para>
@@ -954,59 +962,58 @@ Added certificate-based client authentication</revremark>
     </section>
     <section>
       <title>JWT-based client authorization</title>
-      <para>Unlike with Digest and Ws-USernameToken authentication, this specification defines how
-        to associate clients with the different User Levels as defined in the ONVIF Core
-        Specification. Devices are not expected to have the user credentials stored in their memory,
-        instead they will verify that the user has been correctly authenticated by an external
-        service and authorize accessing different functions, based on the user level presented in
-        the supplied JWT embedded in the binary security token.</para>
-      <para>A client shall use both ValueType and EncodingType as defined in the WS-Security Basic
-        Security Profile. The server shall reject any Binary Security Token not using both
-          <emphasis>ValueType</emphasis> and <emphasis>EncodingType</emphasis>.</para>
-      <para>EncodingType attribute shall have the value of</para>
-      <programlisting>http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#BinarySecurityToken</programlisting>
-      <para>ValueType attribute shall have the value of</para>
-      <programlisting>urn:ietf:params:oauth:token-type:jwt</programlisting>
-      <para>The inhalt of the binary security token is the base64-encoded JWT according to [RFC
-        7519].</para>
-      <para>The JOSE header shall declare that the encoded object is a JWT, and the JWT is a JWS
-        that is MACed using the HMAC SHA-256:</para>
-      <programlisting>{"typ":"JWT",
- "alg":"HS256"}</programlisting>
+      <para>Unlike with HTTP Digest and Ws-USernameToken authentication, this specification defines how to associate clients with the different User Levels as defined in the ONVIF Core Specification. Devices are not expected to have the user credentials stored in their memory, instead they will verify that the user has been correctly authenticated by an external service based on Open ID Connect and authorize accessing different functions, based on the user level presented in  the supplied JWT embedded in the binary security token.</para>
+
+      <para>The inhalt of the binary security token is the base64-encoded JWT according to [RFC 7519].</para>
+      <para>The JOSE header shall declare that the encoded object is a JWT, and the JWT is a JWS that is MACed using the HMAC SHA-256. Additionally, it must include the kid claim as defined by [RFC 7515], which indicates the ID associated to the key used to sign the JWT. If the aboslute path of the JWK Set URL differns from  https://iss/.well-known/jwks.json, the header may include an optional jku claim.</para>
       <para>The JWT shall include the following standard claims:</para>
       <para>
         <itemizedlist>
           <listitem>
-            <para>iss: Issuer, the KeyID associated to the public key that shall be used to validate
-              the signature;</para>
+            <para><emphasis>iss</emphasis>: Issuer, the FQDN of the server that generated the JWT.</para>
           </listitem>
           <listitem>
-            <para>exp: Expiration Time, a numeric date value identifying the time after which the
+            <para><emphasis>exp</emphasis>: Expiration Time, a numeric date value identifying the time after which the
               JWT shall not be accepted for processing;</para>
           </listitem>
           <listitem>
-            <para>nbf: Not before, a numeric date value identifying the time before which the JWT
+            <para><emphasis>nbf</emphasis>: Not before, a numeric date value identifying the time before which the JWT
               shall not be accepted for processing;</para>
           </listitem>
           <listitem>
-            <para>iat: Issued At, a numeric date value identifying the time at which the JWT was
+            <para><emphasis>iat</emphasis>: Issued At, a numeric date value identifying the time at which the JWT was
               issued.</para>
           </listitem>
         </itemizedlist>
       </para>
-      <para>For the exp, nbf and iat claims, the numeric date value shall be a JSON numeric value
-        representing the number of seconds from 1970-01-01T00:00:00Z UTC until the specified UTC
-        date/time, ignoring leap seconds, as specified by [RFC 7519].</para>
-      <para>The JWT shall include the following ONVIF-specific claim:</para>
+      <para>For the <emphasis>exp</emphasis>, <emphasis>nbf</emphasis> and <emphasis>iat</emphasis> claims, the numeric date value shall be a JSON numeric value representing the number of seconds from 1970-01-01T00:00:00Z UTC until the specified UTC date/time, ignoring leap seconds, as specified by [RFC 7519].</para>
+      <para>The JWT shall include the <emphasis>roles</emphasis> claim, as defined by [RFC 7643]:</para>
       <para>
         <itemizedlist>
           <listitem>
-            <para>ac: Access class, one of the authenticated classes of the default access policy,
+            <para>roles: Access class, one of the authenticated classes of the default access policy,
               i.e. "Administrator", "Operator" or "User". This access level will be used to
               authorize access to the required function.</para>
           </listitem>
         </itemizedlist>
       </para>
+      <section>
+        <title>Usage of JWT-based client authentuication over HTTP</title>
+        <para>Since authentication tokens contain sensitive information that could be easily used to perform replay attacks, JWT-based client authentication should not be used over unencrypted HTTP connections.</para>
+      </section>
+      <section>
+        <title>Usage of JWT-based client authentuication over HTTPS</title>
+        <para>The usage JWT-base client authentication over HTTPS shall adhere to the Authorization Request header Field, as specified by [RFC 6750]. In case of authentication failure, ONVIF-compliant devices shall responde with the error codes specified by [RFC 6750].</para>
+      </section>
+      <section>
+        <title>Usage of JWT-based client authentuication over SCTP</title>
+	      <para>In scenarios where a SCTP channel is used to exchange commands and reponses between the device and the client, it is not possible to embed a JWT in a header. In this case, the JWT can be embedded in the Security Token of the SOAP message, as defined in the WS-Security Basic Security Profile.</para>
+        <para>A client shall use both ValueType and EncodingType the device shall reject any Binary Security Token not using both <emphasis>ValueType</emphasis> and <emphasis>EncodingType</emphasis>.</para>
+        <para>The EncodingType attribute shall have the value of</para>
+        <programlisting>http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#BinarySecurityToken</programlisting>
+        <para>Te ValueType attribute shall have the value of</para>
+        <programlisting>urn:ietf:params:oauth:token-type:jwt</programlisting>
+      </section>
     </section>
     <section>
       <title>IEEE 802.1X</title>
@@ -4055,52 +4062,102 @@ Added certificate-based client authentication</revremark>
     </section>
   </chapter>
   <appendix>
-    <title>JWT format example</title>
-    <para>The JWT shall have the following inhalt</para>
+    <title>JWT over SCTP example</title>
+    <para><emphasis role="bold"><?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?>The base64-encoded values of the tokens will we re-evaluated once the format is finalized.<?oxy_custom_end?></emphasis></para>
+    <para>The JWT will have the following inhalt</para>
     <programlisting><![CDATA[{
     "typ":"JWT",
     "alg":"HS256"
+    "kid":"Key0001", // KeyID
 }.{
-    "iss":"Key0001", // KeyID
+    "iss":"server.path.com", // FQDN of the server that issued the JWT
     "nbf":1670482800, // not before Thursday, December 8, 2022 7:00:00 AM (GMT)
     "exp":1670572800, // expire at Friday, December 9, 2022 8:00:00 AM (GMT)
     "iat":1670481000, // issued at Thursday, December 8, 2022 6:30:00 AM
-    "role":"Operator"
+    "roles":"Operator"
 }
 ]]></programlisting>
     <para>which is base64-encoded as</para>
     <programlisting>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJLZXkwMDAxIiwibmJmIjoxNjcwNDgyODAwLCJle
-HAiOjE2NzA1NzI4MDAsImlhdCI6MTY3MDQ4MTAwMCwicm9sZSI6Ik9wZXJhdG9yIn0=.SflKxwRJSMeKKF2QT4
+HAiOjE2NzA1NzI4MDAsImlhdCI6MTY3MDQ4MTAwMCwicm9sZXMiOiJPcGVyYXRvciJ9.SflKxwRJSMeKKF2QT4
 fwpMeJf36POk6yJV_adQssw5c</programlisting>
     <para>While the individual components of the JWT are already base64-encoded, the whole structure is not technically base64-encoded. Therefore it is necessary to base64-encode it again, leading to</para>
     <programlisting>ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKTFpYa3dNREF4SWl3aWJtSm
 1Jam94Tmpjd05EZ3lPREF3TENKbGVIQWlPakUyTnpBMU56STRNREFzSW1saGRDSTZNVFkzTURRNE1UQXdNQ3dp
-Y205c1pTSTZJazl3WlhKaGRHOXlJbjA9LlNmbEt4d1JKU01lS0tGMlFUNGZ3cE1lSmYzNlBPazZ5SlZfYWRRc3
+Y205c1pYTWlPaUpQY0dWeVlYUnZjaUo5LlNmbEt4d1JKU01lS0tGMlFUNGZ3cE1lSmYzNlBPazZ5SlZfYWRRc3
 N3NWM=</programlisting>
     <para>At this point, the JWT can be used in the WS-Security header of the SOAP request:</para>
-    <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?>
-&lt;env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"
+    <programlisting><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"
               xmlns:enc="http://www.w3.org/2003/05/soap-encoding"
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns:xsd="http://www.w3.org/2001/XMLSchema"
               xmlns:xop="http://www.w3.org/2004/08/xop/include"
               xmlns:tds="http://www.onvif.org/ver10/device/wsdl"
               xmlns:tt="http://www.onvif.org/ver10/schema">
-  &lt;env:Header>
-    &lt;wsse:Security>
-      &lt;wsse:BinarySecurityToken EncodingType=”http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#BinarySecurityToken”
+  <env:Header>
+    <wsse:Security>
+      <wsse:BinarySecurityToken EncodingType=”http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#BinarySecurityToken”
                                 ValueType="urn:ietf:params:oauth:token-type:jwt">
 ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKTFpYa3dNREF4SWl3aWJtSm
 1Jam94Tmpjd05EZ3lPREF3TENKbGVIQWlPakUyTnpBMU56STRNREFzSW1saGRDSTZNVFkzTURRNE1UQXdNQ3dp
-Y205c1pTSTZJazl3WlhKaGRHOXlJbjA9LlNmbEt4d1JKU01lS0tGMlFUNGZ3cE1lSmYzNlBPazZ5SlZfYWRRc3
+Y205c1pYTWlPaUpQY0dWeVlYUnZjaUo5LlNmbEt4d1JKU01lS0tGMlFUNGZ3cE1lSmYzNlBPazZ5SlZfYWRRc3
 N3NWM=
-      &lt;/wsse:BinarySecurityToken>
-    &lt;/wsse:Security>
-  &lt;/env:Header>
-  &lt;env:Body>
-    &lt;tds:GetDNS />
-  &lt;env:Body>
-&lt;/env:Envelope></programlisting>
+      </wsse:BinarySecurityToken>
+    </wsse:Security>
+  </env:Header>
+  <env:Body>
+    <tds:GetDeviceInformation />
+  <env:Body>
+</env:Envelope>]]></programlisting>
+  </appendix>
+  <appendix>
+    <title>JWT over HTTPS example</title>
+    <para>The following exchange between client and device demonstrates a device supporting MD5 and SHA-256 for digest authentication as well as JWT-base client authentication.</para>
+    <para>Unauthenticated request from the client:</para>
+    <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
+Host: 10.XX.XX.XX
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: 299
+
+<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>
+</s:Body></s:Envelope>]]></programlisting>
+    <para>Response from the device challenging for authentication</para>
+    <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="Silvan_http_digest"
+WWW-Authenticate: Digest algorithm=MD5, realm="Silvan_http_digest", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+WWW-Authenticate: Digest algorithm=SHA-256, realm="Silvan_http_digest", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+X-Frame-Options: SAMEORIGIN]]></programlisting>
+    <para>Authenticated request from the client, by using JWT-based client authentication</para>
+    <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
+Host: 10.XX.XX.XX
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJLZXkwMDAxIiwi
+bmJmIjoxNjcwNDgyODAwLCJleHAiOjE2NzA1NzI4MDAsImlhdCI6MTY3MDQ4MTAwMCwicm9sZSI6Ik9wZXJ
+hdG9yIn0=.SflKxwRJSMeKKF2QT4 fwpMeJf36POk6yJV_adQssw5c
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: 299
+
+<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>
+</s:Body></s:Envelope>]]></programlisting>
+    <para>Response from the device, rejecting the expired token</para>
+    <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="Silvan_http_digest", error="invalid_token",
+error_description="The access token expired"
+WWW-Authenticate: Digest algorithm=MD5, realm="Silvan_http_digest", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+WWW-Authenticate: Digest algorithm=SHA-256, realm="Silvan_http_digest", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+X-Frame-Options: SAMEORIGIN]]></programlisting>
   </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
