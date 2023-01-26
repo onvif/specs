@@ -114,10 +114,10 @@
                 <para>Certificate</para>
               </entry>
               <entry align="left">
-                <para><?oxy_comment_start author="FredrikS" timestamp="20220922T123738+0200" comment="Explain that there may be intermediate certs as well"?>A
-                  certificate as used in this specification binds a public key to a subject entity.
+                <para>A certificate as used in this specification binds a public key to a subject entity.
                   The certificate is digitally signed by the certificate issuer to allow for
-                  verifying its authenticity.</para><?oxy_comment_end?>
+                  verifying its authenticity. In order to verify a certificate, one might need to include
+                  one or more intermediate certificates.</para>
               </entry>
             </row>
             <row>
@@ -199,7 +199,7 @@
       of the codec format. By adding these signatures, the media can be protected against
       manipulation (tampering) and the authenticity can be validated.</para>
     <para>The public key, that is used to verify the signatures, is also included in the media, as
-      well as the certificate to verify the public key.</para>
+      well as certificates to verify the public key.</para>
   </chapter>
   <chapter xml:id="chapter_f3s_njq_bwb">
     <title>Signed Video</title>
@@ -210,7 +210,7 @@
     <para>In brief, the principle of signing documents is used, that is, collect information and
       sign the information using a Private signing key. Then, packetize the produced signature
       together with the collected information. For complete validation, the user first verifies the
-      certificate with a corresponding vendor CA certificate, followed by Public key verification
+      certificates with a corresponding vendor CA certificate, followed by Public key verification
       with the certificate, and finally verifies the signature using the Public key. If successful
       so far, the transmitted information can then be used to validate the video segment.</para>
     <para>On a high level, <emphasis>Signed Video</emphasis> hashes encoded video frames and on a
@@ -248,7 +248,7 @@
         contribution to the increased bitrate.</para>
       <para><emphasis role="bold">Hashing algorithms</emphasis>. Hashing is used in two contexts.
         One is to get a short representation of each NAL Unit to put in a list, and the other serves
-        as a message digest to generate a signature. The same hashing algorithms have to be used
+        as a message digest in signature generation. The same hashing algorithms have to be used
         both on the device and in the client. For simplicity the standard specifies which to use,
         which for example limits the ability to put extra security on some videos.</para>
       <para><emphasis role="bold">Signing algorithm</emphasis>. There is a fixed list of algorithms
@@ -327,9 +327,9 @@
         </mediaobject>
       </figure>
       <para>Figure <xref linkend="linkedhashesfig2" /> illustrates the linking procedure where a
-        frame is encaptured in multiple NAL Units. The hash of the primary slice of the IDR-frame
+        frame is encaptured in multiple NAL Units. The hash of the primary slice of the I-frame
         is stored and used to generate a second hash together with any other hash in the GOP. Note
-        that the other NAL Units of the IDR-frame are hashed in this linked manner.</para>
+        that the other NAL Units of the I-frame are hashed in this linked manner.</para>
       <figure xml:id="linkedhashesfig2">
         <title>Linked hashes, multiple NAL Units per frame</title>
         <mediaobject>
@@ -362,14 +362,6 @@
         stream in a SEI, that is, SEI = <code>document + signature</code>. The next GOP is initiated
         with a new <code>h_anch</code> using the very same I-frame that triggered the end of current
         GOP.</para>
-    </section>
-    <section xml:id="section_j3s_njq_bwb">
-      <title>Bootstrapping the Videostream</title>
-      <para>In order to provide an expedient video stream startup experience, one may send a Crypto
-        TLV in order to indicate to the client which hashing algorithm is used for hashing of the
-        NAL Units. Furthermore the device may also pre-compute all the "Send Once" TLVs, including
-        signing in order to be able to supply the "Send Once" TLVs together with other "Send Once"
-        information such as, for example, PPS/SPS/VPS.</para>
     </section>
     <section xml:id="section_k3s_njq_bwb">
       <title>SEI format</title>
@@ -639,6 +631,7 @@
           </listitem>
           <listitem>
             <para>ONVIF Signed Media version (3 bytes)</para>
+            <para>ONVIF Signed Media version = 1.0.0</para>
             <para>This will prevent version mismatch between device and client. The version in clear
               text is of the form major.minor.patch and each of these are serialized into one byte.
               Hence any one of them cannot exceed 255. For example, "ONVIF Signed Media version
@@ -655,21 +648,21 @@
               associated GOP.</para>
           </listitem>
           <listitem>
-            <para>GOP hash (H bytes)</para>
+            <para>GOP hash (h bytes)</para>
             <para>The hash of the list of NAL Unit hashes. This hash is used to verify the entire
               GOP in one operation. Upon failure, the list of hashes, if present, is used to detect
               missing NAL Units. Number of bytes depends on the hash function used.</para>
           </listitem>
           <listitem>
-            <para>Linked IDR hash (H bytes)</para>
+            <para>Linked IDR hash (h bytes)</para>
             <para>This is the hash of the linked IDR, that is, the IDR leading the previously signed
               GOP (<code>h_anch_previous</code>). Number of bytes depends on the hash function used.</para>
-            <para>For the first signed GOP these <code>H</code> bytes should be set to
+            <para>For the first signed GOP these <code>h</code> bytes should be set to
                 <code>0xff</code>.</para>
           </listitem>
         </itemizedlist>
-        <para>It is not necessary to specify <code>H</code> in this tag. The validation side can
-          compute H since the total tag length is known. <code>H = (length - 16) / 2</code></para>
+        <para>It is not necessary to specify <code>h</code> in this tag. The validation side can
+          compute h since the total tag length is known. <code>h = (length - 16) / 2</code></para>
       </section>
       <section xml:id="section_p3s_njq_bwb">
         <title>Cryptographic information</title>
@@ -685,25 +678,25 @@
               algorithms (1 byte)</para>
             <itemizedlist>
               <listitem>
-                <para>SHA-224: Hash length <code>H = 28</code> bytes</para>
+                <para>SHA-2-224: Hash length <code>h = 28</code> bytes</para>
                 <para>Byte value set to 0x00</para>
               </listitem>
               <listitem>
-                <para>SHA-256: Hash length <code>H = 32</code> bytes</para>
+                <para>SHA-2-256: Hash length <code>h = 32</code> bytes</para>
                 <para>Byte value set to 0x01 (Recommended)</para>
               </listitem>
               <listitem>
-                <para>SHA-384: Hash length <code>H = 48</code> bytes</para>
+                <para>SHA-2-384: Hash length <code>h = 48</code> bytes</para>
                 <para>Byte value set to 0x02</para>
               </listitem>
               <listitem>
-                <para>SHA-512: Hash length <code>H = 64</code> bytes</para>
+                <para>SHA-2-512: Hash length <code>h = 64</code> bytes</para>
                 <para>Byte value set to 0x03</para>
               </listitem>
             </itemizedlist>
           </listitem>
           <listitem>
-            <para>Message digest hash selected from a list of supported hashing algorithms (1
+            <para>MOVE INTO SIGNING ALGO LIST BELOW. Message digest hash selected from a list of supported hashing algorithms (1
               byte)</para>
             <itemizedlist>
               <listitem>
@@ -725,13 +718,15 @@
               generate the signature (1 byte)</para>
             <itemizedlist>
               <listitem>
+                <para>Signing algorithm OID (8 bytes)</para>
+                <para>Signing algorithm identifier as specified by OID.</para>
+                <para>Isn't this what we specify in Cryptographic Information?</para>
+              </listitem>
+              <listitem>
                 <para>RSA with RSA_PKCS1_PADDING</para>
               </listitem>
               <listitem>
                 <para>ECDSA</para>
-              </listitem>
-              <listitem>
-                <para>DSA?</para>
               </listitem>
             </itemizedlist>
           </listitem>
@@ -750,11 +745,6 @@
           <listitem>
             <para>External key (1 byte)</para>
             <para>Set this byte to 0x01 if the key in this TLV is an externally set key.</para>
-          </listitem>
-          <listitem>
-            <para>Signing algorithm OID (8 bytes)</para>
-            <para>Signing algorithm identifier as specified by OID.</para>
-            <para>Isn't this what we specify in Cryptographic Information?</para>
           </listitem>
           <listitem>
             <para>Public key in PEM format (variable bytes)</para>
@@ -897,11 +887,11 @@
           <para>Write all TLVs except the signature since it by definition cannot be written yet.
             Write the TLV data using emulation prevention bytes if it is turned on.</para>
           <para>The mandatory tags are the Cryptographic information, the Public Key and the
-            Certificate.</para>
+            Certificate chain.</para>
         </listitem>
         <listitem>
           <para>Hash the written data from NAL Unit header to the last written TLV data. Denote this
-            "document hash"</para>
+            "document hash".</para>
         </listitem>
         <listitem>
           <para>Sign the document hash using the Private key, stored in a secure environment.</para>
@@ -997,8 +987,7 @@
         them to the AU including the I-frame of the GOP the particular SEI did sign.</para>
     </section>
     <section xml:id="section_ajs_njq_bwb">
-      <title><?oxy_comment_start author="FredrikS" timestamp="20220920T130635+0200" comment="Make this section informative? Since it&apos;s difficult to test clients. Make appendix" flag="done"?>Client
-        side validation<?oxy_comment_end?></title>
+      <title>Client side validation</title>
       <para>Validation is done GOP by GOP, just like the signing side signs GOP by GOP. The
         validation has to be aborted upon any failing step below. <itemizedlist>
           <listitem>
