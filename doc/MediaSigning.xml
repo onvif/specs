@@ -114,10 +114,10 @@
                 <para>Certificate</para>
               </entry>
               <entry align="left">
-                <para>A certificate as used in this specification binds a public key to a subject entity.
-                  The certificate is digitally signed by the certificate issuer to allow for
-                  verifying its authenticity. In order to verify a certificate, one might need to include
-                  one or more intermediate certificates.</para>
+                <para>A certificate as used in this specification binds a public key to a subject
+                  entity. The certificate is digitally signed by the certificate issuer to allow for
+                  verifying its authenticity. In order to verify a certificate, one might need to
+                  include one or more intermediate certificates.</para>
               </entry>
             </row>
             <row>
@@ -199,14 +199,14 @@
       of the codec format. By adding these signatures, the media can be protected against
       manipulation (tampering) and the authenticity can be validated.</para>
     <para>The public key, that is used to verify the signatures, is also included in the media, as
-      well as certificates to verify the public key.</para>
+      well as certificates to verify the public key. The CA certificate necessary to verify the
+      certificates is not included and has to be aquired from an external trusted source.</para>
   </chapter>
   <chapter xml:id="chapter_f3s_njq_bwb">
     <title>Signed Video</title>
     <para>A video consists of picture frames displayed at a certain frame rate. If these frames are
-      transmitted or stored for later use and displayed by a third party it is very valuable if it
-      is possible to validate that the video has not been manipulated since the time of
-      signing.</para>
+      transmitted or stored for later use and displayed by a third party it is valuable if it is
+      possible to validate that the video has not been manipulated since the time of signing.</para>
     <para>In brief, the principle of signing documents is used, that is, collect information and
       sign the information using a Private signing key. Then, packetize the produced signature
       together with the collected information. For complete validation, the user first verifies the
@@ -232,11 +232,11 @@
       <title>Limitations</title>
       <para><emphasis role="bold">Codecs</emphasis>. <emphasis>Signed Video</emphasis> is defined
         for the H.264 and H.265 video codec formats. Therefore, most of the description uses the
-        Network Abstraction Layer (NAL) concept. Hashing frames is for simplicity replaced by
-        hashing NAL Units. One frame may be split into multiple NAL Units. Note that raw video is
-        not covered, since there are no means to add signatures within the video format. There
-        exists other codec standards where the same technique can be applied though, e.g.,
-        AV1.</para>
+        Network Abstraction Layer (NAL) concept. Hashing frames is for simplicity split into
+        hashing NAL Units. One frame may be split into multiple NAL Units generating multiple
+        hashes per frame. Note that raw video is not covered, since there are no means to add
+        signatures within the video format. There exists other codec standards where the same
+        technique can be applied though, e.g., AV1.</para>
       <para><emphasis role="bold">Signing frequency</emphasis>. Signing is done upon transition
         between two Group of Pictures (GOPs), that is, triggered by an IDR frame. For short GOP
         lengths, the time between two GOP transitions may be shorter than the time it takes to
@@ -246,19 +246,19 @@
         combats the problem of lost frames, but cannot solve packet losses unless the affected NAL
         Unit is completely removed from the stream. Further, the hash list is the most significant
         contribution to the increased bitrate.</para>
-      <para><emphasis role="bold">Hashing algorithms</emphasis>. Hashing is used in two contexts.
-        One is to get a short representation of each NAL Unit to put in a list, and the other serves
-        as a message digest in signature generation. The same hashing algorithms have to be used
-        both on the device and in the client. For simplicity the standard specifies which to use,
-        which for example limits the ability to put extra security on some videos.</para>
+      <para><emphasis role="bold">Hashing algorithms</emphasis>. Hashing is used in two contexts; 1)
+        to get a short representation of each NAL Unit to put in a list, and 2) as message digest
+        in signature generation. The same hashing algorithms have to be used both on the device and
+        in the client. The standard specifies a collection that can be used, which for example
+        limits the ability to put extra security on some videos.</para>
       <para><emphasis role="bold">Signing algorithm</emphasis>. There is a fixed list of algorithms
         to choose from, which limits the scope somewhat since there may be variations within
         them.</para>
       <para><emphasis role="bold">Bitrate increase</emphasis>. Adding SEI frames to the encoded
-        video increase the bitrate. The list of NAL Unit hashes is the main contribution. Therefore,
-        it is recommended to consider a hashing algorithm that prouces not too large hashes. Note
-        that the security lies in the hash used to generate the signature and not the hash used to
-        represent the NAL Unit.</para>
+        video increases the bitrate. The list of NAL Unit hashes is the main contribution.
+        Therefore, it is recommended to consider a hashing algorithm that produces reasonably large
+        hashes. Note that the security lies in the hash used to generate the signature and not the
+        hash used to represent the NAL Unit.</para>
     </section>
     <section xml:id="section_h3s_njq_bwb">
       <title>Detailed description on how the device generates SEI frames including
@@ -267,17 +267,18 @@
         through SEI frames of type user data unregistered. <emphasis>Signed Video</emphasis> puts
         the produced signatures and additional metadata in such frames. These SEI frames are ignored
         by the decoder and will therefore not affect the video rendering. One obvious drawback is
-        that it is easy to change the video from signed to unsigned by dropping those SEI frames. In
+        that it is easy to change the video from signed to unsigned by dropping these SEI frames. In
         some cases this can also be beneficial. For example, if the user is no longer interested in
         its authenticity, the SEI frames can be removed and thereby reducing the bitrate. It is out
         of scope to protect against lost SEI frames. Validating a video where SEIs have been lost or
         removed will anyhow be marked as not authentic, or unsigned (if no SEIs are present).</para>
       <para>All operations are done on the encoded video stream. Each picture frame is split into
         NAL Units and <emphasis role="italic">Signed Video</emphasis> operates on these NAL Units.
-        Note that there is not necessarily a one-to-one correspondance between frames and NAL Units.
-        A frame split into slices (multiple NAL Units) will generate multiple hashes. In this
+        Note that it is not necessarily a one-to-one correspondance between frames and NAL Units. A
+        frame split into slices (multiple NAL Units) will generate multiple hashes. In this
         specification, unless explicitly stated, hashing a frame means hashing a NAL Unit.</para>
-      <para>Some NAL Units have no or limited impact on the visual video and are ignored: <itemizedlist>
+      <para>Some NAL Units have no or limited impact on the visual video and are ignored:
+        <itemizedlist>
           <listitem>
             <para>SPS/PPS/VPS</para>
             <para>The presence of these NAL Units are not consistant. They can for example be sent
@@ -289,8 +290,8 @@
           </listitem>
           <listitem>
             <para>AUD</para>
-            <para>The Access Unit Delimiter is simply a NAL Unit header used in Access Unit (AU)
-              video streams, c.f., bytestream. This NAL Unit has no impact on the video and can
+            <para>The Access Unit Delimiter (AUD) is simply a NAL Unit header used in Access Unit
+              (AU) video streams, c.f., bytestream. This NAL Unit has no impact on the video and can
               safely be ignored. By ignoring them, the authenticity is preserved when converting
               between AU streams and bytestreams.</para>
           </listitem>
@@ -307,7 +308,7 @@
     </section>
     <section xml:id="section_i3s_njq_bwb">
       <title>Signing a GOP</title>
-      <para>A GOP is defined as all frames between two IDR-frames, including the first IDR. Frames
+      <para>A GOP is defined as all frames between two IDR frames, including the first IDR. Frames
         between these IDRs are prediction frames and can be either P- or B-frames. Without loss of
         generality, both of these are throughout the text denoted P-frames. Further, for simplicity
         IDRs are referred to as I-frames in this context.</para>
@@ -327,9 +328,9 @@
         </mediaobject>
       </figure>
       <para>Figure <xref linkend="linkedhashesfig2" /> illustrates the linking procedure where a
-        frame is encaptured in multiple NAL Units. The hash of the primary slice of the I-frame
-        is stored and used to generate a second hash together with any other hash in the GOP. Note
-        that the other NAL Units of the I-frame are hashed in this linked manner.</para>
+        frame is encaptured in multiple NAL Units. The hash of the primary slice of the I-frame is
+        stored and used to generate a second hash together with any other hash in the GOP. Note that
+        the other NAL Units of the I-frame are hashed in this linked manner.</para>
       <figure xml:id="linkedhashesfig2">
         <title>Linked hashes, multiple NAL Units per frame</title>
         <mediaobject>
@@ -338,27 +339,27 @@
           </imageobject>
         </mediaobject>
       </figure>
-      <para>Let <code>h(F)</code> denote the hash of a NAL Unit <code>F</code>, and <code>h_anch =
-          h(I)</code> is the hash of the leading I-frame in a GOP and used as anchor (linked
-        hash). Then each frame in a GOP is hashed according to <code>hash(F) = h(h_anch, h(F))</code>
-        where <code>h_anch</code> and <code>h(F)</code> should be hashed as if they were aligned in
-        memory. All hashes are collected in a list and together with some metadata form a
+      <para>Let <code>H(F)</code> denote the hash of a NAL Unit <code>F</code>, and <code>h_anch =
+          H(I)</code> is the hash of the leading I-frame in a GOP and used as anchor (linked hash).
+        Then each frame in a GOP is hashed according to <code>hash(F) = H(h_anch, H(F))</code>,
+        where <code>h_anch</code> and <code>H(F)</code> should be hashed as if they were aligned in
+        memory. All hashes are collected in a list and together with some metadata forms a
           <code>document</code>, which later will be signed.</para>
-      <para>All NAL Unit data, from the NAL Unit header to the last byte (including the stop bit),
+      <para>All NAL Unit data, from the NAL Unit header to the last byte, including the stop bit,
         should be hashed. The start code is excluded when hashing.</para>
       <para>If the I-frame is sliced into multiple NAL Uints, the hash of the primary slice should
-        be used as <code>h_anch = h(Iprimaryslice)</code>. The other NAL Units of the I-frame are
+        be used as <code>h_anch = H(Iprimaryslice)</code>. The other NAL Units of the I-frame are
         hashed in the linked manner described above.</para>
       <para>A hash (<code>gophash</code>) of the list of hashes is added to metadata, <code>gophash
-          = h(h_anch, hash(P1), hash(P2), ..., hash(PN))</code>. The <code>gophash</code> simplifies
+          = H(h_anch, hash(P1), hash(P2), ..., hash(PN))</code>. The <code>gophash</code> simplifies
         validation, since verifying each hash in the list of hashes is only necessary when verifying
         the <code>gophash</code> fails. Another benefit is that the bytestream is prepared for the
         future, where a low-bitrate alternative can be added by omitting the list of hashes.</para>
       <para>To preserve the order of GOPs the hash of the I-frame of the previous GOP is also added
-        to metadata, that is, <code>hash(Iprevious) = h_anch_previous</code>. For the very first GOP a
-        static and pre-defined hash should be used; See the TLV section below.</para>
+        to metadata, that is, <code>hash(Iprevious) = h_anch_previous</code>. For the very first GOP
+        a static and pre-defined hash should be used; See the TLV section below.</para>
       <para>This <code>document</code> is then signed to produce a signature as <code>signature =
-          sign(h(document))</code> and together with the <code>document</code> itself added to the
+          sign(H(document))</code> and together with the <code>document</code> itself added to the
         stream in a SEI, that is, SEI = <code>document + signature</code>. The next GOP is initiated
         with a new <code>h_anch</code> using the very same I-frame that triggered the end of current
         GOP.</para>
@@ -461,6 +462,8 @@
       </para>
       <section xml:id="section_l3s_njq_bwb">
         <title>The reserved byte</title>
+        <para>Right after the UUID, and before the TLV data, is a reserved byte. This byte represent
+          bit flags of information that cannot be put in the TLV structure.</para>
         <para>The first bit should be set to 1 if this is a "only sent once" SEI.</para>
         <para>The second bit should be set to 1 if this SEI (the document) was hashed for signing
             <emphasis role="bold">including</emphasis> potential emulation prevention bytes.</para>
@@ -474,6 +477,9 @@
           once" information should be put in a separate SEI, with the corresponding bit in the
           reserved byte set to 1, and signed. This separates the SEI from the video stream and can
           be copied and added to any exported material.</para>
+        <para>If the video is signed with an external signing key, this "only sent once" SEI should
+          be signed with the device key. Note that both certificates and Public keys have to be
+          included in the SEI.</para>
       </section>
       <section xml:id="section_n3s_njq_bwb">
         <title>TLV tags</title>
@@ -623,7 +629,7 @@
       <section xml:id="section_o3s_njq_bwb">
         <title>General GOP information</title>
         <para>A mandatory field that includes GOP specific information like a GOP counter, a
-          timestamp of the first frame and the GOP-hash.</para>
+          timestamp of the I-frame and the GOP-hash.</para>
         <itemizedlist>
           <listitem>
             <para>Tag version (1 byte)</para>
@@ -640,12 +646,16 @@
           <listitem>
             <para>The UTC (8 bytes) based time represented by the number of 100-nanosecond intervals
               since January 1, 1601 of the first media sample in the first fragment.</para>
+            <para>The timestamp value is a 64 bit parameter and the 8 bytes should be written with
+              little endian.</para>
           </listitem>
           <listitem>
             <para>GOP counter (4 bytes)</para>
             <para>A running counter that should increment by 1 for each GOP. This counter is a
               helper during validation when detecting lost SEIs and syncing SEIs with the
               associated GOP.</para>
+            <para>The counter value is a 32 bit parameter and the 4 bytes should be written with
+              little endian.</para>
           </listitem>
           <listitem>
             <para>GOP hash (h bytes)</para>
@@ -654,9 +664,10 @@
               missing NAL Units. Number of bytes depends on the hash function used.</para>
           </listitem>
           <listitem>
-            <para>Linked IDR hash (h bytes)</para>
-            <para>This is the hash of the linked IDR, that is, the IDR leading the previously signed
-              GOP (<code>h_anch_previous</code>). Number of bytes depends on the hash function used.</para>
+            <para>Linked I-frame hash (h bytes)</para>
+            <para>This is the hash of the linked I-frame, that is, the I-frame leading the
+              previously signed GOP (<code>h_anch_previous</code>). Number of bytes depends on the
+              hash function used.</para>
             <para>For the first signed GOP these <code>h</code> bytes should be set to
                 <code>0xff</code>.</para>
           </listitem>
@@ -752,7 +763,7 @@
         </itemizedlist>
         <para>It is not necessary to specify the size of the Public key in this tag. The validation
           side can read the Public key and specify the size as <code>public_key_size = length -
-            10</code></para>
+            2</code></para>
       </section>
       <section xml:id="section_r3s_njq_bwb">
         <title>ONVIF vendor info</title>
@@ -888,13 +899,17 @@
             Write the TLV data using emulation prevention bytes if it is turned on.</para>
           <para>The mandatory tags are the Cryptographic information, the Public Key and the
             Certificate chain.</para>
+          <para>If the video will be signed with an external signing key write an additional TLV
+            data for the Public Key with the external Public key and the external byte set. The same
+            holds for the external certificate chain.</para>
         </listitem>
         <listitem>
           <para>Hash the written data from NAL Unit header to the last written TLV data. Denote this
             "document hash".</para>
         </listitem>
         <listitem>
-          <para>Sign the document hash using the Private key, stored in a secure environment.</para>
+          <para>Sign the document hash using the device Private key, stored in a secure
+            environment.</para>
         </listitem>
         <listitem>
           <para>Write the signature data to the Signature tag when signing has been
@@ -957,12 +972,12 @@
     <section xml:id="section_y3s_njq_bwb">
       <title><?oxy_comment_start author="FredrikS" timestamp="20220922T125620+0200" comment="Move under section 5.2?"?>How
         to add a generated SEI to a video stream in a device</title><?oxy_comment_end?>
-      <para>Without loss of generality, consider three consecutive GOPs each starting with an IDR
-        (I-frame) followed by 4 non-IDRs (P- or B-frames). In text format it would look like
+      <para>Without loss of generality, consider three consecutive GOPs each starting with an
+        I-frame followed by 4 non-IDRs (P- or B-frames). In text format it would look like
           <code>IPPPPIPPPPIPPPP</code>. The signing information is collected in a SEI frame
-          (<code>S</code>).
-        The SEI should be added to the video stream such that it follows the Access Unit (AU) format,
-        i.e., it has to prepend all picture NAL Units in an AU. Each I-frame will trigger a
+        (<code>S</code>).
+        The SEI should be added to the video stream such that it follows the Access Unit (AU)
+        format, i.e., it has to prepend all picture NAL Units in an AU. Each I-frame will trigger a
         signing procedure and ideally the SEI is generated and available instantaneously and can
         be attached to the stream as <code>SIPPPPSIPPPPSIPPPP</code>.</para>
       <para>In practice signing in secure hardware takes time and blocking the video stream while
