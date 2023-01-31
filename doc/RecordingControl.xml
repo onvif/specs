@@ -875,6 +875,8 @@ Change Request 2061, 2063, 2065, 2109</revremark>
     <section>
       <title>CreateRecordingJob</title>
       <para>CreateRecordingJob shall create a new recording job. A device shall support adding a RecordingJob to a recording for which it signals Spare jobs via GetRecordingOptions.</para>
+      <para>A device should reject a configuration that neither includes a source with a source token nor AutoCreateReceiver set to true.</para>
+      <para>If the configuration doesn not include any tracks a device should assign all tracks of the corresponding recording.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -912,7 +914,10 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           </listitem>
         </varlistentry>
       </variablelist>
-      <para>The JobConfiguration returned from CreateRecordingJob shall be identical to the JobConfiguration passed into CreateRecordingJob, except for the ReceiverToken and the AutoCreateReceiver. In the returned structure, the ReceiverToken shall be present and valid and the AutoCreateReceiver field shall be omitted.</para>
+      <para>If a request with AutoCreateReceiver is accepted the response shall provide the attached
+        receiver token and the AutoCreateReceiver field shall be omitted.</para>
+      <para>The device response shall include the complete JobConfiguration including the associated
+        job token and the resulting recording track configuration.</para>
     </section>
     <section xml:id="_Toc246137491">
       <title>DeleteRecordingJob</title>
