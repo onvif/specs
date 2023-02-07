@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="../../../ver20/util/onvif-wsdl-viewer.xsl"?>
 <!--
-	Copyright (c) 2013 - 2019 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+	Copyright (c) 2013 - 2023 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 	
 	Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 	
@@ -10,7 +10,7 @@
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tas="http://www.onvif.org/ver10/advancedsecurity/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl">
 	<wsdl:types>
-		<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl" version="19.12">
+		<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl" version="23.06">
 			<!--===================================================-->
 			<!-- Data types used by the security configuration features -->
 			<!--===================================================-->
@@ -838,6 +838,22 @@
 				<!-- ========================================= -->
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
+			<xs:complexType name="MediaSigningCapabilities">
+				<xs:annotation>
+					<xs:documentation>The capabilities for signing media on a device.</xs:documentation>
+				</xs:annotation>
+				<xs:attribute name="MediaSigningSupported" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates whether the device supports signing of media according to the Media Signing Specification.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="ExternalMediaSigningKeySupported" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates whether the device supports signing of media using another key than the factory provisioned one.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
 			<!--===============================-->
 			<xs:complexType name="Capabilities">
 				<xs:annotation>
@@ -857,6 +873,11 @@
 					<xs:element name="Dot1XCapabilities" type="tas:Dot1XCapabilities" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>The capabilities of the 802.1X implementation.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MediaSigningCapabilities" type="tas:MediaSigningCapabilities" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The capabilities of the media signing implementation.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="lax"/>   <!-- first ONVIF then Vendor -->
@@ -2049,6 +2070,49 @@
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
+			<!--===============================-->
+			<xs:element name="AddMediaSigningCertificateAssignment">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="AddMediaSigningCertificateAssignmentResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="RemoveMediaSigningCertificateAssignment">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="RemoveMediaSigningCertificateAssignmentResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetAssignedMediaSigningCertificates">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetAssignedMediaSigningCertificatesResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID" minOccurs="0" maxOccurs="2">
+							<xs:annotation>
+								<xs:documentation>The IDs of all certification paths that are assigned for media signing.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
 		</xs:schema>
 	</wsdl:types>
 	<wsdl:message name="GetServiceCapabilitiesRequest">
@@ -2350,6 +2414,24 @@
 	</wsdl:message>
 	<wsdl:message name="DeleteNetworkInterfaceDot1XConfigurationResponse">
 		<wsdl:part name="parameters" element="tas:DeleteNetworkInterfaceDot1XConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="AddMediaSigningCertificateAssignmentRequest">
+		<wsdl:part name="parameters" element="tas:AddMediaSigningCertificateAssignment"/>
+	</wsdl:message>
+	<wsdl:message name="AddMediaSigningCertificateAssignmentResponse">
+		<wsdl:part name="parameters" element="tas:AddMediaSigningCertificateAssignmentResponse"/>
+	</wsdl:message>
+	<wsdl:message name="RemoveMediaSigningCertificateAssignmentRequest">
+		<wsdl:part name="parameters" element="tas:RemoveMediaSigningCertificateAssignment"/>
+	</wsdl:message>
+	<wsdl:message name="RemoveMediaSigningCertificateAssignmentResponse">
+		<wsdl:part name="parameters" element="tas:RemoveMediaSigningCertificateAssignmentResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetAssignedMediaSigningCertificatesRequest">
+		<wsdl:part name="parameters" element="tas:GetAssignedMediaSigningCertificates"/>
+	</wsdl:message>
+	<wsdl:message name="GetAssignedMediaSigningCertificatesResponse">
+		<wsdl:part name="parameters" element="tas:GetAssignedMediaSigningCertificatesResponse"/>
 	</wsdl:message>
 	<wsdl:portType name="AdvancedSecurityService">
 		<wsdl:documentation>Common functionality for all security configuraiton service parts.</wsdl:documentation>
@@ -2907,6 +2989,40 @@
 			<wsdl:output message="tas:DeleteNetworkInterfaceDot1XConfigurationResponse"/>
 		</wsdl:operation>
 	</wsdl:portType>
+	<wsdl:portType name="MediaSigning">
+		<wsdl:documentation>Media Signing operations.</wsdl:documentation>
+		<wsdl:operation name="AddMediaSigningCertificateAssignment">
+			<wsdl:documentation>
+				This operation assigns a supplementary certificate path (certificate chain) to use for media signing in addition to the one that is provisioned during factory production. The
+        first certificate in the chain shall be used and its associated private key shall be used for signing media as described in the [Media Signing Specification]. This key and
+        certificate is referred to as external key and external certificate in that specification.<br/>
+				If this operation is called when there is already a certification path configured, except for the factory provisioned certificate, the existing certification path shall be
+        replaced with the new certification path.<br/>
+				A device shall support this command if the ExternalMediaSigningKeySupported capability is true.
+			</wsdl:documentation>
+			<wsdl:input message="tas:AddMediaSigningCertificateAssignmentRequest"/>
+			<wsdl:output message="tas:AddMediaSigningCertificateAssignmentResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="RemoveMediaSigningCertificateAssignment">
+			<wsdl:documentation>
+				This operation removes a certificate assignment (including certification path) on the device that has been added by AddMediaSigningCertificateAssignment. The factory
+        provisioned certificate path cannot be removed.<br/>
+				If media signing on the device is enabled, the device shall produce a ReferenceExists fault and shall not remove the certificate assignment.<br/>
+				A device shall support this command if the ExternalMediaSigningKeySupported capability is true.
+			</wsdl:documentation>
+			<wsdl:input message="tas:RemoveMediaSigningCertificateAssignmentRequest"/>
+			<wsdl:output message="tas:RemoveMediaSigningCertificateAssignmentResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetAssignedMediaSigningCertificates">
+			<wsdl:documentation>
+				This operation returns the IDs of the certification paths that are assigned for media signing on the device. This operation will always return the factory provisioned
+        certification path and can additionally return a certification path that has been added by AddMediaSigningCertificateAssignment.<br/>
+				A device shall support this command if the MediaSigningSupported capability is true.
+			</wsdl:documentation>
+			<wsdl:input message="tas:GetAssignedMediaSigningCertificatesRequest"/>
+			<wsdl:output message="tas:GetAssignedMediaSigningCertificatesResponse"/>
+		</wsdl:operation>
+  </wsdl:portType>
 	<wsdl:binding name="AdvancedSecurityServiceBinding" type="tas:AdvancedSecurityService">
 		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
 		<wsdl:operation name="GetServiceCapabilities">
@@ -3382,6 +3498,35 @@
 		</wsdl:operation>
 	</wsdl:binding>
 	<!--==========================================-->
+	<wsdl:binding name="MediaSigningBinding" type="tas:MediaSigning">
+		<wsdl:operation name="AddMediaSigningCertificateAssignment">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/AddMediaSigningCertificateAssignment"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="RemoveMediaSigningCertificateAssignment">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/RemoveMediaSigningCertificateAssignment"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetAssignedMediaSigningCertificates">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetAssignedMediaSigningCertificates"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
 	<!-- Begin Cert-based client auth messages    -->
 	<!--==========================================-->
 	<!--==========================================-->
