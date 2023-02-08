@@ -256,6 +256,10 @@ Added certificate-based client authentication</revremark>
               </entry>
             </row>
             <row>
+              <entry>ECC key pair</entry>
+              <entry>A key pair that is accepted as input by the ECC algorithm.</entry>
+            </row>
+            <row>
               <entry>
                 <para>Inner</para>
               </entry>
@@ -343,6 +347,12 @@ Added certificate-based client authentication</revremark>
         <varlistentry>
           <term>EAP</term>
           <listitem><para>Extensible Authentication Protocol</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>ECC</term>
+          <listitem>
+            <para>Elliptic Curve Cryptography</para>
+          </listitem>
         </varlistentry>
         <varlistentry>
           <term>HTTP</term>
@@ -1054,7 +1064,7 @@ Added certificate-based client authentication</revremark>
       <section>
         <title>Elements of the Keystore</title>
         <para>The keystore security feature handles the storage and management of passphrases, keys, and certificates on an ONVIF device.</para>
-        <para>The keystore specified in this document supports passphrases, keys, key pairs, which are a particular type of key, RSA key pairs, which are a particular type of key pairs, certificates, certification paths, certificate revocation lists, and certification path validation policies.</para>
+        <para>The keystore specified in this document supports passphrases, keys, key pairs, which are a particular type of key, RSA and ECC key pairs, which are a particular type of key pairs, certificates, certification paths, certificate revocation lists, and certification path validation policies.</para>
         <para>The boolean attribute <emphasis>externallyGenerated</emphasis> of a key shall be true if and only if the key was generated outside the device.</para>
         <para>The boolean attribute <emphasis>securelyStored</emphasis> of a key shall be true if and only if the key is stored in a specially protected hardware component (e.g., a trusted platform module) inside the device.</para>
       </section>
@@ -1327,6 +1337,48 @@ Added certificate-based client authentication</revremark>
                   <para role="text"> The keystore does not have enough storage space to store the key pair that has to be generated.</para>
                   <para role="param">env:Sender - ter:InvalidArgVal - ter:KeyLength</para>
                   <para role="text"> The specified key length is not supported by the device.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>access class</term>
+                <listitem>
+                  <para role="access">WRITE_SYSTEM</para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </section>
+          <section>
+            <title>CreateECCKeyPair</title>
+            <para>This operation triggers the asynchronous generation of an ECC key pair using a particular elliptic curve as specified in [RFC 4492], with a suitable key generation mechanism on the device. Keys, especially ECC key pairs, are uniquely identified using key IDs. </para>
+            <para>If the device does not have enough storage capacity for storing the key pair to be created, the maximum number of keys reached fault shall be produced and no key pair shall be generated. Otherwise, the operation generates a keyID for the new key and associates the <emphasis>generating</emphasis> status to it. Immediately after key generation has started, the device shall return the keyID to the client and continue to generate the key pair. The client may query the device with the GetKeyStatus operation (see Sect. <xref linkend="_Ref361388129" />) whether the generation has finished. The client may also subscribe to Key Status events (see Sect. <xref linkend="_Ref353780603" />) to be notified about key status changes.</para>
+            <para>The device also returns a best-effort estimate of how much time it requires to create the key pair.<footnote xml:id="__FN3__"><para>Implementors may estimate the key generation time for a fixed key length as the average elapsed time of a number of key generation operations for this key length.</para></footnote> A client may use this information as an indication how long to wait before querying the device whether key generation is completed.</para>
+            <para>After the key has been successfully created, the device shall assign it the <emphasis>ok</emphasis> status. If the key generation fails, the device shall assign the key the <emphasis>corrupt</emphasis> status.</para>
+            <variablelist role="op">
+              <varlistentry>
+                <term>request</term>
+                <listitem>
+                  <para role="param">EllipticCurve - [xs:string]</para>
+                  <para role="text"> The name of the elliptic curve to be used for genereting the ECC keypair.</para>
+                  <para role="param">Alias - optional [xs:string] </para>
+                  <para role="text">The client-defined alias of the key.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>response</term>
+                <listitem>
+                  <para role="param">KeyID - [tas:KeyID]</para>
+                  <para role="text"> The key ID of the key pair being generated.</para>
+                  <para role="param">EstimatedCreationTime - [xs:duration]</para>
+                  <para role="text"> Best-effort estimation of how long the key generation will take.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>faults</term>
+                <listitem>
+                  <para role="param">env:Receiver - ter:Action - ter:MaximumNumberOfKeysReached</para>
+                  <para role="text"> The keystore does not have enough storage space to store the key pair that has to be generated.</para>
+                  <para role="param">env:Sender - ter:InvalidArgVal - ter:UnsupportedEllipticCurve</para>
+                  <para role="text"> The specified elliptic curve is not supported by the device.</para>
                 </listitem>
               </varlistentry>
               <varlistentry>
@@ -3329,10 +3381,26 @@ Added certificate-based client authentication</revremark>
               </row>
               <row>
                 <entry>
+                  <para>ECCKeyPairGeneration</para>
+                </entry>
+                <entry>
+                  <para>Indicates support for on-board ECC key pair generation.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
                   <para>RSAKeyLengths</para>
                 </entry>
                 <entry>
                   <para>Indicates which RSA key lengths are supported by the device.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>EllipticCurves</para>
+                </entry>
+                <entry>
+                  <para>Indicates which elliptic curves are supported by the device.</para>
                 </entry>
               </row>
               <row>
@@ -3345,10 +3413,26 @@ Added certificate-based client authentication</revremark>
               </row>
               <row>
                 <entry>
+                  <para>PKCS8ECCKeyPairUpload</para>
+                </entry>
+                <entry>
+                  <para>Indicates support for uploading an ECC key pair in a PKCS#8 data structure.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
                   <para>PKCS12CertificateWithRSAPrivateKeyUpload</para>
                 </entry>
                 <entry>
                   <para>Indicates support for uploading a certificate along with an RSA private key in a PKCS#12 data structure.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>PKCS12CertificateWithECCPrivateKeyUpload</para>
+                </entry>
+                <entry>
+                  <para>Indicates support for uploading a certificate along with an ECC private key in a PKCS#12 data structure.</para>
                 </entry>
               </row>
               <row>
@@ -3361,10 +3445,26 @@ Added certificate-based client authentication</revremark>
               </row>
               <row>
                 <entry>
+                  <para>PKCS10ExternalCertificationWithECC</para>
+                </entry>
+                <entry>
+                  <para>Indicates support for creating PKCS#10 requests for ECC keys and uploading the certificate obtained from a CA.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
                   <para>SelfSignedCertificateCreationWithRSA</para>
                 </entry>
                 <entry>
                   <para>Indicates support for creating self-signed certificates for RSA keys.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>SelfSignedCertificateCreationWithRSA</para>
+                </entry>
+                <entry>
+                  <para>Indicates support for creating self-signed certificates for ECC keys.</para>
                 </entry>
               </row>
               <row>
@@ -3627,6 +3727,21 @@ Added certificate-based client authentication</revremark>
               </row>
               <row>
                 <entry>
+                  <para>ECCKeyPairGeneration</para>
+                </entry>
+                <entry>
+                  <para>If true, the following commands shall be supported:</para>
+                  <itemizedlist>
+                    <listitem>
+                      <para>CreateECCKeyPair</para>
+                    </listitem>
+                  </itemizedlist>
+                  <para>If true, the list of supported elliptic curves indicated by the EllipticCurves capability shall not be empty.</para>
+                  <para>If true, MaximumNumberOfKeys&gt;0 shall hold.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
                   <para>PKCS8RSAKeyPairUpload</para>
                 </entry>
                 <entry>
@@ -3639,6 +3754,23 @@ Added certificate-based client authentication</revremark>
                   <para>If true, MaximumNumberOfPassphrases &gt;0 shall hold.</para>
                   <para>If true, MaximumNumberOfKeys &gt; 0 shall hold.</para>
                   <para>If true, the list of supported RSA key lengths as indicated by the RSAKeyLenghts capability shall not be empty.</para>
+                  <para>If true, the list of supported password-based encryption algorithms as indicated by the PasswordBasedEncryptionAlgorithms capability shall contain at least the algorithm <phrase>pbeWithSHAAnd3-KeyTripleDES-CBC</phrase>.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>PKCS8ECCKeyPairUpload</para>
+                </entry>
+                <entry>
+                  <para>If true, the following commands shall be supported:</para>
+                  <itemizedlist>
+                    <listitem>
+                      <para>UploadKeyPairInPKCS8</para>
+                    </listitem>
+                  </itemizedlist>
+                  <para>If true, MaximumNumberOfPassphrases &gt;0 shall hold.</para>
+                  <para>If true, MaximumNumberOfKeys &gt; 0 shall hold.</para>
+                  <para>If true, the list of supported elliptic curves as indicated by the EllipticCurves capability shall not be empty.</para>
                   <para>If true, the list of supported password-based encryption algorithms as indicated by the PasswordBasedEncryptionAlgorithms capability shall contain at least the algorithm <phrase>pbeWithSHAAnd3-KeyTripleDES-CBC</phrase>.</para>
                 </entry>
               </row>
@@ -3684,6 +3816,46 @@ Added certificate-based client authentication</revremark>
               </row>
               <row>
                 <entry>
+                  <para>PKCS12CertificateWithECCPrivateKeyUpload</para>
+                </entry>
+                <entry>
+                  <para>If true, the following commands shall be supported:</para>
+                  <itemizedlist>
+                    <listitem>
+                      <para>UploadCertificateWithPrivateKeyInPKCS12</para>
+                    </listitem>
+                    <listitem>
+                      <para>GetCertificate</para>
+                    </listitem>
+                    <listitem>
+                      <para>GetAllCertificates</para>
+                    </listitem>
+                    <listitem>
+                      <para>DeleteCertificate</para>
+                    </listitem>
+                    <listitem>
+                      <para>GetCertificationPath</para>
+                    </listitem>
+                    <listitem>
+                      <para>GetAllCertificationPaths</para>
+                    </listitem>
+                    <listitem>
+                      <para>DeleteCertificationPath</para>
+                    </listitem>
+                  </itemizedlist>
+                  <para>If true, MaximumNumberOfPassphrases &gt;0 shall hold.</para>
+                  <para>If true, MaximumNumberOfKeys &gt;=2 shall hold.</para>
+                  <para>If true, MaximumNumberOfCertificates &gt;=2 shall hold.</para>
+                  <para>If true, MaximumNumberOfCertificattionPaths &gt;0 shall hold.</para>
+                  <para>If true, the list of supported elliptic curves as indicated by the EllipticCurves capability shall not be empty.</para>
+                  <para>If true, the list of supported password-based encryption algorithms as indicated by the PasswordBasedEncryptionAlgorithms capability shall contain at least the algorithm <phrase>pbeWithSHAAnd3-KeyTripleDES-CBC</phrase>.</para>
+                  <para>If true, the list of supported password-based MAC algorithms as indicated by the PasswordBasedMACAlgorithms capability shall contain at least the algorithm <phrase>hmacWithSHA256</phrase>.</para>
+                  <para>If true, the list of supported X.509 versions as indicated by the X.509Versions capability shall contain at least the value 3.</para>
+                  <para>If true, the list of supported signature algorithms as indicated by the SignatureAlgorithms capability shall contain at least the algorithms ECDSA-With-SHA1 and ECDSA-With-SHA256.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
                   <para>PKCS10ExternalCertificationWithRSA</para>
                 </entry>
                 <entry>
@@ -3711,6 +3883,35 @@ Added certificate-based client authentication</revremark>
                   <para>If true, MaximumNumberOfCertificates&gt;=2 and MaximumNumberOfCertificationPaths&gt;0 shall hold.</para>
                   <para>If true, MaximumNumberOfKeys&gt;=2 shall hold.</para>
                   <para>If true, the list of supported signature algorithms as indicated by the SignatureAlgorithms capability shall contain at least the algorithms sha1-WithRSAEncryption and sha256WithRSAEncryption.</para>
+                </entry>
+              </row>
+              <row>
+                <entry><para>PKCS10ExternalCertificationWithECC</para></entry>
+                <entry>
+                  <para>If true, the following operations shall be supported:</para>
+                  <itemizedlist>
+                    <listitem>
+                      <para>ECC key pair generation as signaled by the ECCKeyPairGeneration capability or ECC key pair upload as signaled by the PKCS8ECCKeyPairUpload capability or ECC key pair upload as signaled by the PKCS12CertificateWithECCPrivateKeyUpload capability</para>
+                    </listitem>
+                    <listitem>
+                      <para>Creating a CSR with the CreatePKCS10CSR command.</para>
+                    </listitem>
+                    <listitem>
+                      <para>GetCertificate</para>
+                    </listitem>
+                    <listitem>
+                      <para>GetAllCertificates</para>
+                    </listitem>
+                    <listitem>
+                      <para>DeleteCertificate</para>
+                    </listitem>
+                    <listitem>
+                      <para>Uploading the certificate created for the CSR as well as the certificate of the created certificate’s signer with the UploadCertificate command.</para>
+                    </listitem>
+                  </itemizedlist>
+                  <para>If true, MaximumNumberOfCertificates&gt;=2 and MaximumNumberOfCertificationPaths&gt;0 shall hold.</para>
+                  <para>If true, MaximumNumberOfKeys&gt;=2 shall hold.</para>
+                  <para>If true, the list of supported signature algorithms as indicated by the SignatureAlgorithms capability shall contain at least the algorithms ECDSA-With-SHA1 and ECDSA-With-SHA256.</para>
                 </entry>
               </row>
               <row>
@@ -3745,10 +3946,40 @@ Added certificate-based client authentication</revremark>
               </row>
               <row>
                 <entry>
+                  <para>SelfSignedCertificateCreationWithECC</para>
+                </entry>
+                <entry>
+                  <para>If true, the following commands shall be supported:</para>
+                  <itemizedlist>
+                    <listitem>
+                      <para>CreateSelfSignedCertificate</para>
+                    </listitem>
+                    <listitem>
+                      <para>GetCertificate</para>
+                    </listitem>
+                    <listitem>
+                      <para>GetAllCertificates</para>
+                    </listitem>
+                    <listitem>
+                      <para>DeleteCertificate</para>
+                    </listitem>
+                  </itemizedlist>
+                  <para>If true, the following operations shall be supported:</para>
+                  <itemizedlist>
+                    <listitem>
+                      <para>ECC key pair generation as signaled by the ECCKeyPairGeneration capability or ECC key pair upload as signaled by the PKCS8ECCKeyPairUpload capability or ECC key pair upload as signaled by the PKCS12CertificateWithECCPrivateKeyUpload capability</para>
+                    </listitem>
+                  </itemizedlist>
+                  <para>If true, MaximumNumberOfCertificates&gt; 0 shall hold.</para>
+                  <para>If true, the list of supported signature algorithms as indicated by the SignatureAlgorithms capability shall contain at least the algorithms ECDSA-With-SHA1 and ECDSA-With-SHA256.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
                   <para>TLSServerSupported</para>
                 </entry>
                 <entry>
-                  <para>If not empty, PKCS10ExternalCertificationWithRSA shall be true or SelfSignedCertificateCreationWithRSA shall be true.</para>
+                  <para>If not empty, PKCS10ExternalCertificationWithRSA or SelfSignedCertificateCreationWithRSA or PKCS10ExternalCertificationWithECC or SelfSignedCertificateCreationWithECC shall be true.</para>
                   <para>If not empty, the following commands shall be supported:</para>
                   <itemizedlist>
                     <listitem>
@@ -3785,6 +4016,14 @@ Added certificate-based client authentication</revremark>
                 </entry>
                 <entry>
                   <para>If TLSServerSupported is non-empty and PKCS10ExternalCertificationWithRSA is true, MaximumNumberOfCertificates&gt;=3 shall hold.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>TLSServerSupported and PKCS10ExternalCertificationWithECC</para>
+                </entry>
+                <entry>
+                  <para>If TLSServerSupported is non-empty and PKCS10ExternalCertificationWithECC is true, MaximumNumberOfCertificates&gt;=3 shall hold.</para>
                 </entry>
               </row>
               <row>
@@ -3863,7 +4102,7 @@ Added certificate-based client authentication</revremark>
                       <para>DeleteCertPathValidationPolicy</para>
                     </listitem>
                   </itemizedlist>
-                  <para>If greater than zero, PKCS12CertificateWithRSAPrivateKeyUpload, PKCS10ExternalCertificationWithRSA or SelfSignedCertificateCreationWithRSA shall be true.</para>
+                  <para>If greater than zero, PKCS12CertificateWithRSAPrivateKeyUpload, PKCS10ExternalCertificationWithRSA or SelfSignedCertificateCreationWithRSA or PKCS12CertificateWithECCPrivateKeyUpload or PKCS10ExternalCertificationWithECC or SelfSignedCertificateCreationWithECC shall be true.</para>
                 </entry>
               </row>
               <row>
@@ -3897,13 +4136,13 @@ Added certificate-based client authentication</revremark>
                   <para>If true, the device shall support</para>
                   <itemizedlist>
                     <listitem>
-                      <para>validating certification paths containing X.509v3 certificates that are signed with signatures of type sha1-WithRSAEncryption or with sha256WithRSAEncrpytion</para>
+                      <para>validating certification paths containing X.509v3 certificates that are signed with signatures of type sha1-WithRSAEncryption, sha256WithRSAEncrpytion, ECDSA-With-SHA1 or ECDSA-With-SHA256</para>
                     </listitem>
                     <listitem>
                       <para>processing X.509 CRLs that are compliant to the CRL profile defined in [RFC 5280], Sect. 5 and that</para>
                       <itemizedlist>
                         <listitem>
-                          <para>are signed with signatures of type sha1-WithRSAEncryption or sha256WithRSAEncryption and</para>
+                          <para>are signed with signatures of type sha1-WithRSAEncryption, sha256WithRSAEncryption, ECDSA-With-SHA1 or ECDSA-With-SHA256 and</para>
                         </listitem>
                         <listitem>
                           <para>are complete direct CRLs as defined in [RFC 5280] that that are signed with the same signature key as the signature key that the CA uses to sign issued certificates</para>
