@@ -915,6 +915,74 @@
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:element name="GetJWTAcceptedAudiences">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetJWTAcceptedAudiencesResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Audiences" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>The list of all the aud claims, which the recipient identifies with.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetJWTAcceptedAudiences">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Audiences" type="xs:string" minOccurs="1" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>The list of all the aud claims, which the recipient identifies with.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetJWTAcceptedAudiencesResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetJWTAudience">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetJWTAudienceResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Audience" type="xs:string" minOccurs="0" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>The aud claim used in the JWT when authenticating to a remote ONVIF compliant device or server</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetJWTAudience">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Audience" type="xs:string" minOccurs="1" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>The aud claim used in the JWT when authenticating to a remote ONVIF compliant device or server.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetJWTAudienceResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
 			<xs:element name="CreateRSAKeyPair">
 				<xs:complexType>
 					<xs:sequence>
@@ -2093,6 +2161,30 @@
 	<wsdl:message name="GetServiceCapabilitiesResponse">
 		<wsdl:part name="parameters" element="tas:GetServiceCapabilitiesResponse"/>
 	</wsdl:message>
+	<wsdl:message name="GetJWTAcceptedAudiencesRequest">
+		<wsdl:part name="parameters" element="tas:GetJWTAcceptedAudiences"/>
+	</wsdl:message>
+	<wsdl:message name="GetJWTAcceptedAudiencesResponse">
+		<wsdl:part name="parameters" element="tas:GetJWTAcceptedAudiencesResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetJWTAcceptedAudiencesRequest">
+		<wsdl:part name="parameters" element="tas:SetJWTAcceptedAudiences"/>
+	</wsdl:message>
+	<wsdl:message name="SetJWTAcceptedAudiencesResponse">
+		<wsdl:part name="parameters" element="tas:SetJWTAcceptedAudiencesResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetJWTAudienceRequest">
+		<wsdl:part name="parameters" element="tas:GetJWTAudience"/>
+	</wsdl:message>
+	<wsdl:message name="GetJWTAudienceResponse">
+		<wsdl:part name="parameters" element="tas:GetJWTAudienceResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetJWTAudienceRequest">
+		<wsdl:part name="parameters" element="tas:SetJWTAudience"/>
+	</wsdl:message>
+	<wsdl:message name="SetJWTAudienceResponse">
+		<wsdl:part name="parameters" element="tas:SetJWTAudienceResponse"/>
+	</wsdl:message>
 	<wsdl:message name="CreateRSAKeyPairRequest">
 		<wsdl:part name="parameters" element="tas:CreateRSAKeyPair"/>
 	</wsdl:message>
@@ -2387,6 +2479,37 @@
 			<wsdl:documentation>Returns the capabilities of the security configuraiton service. The result is returned in a typed answer.</wsdl:documentation>
 			<wsdl:input message="tas:GetServiceCapabilitiesRequest"/>
 			<wsdl:output message="tas:GetServiceCapabilitiesResponse"/>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:portType name="JWT">
+		<wsdl:documentation>Json Web Token functionality.</wsdl:documentation>
+		<wsdl:operation name="GetJWTAcceptedAudiences">
+			<wsdl:documentation>
+				This operation returns the list of all the aud claims, which the recipient identifies with.
+			</wsdl:documentation>
+			<wsdl:input message="tas:GetJWTAcceptedAudiencesRequest"/>
+			<wsdl:output message="tas:GetJWTAcceptedAudiencesResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetJWTAcceptedAudiences">
+			<wsdl:documentation>
+				This operation sets the list of all the aud claims, which the recipient identifies with.
+			</wsdl:documentation>
+			<wsdl:input message="tas:SetJWTAcceptedAudiencesRequest"/>
+			<wsdl:output message="tas:SetJWTAcceptedAudiencesResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetJWTAudience">
+			<wsdl:documentation>
+				This operation returns the aud claim used in the JWT when authenticating to a remote ONVIF compliant device or server.
+			</wsdl:documentation>
+			<wsdl:input message="tas:GetJWTAudienceRequest"/>
+			<wsdl:output message="tas:GetJWTAudienceResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetJWTAudience">
+			<wsdl:documentation>
+				This operation sets the aud claim used in the JWT when authenticating to a remote ONVIF compliant device or server.
+			</wsdl:documentation>
+			<wsdl:input message="tas:SetJWTAudienceRequest"/>
+			<wsdl:output message="tas:SetJWTAudienceResponse"/>
 		</wsdl:operation>
 	</wsdl:portType>
 	<wsdl:portType name="Keystore">
@@ -2942,6 +3065,45 @@
 		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
 		<wsdl:operation name="GetServiceCapabilities">
 			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetServiceCapabilities"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:binding name="JWTBinding" type="tas:JWT">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="GetJWTAcceptedAudiences">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetJWTAcceptedAudiences"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetJWTAcceptedAudiences">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/SetJWTAcceptedAudiences"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetJWTAudience">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetJWTAudience"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetJWTAudience">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/SetJWTAudience"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
