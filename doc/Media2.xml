@@ -178,7 +178,8 @@
         <author>
           <personname>Hans Busch, Rick Boer</personname>
         </author>
-        <revremark>Add optional Receiver configuration to Media2. Fix inconsistency in Media2 NoProfile fault message.</revremark>
+        <revremark>Add optional Receiver configuration to Media2. Fix inconsistency in Media2
+          NoProfile fault message.</revremark>
       </revision>
       <revision>
         <revnumber>22.12</revnumber>
@@ -195,6 +196,14 @@
           <personname>Oksana Tuishkina</personname>
         </author>
         <revremark>Clarify signaling rotation in video source configuration.</revremark>
+      </revision>
+      <revision>
+        <revnumber>23.12</revnumber>
+        <date>December-2023</date>
+        <author>
+          <personname>Fredrik Svensson</personname>
+        </author>
+        <revremark>Add media signing.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -214,6 +223,10 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/srv/ptz/ONVIF-PTZ-Service-Spec.pdf"></link>&gt;</para>
     <para>ONVIF Streaming  Specification</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/stream/ONVIF-Streaming-Spec.pdf"></link>&gt;</para>
+    <para>ONVIF Media Signing Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"
+        >http://www.onvif.org/specs/stream/ONVIF-MediaSigning-Specification.pdf</link>&gt;</para>
   </chapter>
   <chapter>
     <title>Terms and Definitions</title>
@@ -989,6 +1002,10 @@
           </listitem>
           <listitem>
             <para>Encoding profile and GOV length [frame].</para>
+          </listitem>
+          <listitem>
+            <para>Signed – Indicates if the stream will be signed according to the [Media Signing
+              Specification].</para>
           </listitem>
         </itemizedlist>
         <para>TheVideoEncoderConfiguration structure also contains multicast parameters. </para>
@@ -2159,6 +2176,28 @@
         <varlistentry>
           <term>MultiTrackStreaming</term>
           <listitem><para>Indicates support for multiple video RTP streams in one RTSP session.</para></listitem>
+        </varlistentry>
+      </variablelist>
+      <para>The following media signing capabilites are available:</para>
+      <variablelist>
+        <varlistentry>
+          <term>MaximumNumberOfStreams</term>
+          <listitem><para>Maximum number of streams that can be signed concurrently. A stream in this case means a video
+              encoder configuration that has Signed=true.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>SigningLatency</term>
+          <listitem><para>Average latency in milliseconds for one signing operation. This value determines how often a
+              group of frames can be signed. For example, if MaximumNumberOfStreams=2,
+              SigningLatency=500 and we have FPS=30 for one stream and FPS=20 for the minimum GOP
+              for both streams are 0.5 * (20 + 30) = 25.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>ConfigurationsSupported</term>
+          <listitem>
+            <para>List what types of streams that can be signed by the device. Only VideoEncoder is
+              specified.</para>
+          </listitem>
         </varlistentry>
       </variablelist>
     </section>
