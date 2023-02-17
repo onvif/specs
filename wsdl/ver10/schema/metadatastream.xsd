@@ -33,6 +33,8 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:element name="HumanBody" type="bd:HumanBody" minOccurs="0"/> 
 			<xs:element name="ImageRef" type="xs:anyURI" minOccurs="0"/>
 			<xs:element name="Image" type="xs:base64Binary" minOccurs="0"/>
+			<xs:element name="BarcodeInfo" type="tt:BarcodeInfo" minOccurs="0"/>
+			<xs:element name="SphericalCoordinate" type="tt:SphericalCoordinate" minOccurs="0"/>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
@@ -59,6 +61,60 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:enumeration value="Temporary"/>			
 		</xs:restriction>
 	</xs:simpleType>
+	<xs:simpleType name="BarcodeType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Code-39"/>
+			<xs:enumeration value="Code-49"/>
+			<xs:enumeration value="Code-93"/>
+			<xs:enumeration value="Code-128"/>
+			<xs:enumeration value="Code-11"/>
+			<xs:enumeration value="Code-25-Interleaved"/>
+			<xs:enumeration value="Code-25-NonInterleaved"/>
+			<xs:enumeration value="DataMatrix"/>
+			<xs:enumeration value="Maxicode"/>
+			<xs:enumeration value="Postnet"/>
+			<xs:enumeration value="RM4SCC"/> <!--RoyalMail-->
+			<xs:enumeration value="ISBN-13"/>
+			<xs:enumeration value="ISBN-13-Dual"/>
+			<xs:enumeration value="ISBN-10"/>
+			<xs:enumeration value="ITF-14"/>
+			<xs:enumeration value="EAN-2"/>
+			<xs:enumeration value="EAN-2"/>
+			<xs:enumeration value="EAN-8"/>
+			<xs:enumeration value="EAN-13"/>
+			<xs:enumeration value="EAN-14"/>
+			<xs:enumeration value="EAN-18"/>
+			<xs:enumeration value="EAN-99"/>
+			<xs:enumeration value="EAN-128"/>
+			<xs:enumeration value="SCC-14"/>
+			<xs:enumeration value="SSCC-18"/>
+			<xs:enumeration value="UPC-A"/>
+			<xs:enumeration value="UPC-E"/>
+			<xs:enumeration value="PDF417"/>
+			<xs:enumeration value="QRCode"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="BarcodeInfo">
+		<xs:sequence>
+			<xs:element name="Data" type="tt:StringLikelihood">
+			<xs:annotation> 
+				<xs:documentation>Information encoded in barcode</xs:documentation> 
+			</xs:annotation>
+			</xs:element> 
+			<xs:element name="Type" type="tt:StringLikelihood" minOccurs="0">  <!-- refer tt:BarcodeType for supported values  Optional " --> 
+			<xs:annotation> 
+				<xs:documentation>Acceptable values are defined in tt:BarcodeType</xs:documentation> 
+			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="PPM" type="xs:float" minOccurs="0"> 
+			<xs:annotation> 
+				<xs:documentation>Refers to the pixels per module</xs:documentation> 
+			</xs:annotation>
+			</xs:element> 
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/> 
+		</xs:sequence> 
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
 	<xs:complexType name="VehicleInfo">
 		<xs:sequence>
 			<xs:element name="Type" type="tt:StringLikelihood"/>  <!-- tt:VehicleType lists the acceptable values" --> 
@@ -118,6 +174,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:enumeration value="Vehicle"/>
 			<xs:enumeration value="LicensePlate"/>
 			<xs:enumeration value="Bike"/>	<!-- any of bicycle, motorcycle, motorbike -->
+			<xs:enumeration value="Barcode"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="ClassType">
@@ -282,6 +339,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>
 			<xs:element name="Extension" type="tt:BehaviourExtension" minOccurs="0"/>
 			<xs:element name="Speed" type="xs:float" minOccurs="0"/>
+			<xs:element name="Direction" type="tt:GeoOrientation" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Direction the object is moving. Yaw describes the horizontal direction in the range [-180..180] where 0 is towards the right of the device and 90 is away from the device. Pitch describes the vertical direction in the range [-90..90] where 90 is upwards.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
