@@ -3751,8 +3751,9 @@ xmlns:acme="http://www.acme.com/schema"&gt;
     <section>
       <title>Events</title>
       <section>
-        <title>Audio Detected</title>
-        <para>Analytics engine can send the following event for analyzed audio data.</para>
+        <title>Audio Detected (deprecated)</title>
+        <para>Analytics engine can send the following event for analyzed audio data. This event is
+          deprecated in favor events described in <xref linkend="appendix_hw3_vnr_nwb"/>.</para>
         <programlisting><![CDATA[<tt:MessageDescription IsProperty=“false">
   <tt:Source>
     <tt:SimpleItemDescription Name=“AudioSourceConfigurationToken"
@@ -3769,8 +3770,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
   </tt:Data >
   <tt:ParentTopic>tns1:AudioAnalytics/Audio/DetectedSound
   </tt:ParentTopic>
-</tt:MessageDescription>
-]]></programlisting>
+</tt:MessageDescription>]]></programlisting>
         <para>The Rule field is optional and contains the Rule instance name that generated the audio detected event.</para>
       </section>
     </section>
@@ -7283,6 +7283,74 @@ xmlns:acme="http://www.acme.com/schema"&gt;
       <para>If the IncludeImage configuration parameter is set to an empty string, device shall not include VehicleImage and VehicleImageURI event fields in the event message.</para>
       <para>If the IncludeImage configuration parameter is set as Embedded, device shall include VehicleImage event field in the event message.</para>
       <para>If the IncludeImage configuration parameter is set as LocalStorage or RemoteStorage, device shall include VehicleImageURI event field in the event message.</para>
+    </section>
+  </appendix>
+  <appendix xml:id="appendix_hw3_vnr_nwb">
+    <title>Audio analytics (normative)</title>
+    <section>
+      <title>Audio Classification</title>
+      <para>An analytics or rule engine can send the following event for detected audio
+        classes.</para>
+      <programlisting><![CDATA[<tt:RuleDescription Name="tt:AudioClassDetector">
+  <tt:Parameters>
+    <tt:SimpleItemDescription Name="ClassFilter" Type="tt:StringList"/>
+    <tt:SimpleItemDescription Name="ConfidenceLevel" Type="xs:float"/>
+  </tt:Parameters>
+  <tt:Messages>
+    <tt:MessageDescription IsProperty="false">
+      <tt:Source>
+        <tt:SimpleItemDescription Name="AudioSource" Type="tt:ReferenceToken"/>
+        <tt:SimpleItemDescription Name="AnalyticsConfiguration" Type="tt:ReferenceToken"/>
+        <tt:SimpleItemDescription Name="Rule" Type="xs:string"/>
+      </tt:Source>
+      <tt:Data>
+        <tt:SimpleItemDescription Name="Class" Type="tt:StringList"/>
+        <tt:SimpleItemDescription Name="Score" Type="tt:FloatList"/>
+      </tt:Data >
+      <tt:ParentTopic>tns1:RuleEngine/AudioDetector/Class</tt:ParentTopic>
+    </tt:MessageDescription>
+  <tt:Messages>
+</tt:RuleDescription>
+]]></programlisting>
+      <variablelist role="op">
+        <varlistentry>
+          <term>Parameters</term>
+          <listitem>
+            <para role="param">ClassFilter - optional [tt:StringList]</para>
+            <para role="text">List of classes that the rule should operate on chosen from
+              tt:AudioClassification.</para>
+            <para role="param">ConfidenceLevel - optional [xs:float]</para>
+            <para role="text">Minimum confidence level for accepting a classification. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Topic</term>
+          <listitem>
+            <para role="text">tns1:RuleEngine/AudioDetector/Class</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem>
+            <para role="param">AudioSource [tt:ReferenceToken]</para>
+            <para role="text">The token of the audio source.</para>
+            <para role="param">AnalyticsConfiguration - optional [tt:ReferenceToken]</para>
+            <para role="text">Optional token of the analytics configuration this rule belongs
+              to.</para>
+            <para role="param">Rule - optional [xs:string]</para>
+            <para role="text">Optional name of the Rule that generated the event.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Data</term>
+          <listitem>
+            <para role="param">Class [tt:StringList]</para>
+            <para role="text">List of detected audio classifications of type tt:AudioClassification. </para>
+            <para role="param">Score - optional [tt:FloatList]</para>
+            <para role="text">Optional list of scores of detected audio classifications. </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
     </section>
   </appendix>
   <appendix role="revhistory">
