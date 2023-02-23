@@ -839,6 +839,107 @@
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
+			<xs:simpleType name="AuthorizationServerConfigurationType">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="OAuthAuthorizationCode">
+						<xs:annotation>
+							<xs:documentation>OAuth2 authorization code flow per RFC 6749</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="OAuthClientCredentials">
+						<xs:annotation>
+							<xs:documentation>OAuth2 client credentials grant flow per RFC 6749</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+				</xs:restriction>
+			</xs:simpleType>
+			<!--===============================-->
+			<xs:simpleType name="ClientAuthenticationType">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="header">
+						<xs:annotation>
+							<xs:documentation>Use HTTP Authorization header to specify client credentials</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="body">
+						<xs:annotation>
+							<xs:documentation>Use HTTP POST body to specify client credentials</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="certificate">
+						<xs:annotation>
+							<xs:documentation>Use a client certificate to authenticate</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+				</xs:restriction>
+			</xs:simpleType>
+			<!--===============================-->
+			<xs:complexType name="AuthorizationServerConfigurationData">
+				<xs:sequence>
+					<xs:element name="ServerUri" type="xs:anyURI">
+						<xs:annotation>
+							<xs:documentation>Authorization server address</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="ClientId" type="xs:string" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Client identifier issued by the authorzation server</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="ClientSecret" type="xs:string" minOccurs="0">
+						<xs:annotation>
+								<xs:documentation>Client secret used to authenticate with the authorization server</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Scope" type="xs:string" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The requested access scope(s)</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:sequence>
+				<xs:attribute name="type" type="xs:string" use="required">
+					<xs:annotation>
+						<xs:documentation>tas:AuthorizationServerConfigurationType lists the acceptable values for type attribute</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="clientAuth" type="xs:string">
+					<xs:annotation>
+						<xs:documentation>tas:ClientAuthenticationType lists the acceptable values for clientAuth attribute</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:complexType name="AuthorizationServerConfiguration">
+				<xs:complexContent>
+					<xs:extension base="tt:DeviceEntity">
+						<xs:sequence>
+							<xs:element name="Data" type="tds:AuthorizationServerConfigurationData"/>
+						</xs:sequence>
+					</xs:extension>
+				</xs:complexContent>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:complexType name="AuthorizationServerConfigurationCapabilities">
+				<xs:attribute name="AuthorizationServerConfiguration" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for authorization server configuration interfaces.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="MaxAuthorizationServerConfigurations" type="xs:nonNegativeInteger">
+					<xs:annotation>
+						<xs:documentation>Indicates maximum number of authorization server configurations supported.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="AuthorizationServerConfigurationTypesSupported" type="tt:StringAttrList">
+					<xs:annotation>
+						<xs:documentation>Enumerates the supported authorization server configuration types, see tas:AuthorizationServerConfigurationType.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->
 			<xs:complexType name="Capabilities">
 				<xs:annotation>
 					<xs:documentation>The capabilities of a Security Configuration Service implementation on a device.</xs:documentation>
@@ -2049,6 +2150,64 @@
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetAuthorizationServerConfigurations">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetAuthorizationServerConfigurationsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configurations" type="tas:AuthorizationServerConfiguration" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="CreateAuthorizationServerConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configuration" type="tas:AuthorizationServerConfigurationData">
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="CreateAuthorizationServerConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken">
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetAuthorizationServerConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="AuthorizationServerConfiguration" type="tas:AuthorizationServerConfiguration"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetAuthorizationServerConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="DeleteAuthorizationServerConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="DeleteAuthorizationServerConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
 		</xs:schema>
 	</wsdl:types>
 	<wsdl:message name="GetServiceCapabilitiesRequest">
@@ -2350,6 +2509,30 @@
 	</wsdl:message>
 	<wsdl:message name="DeleteNetworkInterfaceDot1XConfigurationResponse">
 		<wsdl:part name="parameters" element="tas:DeleteNetworkInterfaceDot1XConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetAuthorizationServerConfigurationsRequest">
+		<wsdl:part name="parameters" element="tds:GetAuthorizationServerConfigurations"/>
+	</wsdl:message>
+	<wsdl:message name="GetAuthorizationServerConfigurationsResponse">
+		<wsdl:part name="parameters" element="tds:GetAuthorizationServerConfigurationsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="CreateAuthorizationServerConfigurationRequest">
+		<wsdl:part name="parameters" element="tds:CreateAuthorizationServerConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="CreateAuthorizationServerConfigurationResponse">
+		<wsdl:part name="parameters" element="tds:CreateAuthorizationServerConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetAuthorizationServerConfigurationRequest">
+		<wsdl:part name="parameters" element="tds:SetAuthorizationServerConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetAuthorizationServerConfigurationResponse">
+		<wsdl:part name="parameters" element="tds:SetAuthorizationServerConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteAuthorizationServerConfigurationRequest">
+		<wsdl:part name="parameters" element="tds:DeleteAuthorizationServerConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteAuthorizationServerConfigurationResponse">
+		<wsdl:part name="parameters" element="tds:DeleteAuthorizationServerConfigurationResponse"/>
 	</wsdl:message>
 	<wsdl:portType name="AdvancedSecurityService">
 		<wsdl:documentation>Common functionality for all security configuraiton service parts.</wsdl:documentation>
@@ -2907,6 +3090,38 @@
 			<wsdl:output message="tas:DeleteNetworkInterfaceDot1XConfigurationResponse"/>
 		</wsdl:operation>
 	</wsdl:portType>
+	<wsdl:portType name="AuthorizationServers">
+		<wsdl:documentation>Configuration of external authorization servers.</wsdl:documentation>
+		<wsdl:operation name="GetAuthorizationServerConfigurations">
+			<wsdl:documentation>
+			This operation lists all existing authorization server configurations for the device.
+			</wsdl:documentation>
+			<wsdl:input message="tds:GetAuthorizationServerConfigurationsRequest"/>
+			<wsdl:output message="tds:GetAuthorizationServerConfigurationsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="CreateAuthorizationServerConfiguration">
+			<wsdl:documentation>
+			This operation creates a new authorization server configuration.
+			The configuration data shall be created in the device and shall be persistent (remain after reboot).
+			</wsdl:documentation>
+			<wsdl:input message="tds:CreateAuthorizationServerConfigurationRequest"/>
+			<wsdl:output message="tds:CreateAuthorizationServerConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetAuthorizationServerConfiguration">
+			<wsdl:documentation>
+			This operation modifies an existing authorization server configuration.
+			</wsdl:documentation>
+			<wsdl:input message="tds:SetAuthorizationServerConfigurationRequest"/>
+			<wsdl:output message="tds:SetAuthorizationServerConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteAuthorizationServerConfiguration">
+			<wsdl:documentation>
+			This operation deletes the given authorization server configuration and configuration change shall always be persistent.
+			</wsdl:documentation>
+			<wsdl:input message="tds:DeleteAuthorizationServerConfigurationRequest"/>
+			<wsdl:output message="tds:DeleteAuthorizationServerConfigurationResponse"/>
+		</wsdl:operation>
+	</wsdl:portType>
 	<wsdl:binding name="AdvancedSecurityServiceBinding" type="tas:AdvancedSecurityService">
 		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
 		<wsdl:operation name="GetServiceCapabilities">
@@ -3373,6 +3588,44 @@
 		</wsdl:operation>
 		<wsdl:operation name="DeleteNetworkInterfaceDot1XConfiguration">
 			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/DeleteNetworkInterfaceDot1XConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:binding name="AuthorizationServerBinding" type="tas:AuthorizationServer">
+		<wsdl:operation name="GetAuthorizationServerConfigurations">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetAuthorizationServerConfigurations"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="CreateAuthorizationServerConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/CreateAuthorizationServerConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetAuthorizationServerConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/SetAuthorizationServerConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteAuthorizationServerConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/DeleteAuthorizationServerConfiguration"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
