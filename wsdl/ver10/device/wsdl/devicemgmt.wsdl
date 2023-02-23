@@ -371,21 +371,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>List of supported Addons by the device.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
-				<xs:attribute name="AuthorizationServerConfiguration" type="xs:boolean">
-					<xs:annotation>
-						<xs:documentation>Indicates support for authorization server configuration interfaces.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute name="MaxAuthorizationServerConfigurations" type="xs:int">
-					<xs:annotation>
-						<xs:documentation>Indicates maximum number of authorization server configurations supported.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute name="AuthorizationServerConfigurationTypesSupported" type="tt:StringAttrList">
-					<xs:annotation>
-						<xs:documentation>Enumerates the supported authorization server configuration types, see tds:AuthorizationServerConfigurationType.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
@@ -2273,149 +2258,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>	 		
 
 			<!--===============================-->
-
-			<xs:simpleType name="AuthorizationServerConfigurationType">
-				<xs:restriction base="xs:string">
-					<xs:enumeration value="OAuthAuthorizationCode">
-						<xs:annotation>
-							<xs:documentation>OAuth2 authorization code flow per RFC 6749</xs:documentation>
-						</xs:annotation>
-					</xs:enumeration>
-					<xs:enumeration value="OAuthClientCredentials">
-						<xs:annotation>
-							<xs:documentation>OAuth2 client credentials grant flow per RFC 6749</xs:documentation>
-						</xs:annotation>
-					</xs:enumeration>
-				</xs:restriction>
-			</xs:simpleType>
-
-			<xs:simpleType name="ClientAuthenticationType">
-				<xs:restriction base="xs:string">
-					<xs:enumeration value="header">
-						<xs:annotation>
-							<xs:documentation>Use HTTP Authorization header to specify client credentials</xs:documentation>
-						</xs:annotation>
-					</xs:enumeration>
-					<xs:enumeration value="body">
-						<xs:annotation>
-							<xs:documentation>Use HTTP POST body to specify client credentials</xs:documentation>
-						</xs:annotation>
-					</xs:enumeration>
-					<xs:enumeration value="certificate">
-						<xs:annotation>
-							<xs:documentation>Use a client certificate to authenticate</xs:documentation>
-						</xs:annotation>
-					</xs:enumeration>
-				</xs:restriction>
-			</xs:simpleType>
-
-			<xs:complexType name="AuthorizationServerConfigurationData">
-				<xs:sequence>
-					<xs:element name="ServerUri" type="xs:anyURI">
-						<xs:annotation>
-							<xs:documentation>Authorization server address</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:element name="ClientId" type="xs:string" minOccurs="0">
-						<xs:annotation>
-							<xs:documentation>Client identifier issued by the authorzation server</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:element name="ClientSecret" type="xs:string" minOccurs="0">
-						<xs:annotation>
-								<xs:documentation>Client secret used to authenticate with the authorization server</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:element name="Scope" type="xs:string" minOccurs="0">
-						<xs:annotation>
-							<xs:documentation>The requested access scope(s)</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
-				</xs:sequence>
-				<xs:attribute name="type" type="xs:string" use="required">
-					<xs:annotation>
-						<xs:documentation>tds:AuthorizationServerConfigurationType lists the acceptable values for type attribute</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute name="clientAuth" type="xs:string">
-					<xs:annotation>
-						<xs:documentation>tds:ClientAuthenticationType lists the acceptable values for clientAuth attribute</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:anyAttribute processContents="lax"/>
-			 </xs:complexType>
-
-			<xs:complexType name="AuthorizationServerConfiguration">
-				<xs:complexContent>
-					<xs:extension base="tt:DeviceEntity">
-						<xs:sequence>
-							<xs:element name="Data" type="tds:AuthorizationServerConfigurationData"/>
-						</xs:sequence>
-					</xs:extension>
-				</xs:complexContent>
-			</xs:complexType>
-
-			<!--===============================-->
-			<xs:element name="GetAuthorizationServerConfigurations">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="Token" type="tt:ReferenceToken" minOccurs="0"/>
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
-			<xs:element name="GetAuthorizationServerConfigurationsResponse">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="Configurations" type="tds:AuthorizationServerConfiguration" minOccurs="0" maxOccurs="unbounded"/>
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
-			<!--===============================-->
-			<xs:element name="CreateAuthorizationServerConfiguration">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="Configuration" type="tds:AuthorizationServerConfigurationData">
-						</xs:element>
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
-			<xs:element name="CreateAuthorizationServerConfigurationResponse">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="Token" type="tt:ReferenceToken">
-						</xs:element>
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
-			<!--===============================-->
-			<xs:element name="SetAuthorizationServerConfiguration">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="AuthorizationServerConfiguration" type="tds:AuthorizationServerConfiguration"/>
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
-			<xs:element name="SetAuthorizationServerConfigurationResponse">
-				<xs:complexType>
-					<xs:sequence/>
-				</xs:complexType>
-			</xs:element>
-			<!--===============================-->
-			<xs:element name="DeleteAuthorizationServerConfiguration">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="Token" type="tt:ReferenceToken"/>
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
-			<xs:element name="DeleteAuthorizationServerConfigurationResponse">
-				<xs:complexType>
-					<xs:sequence/>
-				</xs:complexType>
-			</xs:element>
-
-			<!--===============================-->
 			<xs:element name="GetGeoLocation">
 				<xs:complexType>
 					<xs:sequence>
@@ -3031,31 +2873,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<wsdl:part name="parameters" element="tds:DeleteStorageConfigurationResponse"/>
 	</wsdl:message>	
 
-	<wsdl:message name="GetAuthorizationServerConfigurationsRequest">
-		<wsdl:part name="parameters" element="tds:GetAuthorizationServerConfigurations"/>
-	</wsdl:message>
-	<wsdl:message name="GetAuthorizationServerConfigurationsResponse">
-		<wsdl:part name="parameters" element="tds:GetAuthorizationServerConfigurationsResponse"/>
-	</wsdl:message>
-	<wsdl:message name="CreateAuthorizationServerConfigurationRequest">
-		<wsdl:part name="parameters" element="tds:CreateAuthorizationServerConfiguration"/>
-	</wsdl:message>
-	<wsdl:message name="CreateAuthorizationServerConfigurationResponse">
-		<wsdl:part name="parameters" element="tds:CreateAuthorizationServerConfigurationResponse"/>
-	</wsdl:message>
-	<wsdl:message name="SetAuthorizationServerConfigurationRequest">
-		<wsdl:part name="parameters" element="tds:SetAuthorizationServerConfiguration"/>
-	</wsdl:message>
-	<wsdl:message name="SetAuthorizationServerConfigurationResponse">
-		<wsdl:part name="parameters" element="tds:SetAuthorizationServerConfigurationResponse"/>
-	</wsdl:message>
-	<wsdl:message name="DeleteAuthorizationServerConfigurationRequest">
-		<wsdl:part name="parameters" element="tds:DeleteAuthorizationServerConfiguration"/>
-	</wsdl:message>
-	<wsdl:message name="DeleteAuthorizationServerConfigurationResponse">
-		<wsdl:part name="parameters" element="tds:DeleteAuthorizationServerConfigurationResponse"/>
-	</wsdl:message>
-
 	<wsdl:message name="GetGeoLocationRequest">
 		<wsdl:part name="parameters" element="tds:GetGeoLocation"/>
 	</wsdl:message>
@@ -3669,36 +3486,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</wsdl:documentation>
 			<wsdl:input message="tds:DeleteStorageConfigurationRequest"/>
 			<wsdl:output message="tds:DeleteStorageConfigurationResponse"/>
-		</wsdl:operation>
-
-		<wsdl:operation name="GetAuthorizationServerConfigurations">
-			<wsdl:documentation>
-			This operation lists all existing authorization server configurations for the device.
-			</wsdl:documentation>
-			<wsdl:input message="tds:GetAuthorizationServerConfigurationsRequest"/>
-			<wsdl:output message="tds:GetAuthorizationServerConfigurationsResponse"/>
-		</wsdl:operation>
-		<wsdl:operation name="CreateAuthorizationServerConfiguration">
-			<wsdl:documentation>
-			This operation creates a new authorization server configuration.
-			The configuration data shall be created in the device and shall be persistent (remain after reboot).
-			</wsdl:documentation>
-			<wsdl:input message="tds:CreateAuthorizationServerConfigurationRequest"/>
-			<wsdl:output message="tds:CreateAuthorizationServerConfigurationResponse"/>
-		</wsdl:operation>
-		<wsdl:operation name="SetAuthorizationServerConfiguration">
-			<wsdl:documentation>
-			This operation modifies an existing authorization server configuration.
-			</wsdl:documentation>
-			<wsdl:input message="tds:SetAuthorizationServerConfigurationRequest"/>
-			<wsdl:output message="tds:SetAuthorizationServerConfigurationResponse"/>
-		</wsdl:operation>
-		<wsdl:operation name="DeleteAuthorizationServerConfiguration">
-			<wsdl:documentation>
-			This operation deletes the given authorization server configuration and configuration change shall always be persistent.
-			</wsdl:documentation>
-			<wsdl:input message="tds:DeleteAuthorizationServerConfigurationRequest"/>
-			<wsdl:output message="tds:DeleteAuthorizationServerConfigurationResponse"/>
 		</wsdl:operation>
 
 		<wsdl:operation name="GetGeoLocation">
@@ -4661,43 +4448,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="DeleteStorageConfiguration">
 			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/DeleteStorageConfiguration"/>
-			<wsdl:input>
-				<soap:body use="literal"/>
-			</wsdl:input>
-			<wsdl:output>
-				<soap:body use="literal"/>
-			</wsdl:output>
-		</wsdl:operation>
-
-		<wsdl:operation name="GetAuthorizationServerConfigurations">
-			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetAuthorizationServerConfigurations"/>
-			<wsdl:input>
-				<soap:body use="literal"/>
-			</wsdl:input>
-			<wsdl:output>
-				<soap:body use="literal"/>
-			</wsdl:output>
-		</wsdl:operation>
-		<wsdl:operation name="CreateAuthorizationServerConfiguration">
-			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/CreateAuthorizationServerConfiguration"/>
-			<wsdl:input>
-				<soap:body use="literal"/>
-			</wsdl:input>
-			<wsdl:output>
-				<soap:body use="literal"/>
-			</wsdl:output>
-		</wsdl:operation>
-		<wsdl:operation name="SetAuthorizationServerConfiguration">
-			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/SetAuthorizationServerConfiguration"/>
-			<wsdl:input>
-				<soap:body use="literal"/>
-			</wsdl:input>
-			<wsdl:output>
-				<soap:body use="literal"/>
-			</wsdl:output>
-		</wsdl:operation>
-		<wsdl:operation name="DeleteAuthorizationServerConfiguration">
-			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/DeleteAuthorizationServerConfiguration"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
