@@ -244,16 +244,17 @@
         able to sign a video in real-time.</para>
       <para><emphasis role="bold">Frame drops</emphasis>. Adding a list of hashes of each NAL Unit
         combats the problem of lost frames, but cannot solve packet losses unless the affected NAL
-        Unit is completely removed from the stream. Further, the hash list is the most significant
-        contribution to the increased bitrate.</para>
+        Unit is completely removed from the stream.</para>
       <para><emphasis role="bold">Hashing algorithms</emphasis>. Hashing is used in two contexts; 1)
         to get a short representation of each NAL Unit to put in a list, and 2) as message digest
-        in signature generation. The same hashing algorithms have to be used both on the device and
-        in the client. The standard specifies a collection that can be used, which for example
-        limits the ability to put extra security on some videos.</para>
-      <para><emphasis role="bold">Signing algorithm</emphasis>. There is a fixed list of algorithms
-        to choose from, which limits the scope somewhat since there may be variations within
-        them.</para>
+        when generating signatures. Note that these two can be different. The same hashing
+        algorithms have to be used in both the device and the client. The device specifies which
+        hashing algorithms were used, which for example limits the ability for the client to put
+        extra security on some videos.</para>
+      <para><emphasis role="bold">Signing algorithm</emphasis>. The standard specifies signing
+        algorithm through its OID. Signing should be done in a trusted environment and there are
+        usually limitations to which signing algorithms are supported. This limits the scope, and
+        the device decides which to use.</para>
       <para><emphasis role="bold">Bitrate increase</emphasis>. Adding SEI frames to the encoded
         video increases the bitrate. The list of NAL Unit hashes is the main contribution.
         Therefore, it is recommended to consider a hashing algorithm that produces reasonably large
@@ -352,9 +353,10 @@
         hashed in the linked manner described above.</para>
       <para>A hash (<code>gophash</code>) of the list of hashes is added to metadata, <code>gophash
           = H(h_anch, hash(P1), hash(P2), ..., hash(PN))</code>. The <code>gophash</code> simplifies
-        validation, since verifying each hash in the list of hashes is only necessary when verifying
-        the <code>gophash</code> fails. Another benefit is that the bytestream is prepared for the
-        future, where a low-bitrate alternative can be added by omitting the list of hashes.</para>
+        validation, since verifying each hash in the list of hashes is only necessary when
+        verification of the <code>gophash</code> fails. Another benefit is that the bytestream is
+        prepared for the future, where a low-bitrate alternative can be added by omitting the list
+        of hashes.</para>
       <para>To preserve the order of GOPs the hash of the I-frame of the previous GOP is also added
         to metadata, that is, <code>hash(Iprevious) = h_anch_previous</code>. For the very first GOP
         a static and pre-defined hash should be used; See the TLV section below.</para>
@@ -477,7 +479,7 @@
           once" information should be put in a separate SEI, with the corresponding bit in the
           reserved byte set to 1, and signed. This separates the SEI from the video stream and can
           be copied and added to any exported material.</para>
-        <para>If the video is signed with an user provisioned signing key, this "only sent once" SEI should
+        <para>If the video is signed with a user provisioned signing key, this "only sent once" SEI should
           be signed with the manifacturer provisioned signing key. Note that both certificates and Public 
           keys have to be included in the SEI.</para>
       </section>
@@ -569,20 +571,6 @@
                 </row>
                 <row>
                   <entry>
-                    <para>Public key</para>
-                  </entry>
-                  <entry>
-                    <para>5</para>
-                  </entry>
-                  <entry>
-                    <para>Once or at any arbitrary cadence</para>
-                  </entry>
-                  <entry>
-                    <para>The public signing key</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
                     <para>ONVIF vendor information</para>
                   </entry>
                   <entry>
@@ -607,6 +595,7 @@
                   </entry>
                   <entry>
                     <para>The device video signing key certificate chain.</para>
+                    <para>The leaf certificate includes the Public key necessary to verify signatures.</para>
                   </entry>
                 </row>
                 <row>
@@ -634,14 +623,6 @@
           <listitem>
             <para>Tag version (1 byte)</para>
             <para>Version = 1</para>
-          </listitem>
-          <listitem>
-            <para>ONVIF Signed Media version (3 bytes)</para>
-            <para>ONVIF Signed Media version = 1.0.0</para>
-            <para>This will prevent version mismatch between device and client. The version in clear
-              text is of the form major.minor.patch and each of these are serialized into one byte.
-              Hence any one of them cannot exceed 255. For example, "ONVIF Signed Media version
-              1.2.42" is written as the three bytes "1, 2, 42".</para>
           </listitem>
           <listitem>
             <para>The UTC (8 bytes) based time represented by the number of 100-nanosecond intervals
@@ -673,7 +654,7 @@
           </listitem>
         </itemizedlist>
         <para>It is not necessary to specify <code>h</code> in this tag. The validation side can
-          compute h since the total tag length is known. <code>h = (length - 16) / 2</code></para>
+          compute h since the total tag length is known. <code>h = (length - 13) / 2</code></para>
       </section>
       <section xml:id="section_p3s_njq_bwb">
         <title>Cryptographic information</title>
@@ -713,26 +694,6 @@
         </itemizedlist>
         <para>Note that it is not necessary for the device to support all alternatives. The device
           makes the decision which combination to use.</para>
-      </section>
-      <section xml:id="section_q3s_njq_bwb">
-        <title>Public key</title>
-        <para>This mandatory field contains the Public key used to verify signatures.</para>
-        <itemizedlist>
-          <listitem>
-            <para>Tag version (1 byte)</para>
-            <para>Version = 1</para>
-          </listitem>
-          <listitem>
-            <para>User provisioned key (1 byte)</para>
-            <para>Set this byte to 0x01 if the key in this TLV is an user provisioned key.</para>
-          </listitem>
-          <listitem>
-            <para>Public key in PEM format (variable bytes)</para>
-          </listitem>
-        </itemizedlist>
-        <para>It is not necessary to specify the size of the Public key in this tag. The validation
-          side can read the Public key and specify the size as <code>public_key_size = length -
-            2</code></para>
       </section>
       <section xml:id="section_r3s_njq_bwb">
         <title>ONVIF vendor info</title>
@@ -810,6 +771,8 @@
         <title>Certificate chain</title>
         <para>This field contains the certificate chain necessary to verify the public
           key.</para>
+        <para>The leaf certificate includes the Public key, and upon successful verification can
+          safely be extracted to use when verifying the signatures.</para>
         <para>Note that the certificate chain must not include the CA certificate.</para>
         <para>Note that this tag is mandatory in the first SEI and optional thereafter. If sent
           only once, it has to be part of a SEI marked with the "sent only once" flag.</para>
@@ -820,7 +783,7 @@
           </listitem>
           <listitem>
             <para>User provisioned key (1 byte)</para>
-            <para>Set this byte to 0x01 if the certificate chain in this TLV is an user provisioned
+            <para>Set this byte to 0x01 if the certificate chain in this TLV is a user provisioned
               certificate chain.</para>
           </listitem>
           <listitem>
@@ -866,19 +829,18 @@
         <listitem>
           <para>Write all TLVs except the signature since it by definition cannot be written yet.
             Write the TLV data using emulation prevention bytes if it is turned on.</para>
-          <para>The mandatory tags are the Cryptographic information, the Public Key and the
-            Certificate chain.</para>
-          <para>If the video will be signed with an user provisioned signing key write an additional TLV
-            data for the Public Key with the user provisioned Public key and the user provisioned byte set. The same
-            holds for the user provisioned certificate chain.</para>
+          <para>The mandatory tags are the Cryptographic information and the Certificate
+            chain.</para>
+          <para>If the video will be signed with a user provisioned signing key write an additional TLV
+            data for the user provisioned certificate chain.</para>
         </listitem>
         <listitem>
           <para>Hash the written data from NAL Unit header to the last written TLV data. Denote this
             "document hash".</para>
         </listitem>
         <listitem>
-          <para>Sign the document hash using the device Private key, stored in a secure
-            environment.</para>
+          <para>Sign the document hash using the manufacturer provisioned Private signing key,
+            stored in a trusted environment.</para>
         </listitem>
         <listitem>
           <para>Write the signature data to the Signature tag when signing has been
@@ -927,7 +889,7 @@
             "document hash"</para>
         </listitem>
         <listitem>
-          <para>Sign the document hash in a secure environment using the Private key.</para>
+          <para>Sign the document hash in a secure environment using the Private signing key.</para>
         </listitem>
         <listitem>
           <para>Write the signature data to the Signature tag when signing has been
