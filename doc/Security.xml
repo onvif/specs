@@ -2540,7 +2540,8 @@ Added certificate-based client authentication</revremark>
                 <para role="param">env:Sender - ter:InvalidArgVal - ter:NewCertificationPathID </para>
                 <para role="text">No certification path is stored in the keystore under the given certification path ID.</para>
                 <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPrivateKey </para>
-                <para role="text">The key pair that is associated with the first certificate in the certificate chain does not have an associated private key.</para>
+                <para role="text">The key pair that is associated with the leaf certificate in the
+                  certificate chain does not have an associated private key.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -3210,17 +3211,16 @@ Added certificate-based client authentication</revremark>
       </section>
       <section xml:id="section_dfb_gy4_kwb">
         <title>AddMediaSigningCertificateAssignment</title>
-        <para>This operation assigns a supplementary certificate path (certificate chain) to use for
-          media signing in addition to the one that is provisioned during factory production. The
-          first certificate in the chain shall be used and its associated private key shall be used
-          for signing media as described in the [Media Signing Specification]. This key and
-          certificate is referred to as external key and external certificate in that
-          specification.</para>
-        <para>If this operation is called when there is already a certification path configured,
-          except for the factory provisioned certificate, the existing certification path shall be
-          replaced with the new certification path.</para>
-        <para>A device shall support this command if the ExternalMediaSigningKeySupported capability
-          is true.</para>
+        <para>This operation assigns certification path (certificate chain) to use for media
+          signing, replacing the one that is provisioned during factory production. The leaf
+          certificate in the chain and its associated private key shall be used for signing media as
+          described in the [Media Signing Specification]. This key and certificate is referred to as
+          user provisioned key and certificate in that specification.</para>
+        <para>If this operation is called when there is already a user provisioned certification
+          path configured, the existing certification path shall be replaced with the new
+          certification path.</para>
+        <para>A device shall support this command if the UserMediaSigningKeySupported capability is
+          true.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -3242,7 +3242,7 @@ Added certificate-based client authentication</revremark>
                 certification path is stored in the keystore under the given certification path
                 ID.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPrivateKey The key pair that
-                is associated with the first certificate in the certificate chain does not have an
+                is associated with the leaf certificate in the certificate chain does not have an
                 associated private key.</para>
             </listitem>
           </varlistentry>
@@ -3258,11 +3258,11 @@ Added certificate-based client authentication</revremark>
         <title>RemoveMediaSigningCertificateAssignment</title>
         <para>This operation removes a certificate assignment (including certification path) on the
           device that has been added by AddMediaSigningCertificateAssignment. The factory
-          provisioned certificate path cannot be removed.</para>
+          provisioned certification path cannot be removed.</para>
         <para>If media signing on the device is enabled, the device shall produce a ReferenceExists
           fault and shall not remove the certificate assignment.</para>
-        <para>A device shall support this command if the ExternalMediaSigningKeySupported capability
-          is true.</para>
+        <para>A device shall support this command if the UserMediaSigningKeySupported capability is
+          true.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -3669,11 +3669,11 @@ Added certificate-based client authentication</revremark>
               </row>
               <row>
                 <entry>
-                  <para>ExternalMediaSigningKeySupported</para>
+                  <para>UserMediaSigningKeySupported</para>
                 </entry>
                 <entry>
-                  <para>Indicates whether the device supports signing of media using another key
-                    than the factory provisioned one.</para>
+                  <para>Indicates whether the device supports signing of media using a user
+                    provisioned key.</para>
                 </entry>
               </row>
             </tbody>
@@ -4114,7 +4114,7 @@ Added certificate-based client authentication</revremark>
               </row>
               <row>
                 <entry>
-                  <para>ExternalMediaSigningKeySupported</para>
+                  <para>UserMediaSigningKeySupported</para>
                 </entry>
                 <entry>
                   <para>If true, AddMediaSigningCertificateAssignment and
