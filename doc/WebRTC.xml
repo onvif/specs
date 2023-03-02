@@ -82,6 +82,15 @@
     <para>IETF RFC 7519 - JSON Web Token (JWT)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
       xlink:href="http://tools.ietf.org/html/rfc7519"/>&gt;</para>
+    <para>IETF RFC 6749 - The OAuth 2.0 Authorization Framework</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="http://tools.ietf.org/html/rfc6749"/>&gt;</para>
+    <para>OpenID Connect Core</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="https://openid.net/specs/openid-connect-core-1_0.html"/>&gt;</para>
+    <para>ONVIF Security Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="https://www.onvif.org/specs/srv/security/ONVIF-Security-Service-Spec.pdf"/>&gt;</para>
   </chapter>
   <chapter xml:id="chapter_vxt_v12_v5b">
     <title>Terms and Definitions</title>
@@ -242,9 +251,8 @@
         </listitem>
       </itemizedlist></para>
     <para>The <emphasis>Signaling Protocol</emphasis> described in this specification details the
-      data exchange between client and device via the signaling server.
-      <?oxy_comment_start author="fredriks" timestamp="20230104T103210+0100" comment="How do we make this clear, i.e. how to refer from this spec to the schema?"?>The
-      formal API is defined in a separate AsyncAPI schema file.<?oxy_comment_end?></para>
+      data exchange between client and device via the signaling server. The formal API is defined in
+      a separate AsyncAPI schema file.</para>
     <para>Once a peer-to-peer connection has been established, how WebRTC is used is described in the
       WebRTC usage chapter.</para>
   </chapter>
@@ -272,23 +280,20 @@
       </mediaobject>
     </figure>
     <section xml:id="section_ayt_v12_v5b">
-      <title><?oxy_comment_start author="fredriks" timestamp="20230105T155830+0100" comment="Split this in two under-sections for client and device "?>Connecting
-        to the signaling server</title>
+      <title>Connecting to the signaling server</title>
       <para>Both a client and a device need to connect to the server by setting up a WebSocket with
         valid access tokens that the server will accept. The connection handling is done using
         WebSocket [RFC 6455].</para>
       <para>The signaling messages are then sent as JSON text messages in the WebSocket. Please
         refer to the Signaling Protocol AsyncAPI schema for specific details regarding the Signaling
-        Protocol.</para><?oxy_comment_end?>
+        Protocol.</para>
       <section>
         <title>Client</title>
         <para>A client connects to the server by setting up a WebSocket to, for example:
-          <programlisting>https://signaling.example.com/client?authorization=Bearer%20access_token</programlisting></para>
+          <programlisting>wss://signaling.example.com/client?authorization=Bearer%20access_token</programlisting></para>
         <para>Where <code>signaling.example.com</code> should be replaced with the server's address,
-          and <code>access_token</code> should be replaced with a valid
-          <?oxy_comment_start author="fredriks" timestamp="20230105T145309+0100" comment="Add info on how to generate access token"?>access
-          token that the server will accept<?oxy_comment_end?>.</para>
-        <para>See section <xref linkend="chapter_cwp_r2k_v5b"/> for how to get an access
+          and <code>access_token</code> should be replaced with a valid access token that the server
+          will accept. See section <xref linkend="chapter_cwp_r2k_v5b"/> for how to get an access
           token.</para>
         <para>The WebSocket sub protocol shall be set to 'client.webrtc.onvif.org' for the
           client.</para>
@@ -296,35 +301,14 @@
       <section>
         <title>Device</title>
         <para>A device must first be onboarded in order to be able to set up a WebSocket to the
-          server. See &lt;??> for how to onboard a device.</para>
-        <para>An onboarded device then connects by setting up a WebSocket to, for example:</para>
-        <programlisting>wss://signaling.example.com/device? deviceId=myDeviceId&amp;orgId=myOrgId&amp;token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjI4NjYzNjg1NDgsInRhcmdldElkIjoiTXlUZXN0VGFyZ</programlisting>
+          server. See section <xref linkend="section_dwp_r2k_v5b"/> for more information. An
+          onboarded device then connects by setting up a WebSocket to, for example:</para>
+        <programlisting>wss://signaling.example.com/device?deviceId=myDeviceId&amp;orgId=myOrgId&amp;token=myToken</programlisting>
         <para>Where <code>signaling.example.com</code> should be replaced with the server's address
           and the <code>deviceId</code> and <code>orgId</code> (decided when onboarding) have to be
-          used as query strings when connecting. An RS256 signed JWT also needs to be provided
+          used as query strings when connecting. A signed JWT also needs to be provided
             (<code>token</code>). This must be signed using the device's private key that correspond
-          to the device's public key that was used when onboarding. The JWT needs to contain three
-          claims:</para>
-        <informaltable>
-          <tgroup cols="2">
-            <colspec colname="c1" colnum="1" colwidth="1*"/>
-            <colspec colname="c2" colnum="2" colwidth="1*"/>
-            <tbody>
-              <row>
-                <entry>deviceId</entry>
-                <entry>the ID of the device that connects</entry>
-              </row>
-              <row>
-                <entry>orgId</entry>
-                <entry>the Organization ID that the device belongs to</entry>
-              </row>
-              <row>
-                <entry>exp</entry>
-                <entry>date (int64) when the token should expire</entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </informaltable>
+          to the device's public key that was used when onboarding. See section </para>
         <para>The WebSocket sub protocol shall be set to 'device.webrtc.onvif.org' for the
           device.</para>
       </section>
@@ -908,11 +892,85 @@
     </section>
   </chapter>
   <chapter xml:id="chapter_cwp_r2k_v5b">
-    <title>Login Protocol</title>
-    <para>The Login Protocol is used to authenticate the user and get access to services.</para>
+    <title>Authentication Protocol</title>
+    <para>This section describes how users and devices autheticates and get access to
+      services.</para>
+    <section>
+      <title>User login and access</title>
+      <para>A user logs in and gets an access token using OAuth2 and OpenID Connect. This is
+        described in the [ONVIF Security Specification].</para>
+    </section>
     <section xml:id="section_dwp_r2k_v5b">
-      <title>Get access token</title>
-      <para>...</para>
+      <title>Device access</title>
+      <para>In order for a device to connect to a signaling server an Authorization Server
+        Configuration must have been set up during device onboarding. See the [ONVIF Security
+        Service] regarding Authorization Server Configurations. This configuration tells the device
+        how to get an access token that can be used to connect to the signaling server. Typically a
+        configuration is created that allows the device to use OAuth2 Client Credentials Grant flow
+        using private_key_jwt as authentication method as described in [OpenID Connect Core]. The
+        JWT shall contain these claims:</para>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="1*"/>
+          <colspec colname="c2" colnum="2" colwidth="1*"/>
+          <tbody>
+            <row>
+              <entry>iss</entry>
+              <entry>orgId.deviceId</entry>
+            </row>
+            <row>
+              <entry>sub</entry>
+              <entry>orgId.deviceId</entry>
+            </row>
+            <row>
+              <entry>aud</entry>
+              <entry>Authorization server URI</entry>
+            </row>
+            <row>
+              <entry>jti</entry>
+              <entry>Random nonce</entry>
+            </row>
+            <row>
+              <entry>exp</entry>
+              <entry>Expiration time in UTC seconds</entry>
+            </row>
+            <row>
+              <entry>iat (optional)</entry>
+              <entry>Issuance time</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+      <section>
+        <title>What needs to be provisioned during onboarding</title>
+        <para>In order for a device to be able to function in a WebRTC system the following things
+          needs to be provisioned during device onboarding:</para>
+        <itemizedlist>
+          <listitem>
+            <para>Authorization Server Configuration</para>
+            <itemizedlist>
+              <listitem>
+                <para>ServerUri: Authorization Server URI</para>
+              </listitem>
+              <listitem>
+                <para>ClientId: &lt;client_id></para>
+              </listitem>
+              <listitem>
+                <para>ClientSecret: KeyID of the private signing key</para>
+              </listitem>
+              <listitem>
+                <para>type: OAuthClientCredentials</para>
+              </listitem>
+              <listitem>
+                <para>clientAuth: private_key_jwt</para>
+              </listitem>
+            </itemizedlist>
+          </listitem>
+          <listitem>
+            <para>Signaling Server URI</para>
+          </listitem>
+        </itemizedlist>
+      </section>
     </section>
   </chapter>
   <appendix role="revhistory">
