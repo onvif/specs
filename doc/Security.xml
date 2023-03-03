@@ -189,8 +189,14 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7519.txt">http://www.ietf.org/rfc/rfc7519.txt</link>&gt;</para>
     <para>RFC 7643 System for Cross-domain Identity Management: Core Schema</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7643.txt">http://www.ietf.org/rfc/rfc7643.txt</link>&gt;</para>
+    <para>RFC 8705 OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc8705.txt">http://www.ietf.org/rfc/rfc8705.txt</link>&gt;</para>
     <para>Unified Modeling Language (UML) </para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.omg.org/spec/UML">http://www.omg.org/spec/UML</link>&gt;</para>
+    <para>OpenID Connect Core</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://openid.net/specs/openid-connect-core-1_0.html">https://openid.net/specs/openid-connect-core-1_0.html</link>&gt;</para>
+    <para>OpenID Connect Discovery</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://openid.net/specs/openid-connect-discovery-1_0.html">https://openid.net/specs/openid-connect-discovery-1_0.html</link>&gt;</para>
     <para>PKCS#5 Password-based Encryption Standard v1.5, RSA Laboratories, 1993</para>
     <para>PKCS#12: Personal Information Exchange Syntax v1.0, RSA Laboratories, 1999</para>
   </chapter>
@@ -1042,7 +1048,159 @@
       <para>This section describes use of external authorization servers that can be used for
         providing authentication of users and authorizing access to both device services and
         external services, like cloud storage.</para>
-      <para>...</para>
+      <para/>
+      <section>
+        <title>User authentication and authorization</title>
+        <para>An authorization server will typically use OAuth2 according to [RFC 6749] and [OpenID
+          Connect Core] to authenticate a user and authorize access to resources through the OAuth2
+          Authorization Code Flow.</para>
+        <para>...</para>
+        <para>A device can be setup to use this flow to allow access to its internal web interface
+          for externally authenticated users. In that case an authorization server configuration
+          with type OAuthAuthorizationCode should be created.</para>
+        <para>...</para>
+      </section>
+      <section>
+        <title>Device authentication and authorization</title>
+        <para>Devices will typically use the Oauth2 Client Credentials Grant Flow to gain access to
+          resources. There are a number of different ways for a device (called a client in the
+          OAuth2 Spec) to authenticate with the server using this flow.</para>
+        <para/>
+      </section>
+      <section>
+        <title>Authorization server configuration</title>
+        <para>The following parameters are used when creating a configuration for an external
+          authorization server.</para>
+        <table>
+          <title>Authorization server settings</title>
+          <tgroup cols="2">
+            <colspec colname="c1" colwidth="20*"/>
+            <colspec colname="c2" colwidth="80*"/>
+            <thead>
+              <row>
+                <entry>
+                  <para>Setting</para>
+                </entry>
+                <entry>Description</entry>
+              </row>
+            </thead>
+            <tbody valign="top">
+              <row>
+                <entry>
+                  <para>ServerUri</para>
+                </entry>
+                <entry>
+                  <para>Authorization server address</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>ClientId</para>
+                </entry>
+                <entry>
+                  <para>Client identifier issued by the authorzation server</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>ClientSecret</para>
+                </entry>
+                <entry>
+                  <para>Client secret used to authenticate with the authorization server</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>Scope</para>
+                </entry>
+                <entry>
+                  <para>The requested access scope(s)</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>type</para>
+                </entry>
+                <entry>
+                  <para>The type of configuration: OAuthAuthorizationCode, OAuthClientCredentials</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>clientAuth</para>
+                </entry>
+                <entry>
+                  <para>The type of client authentication method to use, see below.</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+        <para>The client authentication methods are listed below.</para>
+        <table>
+          <title>Authorization server settings</title>
+          <tgroup cols="2">
+            <colspec colname="c1" colwidth="30*"/>
+            <colspec colname="c2" colwidth="70*"/>
+            <thead>
+              <row>
+                <entry>
+                  <para>Method</para>
+                </entry>
+                <entry>Description</entry>
+              </row>
+            </thead>
+            <tbody valign="top">
+              <row>
+                <entry>
+                  <para>client_secret_basic</para>
+                </entry>
+                <entry>
+                  <para>Use HTTP Authorization header to specify client_secret, see [RFC 6749]</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>client_secret_post</para>
+                </entry>
+                <entry>
+                  <para>Use HTTP POST body to specify client_secret, see [RFC 6749]</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>client_secret_jwt</para>
+                </entry>
+                <entry>
+                  <para>Use a HMAC signed JWT using client_secret as shared secret, see [OpenID Connect Core]</para>
+                </entry>
+              </row>
+              <row>
+                <entry>private_key_jwt</entry>
+                <entry>
+                  <para>Use PKI signed JWT using private key, see [OpenID Connect Core]</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>tls_client_auth</para>
+                </entry>
+                <entry>
+                  <para>Use PKI certificate to authenticate, see [RFC 8705]</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>self_signed_tls_client_auth</para>
+                </entry>
+                <entry>
+                  <para>Use self-signed certificate to authenticate, see [RFC 8705]</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </section>
     </section>
   </chapter>
   <chapter>
