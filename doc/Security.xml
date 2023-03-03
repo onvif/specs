@@ -179,6 +179,8 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc5958.txt">http://www.ietf.org/rfc/rfc5958.txt</link>&gt;</para>
     <para>RFC 5959 Algorithms for Asymmetric Key Package Content Type</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc5959.txt">http://www.ietf.org/rfc/rfc5959.txt</link>&gt;</para>
+    <para>RFC 6749 The OAuth 2.0 Authorization Framework</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc6750.txt">http://www.ietf.org/rfc/rfc6750.txt</link>&gt;</para>
     <para>RFC 6750 The OAuth 2.0 Authorization Framework: Bearer Token Usage</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc6750.txt">http://www.ietf.org/rfc/rfc6750.txt</link>&gt;</para>
     <para>RFC 7517 JSON Web Key (JWK)</para>
@@ -1034,6 +1036,13 @@
       <para>This specification recommends the adoption of IEEE 802.1X for port based authentication for wireless networks.</para>
       <para>This specification defines a set of commands to configure and manage a device’s IEEE 802.1X configurations, both for wireless and hardwired network interfaces.  It assumes that IEEE 802.1X configuration and reconfiguration is performed outside of the IEEE 802.1X-secured network.</para>
       <para>Many schema elements in this specification include Dot1X as shorthand for IEEE 802.1X.  This convention increases the readability of source code generated from the WSDL.</para>
+    </section>
+    <section xml:id="section_b4m_rs4_rwb">
+      <title>Authorization Servers</title>
+      <para>This section describes use of external authorization servers that can be used for
+        providing authentication of users and authorizing access to both device services and
+        external services, like cloud storage.</para>
+      <para>...</para>
     </section>
   </chapter>
   <chapter>
@@ -3280,6 +3289,151 @@
             <term>access class</term>
             <listitem>
               <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
+    <section xml:id="section_hd2_5r4_rwb">
+      <title>Autorization Server Configuration</title>
+      <para>This chapter describes configuration of external authorization servers. For an overview
+        of this see <xref xmlns:xlink="http://www.w3.org/1999/xlink" linkend="section_b4m_rs4_rwb"/>.</para>
+      <section xml:id="section_c22_5r4_rwb">
+        <title>GetAuthorizationServerConfigurations</title>
+        <para>This operation retrieves an existing authorization server configuration, or all
+          existing autorization server configurations if Token is not specified.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Token - optional [tt:ReferenceToken]</para>
+              <para role="text">Optional configuration token to get.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Configurations - optional, unbounded
+                [tas:AuthorizationServerConfiguration]</para>
+              <para role="text">List of authorization server configurations.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoConfig</para>
+              <para role="text">The requested configuration does not exist.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM_SECRET</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="section_d22_5r4_rwb">
+        <title>CreateAuthorizationServerConfiguration</title>
+        <para>This operation creates a new authorization server configuration. The configuration
+          data shall be created in the device and shall be persistent (remain after reboot).</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Configuration - [tas:AuthorizationServerConfigurationData]</para>
+              <para role="text">Details of the configuration that shall be created.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Token - [tt:ReferenceToken]</para>
+              <para role="text">Token assigned to the newly configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Receiver - ter:OperationProhibited -
+                ter:MaxAuthorizationServers</para>
+              <para role="text">The maximum number of configurations supported by the device has
+                been reached.</para>
+              <para role="param">env:Receiver - ter:InvalidArgVal  - ter:InvalidConfig</para>
+              <para role="text">The configuration parameters are not possible to set.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM_SECRET</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="section_e22_5r4_rwb">
+        <title>SetAuthorizationServerConfiguration</title>
+        <para>This operation modifies an existing authorization server configuration.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Configuration - [tas:AuthorizationServerConfiguration]</para>
+              <para role="text">The modified authorization server configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoConfig</para>
+              <para role="text">The requested configuration does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidConfig</para>
+              <para role="text">The configuration parameters are not possible to set.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM_SECRET</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="section_f22_5r4_rwb">
+        <title>DeleteAuthorizationServerConfiguration</title>
+        <para>This operation deletes the given authorization server configuration and configuration
+          change shall always be persistent.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Token - [tt:ReferenceToken]</para>
+              <para role="text">Token of the configuration to delete.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoConfig</para>
+              <para role="text">The requested configuration does not exist.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM_SECRET</para>
             </listitem>
           </varlistentry>
         </variablelist>
