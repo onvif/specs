@@ -287,7 +287,7 @@
       <para>The signaling messages are then sent as JSON text messages in the WebSocket. Please
         refer to the Signaling Protocol AsyncAPI schema for specific details regarding the Signaling
         Protocol.</para>
-      <section>
+      <section xml:id="section_hsq_qhn_rwb">
         <title>Client</title>
         <para>A client connects to the server by setting up a WebSocket to, for example:
           <programlisting>wss://signaling.example.com/client?authorization=Bearer%20access_token</programlisting></para>
@@ -298,17 +298,18 @@
         <para>The WebSocket sub protocol shall be set to 'client.webrtc.onvif.org' for the
           client.</para>
       </section>
-      <section>
+      <section xml:id="section_isq_qhn_rwb">
         <title>Device</title>
         <para>A device must first be onboarded in order to be able to set up a WebSocket to the
-          server. See section <xref linkend="section_dwp_r2k_v5b"/> for more information. An
+          server. See section <xref linkend="section_nsq_qhn_rwb"/> for more information. An
           onboarded device then connects by setting up a WebSocket to, for example:</para>
         <programlisting>wss://signaling.example.com/device?deviceId=myDeviceId&amp;orgId=myOrgId&amp;token=myToken</programlisting>
         <para>Where <code>signaling.example.com</code> should be replaced with the server's address
-          and the <code>deviceId</code> and <code>orgId</code> (decided when onboarding) have to be
-          used as query strings when connecting. A signed JWT also needs to be provided
-            (<code>token</code>). This must be signed using the device's private key that correspond
-          to the device's public key that was used when onboarding. See section </para>
+          and the <code>deviceId</code> and <code>orgId</code> (decided when onboarding) are used as
+          query strings when connecting. A signed JWT also needs to be provided
+          (<code>token</code>). This must be signed using the device's private key that was
+          provisioned during device onboarding. See section  <xref linkend="section_dwp_r2k_v5b"/>
+          for details.</para>
         <para>The WebSocket sub protocol shall be set to 'device.webrtc.onvif.org' for the
           device.</para>
       </section>
@@ -328,7 +329,7 @@
       <para><emphasis role="bold">NOTE</emphasis>: Messages sent via the server may be delivered
         out-of-order; for optimal scalability messages should be handled asynchronously.</para>
       <para>Below are explanations of key/value pairs that are used in the protocol.</para>
-      <section>
+      <section xml:id="section_jsq_qhn_rwb">
         <title>Header keys</title>
         <section xml:id="section_cyt_v12_v5b">
           <title>General header keys</title>
@@ -361,7 +362,7 @@
             </informaltable>
           </para>
         </section>
-        <section>
+        <section xml:id="section_ksq_qhn_rwb">
           <title>Client-facing header keys</title>
           <para>The following key/value pairs are used in the header part in client messages.</para>
           <para>
@@ -426,7 +427,7 @@
             </informaltable>
           </para>
         </section>
-        <section>
+        <section xml:id="section_lsq_qhn_rwb">
           <title>Device-facing header keys</title>
           <para>The following key/value pairs are used in the header part in device messages.</para>
           <informaltable>
@@ -895,7 +896,7 @@
     <title>Authentication Protocol</title>
     <para>This section describes how users and devices autheticates and get access to
       services.</para>
-    <section>
+    <section xml:id="section_msq_qhn_rwb">
       <title>User login and access</title>
       <para>A user logs in and gets an access token using OAuth2 and OpenID Connect. This is
         described in the [ONVIF Security Specification].</para>
@@ -916,11 +917,13 @@
           <tbody>
             <row>
               <entry>iss</entry>
-              <entry>orgId.deviceId</entry>
+              <entry>client_id, an id that uniqely identifies the device, e.g.
+                orgId/deviceId</entry>
             </row>
             <row>
               <entry>sub</entry>
-              <entry>orgId.deviceId</entry>
+              <entry>client_id, an id that uniqely identifies the device, e.g.
+                orgId/deviceId</entry>
             </row>
             <row>
               <entry>aud</entry>
@@ -932,7 +935,7 @@
             </row>
             <row>
               <entry>exp</entry>
-              <entry>Expiration time in UTC seconds</entry>
+              <entry>Expiration time</entry>
             </row>
             <row>
               <entry>iat (optional)</entry>
@@ -941,7 +944,10 @@
           </tbody>
         </tgroup>
       </informaltable>
-      <section>
+      <para>NOTE: this is the recommended way to do device authentication as it provides a high
+        level of security and flexibility. Other setups are possible depending on the specific
+        Authorization Server and Signaling Server implementations.</para>
+      <section xml:id="section_nsq_qhn_rwb">
         <title>What needs to be provisioned during onboarding</title>
         <para>In order for a device to be able to function in a WebRTC system the following things
           needs to be provisioned during device onboarding:</para>
@@ -950,13 +956,16 @@
             <para>Authorization Server Configuration</para>
             <itemizedlist>
               <listitem>
-                <para>ServerUri: Authorization Server URI</para>
+                <para>ServerUri: Authorization Server URI (token endpoint)</para>
               </listitem>
               <listitem>
-                <para>ClientId: &lt;client_id></para>
+                <para>ClientId: client_id, e.g. orgId/deviceId</para>
               </listitem>
               <listitem>
-                <para>ClientSecret: KeyID of the private signing key</para>
+                <para>ClientSecret: Key ID of the private signing key</para>
+              </listitem>
+              <listitem>
+                <para>Scope: optional depending on Authorization Server</para>
               </listitem>
               <listitem>
                 <para>type: OAuthClientCredentials</para>
@@ -967,7 +976,17 @@
             </itemizedlist>
           </listitem>
           <listitem>
-            <para>Signaling Server URI</para>
+            <para>Signaling Server URI: The URI where the device should connect to</para>
+          </listitem>
+          <listitem>
+            <para>Any CA certs that are needed to connect to the Authorization Server and Signaling
+              server</para>
+          </listitem>
+          <listitem>
+            <para>orgId: The id of the organization that the device belongs to</para>
+          </listitem>
+          <listitem>
+            <para>deviceId: The device's unique id within the organization</para>
           </listitem>
         </itemizedlist>
       </section>
