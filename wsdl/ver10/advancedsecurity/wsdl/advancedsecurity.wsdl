@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="../../../ver20/util/onvif-wsdl-viewer.xsl"?>
 <!--
-	Copyright (c) 2013 - 2019 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+	Copyright (c) 2013 - 2023 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 	
 	Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 	
@@ -656,6 +656,12 @@
 				</xs:annotation>
 				<xs:list itemType="xs:nonNegativeInteger"/>
 			</xs:simpleType>
+			<xs:simpleType name="EllipticCurves">
+				<xs:annotation>
+					<xs:documentation>A list of elliptics curves.</xs:documentation>
+				</xs:annotation>
+				<xs:list itemType="xs:string"/>
+			</xs:simpleType>
 			<xs:simpleType name="X509Versions">
 				<xs:annotation>
 					<xs:documentation>A list of X.509 versions.</xs:documentation>
@@ -719,9 +725,19 @@
 						<xs:documentation>Indication that the device supports on-board RSA key pair generation.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="ECCKeyPairGeneration" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indication that the device supports on-board ECC key pair generation.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:attribute name="RSAKeyLengths" type="tas:RSAKeyLengths">
 					<xs:annotation>
 						<xs:documentation>Indicates which RSA key lengths are supported by the device.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="EllipticCurves" type="tas:EllipticCurves">
+					<xs:annotation>
+						<xs:documentation>Indicates which ellipticscurves are supported by the device.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="PKCS10ExternalCertificationWithRSA" type="xs:boolean">
@@ -729,9 +745,19 @@
 						<xs:documentation>Indicates support for creating PKCS#10 requests for RSA keys and uploading the certificate obtained from a CA..</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="PKCS10ExternalCertificationWithECC" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for creating PKCS#10 requests for ECC keys and uploading the certificate obtained from a CA.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:attribute name="SelfSignedCertificateCreationWithRSA" type="xs:boolean">
 					<xs:annotation>
 						<xs:documentation>Indicates support for creating self-signed certificates for RSA keys.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="SelfSignedCertificateCreationWithECC" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for creating self-signed certificates for ECC keys.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="X509Versions" type="tas:X509Versions">
@@ -749,9 +775,19 @@
 						<xs:documentation>Indicates support for uploading an RSA key pair in a PKCS#8 data structure.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="PKCS8ECCKeyPairUpload" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for uploading an ECC key pair in a PKCS#8 data structure.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:attribute name="PKCS12CertificateWithRSAPrivateKeyUpload" type="xs:boolean">
 					<xs:annotation>
 						<xs:documentation>Indicates support for uploading a certificate along with an RSA private key in a PKCS#12 data structure.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="PKCS12CertificateWithECCPrivateKeyUpload" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for uploading a certificate along with an ECC private key in a PKCS#12 data structure.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="PasswordBasedEncryptionAlgorithms" type="tas:PasswordBasedEncryptionAlgorithms">
@@ -913,12 +949,12 @@
 					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
 				</xs:sequence>
-				<xs:attribute name="type" type="xs:string" use="required">
+				<xs:attribute name="Type" type="xs:string" use="required">
 					<xs:annotation>
 						<xs:documentation>tas:AuthorizationServerConfigurationType lists the acceptable values for type attribute</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
-				<xs:attribute name="clientAuth" type="xs:string">
+				<xs:attribute name="ClientAuth" type="xs:string">
 					<xs:annotation>
 						<xs:documentation>tas:ClientAuthenticationType lists the acceptable values for clientAuth attribute</xs:documentation>
 					</xs:annotation>
@@ -1000,6 +1036,45 @@
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:complexType name="JWTConfiguration">
+				<xs:sequence>
+					<xs:element name="Audiences" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>The list of all the aud claims, which the recipient identifies with.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:element name="GetJWTConfiguration">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetJWTConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configuration" type="tas:JWTConfiguration"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetJWTConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configuration" type="tas:JWTConfiguration"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetJWTConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+
+			<!--===============================-->
 			<xs:element name="CreateRSAKeyPair">
 				<xs:complexType>
 					<xs:sequence>
@@ -1017,6 +1092,39 @@
 				</xs:complexType>
 			</xs:element>
 			<xs:element name="CreateRSAKeyPairResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="KeyID" type="tas:KeyID">
+							<xs:annotation>
+								<xs:documentation>The key ID of the key pair being generated.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="EstimatedCreationTime" type="xs:duration">
+							<xs:annotation>
+								<xs:documentation>Best-effort estimate of how long the key generation will take.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="CreateECCKeyPair">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="EllipticCurve" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>The name of the elliptic curve to be used for generating the ECC keypair.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Alias" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The client-defined alias of the key.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="CreateECCKeyPairResponse">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="KeyID" type="tas:KeyID">
@@ -2009,7 +2117,7 @@
 				</xs:complexType>
 			</xs:element>
 			<!--=============================================-->
-			<!-- Begin Cert-based client auth message types   -->
+			<!-- Begin Cert-based client auth message types  -->
 			<!--=============================================-->
 			<!--===============================-->
 			<xs:element name="AddDot1XConfiguration">
@@ -2231,11 +2339,29 @@
 	<wsdl:message name="GetServiceCapabilitiesResponse">
 		<wsdl:part name="parameters" element="tas:GetServiceCapabilitiesResponse"/>
 	</wsdl:message>
+	<wsdl:message name="GetJWTConfigurationRequest">
+		<wsdl:part name="parameters" element="tas:GetJWTConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="GetJWTConfigurationResponse">
+		<wsdl:part name="parameters" element="tas:GetJWTConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetJWTConfigurationRequest">
+		<wsdl:part name="parameters" element="tas:SetJWTConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetJWTConfigurationResponse">
+		<wsdl:part name="parameters" element="tas:SetJWTConfigurationResponse"/>
+	</wsdl:message>
 	<wsdl:message name="CreateRSAKeyPairRequest">
 		<wsdl:part name="parameters" element="tas:CreateRSAKeyPair"/>
 	</wsdl:message>
 	<wsdl:message name="CreateRSAKeyPairResponse">
 		<wsdl:part name="parameters" element="tas:CreateRSAKeyPairResponse"/>
+	</wsdl:message>
+	<wsdl:message name="CreateECCKeyPairRequest">
+		<wsdl:part name="parameters" element="tas:CreateECCKeyPair"/>
+	</wsdl:message>
+	<wsdl:message name="CreateECCKeyPairResponse">
+		<wsdl:part name="parameters" element="tas:CreateECCKeyPairResponse"/>
 	</wsdl:message>
 	<wsdl:message name="UploadKeyPairInPKCS8Request">
 		<wsdl:part name="parameters" element="tas:UploadKeyPairInPKCS8"/>
@@ -2557,6 +2683,23 @@
 			<wsdl:output message="tas:GetServiceCapabilitiesResponse"/>
 		</wsdl:operation>
 	</wsdl:portType>
+	<wsdl:portType name="JWT">
+		<wsdl:documentation>Json Web Token functionality.</wsdl:documentation>
+		<wsdl:operation name="GetJWTConfiguration">
+			<wsdl:documentation>
+				This operation returns the list of all the aud claims, which the recipient identifies with.
+			</wsdl:documentation>
+			<wsdl:input message="tas:GetJWTConfigurationRequest"/>
+			<wsdl:output message="tas:GetJWTConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetJWTConfiguration">
+			<wsdl:documentation>
+				This operation sets the list of all the aud claims, which the recipient identifies with.
+			</wsdl:documentation>
+			<wsdl:input message="tas:SetJWTConfigurationRequest"/>
+			<wsdl:output message="tas:SetJWTConfigurationResponse"/>
+		</wsdl:operation>
+	</wsdl:portType>
 	<wsdl:portType name="Keystore">
 		<wsdl:documentation>Basic keystore functionality.</wsdl:documentation>
 		<wsdl:operation name="CreateRSAKeyPair">
@@ -2574,6 +2717,22 @@
 			</wsdl:documentation>
 			<wsdl:input message="tas:CreateRSAKeyPairRequest"/>
 			<wsdl:output message="tas:CreateRSAKeyPairResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="CreateECCKeyPair">
+			<wsdl:documentation>
+				This operation triggers the asynchronous generation of an ECC key pair using a particular elliptic curve as specified in [RFC 4492], with a suitable key generation mechanism on the device.
+				Keys, especially RSA key pairs, are uniquely identified using key IDs.<br/>
+				If the device does not have not enough storage capacity for storing the key pair to be created, the maximum number of keys reached fault shall be produced and no key pair shall be generated.
+				Otherwise, the operation generates a keyID for the new key and associates the generating status to it.<br/>
+				Immediately after key generation has started, the device shall return the keyID to the client and continue to generate the key pair.
+				The client may query the device with the GetKeyStatus operation whether the generation has finished.
+				The client may also subscribe to Key Status events to be notified about key status changes.<br/>
+				The device also returns a best-effort estimate of how much time it requires to create the key pair.
+				A client may use this information as an indication how long to wait before querying the device whether key generation is completed.<br/>
+				After the key has been successfully created, the device shall assign it the ok status. If the key generation fails, the device shall assign the key the corrupt status.
+			</wsdl:documentation>
+			<wsdl:input message="tas:CreateECCKeyPairRequest"/>
+			<wsdl:output message="tas:CreateECCKeyPairResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="UploadKeyPairInPKCS8">
 			<wsdl:documentation>
@@ -3149,10 +3308,40 @@
 			</wsdl:output>
 		</wsdl:operation>
 	</wsdl:binding>
+	<wsdl:binding name="JWTBinding" type="tas:JWT">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="GetJWTConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetJWTConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetJWTConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/SetJWTConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
 	<wsdl:binding name="KeystoreBinding" type="tas:Keystore">
 		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
 		<wsdl:operation name="CreateRSAKeyPair">
 			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/CreateRSAKeyPair"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="CreateECCKeyPair">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/CreateECCKeyPair"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
