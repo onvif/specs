@@ -1046,12 +1046,12 @@
       <para>Many schema elements in this specification include Dot1X as shorthand for IEEE 802.1X.  This convention increases the readability of source code generated from the WSDL.</para>
     </section>
     <section xml:id="section_b4m_rs4_rwb">
-      <title>Authorization Servers</title>
+      <title xml:id="title_mjt_nzq_swb">Authorization Servers</title>
       <para>This section describes use of external authorization servers that can be used for
         providing authentication of users and authorizing access to both device services and
         external services, like cloud storage.</para>
       <para/>
-      <section>
+      <section xml:id="section_acl_4zq_swb">
         <title>User authentication and authorization</title>
         <para>An authorization server will typically use OAuth2 according to [RFC 6749] and [OpenID
           Connect Core] to authenticate a user and authorize access to resources through the OAuth2
@@ -1062,18 +1062,18 @@
           with type OAuthAuthorizationCode should be created.</para>
         <para>...</para>
       </section>
-      <section>
+      <section xml:id="section_bcl_4zq_swb">
         <title>Device authentication and authorization</title>
         <para>Devices will typically use the Oauth2 Client Credentials Grant Flow to gain access to
           resources. There are a number of different ways for a device (called a client in the
           OAuth2 Spec) to authenticate with the server using this flow.</para>
         <para/>
       </section>
-      <section>
+      <section xml:id="section_ccl_4zq_swb">
         <title>Authorization server configuration</title>
         <para>The following parameters are used when creating a configuration for an external
           authorization server.</para>
-        <table>
+        <table xml:id="table_acv_rzq_swb">
           <title>Authorization server settings</title>
           <tgroup cols="2">
             <colspec colname="c1" colwidth="20*"/>
@@ -1113,7 +1113,7 @@
               </row>
               <row>
                 <entry>
-                  <para>scope</para>
+                  <para>Scope</para>
                 </entry>
                 <entry>
                   <para>The requested access scope(s)</para>
@@ -1121,26 +1121,74 @@
               </row>
               <row>
                 <entry>
-                  <para>type</para>
+                  <para>Type</para>
                 </entry>
                 <entry>
-                  <para>The type of configuration: OAuthAuthorizationCode, OAuthClientCredentials</para>
+                  <para>The type of configuration, see <xref
+                    xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_ry3_fbr_swb"/> for
+                    possible values.</para>
                 </entry>
               </row>
               <row>
                 <entry>
-                  <para>clientAuth</para>
+                  <para>ClientAuth</para>
                 </entry>
                 <entry>
-                  <para>The type of client authentication method to use, see below.</para>
+                  <para>The type of client authentication method to use, see <xref
+                      xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_smg_rzq_swb"/> for
+                    possible values.</para>
                 </entry>
               </row>
             </tbody>
           </tgroup>
         </table>
-        <para>The client authentication methods are listed below.</para>
-        <table>
-          <title>Authorization server settings</title>
+        <para>The following types of authorization server configurations are defined.</para>
+        <table xml:id="table_ry3_fbr_swb">
+          <title>Authorization server configuration types</title>
+          <tgroup cols="2">
+            <colspec colname="c1" colwidth="30*"/>
+            <colspec colname="c2" colwidth="70*"/>
+            <thead>
+              <row>
+                <entry>
+                  <para>Method</para>
+                </entry>
+                <entry>Description</entry>
+              </row>
+            </thead>
+            <tbody valign="top">
+              <row>
+                <entry>
+                  <para>OAuthAuthorizationCode</para>
+                </entry>
+                <entry>
+                  <para>OAuth2 authorization code flow per [RFC 6749].</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>OAuthClientCredentials</para>
+                </entry>
+                <entry>
+                  <para>OAuth2 client credentials grant flow per [RFC 6749].</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>OIDC2AuthorizationCode</para>
+                </entry>
+                <entry>
+                  <para>OpenID Connect authorization code flow per [Open ID Connect Core].</para>
+                  <para>The ServerUri is used as metadata URI, where you can retrieve the endpoint
+                    URIs for authorization, token and JWKS.</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+        <para>The following client authentication methods are defined.</para>
+        <table xml:id="table_smg_rzq_swb">
+          <title>Client authentication methods</title>
           <tgroup cols="2">
             <colspec colname="c1" colwidth="30*"/>
             <colspec colname="c2" colwidth="70*"/>
@@ -1158,7 +1206,8 @@
                   <para>client_secret_basic</para>
                 </entry>
                 <entry>
-                  <para>Use HTTP Authorization header to specify client_secret, see [RFC 6749]</para>
+                  <para>Use HTTP Authorization header to specify client_secret, see [RFC
+                    6749]</para>
                 </entry>
               </row>
               <row>
@@ -1174,7 +1223,8 @@
                   <para>client_secret_jwt</para>
                 </entry>
                 <entry>
-                  <para>Use a HMAC signed JWT using client_secret as shared secret, see [OpenID Connect Core]</para>
+                  <para>Use a HMAC signed JWT using client_secret as shared secret, see [OpenID
+                    Connect Core]</para>
                 </entry>
               </row>
               <row>
@@ -4014,6 +4064,55 @@
                 </entry>
                 <entry>
                   <para>A list of authentication method outer/inner (phase1/phase2) combinations supported by the device.</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </section>
+      <section>
+        <title>Authorization Server Capabilities</title>
+        <para>The authorization server capabilities reflect optional functionality regarding
+          configuration of external authorization servers. The following capabilities are
+          defined:</para>
+        <table>
+          <title>Authorization Server Configuration Capabilities</title>
+          <tgroup cols="2">
+            <colspec colname="c1" colwidth="50*"/>
+            <colspec colname="c2" colwidth="50*"/>
+            <thead>
+              <row>
+                <entry>
+                  <para>Capability Name</para>
+                </entry>
+                <entry>
+                  <para>Capability Semantics</para>
+                </entry>
+              </row>
+            </thead>
+            <tbody valign="top">
+              <row>
+                <entry>
+                  <para>MaxAuthorizationServerConfigurations</para>
+                </entry>
+                <entry>
+                  <para>Indicates the maximum number of  authorization server configurations that
+                    the device is able to configure simultaneously.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>AuthorizationServerConfigurationTypesSupported</para>
+                </entry>
+                <entry>
+                  <para>A list of authorization server configuration types that is supported by the
+                    device, see <xref xmlns:xlink="http://www.w3.org/1999/xlink"
+                      linkend="table_ry3_fbr_swb"/> for possible values.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>ClientAuthenticationMethodsSupported</entry>
+                <entry>A list of authentication methods that is supported by the device, see <xref xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_smg_rzq_swb"/> for possible values.
                 </entry>
               </row>
             </tbody>
