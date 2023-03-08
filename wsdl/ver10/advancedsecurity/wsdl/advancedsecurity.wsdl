@@ -1043,9 +1043,24 @@
 			<!--===============================-->
 			<xs:complexType name="JWTConfiguration">
 				<xs:sequence>
-					<xs:element name="Audiences" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="Audiences" type="tt:StringList" minOccurs="0" maxOccurs="1">
 						<xs:annotation>
 							<xs:documentation>The list of all the aud claims, which the recipient identifies with.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="TrustedIssuers" type="xs:anyURI" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>If present, this is the list to URIs pointing to the metadata file, such as https://{yourDomain}/.well-known/openid-configuration , of the trusted Open ID Connect servers issuing JWT tokens. Using metadata, the device can reach the information about the JWKS and implement the rotation of the keys accordingly.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="KeyID" type="tas:KeyID" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>If present, this is the list of keys provided out of band to verify the origin and integrity of the JWT.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="CertPathValidationPolicyID" type="tas:CertPathValidationPolicyID" minOccurs="0" maxOccurs="unbounded"/>
+						<xs:annotation>
+							<xs:documentation>If present, the device will validate the certification path of the Open ID Connect servers. The OIDC server iso considered to be valid if its certficate is validated by one of the provided certification path validation policies.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	   <!-- first ONVIF then Vendor -->
@@ -2692,14 +2707,14 @@
 		<wsdl:documentation>Json Web Token functionality.</wsdl:documentation>
 		<wsdl:operation name="GetJWTConfiguration">
 			<wsdl:documentation>
-				This operation returns the list of all the aud claims, which the recipient identifies with.
+				This operation returns the parameters of the JWT authorization used by the device.
 			</wsdl:documentation>
 			<wsdl:input message="tas:GetJWTConfigurationRequest"/>
 			<wsdl:output message="tas:GetJWTConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="SetJWTConfiguration">
 			<wsdl:documentation>
-				This operation sets the list of all the aud claims, which the recipient identifies with.
+				This operation sets the parameters of the JWT authorization used by the device.
 			</wsdl:documentation>
 			<wsdl:input message="tas:SetJWTConfigurationRequest"/>
 			<wsdl:output message="tas:SetJWTConfigurationResponse"/>
