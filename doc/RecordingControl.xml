@@ -1791,7 +1791,6 @@ SetRecordingJobMode(JobToken, Active)
       <title>Overview</title>
       <para>
         This annex describes the requirements for recording from a device to an object storage for later use by a receiver.
-        For this, the device uploads objects to the object storage.
         The device could be a camera, the receiver could be a video player.
         <xref linkend="_refCloudRecordingDataFlow" /> shows the data flow for object storage recording.
       </para>
@@ -1804,18 +1803,27 @@ SetRecordingJobMode(JobToken, Active)
         </mediaobject>
       </figure>
       <para>
-        A configured recording consists of spans.
-        A span consists of one or more segments without time gaps in between.
-        A span can consist of more than one segment at any given time if required by the recording format.
-        Each segment is generated as a fragmented file according to ISO/IEC 14496-12, the ISO base media file format, consisting of a header followed by fragments.
+        The device uploads recorded media as objects containing fragmented MP4 data according to ISO/IEC 14496-12, the ISO base media file format.
+        In this annex, a media object containing fragmented MP4 data is called a segment.
+        Each segment starts with a header containing initialization data, usually consisting of a <literal>FileTypeBox</literal> and a <literal>MovieBox</literal>.
+        Each segment contains one or more fragments with recorded media, usually consisting of a <literal>MovieFragmentBox</literal> and a <literal>MediaDataBox</literal>.
+        Each segment contains recorded media of a continuous period of time.
+      </para>
+      <para>
+        Multiple successive segments without a time gap in between form a span.
+        In this way, the size of segments can be limited when recording continuously for a longer period of time.
+      </para>
+      <para>
+        For a single span, only a single segment contains recorded media of one point in time.
+        Depending on the recording format, video, audio, and metadata are written into separate segments.
+        In this case, the segments of each media type form a separate span.
         <xref linkend="_refCloudRecordingLogicalModel" /> shows an overview of the logical model for object storage recording.
-        This annex also defines other types of objects not containing recorded media to help the receiver process the data.
       </para>
       <figure xml:id="_refCloudRecordingLogicalModel">
         <title>Logical model for object storage recording</title>
         <mediaobject>
           <imageobject>
-            <imagedata fileref="media/RecordingControl/cloudRecordingLogicalModel.svg" contentwidth="78mm" />
+            <imagedata fileref="media/RecordingControl/cloudRecordingLogicalModel.svg" contentwidth="79mm" />
           </imageobject>
         </mediaobject>
       </figure>
