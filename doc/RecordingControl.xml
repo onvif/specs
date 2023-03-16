@@ -468,7 +468,7 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           <varlistentry>
             <term>Encryption</term>
             <listitem>
-              <para>Optional configuration of content encryption.</para>
+              <para>Optional encryption configuration.</para>
             </listitem>
           </varlistentry>
         </variablelist>
@@ -1789,7 +1789,7 @@ SetRecordingJobMode(JobToken, Active)
   </appendix>
   <appendix xml:id="_refCloudRecording">
     <title>Object storage recording format (Normative)</title>
-    <section>
+    <section xml:id="_refCloudRecordingOverview">
       <title>Overview</title>
       <para>
         This annex describes the requirements for recording from a device to an object storage for later use by a receiver.
@@ -1818,8 +1818,8 @@ SetRecordingJobMode(JobToken, Active)
       <para>
         For a single span, only a single segment contains recorded media of one point in time.
         Depending on the recording format, video, audio, and metadata are written into separate segments.
-        In this case, the segments of each media type form a separate span.
-        <xref linkend="_refCloudRecordingLogicalModel" /> shows an overview of the logical model for object storage recording.
+        In this case, the segments of each media type form separate spans.
+        <xref linkend="_refCloudRecordingLogicalModel" /> shows the logical model for object storage recording.
       </para>
       <figure xml:id="_refCloudRecordingLogicalModel">
         <title>Logical model for object storage recording</title>
@@ -1830,16 +1830,16 @@ SetRecordingJobMode(JobToken, Active)
         </mediaobject>
       </figure>
     </section>
-    <section>
+    <section xml:id="_refCloudRecordingSpans">
       <title>Spans</title>
       <para>
-        When an underlying recording is started, the device shall start a new span.
-        Inversely, when the underlying recording is stopped, the device shall close the current span of the underlying recording.
-        When a <literal>SpanDuration</literal> is configured, the underlying recording is active, and the duration of the current span reaches the configured <literal>SpanDuration</literal>, the device shall close the current span of the underlying recording and start a new span.
+        When a recording is activated, the device shall open new spans for this recording according to the rules of the configured <literal>Format</literal>.
+        Inversely, when a recording is deactivated, the device shall close all open spans of this recording.
+        When a <literal>SpanDuration</literal> is configured for a recording, the recording is active, and the duration of a span of this recording reaches the configured <literal>SpanDuration</literal>, the device shall close all open spans of the recording and open new spans according to the rules of the configured <literal>Format</literal>.
       </para>
       <para>
         All fragments of a span shall be independently processable and presentable with the information of a <literal>MovieBox</literal> in any of the segments of the span.
-        If the information in the <literal>MovieBox</literal> required to process the fragments needs to change while the underlying recording is active, the device shall close the current span of the underlying recording and start a new span.
+        If the information in the <literal>MovieBox</literal> required to process the fragments needs to change while the recording is active, the device shall close all open spans of the recording and start new spans according to the rules of the configured <literal>Format</literal>.
       </para>
     </section>
     <section>
