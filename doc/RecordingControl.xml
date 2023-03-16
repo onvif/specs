@@ -1984,11 +1984,14 @@ secfrac = "." 1*6DIGIT</programlisting>
         </mediaobject>
       </figure>
     </section>
-    <section>
+    <section xml:id="_refCloudRecordingEncryption">
       <title>Encryption</title>
       <para>
-        A device signaling support for recording to an external target with encryption shall support writing encrypted files according to ISO/IEC 23001-7.
-        The device shall create an individual initialization vector for each segment.
+        A device signaling support for recording to an external target with encryption shall support writing encrypted files according to ISO/IEC 23001-7 (common encryption in ISO base media file format files).
+        Each <literal>Encryption</literal> entry configured for a recording covers a distinct set of tracks for which to apply the encryption, identified by the <literal>Track</literal> element.
+        If an encryption entry contains no <literal>Track</literal> elements, it covers all tracks of the recording.
+        If an encryption entry contains one or more <literal>Track</literal> elements, it covers the tracks indicated by the track tokens contained in these elements.
+        The device shall encrypt the covered tracks with the scheme given by the <literal>Mode</literal> configured for the encryption entry:
       </para>
       <para>
         <variablelist>
@@ -2009,6 +2012,14 @@ secfrac = "." 1*6DIGIT</programlisting>
             </listitem>
           </varlistentry>
         </variablelist>
+      </para>
+      <para>
+        The device shall create an individual initialization vector for each segment.
+        The device shall encrypt with the <literal>Key</literal> configured for the encryption entry as the encryption key.
+        The device shall store the <literal>KID</literal> configured for the encryption entry as the key identifier.
+      </para>
+      <para>
+        If an encryption entry is reconfigured for an active recording, the device shall continue to use the old configuration for any open segments and shall start to use the new configuration for new segments.
       </para>
     </section>
     <section xml:id="_refCloudRecordingObjectAttributes">
