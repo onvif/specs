@@ -1842,22 +1842,24 @@ SetRecordingJobMode(JobToken, Active)
         If the information in the <literal>MovieBox</literal> required to process the fragments needs to change while the recording is active, the device shall close all open spans of the recording and start new spans according to the rules of the configured <literal>Format</literal>.
       </para>
     </section>
-    <section>
+    <section xml:id="_refCloudRecordingSegments">
       <title>Segments</title>
       <para>
-        The device shall start new segments when a span is started and close all current segments of the underlying span when it is closed.
-        The device shall close the current segments of the underlying span and start new segments when the duration of the current segments of the underlying span reaches the configured <literal>SegmentDuration</literal>.
+        When a span is opened, the device shall also open a new segment for this span.
+        Inversely, when a span is closed, the device shall close the open segment of this span.
+        When a span is open and the duration of the open segment of this span reaches the <literal>SegmentDuration</literal> configured for the recording, the device shall close the open segment of this span and open a new segment for this span.
+        When closing the open segment of a span and opening a new segment for this span, there shall be no time gap between the two segments.
       </para>
       <para>
-        The device shall generate each segment as a fragmented file according to ISO/IEC 14496-12, the ISO base media file format.
+        The device shall generate each segment as a fragmented MP4 file according to ISO/IEC 14496-12, the ISO base media file format.
+        A segment shall contain recorded media for the time it was open.
         The recording formats provide specification about segment types, their contents, and restrictions on the ISO base media file format in the following sections.
       </para>
     </section>
     <section xml:id="_refCloudRecordingSegmentObjects">
       <title>Segment objects</title>
       <para>
-        The device shall upload each segment as one object to the object storage.
-        Each object and corresponding segment is identified by its object key.
+        The device shall upload each segment as one object, identified by its object key, to the object storage.
         The device shall generate the object key for a segment according to the following ABNF <literal>key</literal> rule (according to RFC 5234):
       </para>
       <programlisting>key      = lead "/" time "." counter "." extension
