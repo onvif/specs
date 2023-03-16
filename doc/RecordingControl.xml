@@ -1940,24 +1940,40 @@ secfrac = "." 1*6DIGIT</programlisting>
         The <literal>MovieFragmentRandomAccessBox</literal> shall provide references for all tracks and their applicable <literal>MovieFragmentBox</literal> instances.
       </para>
     </section>
-    <section>
+    <section xml:id="_refCloudRecordingRecordingFormatCMAF">
       <title>Recording format CMAF</title>
       <para>
-        For the recording format <literal>CMAF</literal>, the recording information shall be written as one track per segment.
-        Each segment either contains one track with video data, one track with audio data, or one track with metadata, indicated by the extension.
-        When closing multiple types of segments of an underlying span at the same time, the device shall only increment the segment counter by 1.
-        The device shall generate the object key for each segment with the <literal>extension</literal> based on the type of data contained in the segment:
-        <itemizedlist>
-          <listitem>
-            <para>Video data: <literal>"m4v"</literal></para>
-          </listitem>
-          <listitem>
-            <para>Audio data: <literal>"m4a"</literal></para>
-          </listitem>
-          <listitem>
-            <para>Metadata: <literal>"m4m"</literal></para>
-          </listitem>
-        </itemizedlist>
+        If the <literal>Format</literal> configured for a recording is <literal>CMAF</literal>, the device shall follow the rules given in this section.
+      </para>
+      <para>
+        The device shall open up to three spans for an active recording, each containing a single track of the recording.
+      </para>
+      <para>
+        If the recording contains a video track, the device shall open a video span containing this track.
+        The device shall use <literal>m4v</literal> as the extension for this span type.
+        The device shall upload each segment object belonging to a span of this type with the content type <literal>video/mp4</literal>.
+      </para>
+      <para>
+        If the recording contains an audio track, the device shall open an audio span containing this track.
+        The device shall use <literal>m4a</literal> as the extension for this span type.
+        The device shall upload each segment object belonging to a span of this type with the content type <literal>audio/mp4</literal>.
+      </para>
+      <para>
+        If the recording contains a metadata track, the device shall open a metadata span containing this track.
+        The device shall use <literal>m4m</literal> as the extension for this span type.
+        The device shall upload each segment object belonging to a span of this type with the content type <literal>application/mp4</literal>.
+      </para>
+      <para>
+        The device should include the <literal>codecs</literal> parameter in the content type according to RFC 6381 for all span types defined in this section.
+      </para>
+      <para>
+        The device shall generate each segment according to ISO/IEC 23000-19, the common media application format (CMAF) for segmented media, with one CMAF header and one or more CMAF fragments.
+        A segment may contain a <literal>MovieFragmentRandomAccessBox</literal> as the last box.
+        If a segment contains a <literal>MovieFragmentRandomAccessBox</literal>, every CMAF fragment shall be referenced in the <literal>MovieFragmentRandomAccessBox</literal>.
+      </para>
+      <para>
+        Note: As the different tracks are contained in different spans, the segments do not necessarily align.
+        This is illustrated in <xref linkend="_refCloudRecordingCMAFSegments" />.
       </para>
       <figure xml:id="_refCloudRecordingCMAFSegments">
         <title>Alignment of different segment types</title>
@@ -1967,39 +1983,6 @@ secfrac = "." 1*6DIGIT</programlisting>
           </imageobject>
         </mediaobject>
       </figure>
-      <para>
-        The device shall upload each segment object with the content type based on the type of data contained in the segment:
-        <itemizedlist>
-          <listitem>
-            <para>Video data: <literal>video/mp4</literal></para>
-          </listitem>
-          <listitem>
-            <para>Audio data: <literal>audio/mp4</literal></para>
-          </listitem>
-          <listitem>
-            <para>Metadata: <literal>application/mp4</literal></para>
-          </listitem>
-        </itemizedlist>
-        The device should include the <literal>codecs</literal> parameter in the content type according to RFC 6381.
-      </para>
-      <para>
-        The device shall generate each segment according to ISO/IEC 23000-19, the common media application format (CMAF) for segmented media.
-      </para>
-      <para>
-        The device shall upload a span end object for each segment type.
-        It should generate the object key for each span end object with the <literal>extension</literal> based on the type of data contained in the segments:
-        <itemizedlist>
-          <listitem>
-            <para>Video data: <literal>"m4v_end"</literal></para>
-          </listitem>
-          <listitem>
-            <para>Audio data: <literal>"m4a_end"</literal></para>
-          </listitem>
-          <listitem>
-            <para>Metadata: <literal>"m4m_end"</literal></para>
-          </listitem>
-        </itemizedlist>
-      </para>
     </section>
     <section>
       <title>Encryption</title>
