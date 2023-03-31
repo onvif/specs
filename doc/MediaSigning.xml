@@ -240,8 +240,10 @@
       <para><emphasis role="bold">Signing frequency</emphasis>. Signing is done upon transition
         between two Group of Pictures (GOPs), that is, triggered by an IDR frame. For short GOP
         lengths, the time between two GOP transitions may be shorter than the time it takes to
-        perform the signing. Hence, there is a limit on how short GOPs a device can allow for to be
-        able to sign a video in real-time.</para>
+        perform the signing. The standard allow the device to sign multiple GOPs if necessary.
+        This is described in Section TO BE ADDED.
+        Very long, or infinite, GOPs delays the validation too much to be used in practice.
+        Therefore, the device is recommended to sign partial GOPs; See Section TO BE ADDED.</para>
       <para><emphasis role="bold">Frame drops and packet losses</emphasis>. Adding a list of
         hashes of each NAL Unit combats the problem of lost frames, but cannot solve packet
         losses unless the affected NAL Unit is completely removed from the stream. To lower the
@@ -261,7 +263,8 @@
         video increases the bitrate. The list of NAL Unit hashes is the main contribution.
         Therefore, it is recommended to consider a hashing algorithm that produces reasonably large
         hashes. Note that the security lies in the hash used to generate the signature and not the
-        hash used to represent the NAL Unit.</para>
+        hash used to represent the NAL Unit. The device has an option to select a GOP level mode,
+        to lower the bitrate; See Section TO BE ADDED.</para>
     </section>
     <section xml:id="section_h3s_njq_bwb">
       <title>Detailed description on how the device generates SEI frames including
@@ -469,8 +472,9 @@
         <para>Right after the UUID, and before the TLV data, is a reserved byte. This byte represent
           bit flags of information that cannot be put in the TLV structure.</para>
         <para>The first bit should be set to 1 if this is a "only sent once" SEI.</para>
-        <para>The second bit should be set to 1 if this SEI (the document) was hashed for signing
-            <emphasis role="bold">including</emphasis> potential emulation prevention bytes.</para>
+        <para>The second bit should be set to 1 if emulation prevention will be applied
+          <emphasis role="bold">before</emphasis> this SEI (the document) is hashed for
+          signing.</para>
         <para>The last bit should be set to 0. If, in the future, 7 bits is not enough to signal
           settings outside the TLV structure, this bit will be used to signal more reserved
           bytes.</para>
@@ -794,9 +798,9 @@
           <para>H.265: <code>0x4e 0x01 0x05</code></para>
         </listitem>
         <listitem>
-          <para>Determine the total payload size, excluding emulation prevention bytes. The total
-            payload includes the UUID (16 bytes) and all TLV data. The final stop-bit byte is
-            excluded from the payload size.</para>
+          <para>Determine the total payload size, excluding potential emulation prevention bytes.
+            The total payload includes the UUID (16 bytes) and all TLV data. The final stop-bit
+            byte is excluded from the payload size.</para>
         </listitem>
         <listitem>
           <para>Write the payload size according to the codec standard.</para>
@@ -810,16 +814,20 @@
         </listitem>
         <listitem>
           <para>Write the reserved byte with the only-sent-once flag set; <code>0x80</code>.</para>
-          <para>If the SEI is written with emulation prevention bytes at once, set the emulation
-            prevention byte flag; <code>0xc0</code>.</para>
+          <para>If emulation prevention will be applied before hashing the SEI for signing, set the
+            emulation prevention bit; <code>0xc0</code>.</para>
         </listitem>
         <listitem>
           <para>Write all TLVs except the signature since it by definition cannot be written yet.
-            Write the TLV data using emulation prevention bytes if it is turned on.</para>
+            Write the TLV data.</para>
           <para>The mandatory tags are the Cryptographic information and the Certificate
             chain.</para>
           <para>If the video will be signed with a user provisioned signing key write an additional TLV
             data for the user provisioned certificate chain.</para>
+        </listitem>
+        <listitem>
+          <para>If the emulation prevention bit is set in the reserved byte, apply emulation
+            preventionon the written data so far.</para>
         </listitem>
         <listitem>
           <para>Hash the written data from NAL Unit header to the last written TLV data. Denote this
@@ -864,12 +872,16 @@
         <listitem>
           <para>Write the reserved byte without the only-sent-once flag set;
             <code>0x00</code>.</para>
-          <para>If the SEI is written with emulation prevention bytes at once, set the emulation
-            prevention byte flag; <code>0x40</code>.</para>
+          <para>If emulation prevention will be applied before hashing the SEI for signing, set the
+            emulation prevention bit; <code>0xc0</code>.</para>
         </listitem>
         <listitem>
           <para>Write all TLVs except the signature since it by definition cannot be written yet.
             Write the TLV data using emulation prevention bytes if it is turned on.</para>
+        </listitem>
+        <listitem>
+          <para>If the emulation prevention bit is set in the reserved byte, apply emulation
+            preventionon the written data so far.</para>
         </listitem>
         <listitem>
           <para>Hash the written data from NAL Unit header to the last written TLV data. Denote this
