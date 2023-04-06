@@ -2175,13 +2175,17 @@ DATE: when response was generated
           </table>
           <para>A server should avoid reporting internal errors as this can expose security weaknesses that can be misused.</para>
         </section>
+        <section>
+          <title>SCTP errors</title>
+          <para>If the server waits for the start of the inbound message and no SOAP message is received, the server shall not generate a SOAP fault and not send any error response. </para>
+        </section>
       </section>
     </section>
     <section xml:id="_Ref208379139">
       <title>Security</title>
       <section>
-        <title>Authentication</title>
-        <para>The services defined in this standard shall be protected using digest authentication according to [RFC 2617] with the following exceptions.</para>
+        <title>Authentication over HTTP and HTTPS</title>
+        <para>The services defined in this standard, whenever consumed overt HTTP and HTTPS, shall be protected using digest authentication according to [RFC 2617] with the following exceptions.</para>
         <itemizedlist>
           <listitem>
             <para>legacy devices supporting [WS-UsernameToken] and</para>
@@ -2190,26 +2194,39 @@ DATE: when response was generated
             <para>TLS client authorization and</para>
           </listitem>
           <listitem>
-            <para>devices supporting JWT client authorization based on [WS-BinarySecurityToken].</para>
+            <para>devices supporting JWT client authorization based on [RFC 6750], only over HTTPS.</para>
           </listitem>
         </itemizedlist>
-        <para>WS-Security UsernameToken and BinarySecurityToken are mutually exclusive, therefore they shall not be used at the same time in the same request.</para>
         <para>If server supports both digest authentication as specified in [RFC 2617] and the user name token profile as specified in WS-Security the following behavior shall be adapted: a web service request can be authenticated on the HTTP level via digest authentication [RFC 2617] or on the web service level via the WS-Security (WSS) framework. If a client does not supply authentication credentials along with a web service request, the server shall assume that the client intends to use digest authentication [RFC 2617], if required. Hence, if a client does not provide authentication credentials when requesting a service that requires authentication, it will receive an HTTP 401 error according to [RFC 2617]. Note that this behaviour on the server’s side differs from the case of supporting only username token profile, which requires for this case an HTTP 400 error on the HTTP level and a SOAP:Fault env:Sender ter:NotAuthorized error on the WS level.</para>
-        <para>The same behaviour shall be adopted in the case a server supports both digest authentication as specified in [RFC 2617] and the binary security token profile as specified in WS-Security.</para>
         <para>A client should not simultaneously supply authentication credentials on both the HTTP level and the WS level. If a server receives a web service request that contains authentication credentials on both the HTTP level and the WS level, it shall first validate the credentials provided on the HTTP layer. If this validation was successful, the server shall finally validate the authentication credentials provided on the WS layer.</para>
-        <para>
-          <xref linkend="AuthenticationFlow" /> summarizes the authentication of a web service request by a server.</para>
+        <para><xref linkend="AuthenticationFlow" /> summarizes the authentication of a web service request by a server over HTTPS and HTTPS.</para>
         <figure xml:id="AuthenticationFlow">
-          <title>Authentication of a WS request by a server</title>
+          <title>Authentication of a WS request by a server over HTTP and HTTPS</title>
           <mediaobject>
             <imageobject>
-              <imagedata fileref="media/Core/image5.svg" contentwidth="134.32mm" />
+              <imagedata fileref="media/Core/image5.svg" contentwidth="200mm" />
             </imageobject>
           </mediaobject>
         </figure>
-	<para>Both digest authentication and WS-Security provide only a rudimentary level of security. In a system where security is important, it is recommended to always configure the device for TLS-based access (see Advanced Security Service). Digest authentication or WS-Security messages can be combined with TLS security for a client and server authentication. A protected transport level of security will provide an acceptable level of security in many systems. WS-Security BinarySecurityToken should never be used without TLS.</para>
+      	<para>Both digest authentication and WS-Security provide only a rudimentary level of security. In a system where security is important, it is recommended to always configure the device for TLS-based access (see Security Service). Digest authentication or WS-Security messages can be combined with TLS security for a client and server authentication. A protected transport level of security will provide an acceptable level of security in many systems.</para>
+        <para>Bearer tokens in HTTP headers do not provide security. It is recommended to always configure the device for TLS-based access (see Security Service). A protected transport level of security will provide an acceptable level of security in many systems. Bearer tokens should never be used without TLS.</para>
         <para>An ONVIF compliant device should authenticate an RTSP request at the RTSP level. If HTTP is used to tunnel the RTSP request the device shall not authenticate on the HTTP level.</para>
         <para>When authenticating RTSP or HTTP methods, an ONVIF compliant device shall use digest authentication [RFC 2617]. The credentials shall be managed with the GetUsers, CreateUsers, DeleteUsers and SetUser methods. If the device also supports WS-Security, the same set of credentials shall be used.</para>
+      </section>
+      <section>
+        <title>Authentication over SCTP</title>
+        <para>The services defined in this standard, whenever consumed overt SCTP, shall be protected using digest authentication according to [WS-BinarySecurityToken].</para>
+        <para>Since HTTP headers are not present when consuming the services over SCTP, upon authentication failure the device shall return only the a SOAP:Fault env:Sender ter:NotAuthorized error on the WS level.</para>
+        <para><xref linkend="AuthenticationFlowSCTP" /> summarizes the authentication of a web service request by a server over SCTP.</para>
+        <figure xml:id="AuthenticationFlowSCTP">
+          <title>Authentication of a WS request by a server over SCTP</title>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="media/Core/image7.svg" contentwidth="150mm" />
+            </imageobject>
+          </mediaobject>
+        </figure>
+        <para>WS-Security BinarySecurityToken does not provide security. It is recommended to always configure the device for TLS-based access (see Advanced Security Service). A protected transport level of security will provide an acceptable level of security in many systems. WS-Security BinarySecurityToken should never be used without TLS.</para>
       </section>
 	  <section>
         <title>SHA-256 Support in HTTP and RTSP digest authentication</title>
