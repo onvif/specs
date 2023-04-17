@@ -182,6 +182,7 @@ Change Request 2061, 2063, 2065, 2109</revremark>
     <para role="reference">RFC 6381 — The 'Codecs' and 'Profiles' Parameters for "Bucket" Media Types &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.ietf.org/rfc/rfc6381.txt" />&gt;</para>
     <para role="reference">ONVIF Core Specification &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
     <para role="reference">ONVIF Schedule Service Specification &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/srv/sched/ONVIF-Scheduler-Service-Spec.pdf"></link>&gt; </para>
+    <para role="reference">W3C "cenc" Initialization Data Format &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.w3.org/TR/2016/NOTE-eme-initdata-cenc-20160915/"></link>&gt; </para>
   </chapter>
   <chapter>
     <title>Terms and Definitions</title>
@@ -2001,10 +2002,10 @@ secfrac = "." 1*6DIGIT</programlisting>
         </mediaobject>
       </figure>
     </section>
-    <section xml:id="_refCloudRecordingEncryption">
-      <title>Encryption</title>
+    <section xml:id="_refCloudRecordingFrameEncryption">
+      <title>Frame Encryption</title>
       <para>
-        A device signaling support for recording to an external target with encryption shall support writing encrypted files according to ISO/IEC 23001-7 (common encryption in ISO base media file format files).
+        A device signaling support for recording to an external target with frame encryption shall support writing encrypted files according to ISO/IEC 23001-7 (common encryption in ISO base media file format files).
         Each <literal>Encryption</literal> entry configured for a recording covers a distinct set of tracks for which to apply the encryption, identified by the <literal>Track</literal> element.
         If an encryption entry contains no <literal>Track</literal> elements, it covers all tracks of the recording.
         If an encryption entry contains one or more <literal>Track</literal> elements, it covers the tracks indicated by the track tokens contained in these elements.
@@ -2038,6 +2039,71 @@ secfrac = "." 1*6DIGIT</programlisting>
       <para>
         If an encryption entry is reconfigured for an active recording, the device shall continue to use the old configuration for any open segments and shall start to use the new configuration for new segments.
       </para>
+      <section>
+        <title>Encryption Keys Storage</title>
+        <para>
+          When frame encryption is configured, the device shall store relevant information about the encryption keys used in the files with "Protection system specific header" (or 'pssh') boxes [ISO/IEC 23001-7].
+        </para>
+        <section>
+          <title>Standard CENC system</title>
+          <para>
+            When a file is frame encrypted a pssh "CENC" box SHALL be present in the file according to [W3C "cenc" Initialization Data Format]. This is independant of the Frame Encryption Mode (CENC or CBCS).<br />
+            "Version" field SHALL be "1" and the "SystemID" field SHALL be <literal>"1077efec-c0b2-4d02-ace3-3c1e52e2fb4b"</literal>.<br />
+            The "KID_count" SHALL be "1" with "KID" field equal to the value of <literal>KID</literal> configured for the encryption entry as the key identifier.
+          </para>
+        </section>
+        <section>
+          <title>Key rotation system</title>
+          <para>
+            When key rotation is configured (see section X.Y) an additional pssh box SHALL be present in the file, defined here. <br />
+            "Version" field SHALL be "1" and the "SystemID" field SHALL be <literal>"ca774354-6f98-41b6-b17a-b15f7bbf678a"</literal>.<br />
+            The "KID_count" SHALL be "1" with "KID" field equal to a generated UUID by the device. This "KID" SHOULD be the same in all files until the symmetric key changes. <br />
+            "DataSize" SHALL be the size of the following "Data" byte array, containing this binary structure:
+          </para>
+          <para>
+            <variablelist>
+             <varlistentry>
+               <term>CertificateThumbprintSize (uint)</term>
+               <listitem>
+                 <para>
+                   Size of the <literal>CertificateThumbprint</literal> field. SHALL be '20'.
+                 </para>
+               </listitem>
+             </varlistentry>
+            <varlistentry>
+              <term>CertificateThumbprint (byte[CertificateThumbprintSize])</term>
+              <listitem>
+                <para>
+                  Thumbprint of the certificate used to encrypted the symmetric key (Computed using SHA-1).
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>EncryptedKeySize (uint)</term>
+              <listitem>
+                <para>
+                  Size of the <literal>EncryptedKey</literal> field. Valid values depend on the encryption algorithm used by the Certificate.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>EncryptedKey (byte[EncryptedKeySize])</term>
+                <listitem>
+                  <para>
+                    The symmetric key (identified by KID) used for frame encryption, encrypted with the Certificate.
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </para>
+          <para>
+            This data structure and its containing "pssh" box defined here allow for a client application to decrypt the symmetric key and then decrypt the frames with it. The presence of the CENC pssh is highly recommended by W3C as it increase compatibility with standard players. However, if key rotation is being used the client application may not have access to the symmetric key generated by the device. The second "pssh" box contains the required information to obtain the symmetric key, provided it has access to the Certificate's private key (directly or through a key server, for example). A client application would be aware of this fact indicated by the presence of the second "pssh" box. This box SHOULD not be present if the symmetric key was configured by the user (no key rotation). Additionnal "pssh" boxes COULD be present to support alternative DRM systems.
+          </para>
+          <para>
+            Note that DRM systems and client implementations are outside the scope of this specification.
+          </para>
+        </section>
+      </section>
     </section>
     <section xml:id="_refCloudRecordingObjectAttributes">
       <title>Object attributes</title>
