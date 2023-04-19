@@ -2037,9 +2037,8 @@ secfrac = "." 1*6DIGIT</programlisting>
         When <literal>KeyRotationDuration</literal> is not set, the device shall encrypt with the <literal>Key</literal> configured for the encryption entry, otherwise the device shall generate a new encryption key at the specified interval as defined by <literal>KeyRotationDuration</literal>.
         <literal>KeyRotationDuration</literal> must be a positive duration value.
         New segments shall use the latest generated key for its encryption.
-        <!--TODO describe how the key is sent/stored in the cloud for client consumption-->
+        <!--TODO: Review how the certificate can be configured-->
         When <literal>KeyRotationDuration</literal> is set, the <literal>Key</literal> shall be the public key from an asymmetric key pair, with the private key only known by the client.
-        The client shall use the private key to decrypt the <!-- TODO: review/confirm how keys are stored -->key file containing the keys generated to encrypt the tracks.
       </para>
       <para>
         If an encryption entry is reconfigured for an active recording, the device shall continue to use the old configuration for any open segments and shall start to use the new configuration for new segments.
@@ -2047,23 +2046,34 @@ secfrac = "." 1*6DIGIT</programlisting>
       <section>
         <title>Encryption Keys Storage</title>
         <para>
-          When frame encryption is configured, the device shall store relevant information about the encryption keys used in the files with "Protection system specific header" (or 'pssh') boxes [ISO/IEC 23001-7].
+          When frame encryption is configured, the device shall store relevant information about the encryption keys used in the files with 'Protection system specific header' (or 'pssh') boxes [ISO/IEC 23001-7].
         </para>
         <section>
           <title>Standard CENC system</title>
           <para>
-            When a file is frame encrypted a pssh "CENC" box SHALL be present in the file according to [W3C "cenc" Initialization Data Format]. This is independant of the Frame Encryption Mode (CENC or CBCS).<br />
-            "Version" field SHALL be "1" and the "SystemID" field SHALL be <literal>"1077efec-c0b2-4d02-ace3-3c1e52e2fb4b"</literal>.<br />
-            The "KID_count" SHALL be "1" with "KID" field equal to the value of <literal>KID</literal> configured for the encryption entry as the key identifier.
+            When a file is frame encrypted a pssh 'CENC' box SHALL be present in the file according to [W3C 'cenc' Initialization Data Format].
+            This is independent of the <literal>EncryptionMode</literal>.
+          </para>
+          <para>
+            'Version' field SHALL be '1' and the 'SystemID' field SHALL be <literal>'1077efec-c0b2-4d02-ace3-3c1e52e2fb4b'</literal>.
+          </para>
+          <para>
+            The 'KID_count' SHALL be '1' with 'KID' field equal to the value of <literal>KID</literal> configured for the encryption entry as the key identifier.
           </para>
         </section>
         <section>
           <title>Key rotation system</title>
           <para>
-            When key rotation is configured (see section X.Y) an additional pssh box SHALL be present in the file, defined here. <br />
-            "Version" field SHALL be "1" and the "SystemID" field SHALL be <literal>"ca774354-6f98-41b6-b17a-b15f7bbf678a"</literal>.<br />
-            The "KID_count" SHALL be "1" with "KID" field equal to a generated UUID by the device. This "KID" SHOULD be the same in all files until the symmetric key changes. <br />
-            "DataSize" SHALL be the size of the following "Data" byte array, containing this binary structure:
+            When <literal>KeyRotationDuration</literal> is configured (see <xref linkend="_refCloudRecordingFrameEncryption" />, an additional pssh box SHALL be present in the MP4 file, as defined here.
+          </para>
+          <para>
+            'Version' field SHALL be '1' and the 'SystemID' field SHALL be <literal>'ca774354-6f98-41b6-b17a-b15f7bbf678a'</literal>.
+          </para>
+          <para>
+            The 'KID_count' SHALL be '1' with 'KID' field equal to a generated UUID by the device. This 'KID' SHOULD be the same in all segments until the symmetric key changes.
+          </para>
+          <para>
+            'DataSize' SHALL be the size of the following 'Data' byte array, containing this binary structure:
           </para>
           <para>
             <variablelist>
@@ -2087,7 +2097,7 @@ secfrac = "." 1*6DIGIT</programlisting>
               <term>EncryptedKeySize (uint)</term>
               <listitem>
                 <para>
-                  Size of the <literal>EncryptedKey</literal> field. Valid values depend on the encryption algorithm used by the Certificate.
+                  Size of the <literal>EncryptedKey</literal> field. Valid values depend on the encryption algorithm used by the certificate.
                 </para>
               </listitem>
             </varlistentry>
@@ -2095,14 +2105,20 @@ secfrac = "." 1*6DIGIT</programlisting>
               <term>EncryptedKey (byte[EncryptedKeySize])</term>
                 <listitem>
                   <para>
-                    The symmetric key (identified by KID) used for frame encryption, encrypted with the Certificate.
+                    The symmetric key (identified by KID) used for frame encryption, encrypted using the public key of the certificate.
                   </para>
                 </listitem>
               </varlistentry>
             </variablelist>
           </para>
           <para>
-            This data structure and its containing "pssh" box defined here allow for a client application to decrypt the symmetric key and then decrypt the frames with it. The presence of the CENC pssh is highly recommended by W3C as it increase compatibility with standard players. However, if key rotation is being used the client application may not have access to the symmetric key generated by the device. The second "pssh" box contains the required information to obtain the symmetric key, provided it has access to the Certificate's private key (directly or through a key server, for example). A client application would be aware of this fact indicated by the presence of the second "pssh" box. This box SHOULD not be present if the symmetric key was configured by the user (no key rotation). Additionnal "pssh" boxes COULD be present to support alternative DRM systems.
+            This data structure and its containing 'pssh' box defined here allows for a client application to decrypt the symmetric key and then decrypt the frames with it.
+            The presence of the CENC 'pssh' box is highly recommended by W3C as it increases compatibility with standard players.
+            However, if <literal>KeyRotationDuration</literal> is being used, the client application may not have access to the symmetric key generated by the device.
+            The second 'pssh' box contains the required information to obtain the symmetric key, provided it has access to the certificate's private key (directly or through a key server, for example).
+            A client application would be aware of this fact indicated by the presence of the second 'pssh' box.
+            This box SHOULD not be present if the symmetric key was configured by the user (no key rotation).
+            Additionnal 'pssh' boxes COULD be present to support alternative DRM systems.
           </para>
           <para>
             Note that DRM systems and client implementations are outside the scope of this specification.
