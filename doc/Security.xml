@@ -163,7 +163,7 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc2986.txt">http://www.ietf.org/rfc/rfc2986.txt</link>&gt;</para>
     <para>RFC 3279 Algorithms and Identifiers for the Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc3279.txt">http://www.ietf.org/rfc/rfc3279.txt</link>&gt;</para>
-    <para>RFC 3447 Public Key Cryptography Standards #1: RSA Cryptogaphy Specifications Version 2.1</para>
+    <para>RFC 3447 Public Key Cryptography Standards #1: RSA Cryptography Specifications Version 2.1</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc3447.txt">http://www.ietf.org/rfc/rfc3447.txt</link>&gt;</para>
     <para>RFC 4055 Additional Algorithms and Identifiers for RSA Cryptography for use in the Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc4055.txt">http://www.ietf.org/rfc/rfc4055.txt</link>&gt;</para>
@@ -1026,7 +1026,7 @@
       </section>
       <section>
         <title>Usage of JWT-based client authentication over HTTPS</title>
-        <para>Usage JWT-base client authentication over HTTPS shall adhere to the Authorization Request header Field, as specified by [RFC 6750]. In case of authentication failure, ONVIF-compliant devices shall respond with the error codes specified by [RFC 6750].</para>
+        <para>Usage JWT-based client authentication over HTTPS shall adhere to the Authorization Request header Field, as specified by [RFC 6750]. In case of authentication failure, ONVIF-compliant devices shall respond with the error codes specified by [RFC 6750].</para>
       </section>
       <section>
         <title>Usage of JWT-based client authentication over SCTP</title>
@@ -1065,9 +1065,8 @@
             </imageobject>
           </mediaobject>
         </figure>
-        <para>A device can be setup to use this flow to allow access to its internal web interface
-          for externally authenticated users. In that case an authorization server configuration
-          with type OAuthAuthorizationCode should be created.</para>
+        <para>A device can be setup to use JWTs obtained with this flow to allow access to its internal web interface for externally authenticated users. In that case an authorization server configuration with type OAuthAuthorizationCode should be created.</para>
+        <para>Access to the camera can be granted to users bearing either an ID Token or an Access Token, as long as the claims specified in <xref linkend="_Ref395181339"/> are present.</para>
       </section>
       <section xml:id="section_bcl_4zq_swb">
         <title>Device authentication and authorization</title>
@@ -1081,6 +1080,7 @@
             </imageobject>
           </mediaobject>
         </figure>
+        <para>Since in the case of a camera accessing a remote resource there is no user involved and no identity to be checked, cameras are expected to use Access Tokens to perform this operation.</para>
       </section>
       <section xml:id="section_ccl_4zq_swb">
         <title>Authorization server configuration</title>
@@ -3664,7 +3664,7 @@
     </section>
     <section>
       <title>JWT-based authentication</title>
-      <para>The following functions are defined to control the set of accepted aud claims.</para>
+      <para>The following functions are defined to control the set of accepted <emphasis>aud</emphasis> claims.</para>
       <section>
         <title>GetJWTConfiguration</title>
         <para>This operation returns the parameters of the JWT authorization used by the device.</para>
@@ -3717,7 +3717,7 @@
             <term>faults</term>
             <listitem>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:TooManyAudiences</para>
-              <para role="text">The list of audicences is too big to be saved.</para>
+              <para role="text">The list of audiences is too big to be saved.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -4772,12 +4772,10 @@
   </chapter>
   <appendix>
     <title>JWT over SCTP example</title>
-    <para><emphasis role="bold"><?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?>The base64-encoded values of the tokens will we re-evaluated once the format is finalized.<?oxy_custom_end?></emphasis></para>
     <para>The JWT will have the following content</para>
     <programlisting><![CDATA[{
     "typ":"JWT",
     "alg":"ES256",
-    "kid":"Key0001", // KeyID
 }.{
     "iss":"server.path.com", // FQDN of the server that issued the JWT
     "nbf":1670482800, // not before Thursday, December 8, 2022 7:00:00 AM (GMT)
@@ -4787,14 +4785,14 @@
 }
 ]]></programlisting>
     <para>which is base64-encoded as</para>
-    <programlisting>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJLZXkwMDAxIiwibmJmIjoxNjcwNDgyODAwLCJle
-HAiOjE2NzA1NzI4MDAsImlhdCI6MTY3MDQ4MTAwMCwicm9sZXMiOiJPcGVyYXRvciJ9.SflKxwRJSMeKKF2QT4
+    <programlisting>eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJzZXJ2ZXIucGF0aC5jb20iLCJuYmYiOjE2NzA0ODI4MDAsImV
+4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmNlIiwicm9sZXMiOiJPcGVyYXRvciJ9.SflKxwRJSMeKKF2QT4
 fwpMeJf36POk6yJV_adQssw5c</programlisting>
     <para>While the individual components of the JWT are already base64-encoded, the whole structure is not technically base64-encoded. Therefore it is necessary to base64-encode it again, leading to</para>
-    <programlisting>ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKTFpYa3dNREF4SWl3aWJtSm
-1Jam94Tmpjd05EZ3lPREF3TENKbGVIQWlPakUyTnpBMU56STRNREFzSW1saGRDSTZNVFkzTURRNE1UQXdNQ3dp
-Y205c1pYTWlPaUpQY0dWeVlYUnZjaUo5LlNmbEt4d1JKU01lS0tGMlFUNGZ3cE1lSmYzNlBPazZ5SlZfYWRRc3
-N3NWM=</programlisting>
+    <programlisting>ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOaUo5LmV5SnBjM01pT2lKelpYSjJaWEl1Y0dGMGFDNW
+piMjBpTENKdVltWWlPakUyTnpBME9ESTRNREFzSW1WNGNDSTZNVFkzTURVM01qZ3dNQ3dpWVhWa0lqb2lkR0Z5
+WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9pSlBjR1Z5WVhSdmNpSjkuU2ZsS3h3UkpTTWVLS0YyUVQ0Zn
+dwTWVKZjM2UE9rNnlKVl9hZFFzc3c1Yw==</programlisting>
     <para>At this point, the JWT can be used in the WS-Security header of the SOAP request:</para>
     <programlisting><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"
@@ -4846,9 +4844,9 @@ X-Frame-Options: SAMEORIGIN]]></programlisting>
     <para>Authenticated request from the client, by using JWT-based client authentication</para>
     <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
 Host: 10.XX.XX.XX
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJLZXkwMDAxIiwi
-bmJmIjoxNjcwNDgyODAwLCJleHAiOjE2NzA1NzI4MDAsImlhdCI6MTY3MDQ4MTAwMCwicm9sZSI6Ik9wZXJ
-hdG9yIn0=.SflKxwRJSMeKKF2QT4 fwpMeJf36POk6yJV_adQssw5c
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJzZXJ2ZXIucGF0
+aC5jb20iLCJuYmYiOjE2NzA0ODI4MDAsImV4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmN
+lIiwicm9sZXMiOiJPcGVyYXRvciJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
 Content-Type: application/soap+xml; charset=utf-8
 Content-Length: 299
 
