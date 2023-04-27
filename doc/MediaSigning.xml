@@ -200,7 +200,7 @@
       manipulation (tampering) and the authenticity can be validated.</para>
     <para>The public key, that is used to verify the signatures, is also included in the media, as
       well as certificates to verify the public key. The CA certificate necessary to verify the
-      certificates is not included and has to be aquired from an external trusted source.</para>
+      certificates is not included and has to be acquired from an external trusted source.</para>
   </chapter>
   <chapter xml:id="chapter_f3s_njq_bwb">
     <title>Signed Video</title>
@@ -232,18 +232,19 @@
       <title>Limitations</title>
       <para><emphasis role="bold">Codecs</emphasis>. <emphasis>Signed Video</emphasis> is defined
         for the H.264 and H.265 video codec formats. Therefore, most of the description uses the
-        Network Abstraction Layer (NAL) concept. Hashing frames is for simplicity split into
-        hashing NAL Units. One frame may be split into multiple NAL Units generating multiple
-        hashes per frame. Note that raw video is not covered, since there are no means to add
-        signatures within the video format. There exists other codec standards where the same
-        technique can be applied though, e.g., AV1.</para>
+        Network Abstraction Layer (NAL) concept. For simplicity, hashing is done on NAL Units
+        instead of full frame data. One frame may be split into multiple NAL Units and therefore
+        generating multiple hashes per frame. Note that raw video is not covered, since there are
+        no means to add signatures within the video format. There exists other codec standards
+        where the same technique can be applied though, e.g., AV1.</para>
       <para><emphasis role="bold">Signing frequency</emphasis>. Signing is done upon transition
         between two Group of Pictures (GOPs), that is, triggered by an IDR frame. For short GOP
         lengths, the time between two GOP transitions may be shorter than the time it takes to
-        perform the signing. The standard allow the device to sign multiple GOPs if necessary.
+        perform the signing. The standard allows the device to sign multiple GOPs if necessary.
         This is described in Section LINK TO CORRESPONDING SECTION BELOW.
-        Very long, or infinite, GOPs delays the validation too much to be used in practice.
-        Therefore, the device is recommended to sign partial GOPs; See Section TO BE ADDED.</para>
+        For very long, or infinite, GOPs the duration between signatures can be too long for
+        practical usage. Therefore, the device is recommended to sign partial GOPs; See Section
+        TO BE ADDED.</para>
       <para><emphasis role="bold">Frame drops and packet losses</emphasis>. Adding a list of
         hashes of each NAL Unit combats the problem of lost frames, but cannot solve packet
         losses unless the affected NAL Unit is completely removed from the stream. To lower the
@@ -262,9 +263,35 @@
       <para><emphasis role="bold">Bitrate increase</emphasis>. Adding SEI frames to the encoded
         video increases the bitrate. The list of NAL Unit hashes is the main contribution.
         Therefore, it is recommended to consider a hashing algorithm that produces reasonably large
-        hashes. Note that the security lies in the hash used to generate the signature and not the
-        hash used to represent the NAL Unit. The device has an option to select a GOP level mode,
-        to lower the bitrate; See Section TO BE ADDED.</para>
+        hashes. Note that the main security lies in the hash used to generate the signature and not
+        the hash used to represent the NAL Unit. The device has an option to select a GOP level
+        mode, to lower the bitrate; See Section TO BE ADDED.</para>
+    </section>
+    <section>
+      <title>Basic rules for the device when signing a video</title>
+      <para>The procedure of signing a video stream and producing SEI frames, can be described by
+        a set of rules.
+        <itemizedlist>
+          <listitem>
+            <para>These NAL Units must be hashed</para>
+            <para>Picture NAL Units, that is, slices of IDR-, P- and B-frames.</para>
+            <para>All SEI frames generated according to this specification that does not include
+              a signature.</para>
+          </listitem>
+          <listitem>
+            <para>Every GOP must be associated with at least one SEI frame</para>
+            <para>Long GOPs should be split into parts-of-a-GOP.</para>
+          </listitem>
+          <listitem>
+            <para>Every part-of-a-GOP must be signed</para>
+          </listitem>
+          <listitem>
+            <para>Every SEI must be linked with the first picture NAL Unit of the previous
+              (sub-)GOP.</para>
+            <para>This is necessary to secure the order of frames from tampering.</para>
+          </listitem>
+        </itemizedlist>
+      </para>
     </section>
     <section xml:id="section_h3s_njq_bwb">
       <title>Detailed description on how the device generates SEI frames including
