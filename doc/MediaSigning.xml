@@ -249,7 +249,8 @@
         hashes of each NAL Unit combats the problem of lost frames, but cannot solve packet
         losses unless the affected NAL Unit is completely removed from the stream. To lower the
         risk of losing packets within a SEI frame, the specification allows the device to add
-        redundancy by transmitting the same SEI multiple times; See Section "section_y3s_njq_bwb" below.</para>
+        redundancy by transmitting the same SEI multiple times; See Section "section_y3s_njq_bwb"
+        below.</para>
       <para><emphasis role="bold">Hashing algorithms</emphasis>. Hashing is used in two contexts; 1)
         to get a short representation of each NAL Unit to put in a list, and 2) as message digest
         when generating signatures. Note that these two can be different. The same hashing
@@ -269,25 +270,25 @@
     </section>
     <section>
       <title>Basic rules for the device when signing a video</title>
-      <para>The procedure of signing a video stream and producing SEI frames, can be described by
-        a set of rules.
+      <para>The procedure of signing a video stream and producing SEI frames, can be described by a
+        set of rules.
         <itemizedlist>
           <listitem>
-            <para>These NAL Units must be hashed</para>
+            <para>The NAL Unit types below must be hashed</para>
             <para>Picture NAL Units, that is, slices of IDR-, P- and B-frames.</para>
-            <para>All SEI frames generated according to this specification that does not include
-              a signature.</para>
+            <para>All SEI frames generated according to this specification that does not include a
+              signature.</para>
           </listitem>
           <listitem>
             <para>Every GOP must be associated with at least one SEI frame</para>
-            <para>Long GOPs should be split into parts-of-a-GOP.</para>
+            <para>Long GOPs should be split into partial GOPs.</para>
           </listitem>
           <listitem>
-            <para>Every part-of-a-GOP must be signed</para>
+            <para>Every partial GOP must be signed</para>
           </listitem>
           <listitem>
-            <para>Every SEI must be linked with the first picture NAL Unit of the previous
-              (sub-)GOP.</para>
+            <para>Every SEI must be linked with the first picture NAL Unit of the previous partial
+              or complete GOP.</para>
             <para>This is necessary to secure the order of frames from tampering.</para>
           </listitem>
         </itemizedlist>
@@ -407,9 +408,20 @@
         is not feasible in real-time. The device has an option to decide to sign every X:th GOP to
         keep the stream signed.</para>
       <para>Generate a SEI for every GOP according to the Section above, but sign only every X:th
-        GOP. That is, every X:th SEI includes a Signature TLV. All others are, according to the
-        principle which NAL Units to hash, hashed like normal picture NAL Units. This makes it
-        possible to validate previous GOPs recursively when the signature is received.</para>
+        GOP. That is, every X:th SEI includes a Signature TLV.</para>
+      <para>All generated SEI frames without a signature must be hashed as normal picture NAL Units.
+        Note that they have to be hashed in the same order as they appear in the stream.</para>
+    </section>
+    <section>
+      <title>Signing partial GOPs</title>
+      <para>As mentioned in the Limitation Section above, very long, or even infinite, GOPs puts the
+        validation side in an unacceptable situation since the duration between signatures is far to
+        long. The device has an option to decide to force signing if the GOP has not ended in a
+        reasonable time. It is recommended to split a GOP into partial GOPs if the GOP duration is
+        longer than 5 seconds.</para>
+      <para>Generate a SEI for every partial GOP according to the Section above and sign it.</para>
+      <para>Note that hashing NAL Units use the same anchor hash across partial GOPs. The anchor
+        hash is only reset upon an IDR, that is, when there is a new GOP.</para>
     </section>
     <section xml:id="section_k3s_njq_bwb">
       <title>SEI format</title>
@@ -511,10 +523,10 @@
         <title>The reserved byte</title>
         <para>Right after the UUID, and before the TLV data, is a reserved byte. This byte represent
           bit flags of information that cannot be put in the TLV structure.</para>
-        <para>The first bit should be set to 1 if this is a "only sent once" SEI.</para>
-        <para>The second bit should be set to 1 if emulation prevention will be applied
-          <emphasis role="bold">before</emphasis> this SEI (the document) is hashed for
-          signing.</para>
+        <para>The first bit should be set to 1 if this is an "only sent once" SEI.</para>
+        <para>The second bit should be set to 1 if emulation prevention was applied
+          <emphasis role="bold">before</emphasis> this SEI (the document) was hashed for signing.
+        </para>
         <para>The last bit should be set to 0. If, in the future, 7 bits is not enough to signal
           settings outside the TLV structure, this bit will be used to signal more reserved
           bytes.</para>
@@ -525,9 +537,9 @@
           once" information should be put in a separate SEI, with the corresponding bit in the
           reserved byte set to 1, and signed. This separates the SEI from the video stream and can
           be copied and added to any exported material.</para>
-        <para>If the video is signed with a user provisioned signing key, this "only sent once" SEI should
-          be signed with the manifacturer provisioned signing key. Note that both certificates and Public 
-          keys have to be included in the SEI.</para>
+        <para>If the video is signed with a user provisioned signing key, this "only sent once" SEI
+          should be signed with the manifacturer provisioned signing key. Note that both
+          certificates and Public keys have to be included in the SEI.</para>
       </section>
       <section xml:id="section_n3s_njq_bwb">
         <title>TLV tags</title>
@@ -641,7 +653,8 @@
                   </entry>
                   <entry>
                     <para>The device video signing key certificate chain.</para>
-                    <para>The leaf certificate includes the Public key necessary to verify signatures.</para>
+                    <para>The leaf certificate includes the Public key necessary to verify
+                      signatures.</para>
                   </entry>
                 </row>
                 <row>
@@ -664,7 +677,8 @@
       <section xml:id="section_o3s_njq_bwb">
         <title>General GOP information</title>
         <para>A mandatory field that includes GOP specific information like a GOP counter, a
-          timestamp of the I-frame and the GOP-hash.</para>
+          timestamp of the I-frame and the GOP-hash. If this TLV is in a SEI associated with a
+          partial GOP, the timestamp of the first NAL Unit is used.</para>
         <itemizedlist>
           <listitem>
             <para>Tag version (1 byte)</para>
@@ -683,18 +697,20 @@
               associated GOP.</para>
             <para>The counter value is a 32 bit parameter and the 4 bytes should be written with
               little endian.</para>
+            <para>Note that the counter is only incremented upon transition to a new GOP and not
+              for each partial-GOP.</para>
           </listitem>
           <listitem>
-            <para>GOP hash (h bytes)</para>
+            <para>(Partial) GOP hash (h bytes)</para>
             <para>The hash of the list of NAL Unit hashes. This hash is used to verify the entire
               GOP in one operation. Upon failure, the list of hashes, if present, is used to detect
               missing NAL Units. Number of bytes depends on the hash function used.</para>
           </listitem>
           <listitem>
-            <para>Linked I-frame hash (h bytes)</para>
-            <para>This is the hash of the linked I-frame, that is, the I-frame leading the
-              previously signed GOP (<code>h_anch_previous</code>). Number of bytes depends on the
-              hash function used.</para>
+            <para>Hash of the first hashable NAL Unit in the previous (partial) GOP (h bytes)</para>
+            <para>In most cases this is the hash of the linked I-frame, that is, the I-frame leading
+              the previously signed GOP (<code>h_anch_previous</code>). Number of bytes depends on
+              the hash function used.</para>
             <para>For the first signed GOP these <code>h</code> bytes should be set to
                 <code>0xff</code>.</para>
           </listitem>
@@ -764,8 +780,8 @@
       </section>
       <section xml:id="section_s3s_njq_bwb">
         <title>Hash list</title>
-        <para>This mandatory field contains the hash list, for a complete GOP; I- through
-          P-frames.</para>
+        <para>This mandatory field contains the hash list, for a complete GOP; I- through P-frames.
+        </para>
         <itemizedlist>
           <listitem>
             <para>Tag version (1 byte)</para>
@@ -786,8 +802,8 @@
           </listitem>
           <listitem>
             <para>Actual size of signature (2 bytes)</para>
-            <para>This is the written size, since not all signing algorithms generate a fixed
-              size.</para>
+            <para>This is the written size, since not all signing algorithms generate a fixed size.
+            </para>
           </listitem>
           <listitem>
             <para>The signature (max signature size bytes)</para>
@@ -800,8 +816,7 @@
       </section>
       <section xml:id="section_v3s_njq_bwb">
         <title>Certificate chain</title>
-        <para>This field contains the certificate chain necessary to verify the public
-          key.</para>
+        <para>This field contains the certificate chain necessary to verify the public key.</para>
         <para>The leaf certificate includes the Public key, and upon successful verification can
           safely be extracted to use when verifying the signatures.</para>
         <para>Note that the certificate chain must not include the CA certificate.</para>
@@ -839,13 +854,16 @@
         </listitem>
         <listitem>
           <para>Determine the total payload size, excluding potential emulation prevention bytes.
-            The total payload includes the UUID (16 bytes) and all TLV data. The final stop-bit
-            byte is excluded from the payload size.</para>
+            The total payload includes the UUID (16 bytes) and all TLV data. The final stop-bit byte
+            is excluded from the payload size.</para>
         </listitem>
         <listitem>
           <para>Write the payload size according to the codec standard.</para>
-          <para><code>while (payload_size >= 0xff) { *nal_ptr++ = 0xff; payload_size -= 0xff; }
-              *nal_ptr++ = payload_size;</code></para>
+          <para><code>while (payload_size >= 0xff) {<br />
+            *nal_ptr++ = 0xff;<br />
+            payload_size -= 0xff;<br />
+            }<br />
+            *nal_ptr++ = payload_size;</code></para>
         </listitem>
         <listitem>
           <para>Write the UUID</para>
@@ -860,10 +878,10 @@
         <listitem>
           <para>Write all TLVs except the signature since it by definition cannot be written yet.
             Write the TLV data.</para>
-          <para>The mandatory tags are the Cryptographic information and the Certificate
-            chain.</para>
-          <para>If the video will be signed with a user provisioned signing key write an additional TLV
-            data for the user provisioned certificate chain.</para>
+          <para>The mandatory tags are the Cryptographic information and the Certificate chain.
+          </para>
+          <para>If the video will be signed with a user provisioned signing key write an additional
+            TLV data for the user provisioned certificate chain.</para>
         </listitem>
         <listitem>
           <para>If the emulation prevention bit is set in the reserved byte, apply emulation
@@ -878,8 +896,8 @@
             stored in a trusted environment.</para>
         </listitem>
         <listitem>
-          <para>Write the signature data to the Signature tag when signing has been
-            completed.</para>
+          <para>Write the signature data to the Signature tag when signing has been completed.
+          </para>
         </listitem>
         <listitem>
           <para>Write a stop bit byte; 0x80.</para>
@@ -901,8 +919,11 @@
         </listitem>
         <listitem>
           <para>Write the payload size according to the codec standard.</para>
-          <para><code>while (payload_size >= 0xff) { *nal_ptr++ = 0xff; payload_size -= 0xff; }
-              *nal_ptr++ = payload_size;</code></para>
+          <para><code>while (payload_size >= 0xff) {<br />
+            *nal_ptr++ = 0xff;<br />
+            payload_size -= 0xff;<br />
+            }<br />
+            *nal_ptr++ = payload_size;</code></para>
         </listitem>
         <listitem>
           <para>Write the UUID</para>
@@ -931,8 +952,8 @@
           <para>Sign the document hash in a secure environment using the Private signing key.</para>
         </listitem>
         <listitem>
-          <para>Write the signature data to the Signature tag when signing has been
-            completed.</para>
+          <para>Write the signature data to the Signature tag when signing has been completed.
+          </para>
         </listitem>
         <listitem>
           <para>Write a stop bit byte; 0x80.</para>
@@ -954,7 +975,7 @@
         waiting adds jitter to the video stream. The device therefore has the option to add it to
         the video stream later, when signing has been completed. In such a case the text-ified
         stream can look like <code>IPSPPPISPPPPIPPSPP</code>.</para>
-      <para>If the device decides to att redundancy by transmitting the SEI twice the text-ified
+      <para>If the device decides to add redundancy by transmitting the SEI twice the text-ified
         stream would look like <code>IPSSPPPISSPPPPIPPSSPP</code>.</para>
     </section>
   </chapter>
@@ -975,22 +996,40 @@
     </section>
     <section xml:id="section_ajs_njq_bwb">
       <title>Client side validation</title>
-      <para>Validation is done GOP by GOP, just like the signing side signs GOP by GOP. The
-        validation has to be aborted upon any failing step below. <itemizedlist>
+      <para>Validation is done (partial) GOP by (partial) GOP, just like the signing side signs
+        (partial) GOP by (partial) GOP. The validation has to be aborted upon any failing step
+        below.
+        <itemizedlist>
           <listitem>
-            <para>Verify the signature of the "only sent once" SEI.</para>
+            <para>Get the manufacturer CA certificate from an external source.</para>
           </listitem>
           <listitem>
-            <para><?oxy_comment_start author="FredrikS" timestamp="20220922T123900+0200" comment="Explain about CA cert. Refer section 5.10"?>Verify
-              the sent certificate.<?oxy_comment_end?></para>
+            <para>Extract the manufacturer Certificate from the "only sent once" SEI.</para>
           </listitem>
           <listitem>
-            <para><?oxy_comment_start author="FredrikS" timestamp="20220922T124026+0200" comment="Explain that you verify the key against the cert"?>Verify
-              the Public key.<?oxy_comment_end?></para>
+            <para>Verify the extracted certificate with the CA certificate.</para>
           </listitem>
           <listitem>
-            <para><?oxy_comment_start author="bjornv" timestamp="20220919T130247+0200" comment="Should we describe how find the correct SEI? And how do we handle/detect removed GOPs? an "?>Find
-              the SEI associated with the GOP that is to be validated.<?oxy_comment_end?></para>
+            <para>Extract the manufacturer Public Key from the "only sent once" SEI.</para>
+          </listitem>
+          <listitem>
+            <para>Verify the extracted Public Key with the extracted certificate.</para>
+          </listitem>
+          <listitem>
+            <para>Verify the signature of the "only sent once" SEI with the extracted Public Key.
+            </para>
+          </listitem>
+          <listitem>
+            <para>If a user provisioned signing key was used, get the user CA certificate from an
+              external source.</para>
+            <para>Extract the user provisioned Certificate from the "only sent once" SEI.</para>
+            <para>Verify the extracted user provisioned certificate with the CA certificate.</para>
+            <para>Extract the user provisioned Public Key from the "only sent once" SEI.</para>
+            <para>Verify the extracted user provisioned Public Key with the extracted user
+              provisioned certificate.</para>
+          </listitem>
+          <listitem>
+            <para>Find the SEI associated with the GOP that is to be validated.</para>
           </listitem>
           <listitem>
             <para>Verify the signature of the SEI.</para>
@@ -1000,8 +1039,10 @@
               above.</para>
           </listitem>
           <listitem>
-            <para>Verify each computed hash against corresponding hash in the hash list present in
-              the SEI.</para>
+            <para>Verify the computed GOP-hash against corresponding GOP-hash in the SEI.</para>
+            <para>If successful, all NAL Units are validated as authentic.</para>
+            <para>Upon failure, verify each computed hash against corresponding hash in the hash
+              list present in the SEI.</para>
           </listitem>
           <listitem>
             <para>The client should signal AUTHENTIC if all computed hashes are verified
@@ -1036,34 +1077,34 @@
         a Signed Media<?oxy_comment_end?>
       </title>
       <para>In order to be able to verify an exported segment of Signed Media, the client must
-        include the "Send Once" TLVs that are included in the beginning of the mediastream. This can
-        be combined with the Onvif Export File Format in order to provide layered video
-        authentication, the media signing covers authenticity in the media layer where as the Export
-        File Format provides validity on the container level. Even if this Signed Media
-        specification is used, the Onvif Export File Format is still valuable as it provides more
-        information of the provenance of the video as it allows the user to tell the story of the
-        path of the video. </para>
+        include the "only sent once" SEI added in the beginning of the mediastream. This can be
+        combined with the Onvif Export File Format in order to provide layered video authentication,
+        the media signing covers authenticity in the media layer where as the Export File Format
+        provides validity on the container level. Even if this Signed Media specification is used,
+        the Onvif Export File Format is still valuable as it provides more information of the
+        provenance of the video as it allows the user to tell the story of the path of the video.
+        </para>
     </section>
     <section xml:id="section_djs_njq_bwb">
       <title><?oxy_comment_start author="FredrikS" timestamp="20220922T125248+0200" comment="Informative, move to appendix" flag="done"?>Dangling
         End<?oxy_comment_end?>
       </title>
-      <para>One special consideration is the possbility of dangling ends, i.e. that the SEI frame
-        containing the verification information for a GOP may be very delayed. There can be a number
-        of reasons for this happening such as:</para>
+      <para>One special consideration is the possbility of dangling ends, i.e., that the last part
+        of the stream or exported file has no SEI frame associated with it. There can be a number of
+        reasons for this happening such as:</para>
       <itemizedlist>
         <listitem>
-          <para>Delay in signature generation process</para>
+          <para>The stream was ended before the last SEI was signed and transmitted</para>
         </listitem>
         <listitem>
-          <para>Very long GOP lengths when using dynamic GOP</para>
+          <para>The file export did not include the associated SEI</para>
         </listitem>
         <listitem>
           <para>Other implementation specific issues</para>
         </listitem>
       </itemizedlist>
       <para>When exporting a recording, or trying to verify a dropped videostream, this means that
-        the end of the video may not be covered by the verificaiton information in the current
+        the end of the video may not be covered by the verification information in the current
         segment. </para>
     </section>
   </appendix>
