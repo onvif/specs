@@ -7631,6 +7631,131 @@ and sample rate. </xs:documentation>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
+	<xs:simpleType name="TargetFormat">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="MP4">
+				<xs:annotation>
+					<xs:documentation>
+						MP4 files with all tracks in a single file.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="CMAF">
+				<xs:annotation>
+					<xs:documentation>
+						CMAF compliant MP4 files with 1 track per file.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--===============================-->
+	<xs:simpleType name="EncryptionMode">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="CENC">
+				<xs:annotation>
+					<xs:documentation>
+						AES-CTR mode full sample and video NAL Subsample encryption, defined in ISO/IEC 23001-7.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="CBCS">
+				<xs:annotation>
+					<xs:documentation>
+						AES-CBC mode partial video NAL pattern encryption, defined in ISO/IEC 23001-7.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--===============================-->
+	<xs:complexType name="RecordingEncryption">
+		<xs:sequence>
+			<xs:element name="KID" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Key ID of the associated key for encryption.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Key" type="xs:hexBinary" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>
+						Key for encrypting content.
+						The device shall not include this parameter when reading.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Track" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						Optional list of track tokens to be encrypted.
+						If no track tokens are specified, all tracks are encrypted and no other encryption configurations shall exist for the recording.
+						Each track shall only be contained in one encryption configuration.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+		</xs:sequence>
+		<xs:attribute name="Mode" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					Mode of encryption.
+					See tt:EncryptionMode for a list of definitions and capability trc:SupportedEncryptionModes for the supported encryption modes.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="RecordingTargetConfiguration">
+		<xs:sequence>
+			<xs:element name="Storage" type="tt:ReferenceToken">
+				<xs:annotation>
+					<xs:documentation>Token of a storage configuration.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Format" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>
+						Format of the recording.
+						See tt:TargetFormat for a list of definitions and capability trc:SupportedTargetFormats for the supported formats.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Prefix" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Path prefix to be inserted in the object key.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Postfix" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Path postfix to be inserted in the object key.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="SpanDuration" type="xs:duration" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Maximum duration of a span.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="SegmentDuration" type="xs:duration">
+				<xs:annotation>
+					<xs:documentation>Maximum duration of a segment.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Encryption" type="tt:RecordingEncryption" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						Optional encryption configuration.
+						See capability trc:EncryptionEntryLimit for the number of supported entries.
+						By specifying multiple encryption entries per recording, different tracks can be encrypted with different configurations.
+						Each track shall only be contained in one encryption configuration.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
 	<xs:simpleType name="RecordingStatus">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="Initiated"/>
@@ -7863,6 +7988,11 @@ and sample rate. </xs:documentation>
 				the device shall not limit the retention time of stored data, except by resource constraints.
 				Whatever the value of MaximumRetentionTime, the device may automatically delete
 				recordings to free up storage space for new recordings.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Target" type="tt:RecordingTargetConfiguration" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional external storage target configuration.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->

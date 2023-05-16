@@ -6110,7 +6110,53 @@ onvif://www.onvif.org/name/ARV-453
     </section>
     <section xml:id="_Toc260402083">
       <title>Storage Configuration</title>
-      <para>The following operations allow client to configure the storage configuration data of device. The storage configuration can refer to DAS, NAS, and CDMI Server.</para>
+      <para>
+        The following operations allows a client to configure the storage configuration data of a device.
+      </para>
+      <section>
+        <title>Authentication</title>
+        <para>
+          Depending on the <literal>type</literal> provided in the <literal>StorageConfiguration</literal>, the device shall interpret fields in a special way:
+        </para>
+        <para>
+          <variablelist>
+            <varlistentry>
+              <term>ObjectStorageS3</term>
+              <listitem>
+                <para>
+                  The device shall use the contents of <literal>StorageUri</literal> as the base endpoint of the bucket.
+                  This URI shall include the bucket name, either as a subdomain or in its path, depending on the format supported by the object storage.
+                </para>
+                <para>
+                  The device shall use the contents of <literal>UserName</literal> as the access key ID for authenticating requests.
+                </para>
+                <para>
+                  The device shall use the contents of <literal>Password</literal> as the secret access key for authenticating requests.
+                </para>
+                <para>
+                  The device shall use the contents of <literal>Region</literal> as the region for authenticating requests.
+                  If <literal>Region</literal> is not configured, the device shall use <literal>us-east-1</literal> as the region.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>ObjectStorageAzure</term>
+              <listitem>
+                <para>
+                  The device shall use the contents of <literal>StorageUri</literal> as the base URI of the container.
+                  This URI shall include the account and container name.
+                </para>
+                <para>
+                  The device shall ignore the contents of <literal>UserName</literal>.
+                </para>
+                <para>
+                  The device shall use the contents of <literal>Password</literal> as the shared access signature for authenticating requests.
+                </para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+        </para>
+      </section>
       <section>
         <title>GetStorageConfigurations</title>
         <para>This operation lists all existing storage configurations. A device indicating storage configuration capability shall support the listing of existing storage configurations through the GetStorageConfigurations command.</para>

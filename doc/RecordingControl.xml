@@ -173,8 +173,14 @@ Change Request 2061, 2063, 2065, 2109</revremark>
   </chapter>
   <chapter>
     <title>Normative references</title>
-    <para role="reference">
-      <phrase>ONVIF Core Specification</phrase> &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
+    <para role="reference">ISO/IEC 14496-12:2022 — Information technology — Coding of audio-visual objects — Part 12: ISO base media file format &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/83102.html" />&gt;</para>
+    <para role="reference">ISO/IEC 14496-14:2020 — Information technology — Coding of audio-visual objects — Part 14: MP4 file format &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/79110.html" />&gt;</para>
+    <para role="reference">ISO/IEC 23000-19:2020 — Information technology — Multimedia application format (MPEG-A) — Part 19: Common media application format (CMAF) for segmented media &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/79106.html" />&gt;</para>
+    <para role="reference">ISO/IEC 23001-7:2016 — Information technology — MPEG systems technologies — Part 7: Common encryption in ISO base media file format files &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/68042.html" />&gt;</para>
+    <para role="reference">ISO 8601-1:2019 — Date and time — Representations for information interchange — Part 1: Basic rules &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/70907.html" />&gt;</para>
+    <para role="reference">RFC 5234 — Augmented BNF for Syntax Specifications: ABNF &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.ietf.org/rfc/rfc5234.txt" />&gt;</para>
+    <para role="reference">RFC 6381 — The 'Codecs' and 'Profiles' Parameters for "Bucket" Media Types &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.ietf.org/rfc/rfc6381.txt" />&gt;</para>
+    <para role="reference">ONVIF Core Specification &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
     <para role="reference">ONVIF Schedule Service Specification &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/srv/sched/ONVIF-Scheduler-Service-Spec.pdf"></link>&gt; </para>
   </chapter>
   <chapter>
@@ -183,8 +189,8 @@ Change Request 2061, 2063, 2065, 2109</revremark>
       <title>Definitions</title>
       <informaltable>
         <tgroup cols="2">
-          <colspec colname="c1" colwidth="24*" />
-          <colspec colname="c2" colwidth="76*" />
+          <colspec colname="c1" colwidth="24*"/>
+          <colspec colname="c2" colwidth="76*"/>
           <tbody valign="top">
             <row>
               <entry align="left">
@@ -364,6 +370,20 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           time intervals before and after the event may be captured.</para>
         <para>The recording job relies on the receiver service for receiving the data from other devices through receiver objects identified by ReceiverTokens</para>
       </section>
+      <section>
+        <title>External targets</title>
+        <para>
+          The target interface allows configuration for devices that support recording to external storage targets. 
+          For authentication configuration see the related storage configuration APIs of the core specification.
+        </para>
+        <para>
+          The target API defines for each recording a path on the storage device where the related recordings should be stored.
+          In order to keep reasonably sized files the recordings are split into segments.
+          This specification defines a date and time based index.
+          Indexing according to events and video content is outside of the scope of this specification.
+        </para>
+        <para>An encryption configuration interface allows to encrypt the content according to well defined standards.</para>
+      </section>
     </section>
   </chapter>
   <chapter>
@@ -403,8 +423,64 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <para>The RecordingConfiguration structure shall be used to configure recordings through CreateRecordings and Get/SetRecordingConfiguration.</para>
         <para>
           <emphasis role="bold">MaximumRetentionTime</emphasis> specifies the maximum time that data in any track within the recording shall be stored. The device shall delete any data older than the maximum retention time. Such data shall not be accessible anymore. If the MaximumRetentionPeriod is set to 0, the device shall not limit the retention time of stored data, except by resource constraints. Whatever the value of MaximumRetentionTime, the device may automatically delete recordings to free up storage space for new recordings.</para>
-        <para>None of the other fields defined in this structure shall be used by the device. Instead, it simply stores this information, and it shall return it through the <emphasis>GetRecordingConfiguration</emphasis> and <emphasis>GetRecordingInformation</emphasis> (see ONVIF Recording Search Service Specification) methods.</para>
-        <para>A device may truncate any descriptive string without causing a fault if it exceeds the supported length. Descriptive strings are Location, Description and Content.</para>
+        <para>
+          None of the other fields defined in this structure shall be used by the device.
+          Instead, it simply stores this information, and it shall return it through the <emphasis>GetRecordingConfiguration</emphasis> and <emphasis>GetRecordingInformation</emphasis> (see ONVIF Recording Search Service Specification) methods.</para>
+        <para>
+          A device may truncate any descriptive string without causing a fault if it exceeds the supported length.
+          Descriptive strings are Location, Description and Content.
+        </para>
+        <para>
+          A device signaling support for recording to external targets via the SupportedTargetFormats capability shall support the target configuration with the following parameters:
+        </para>
+        <variablelist>
+          <varlistentry>
+            <term>Storage</term>
+            <listitem>
+              <para>Token of a storage configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Format</term>
+            <listitem>
+              <para>
+                Format of the recording.
+                Examples are <literal>MP4</literal> and <literal>CMAF</literal>.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Prefix</term>
+            <listitem>
+              <para>Path prefix to be inserted in the object key.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Postfix</term>
+            <listitem>
+              <para>Path postfix to be inserted in the object key.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>SpanDuration</term>
+            <listitem>
+              <para>Maximum duration of a span.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>SegmentDuration</term>
+            <listitem>
+              <para>Maximum duration of a segment.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Encryption</term>
+            <listitem>
+              <para>Optional encryption configuration.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+        <para> See <xref linkend="_refCloudRecording"/> for ONVIF defined recording formats.</para>
       </section>
       <section>
         <title>TrackConfiguration</title>
@@ -1482,6 +1558,33 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           <term>AfterEventLimit</term>
           <listitem><para>Indicates that the device supports after event durations up to the given value.</para></listitem>
         </varlistentry>
+        <varlistentry>
+          <term>SupportedTargetFormats</term>
+          <listitem>
+            <para>
+              List of formats supported by the device for recording to an external target.
+              See tt:TargetFormat for a list of definitions.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>EncryptionEntryLimit</term>
+          <listitem>
+            <para>
+              Number of encryption entries supported per recording.
+              By specifying multiple encryption entries per recording, different tracks can be encrypted with different configurations.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>SupportedEncryptionModes</term>
+          <listitem>
+            <para>
+              Supported encryption modes.
+              See tt:EncryptionMode for a list of definitions.
+            </para>
+          </listitem>
+        </varlistentry>
       </variablelist>
     </section>
     <section>
@@ -1701,8 +1804,477 @@ SetRecordingJobMode(JobToken, Active)
       </varlistentry>
     </variablelist>
   </appendix>
+  <appendix xml:id="_refCloudRecording">
+    <title>Object storage recording format (Normative)</title>
+    <section xml:id="_refCloudRecordingOverview">
+      <title>Overview</title>
+      <para>
+        This annex describes the requirements for recording from a device to an object storage for later use by a receiver.
+        The device could be a camera, the receiver could be a video player.
+        <xref linkend="_refCloudRecordingDataFlow" /> shows the data flow for object storage recording.
+      </para>
+      <figure xml:id="_refCloudRecordingDataFlow">
+        <title>Data flow for object storage recording</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="media/RecordingControl/cloudRecordingDataFlow.svg" contentwidth="140mm" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+      <para>
+        The device uploads recorded media as objects containing fragmented MP4 data according to ISO/IEC 14496-12, the ISO base media file format.
+        In this annex, a media object containing fragmented MP4 data is called a segment.
+        Each segment starts with a header containing initialization data, usually consisting of a <literal>FileTypeBox</literal> and a <literal>MovieBox</literal>.
+        Each segment contains one or more fragments with recorded media, usually consisting of a <literal>MovieFragmentBox</literal> and a <literal>MediaDataBox</literal>.
+        Each segment contains recorded media of a continuous period of time.
+      </para>
+      <para>
+        Multiple successive segments without a time gap in between form a span.
+        In this way, the size of segments can be limited when recording continuously for a longer period of time.
+      </para>
+      <para>
+        For a single span, only a single segment contains recorded media of one point in time.
+        Depending on the recording format, video, audio, and metadata are written into separate segments.
+        In this case, the segments of each media type form separate spans.
+        <xref linkend="_refCloudRecordingLogicalModel" /> shows the logical model for object storage recording.
+      </para>
+      <figure xml:id="_refCloudRecordingLogicalModel">
+        <title>Logical model for object storage recording</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="media/RecordingControl/cloudRecordingLogicalModel.svg" contentwidth="79mm" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+    <section xml:id="_refCloudRecordingSpans">
+      <title>Spans</title>
+      <para>
+        When a recording is activated, the device shall open new spans for this recording according to the rules of the configured <literal>Format</literal>.
+        Inversely, when a recording is deactivated, the device shall close all open spans of this recording.
+        When a <literal>SpanDuration</literal> is configured for a recording, the recording is active, and the duration of a span of this recording reaches the configured <literal>SpanDuration</literal>, the device shall close all open spans of the recording and open new spans according to the rules of the configured <literal>Format</literal>.
+      </para>
+      <para>
+        All fragments of a span shall be independently processable and presentable with the information of a <literal>MovieBox</literal> in any of the segments of the span.
+        If the information in the <literal>MovieBox</literal> required to process the fragments needs to change while the recording is active, the device shall close all open spans of the recording and start new spans according to the rules of the configured <literal>Format</literal>.
+      </para>
+    </section>
+    <section xml:id="_refCloudRecordingSegments">
+      <title>Segments</title>
+      <para>
+        When a span is opened, the device shall also open a new segment for this span.
+        Inversely, when a span is closed, the device shall close the open segment of this span.
+        When a span is open and the duration of the open segment of this span reaches the <literal>SegmentDuration</literal> configured for the recording, the device shall close the open segment of this span and open a new segment for this span.
+        When closing the open segment of a span and opening a new segment for this span, there shall be no time gap between the two segments.
+      </para>
+      <para>
+        The device shall generate each segment as a fragmented MP4 file according to ISO/IEC 14496-12, the ISO base media file format.
+        A segment shall contain recorded media for the time it was open.
+        The recording formats provide specification about segment types, their contents, and restrictions on the ISO base media file format in the following sections.
+      </para>
+    </section>
+    <section xml:id="_refCloudRecordingSegmentObjects">
+      <title>Segment objects</title>
+      <para>
+        The device shall upload each segment as one object, identified by its object key, to the object storage.
+        The device shall generate the object key for a segment according to the following ABNF <literal>key</literal> rule (according to RFC 5234):
+      </para>
+      <programlisting>key      = lead "/" time "." counter "." extension
+lead    = [prefix "/"] date ["/" postfix]
+counter = 1*DIGIT
+date    = year "-" month "-" day
+time    = hour "/" minute "-" second [secfrac] "Z"
+year    = 4DIGIT
+month   = 2DIGIT ; 01-12
+day     = 2DIGIT ; 01-31
+hour    = 2DIGIT ; 00-23
+minute  = 2DIGIT ; 00-59
+second  = 2DIGIT ; 00-60 (due to leap second rules)
+secfrac = "." 1*6DIGIT</programlisting>
+      <para>
+        If a <literal>Prefix</literal> is configured for the recording, the device shall include <literal>prefix</literal> in <literal>lead</literal> and replace it with the configured <literal>Prefix</literal>.
+        If a <literal>Postfix</literal> is configured for the recording, the device shall include <literal>postfix</literal> in <literal>lead</literal> and replace it with the configured <literal>Postfix</literal>.
+        The device shall replace <literal>date</literal> and <literal>time</literal> respectively with the date and time portion of the first sample contained in the segment in Universal Coordinated Time (UTC), following the ABNF rules:
+        <itemizedlist>
+          <listitem>
+            <para><literal>year</literal> represents the 4-digit year</para>
+          </listitem>
+          <listitem>
+            <para><literal>month</literal> represents the 2-digit month (01 to 12)</para>
+          </listitem>
+          <listitem>
+            <para><literal>day</literal> represents the 2-digit day of the month (01 to 31)</para>
+          </listitem>
+          <listitem>
+            <para><literal>hour</literal> represents the 2-digit hour (00 to 23)</para>
+          </listitem>
+          <listitem>
+            <para><literal>minute</literal> represents the 2-digit minute (00 to 59)</para>
+          </listitem>
+          <listitem>
+            <para><literal>second</literal> represents the 2-digit second (00 to 60, due to leap second rules)</para>
+          </listitem>
+          <listitem>
+            <para><literal>secfrac</literal> represents the optional fractional seconds with a precision of up to 6 digits</para>
+          </listitem>
+        </itemizedlist>
+        The device shall replace <literal>counter</literal> with a span-dependant counter set to 0 for a new span and incremented by 1 when closing a segment of this span.
+        The device shall replace <literal>extension</literal> with the extension defined by the type of span the segment belongs to.
+      </para>
+      <para>
+        Note: <literal>date</literal> is conformant to the extended date format defined in ISO 8601-1.
+        <literal>time</literal> is <emphasis role="bold">not</emphasis> conformant to the extended time format defined in ISO 8601-1.
+      </para>
+    </section>
+    <section xml:id="_refCloudRecordingSpanEndObjects">
+      <title>Span end objects</title>
+      <para>
+        To store the end time of a span, the device should store an additional empty object when closing a span.
+        The device shall generate the object key for this object according to the ABNF <literal>key</literal> rule and replacement rules defined in <xref linkend="_refCloudRecordingSegmentObjects" />.
+        The device shall replace <literal>date</literal> and <literal>time</literal> respectively with the date and time portion of the end of the last sample contained in the span in Universal Coordinated Time (UTC), following the ABNF rules.
+        The device shall replace <literal>counter</literal> by a value equal to the counter of the last segment of the span plus 1.
+        The device shall replace <literal>extension</literal> according to the following ABNF <literal>extension</literal> rule (according to RFC 5234):
+      </para>
+      <programlisting>extension = span-extension "_end"</programlisting>
+      <para>
+        The device shall replace <literal>span-extension</literal> with the extension defined by the span type.
+      </para>
+    </section>
+    <section xml:id="_refCloudRecordingRecordingFormatMP4">
+      <title>Recording format MP4</title>
+      <para>
+        If the <literal>Format</literal> configured for a recording is <literal>MP4</literal>, the device shall follow the rules given in this section.
+      </para>
+      <para>
+        The device shall open a single span for an active recording containing all tracks of the recording.
+        The device shall use <literal>mp4</literal> as the extension for this span type.
+        The device shall upload each segment object belonging to a span of this type with the content type <literal>video/mp4</literal>.
+        The device should include the <literal>codecs</literal> parameter in the content type according to RFC 6381.
+      </para>
+      <para>
+        The <literal>MovieBox</literal> contained in a segment shall not reference any samples.
+        A segment shall contain a <literal>MovieFragmentRandomAccessBox</literal> as the last box.
+        The <literal>MovieFragmentRandomAccessBox</literal> shall provide references for all tracks and their applicable <literal>MovieFragmentBox</literal> instances.
+      </para>
+    </section>
+    <section xml:id="_refCloudRecordingRecordingFormatCMAF">
+      <title>Recording format CMAF</title>
+      <para>
+        If the <literal>Format</literal> configured for a recording is <literal>CMAF</literal>, the device shall follow the rules given in this section.
+      </para>
+      <para>
+        The device shall open up to three spans for an active recording, each containing a single track of the recording.
+      </para>
+      <para>
+        If the recording contains a video track, the device shall open a video span containing this track.
+        The device shall use <literal>m4v</literal> as the extension for this span type.
+        The device shall upload each segment object belonging to a span of this type with the content type <literal>video/mp4</literal>.
+      </para>
+      <para>
+        If the recording contains an audio track, the device shall open an audio span containing this track.
+        The device shall use <literal>m4a</literal> as the extension for this span type.
+        The device shall upload each segment object belonging to a span of this type with the content type <literal>audio/mp4</literal>.
+      </para>
+      <para>
+        If the recording contains a metadata track, the device shall open a metadata span containing this track.
+        The device shall use <literal>m4m</literal> as the extension for this span type.
+        The device shall upload each segment object belonging to a span of this type with the content type <literal>application/mp4</literal>.
+      </para>
+      <para>
+        The device should include the <literal>codecs</literal> parameter in the content type according to RFC 6381 for all span types defined in this section.
+      </para>
+      <para>
+        The device shall generate each segment according to ISO/IEC 23000-19, the common media application format (CMAF) for segmented media, with one CMAF header and one or more CMAF fragments.
+        A segment may contain a <literal>MovieFragmentRandomAccessBox</literal> as the last box.
+        If a segment contains a <literal>MovieFragmentRandomAccessBox</literal>, every CMAF fragment shall be referenced in the <literal>MovieFragmentRandomAccessBox</literal>.
+      </para>
+      <para>
+        Note: As the different tracks are contained in different spans, the segments do not necessarily align.
+        This is illustrated in <xref linkend="_refCloudRecordingCMAFSegments" />.
+      </para>
+      <figure xml:id="_refCloudRecordingCMAFSegments">
+        <title>Alignment of different segment types</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="media/RecordingControl/cloudRecordingCMAFSegments.svg" contentwidth="104mm" />
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+    <section xml:id="_refCloudRecordingEncryption">
+      <title>Encryption</title>
+      <para>
+        A device signaling support for recording to an external target with encryption shall support writing encrypted files according to ISO/IEC 23001-7 (common encryption in ISO base media file format files).
+        Each <literal>Encryption</literal> entry configured for a recording covers a distinct set of tracks for which to apply the encryption, identified by the <literal>Track</literal> element.
+        If an encryption entry contains no <literal>Track</literal> elements, it covers all tracks of the recording.
+        If an encryption entry contains one or more <literal>Track</literal> elements, it covers the tracks indicated by the track tokens contained in these elements.
+        The device shall encrypt the covered tracks with the scheme given by the <literal>Mode</literal> configured for the encryption entry:
+      </para>
+      <para>
+        <variablelist>
+          <varlistentry>
+            <term>CENC</term>
+            <listitem>
+              <para>
+                AES-CTR mode full sample and video NAL Subsample encryption, defined in ISO/IEC 23001-7.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>CBCS</term>
+            <listitem>
+              <para>
+                AES-CBC mode partial video NAL pattern encryption, defined in ISO/IEC 23001-7.
+              </para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </para>
+      <para>
+        The device shall create an individual initialization vector for each segment.
+        The device shall encrypt with the <literal>Key</literal> configured for the encryption entry as the encryption key.
+        The device shall interpret the <literal>KID</literal> configured for the encryption entry as a 16-byte hexadecimal value and use this value as the key identifier.
+      </para>
+      <para>
+        If an encryption entry is reconfigured for an active recording, the device shall continue to use the old configuration for any open segments and shall start to use the new configuration for new segments.
+      </para>
+    </section>
+    <section xml:id="_refCloudRecordingObjectAttributes">
+      <title>Object attributes</title>
+      <para>
+        The device may store additional attributes defined in <xref linkend="_refCloudRecordingObjectAttributesTable" /> as object metadata when uploading segment objects.
+      </para>
+      <para>
+        Note: When sending attributes as metadata HTTP headers, the attribute keys need to be prefixed with a value determined by the type of storage configured for the recording.
+        If the storage is of type <literal>ObjectStorageS3</literal>, the attribute keys need to be prefixed with <literal>x-amz-meta-</literal> (for example <literal>x-amz-meta-Version: 1.0</literal>).
+        If the storage is of type <literal>ObjectStorageAzure</literal>, the attribute keys need to be prefixed with <literal>x-ms-meta-</literal> (for example <literal>x-ms-meta-Version: 1.0</literal>).
+        Audio-related attributes may be stored for segment objects containing only a video track and video-related attributes may be stored for segment objects containing only an audio track.
+      </para>
+      <table xml:id="_refCloudRecordingObjectAttributesTable">
+        <title>Object attributes</title>
+        <tgroup cols="3">
+          <colspec colwidth="20*" />
+          <colspec colwidth="60*" />
+          <colspec colwidth="50*" />
+          <thead>
+            <row>
+              <entry>
+                <para>Key</para>
+              </entry>
+              <entry>
+                <para>Value</para>
+              </entry>
+              <entry>
+                <para>Format</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><literal>Version</literal></para>
+              </entry>
+              <entry>
+                <para><literal>1.0</literal></para>
+              </entry>
+              <entry>
+                <para><literal>major "." minor</literal></para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>Source</literal></para>
+              </entry>
+              <entry>
+                <para>Identifier of the physical device</para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>EventTopic</literal></para>
+              </entry>
+              <entry>
+                <para>Topic of the event that triggered the recording job</para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>Duration</literal></para>
+              </entry>
+              <entry>
+                <para>Duration of the segment</para>
+              </entry>
+              <entry>
+                <para>ISO 8601-1</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>FullContentType</literal></para>
+              </entry>
+              <entry>
+                <para>Combined content type of all media types contained in the recording</para>
+              </entry>
+              <entry>
+                <para><literal>video/mp4</literal> content type with <literal>codecs</literal> parameter according to RFC 6381</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>VideoChannel</literal></para>
+              </entry>
+              <entry>
+                <para>Video channel identifier</para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>VideoBitrate</literal></para>
+              </entry>
+              <entry>
+                <para>Video bitrate in kilobits per second</para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>VideoWidth</literal></para>
+              </entry>
+              <entry>
+                <para>Video width in pixels from <literal>VisualSampleEntry</literal></para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>VideoHeight</literal></para>
+              </entry>
+              <entry>
+                <para>Video height in pixels from <literal>VisualSampleEntry</literal></para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>VideoFramerate</literal></para>
+              </entry>
+              <entry>
+                <para>Average video framerate in frames per second</para>
+              </entry>
+              <entry>
+                <para>Float</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>AudioChannel</literal></para>
+              </entry>
+              <entry>
+                <para>Audio channel identifier</para>
+              </entry>
+              <entry>
+                <para>String</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>AudioBitrate</literal></para>
+              </entry>
+              <entry>
+                <para>Audio bitrate in kilobits per second</para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>AudioSampleRate</literal></para>
+              </entry>
+              <entry>
+                <para>Audio sample rate in kilohertz</para>
+              </entry>
+              <entry>
+                <para>Integer</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section xml:id="_refCloudRecordingObjectExamples">
+      <title>Examples</title>
+      <para>
+        Given the following storage configuration in a recording configuration:
+      </para>
+      <programlisting><![CDATA[<tt:Target>
+  <tt:Storage>1</tt:Storage>
+  <tt:Format>MP4</tt:Format>
+  <tt:Prefix>site-2</tt:Prefix>
+  <tt:Postfix>camera-5</tt:Postfix>
+  <tt:SegmentDuration>PT60S</tt:SegmentDuration>
+</tt:Target>]]></programlisting>
+      <para>
+        The key of a segment object starting on 2022-11-08 at 15:08:23.547 (UTC) is:
+      </para>
+      <programlisting>site-2/2022-11-08/camera-5/15/08-23.547Z.0.mp4</programlisting>
+      <para>
+        The key of a span end object for a span consisting of 85 segments and ending on 2022-11-08 at 16:34:11.421 (UTC) is:
+      </para>
+      <programlisting>site-2/2022-11-08/camera-5/16/34-11.421Z.85.mp4_end</programlisting>
+      <para>
+        Given the following storage configuration in a recording configuration:
+      </para>
+      <programlisting><![CDATA[<tt:Target>
+  <tt:Storage>1</tt:Storage>
+  <tt:Format>CMAF</tt:Format>
+  <tt:Prefix>site-2</tt:Prefix>
+  <tt:Postfix>camera-5</tt:Postfix>
+  <tt:SegmentDuration>PT5S</tt:SegmentDuration>
+</tt:Target>]]></programlisting>
+      <para>
+        The key of a video segment object containing starting on 2022-11-08 at 15:08:23.547 (UTC) is:
+      </para>
+      <programlisting>site-2/2022-11-08/camera-5/15/08-23.547Z.0.m4v</programlisting>
+      <para>
+        The key of a span end object for a video span consisting of 1020 segments and ending on 2022-11-08 at 16:34:11.421 (UTC) is:
+      </para>
+      <programlisting>site-2/2022-11-08/camera-5/16/34-11.421Z.1020.m4v_end</programlisting>
+      <para>
+        The key of an audio segment object starting on 2022-11-08 at 15:08:23.989 (UTC) is:
+      </para>
+      <programlisting>site-2/2022-11-08/camera-5/15/08-23.989Z.0.m4a</programlisting>
+      <para>
+        The key of a span end object for an audio span consisting of 1020 segments and ending on 2022-11-08 at 16:34:11.779 (UTC) is:
+      </para>
+      <programlisting>site-2/2022-11-08/camera-5/16/34-11.779Z.1020.m4a_end</programlisting>
+      <para>
+        The key of a metadata segment object starting on 2022-11-08 at 15:08:23.692 (UTC) is:
+      </para>
+      <programlisting>site-2/2022-11-08/camera-5/15/08-23.692Z.0.m4m</programlisting>
+      <para>
+        The key of a span end object for a metadata span consisting of 1020 segments and ending on 2022-11-08 at 16:34:11.871 (UTC) is:
+      </para>
+      <programlisting>site-2/2022-11-08/camera-5/16/34-11.871Z.1020.m4m_end</programlisting>
+    </section>
+  </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
-    <para />
+    <para/>
   </appendix>
 </book>
