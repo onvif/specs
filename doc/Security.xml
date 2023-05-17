@@ -1035,6 +1035,14 @@
         <para>The ValueType attribute shall have the value of</para>
         <programlisting>urn:ietf:params:oauth:token-type:jwt</programlisting>
       </section>
+      <section>
+        <title>Usage of JWT-based client authentication over RTSP</title>
+        <para>Since authentication tokens contain sensitive information that could be easily used to perform replay attacks, JWT-based client authentication should not be used over unencrypted RTSP connections.</para>
+      </section>
+      <section>
+        <title>Usage of JWT-based client authentication over RTSPS</title>
+        <para>Since the RTSPS protocol is similar to HTTPS, JWT-based client authentication over RTSPS behaves in the same way as JWT-based client authentication over HTTPS.</para>
+      </section>
     </section>
     <section>
       <title>IEEE 802.1X</title>
@@ -4750,18 +4758,18 @@
     "nbf":1670482800, // not before Thursday, December 8, 2022 7:00:00 AM (GMT)
     "exp":1670572800, // expire at Friday, December 9, 2022 8:00:00 AM (GMT)
     "aud":"target.audience",
-    "roles":"Operator"
+    "roles":"onvif:Operator"
 }
 ]]></programlisting>
     <para>which is base64-encoded as</para>
     <programlisting>eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJzZXJ2ZXIucGF0aC5jb20iLCJuYmYiOjE2NzA0ODI4MDAsImV
-4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmNlIiwicm9sZXMiOiJPcGVyYXRvciJ9.SflKxwRJSMeKKF2QT4
-fwpMeJf36POk6yJV_adQssw5c</programlisting>
+4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmNlIiwicm9sZXMiOiJvbnZpZjpPcGVyYXRvciJ9.SflKxwRJSM
+eKKF2QT4fwpMeJf36POk6yJV_adQssw5c</programlisting>
     <para>While the individual components of the JWT are already base64-encoded, the whole structure is not technically base64-encoded. Therefore it is necessary to base64-encode it again, leading to</para>
     <programlisting>ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOaUo5LmV5SnBjM01pT2lKelpYSjJaWEl1Y0dGMGFDNW
 piMjBpTENKdVltWWlPakUyTnpBME9ESTRNREFzSW1WNGNDSTZNVFkzTURVM01qZ3dNQ3dpWVhWa0lqb2lkR0Z5
-WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9pSlBjR1Z5WVhSdmNpSjkuU2ZsS3h3UkpTTWVLS0YyUVQ0Zn
-dwTWVKZjM2UE9rNnlKVl9hZFFzc3c1Yw==</programlisting>
+WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9pSnZiblpwWmpwUGNHVnlZWFJ2Y2lKOS5TZmxLeHdSSlNNZU
+tLRjJRVDRmd3BNZUpmMzZQT2s2eUpWX2FkUXNzdzVj</programlisting>
     <para>At this point, the JWT can be used in the WS-Security header of the SOAP request:</para>
     <programlisting><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"
@@ -4775,10 +4783,10 @@ dwTWVKZjM2UE9rNnlKVl9hZFFzc3c1Yw==</programlisting>
     <wsse:Security>
       <wsse:BinarySecurityToken EncodingType=”http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#BinarySecurityToken”
                                 ValueType="urn:ietf:params:oauth:token-type:jwt">
-ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKTFpYa3dNREF4SWl3aWJtSm
-1Jam94Tmpjd05EZ3lPREF3TENKbGVIQWlPakUyTnpBMU56STRNREFzSW1saGRDSTZNVFkzTURRNE1UQXdNQ3dp
-Y205c1pYTWlPaUpQY0dWeVlYUnZjaUo5LlNmbEt4d1JKU01lS0tGMlFUNGZ3cE1lSmYzNlBPazZ5SlZfYWRRc3
-N3NWM=
+ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOaUo5LmV5SnBjM01pT2lKelpYSjJaWEl1Y0dGMGFDNW
+piMjBpTENKdVltWWlPakUyTnpBME9ESTRNREFzSW1WNGNDSTZNVFkzTURVM01qZ3dNQ3dpWVhWa0lqb2lkR0Z5
+WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9pSnZiblpwWmpwUGNHVnlZWFJ2Y2lKOS5TZmxLeHdSSlNNZU
+tLRjJRVDRmd3BNZUpmMzZQT2s2eUpWX2FkUXNzdzVj
       </wsse:BinarySecurityToken>
     </wsse:Security>
   </env:Header>
@@ -4789,7 +4797,7 @@ N3NWM=
   </appendix>
   <appendix>
     <title>JWT over HTTPS example</title>
-    <para>The following exchange between client and device demonstrates a device supporting MD5 and SHA-256 for digest authentication as well as JWT-based client authentication.</para>
+    <para>The following exchange between client and device over HTTPS demonstrates a device supporting MD5 and SHA-256 for digest authentication as well as JWT-based client authentication.</para>
     <para>Unauthenticated request from the client:</para>
     <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
 Host: 10.XX.XX.XX
@@ -4813,9 +4821,10 @@ X-Frame-Options: SAMEORIGIN]]></programlisting>
     <para>Authenticated request from the client, by using JWT-based client authentication</para>
     <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
 Host: 10.XX.XX.XX
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJzZXJ2ZXIucGF0
-aC5jb20iLCJuYmYiOjE2NzA0ODI4MDAsImV4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmN
-lIiwicm9sZXMiOiJPcGVyYXRvciJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+Authorization: Bearer ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOaUo5LmV5SnBjM01pT2lK
+elpYSjJaWEl1Y0dGMGFDNWpiMjBpTENKdVltWWlPakUyTnpBME9ESTRNREFzSW1WNGNDSTZNVFkzTURVM01qZ3
+dNQ3dpWVhWa0lqb2lkR0Z5WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9pSnZiblpwWmpwUGNHVnlZWFJ2
+Y2lKOS5TZmxLeHdSSlNNZUtLRjJRVDRmd3BNZUpmMzZQT2s2eUpWX2FkUXNzdzVj
 Content-Type: application/soap+xml; charset=utf-8
 Content-Length: 299
 
@@ -4834,6 +4843,32 @@ nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
 WWW-Authenticate: Digest algorithm=SHA-256, realm="Silvan_http_digest", qop="auth",
 nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
 X-Frame-Options: SAMEORIGIN]]></programlisting>
+  </appendix>
+  <appendix role="revhistory">
+    <title>JWT over RTSPS</title>
+    <para>The following exchange between client and device over RTSPS demonstrates a device supporting MD5 and SHA-256 for digest authentication as well as JWT-based client authentication.</para>
+    <para>Unauthenticated request from the client:</para>
+    <programlisting><![CDATA[DESCRIBE rtsp://10.XX.XX.XX/stream RTSP/1.0
+CSeq: 1
+User-Agent: ./onvifClient
+Accept: application/sdp]]></programlisting>
+    <para>Response from the device challenging for authentication</para>
+    <programlisting><![CDATA[RTSP/1.0 401 Unauthorized
+CSeq: 1
+WWW-Authenticate: Bearer realm="Silvan_rtsp_digest"
+WWW-Authenticate: Digest algorithm=MD5, realm="Silvan_rtsp_digest", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+WWW-Authenticate: Digest algorithm=SHA-256, realm="Silvan_rtsp_digest", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"]]></programlisting>
+    <para>Authenticated request from the client, by using JWT-based client authentication</para>
+    <programlisting><![CDATA[DESCRIBE rtsp://10.XX.XX.XX/stream RTSP/1.0
+Authorization: Bearer ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOaUo5LmV5SnBjM01pT2lK
+elpYSjJaWEl1Y0dGMGFDNWpiMjBpTENKdVltWWlPakUyTnpBME9ESTRNREFzSW1WNGNDSTZNVFkzTURVM01qZ3
+dNQ3dpWVhWa0lqb2lkR0Z5WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9pSnZiblpwWmpwUGNHVnlZWFJ2
+Y2lKOS5TZmxLeHdSSlNNZUtLRjJRVDRmd3BNZUpmMzZQT2s2eUpWX2FkUXNzdzVj
+CSeq: 2
+User-Agent: ./onvifClient
+Accept: application/sdp]]></programlisting>
   </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
