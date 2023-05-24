@@ -400,6 +400,10 @@
           <listitem><para>Protected EAP</para></listitem>
         </varlistentry>
         <varlistentry>
+          <term>SCTP</term>
+          <listitem><para>Stream Control Transmission Protocol</para></listitem>
+        </varlistentry>
+        <varlistentry>
           <term>SHA</term>
           <listitem><para>Secure Hashing Algorithm</para></listitem>
         </varlistentry>
@@ -989,10 +993,23 @@
     </section>
     <section xml:id="_Ref395181339">
       <title>JWT-based client authorization</title>
-      <para>Unlike with HTTP Digest and WS-UsernameToken authentication, this specification defines how to associate clients with the different User Levels as defined in the ONVIF Core Specification. Devices are not expected to have the user credentials stored in their memory, instead they will verify that the user has been correctly authenticated by an external service based on OpenID Connect and authorize accessing different functions, based on the user level presented in the supplied JWT embedded in the binary security token.</para>
-      <para>The content of the binary security token is the base64-encoded JWT according to [RFC 7519].</para>
-      <para>The JOSE header shall declare that the encoded object is a JWT, and the JWT is a JWS that is signed using ECDSA using P-256 (secp256r1) curve and SHA-256 hash algorithm. Additionally, it must include the <emphasis>kid</emphasis> claim as defined by [RFC 7515], which indicates the ID associated to the key used to sign the JWT. If the absolute path of the JWK Set URL is different from https://iss/.well-known/jwks.json, the header may include an optional <emphasis>jku</emphasis> claim.</para>
-      <para>The JWT shall include the following standard claims:</para>
+      <para>Unlike with HTTP Digest and WS-UsernameToken authentication, this specification defines how to associate clients with the different User Levels as defined in the ONVIF Core Specification. Devices are not expected to have the user credentials stored in their memory, instead they will verify that the user has been correctly authenticated by a trusted service based on OpenID Connect and authorize accessing different functions, based on the claims presented in the supplied JWT. JWTs can be presented has headers in case of HTTPS or RTSP, or they can be embedded in SOAP messages, in the form of binary security tokens. In case JWTs are embedded in binary security tokens, their content are the base64-encoded JWTs according to [RFC 7519].</para>
+      <para>JWTs consists of three elements:</para>
+      <para>
+        <itemizedlist>
+          <listitem>
+            <para>JOSE header;</para>
+          </listitem>
+          <listitem>
+            <para>Payload;</para>
+          </listitem>
+          <listitem>
+            <para>Signature.</para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>The JOSE header shall declare that the encoded object is a JSON Web Token by setting the <emphasis>typ</emphasis> claim to <emphasis>JWT</emphasis>, and the JWT is a JWS that is signed using ECDSA using P-256 (secp256r1) curve and SHA-256 hash algorithm, by setting the <emphasis>alg</emphasis> claim to <emphasis>ES256</emphasis>.</para>
+      <para>The JWT payload shall include the following standard claims:</para>
       <para>
         <itemizedlist>
           <listitem>
@@ -1018,9 +1035,15 @@
           </listitem>
         </itemizedlist>
       </para>
+      <para>The signature is evaluated by applying ECDSA using secp256r1 and SHA-256 hashing to the base64-encoded header and payload, concatenated by a '.'</para>
+      <programlisting>ECDSA-SHA256 (base64UrlEncode(header) + "." +
+              base64UrlEncode(payload),
+              secp256r1))</programlisting>
+      <para>The evaluated signature is further appended to the encoded header and payload with a '.' separator, to get the final JWT. Appendix <xref linkend="_Ref460769599"/> demonstrates the construction or a JWT.</para>
+      <para>The signature is used to verify the message wasn't changed along the way, and, in the case of tokens signed with a private key, it can also verify the identity of who signed the JWT.</para>
       <section>
         <title>Usage of JWT-based client authentication over HTTP</title>
-        <para>Since authentication tokens contain sensitive information that could be easily used to perform replay attacks, JWT-based client authentication should not be used over unencrypted HTTP connections.</para>
+        <para>Since authentication tokens contain sensitive information that could be easily used to perform replay attacks, JWT-based client authentication shall not be used over unencrypted HTTP connections.</para>
       </section>
       <section>
         <title>Usage of JWT-based client authentication over HTTPS</title>
@@ -1057,7 +1080,7 @@
         providing authentication of users and authorizing access to both device services and
         external services, like cloud storage.</para>
       <para>OAuth 2.0 is a specification that describes how to issue access tokens. It is defined in [RFC6749]. OpenID Connect has been developed as an extension of OAuth 2.0.</para>
-      <para>OAuth 2.0 includes the definition of a web API called "authorization endpoint". Requests to this API must include a parameter called <emphasis>response_type</emphasis> which can be either <emphasis>code</emphasis> or <emphasis>token</emphasis>. OpenID Connect extends the OAuth 2.0 specification, by adding the values <emphasis>id_token</emphasis> and <emphasis>none</emphasis>for <emphasis>response_type</emphasis> and allowing any combination of <emphasis>code</emphasis>, <emphasis>token</emphasis> and <emphasis>id_token</emphasis>.</para>
+      <para>OAuth 2.0 includes the definition of a web API called "authorization endpoint". Requests to this API must include a parameter called <emphasis>response_type</emphasis> which can be either <emphasis>code</emphasis> or <emphasis>token</emphasis>. OpenID Connect extends the OAuth 2.0 specification, by adding the values <emphasis>id_token</emphasis> and <emphasis>none</emphasis> for <emphasis>response_type</emphasis> and allowing any combination of <emphasis>code</emphasis>, <emphasis>token</emphasis> and <emphasis>id_token</emphasis>.</para>
       <para>Any request for ID tokens must include <emphasis>openid</emphasis> in the <emphasis>scope</emphasis> request parameter.</para>
       <section xml:id="section_acl_4zq_swb">
         <title>User authentication and authorization</title>
@@ -1245,7 +1268,9 @@
                 </entry>
               </row>
               <row>
-                <entry>private_key_jwt</entry>
+                <entry>
+                  <para>private_key_jwt</para>
+                </entry>
                 <entry>
                   <para>Use PKI signed JWT using private key, see [OpenID Connect Core]</para>
                 </entry>
@@ -4747,7 +4772,7 @@
       <para>All other configuration of the TLS server on a device is outside the scope of this specification revision and may be addressed by later revisions of this document.</para>
     </section>
   </chapter>
-  <appendix>
+  <appendix xml:id="_Ref460769599">
     <title>JWT over SCTP example</title>
     <para>The JWT will have the following content</para>
     <programlisting><![CDATA[{
