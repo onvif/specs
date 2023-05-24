@@ -66,11 +66,6 @@
     <para>ITU-T Recommendation, H.265: High effiency video coding</para>
     <para role="reference">&lt;<link xlink:href="https://www.itu.int/rec/T-REC-H.265"
         xmlns:xlink="http://www.w3.org/1999/xlink"/>&gt;</para>
-    <para>ITU-T Recommendation X.690 (2008) | ISO/IEC 8825-1:2008, Information technology – ASN.1
-      encoding rules: Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and
-      Distinguished Encoding Rules (DER)</para>
-    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
-        xlink:href="https://www.itu.int/rec/T-REC-X.690-200811-S"/>&gt;</para>
     <para>ITU-T Recommendation X.660 (2011) | ISO/IEC 9834-1:2012, Information technology —
       Procedures for the operation of object identifier registration authorities — Part 1: General
       procedures and top arcs of the international object identifier tree</para>
@@ -79,6 +74,9 @@
     <para>Global OID reference database</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://oid-info.com/"/>&gt;</para>
+    <para>IETF RFC 6234 - US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF)</para>
+    <para role="reference">&lt;<link xlink:href="http://tools.ietf.org/html/rfc6234"
+        xmlns:xlink="http://www.w3.org/1999/xlink"/>&gt;</para>
   </chapter>
   <chapter xml:id="chapter_b3s_njq_bwb">
     <title>Terms and Definitions</title>
@@ -221,8 +219,9 @@
     <section xml:id="section_g3s_njq_bwb">
       <title>Limitations</title>
       <para><emphasis role="bold">Codecs</emphasis>. <emphasis>Signed Video</emphasis> is defined
-        for the H.264 and H.265 video codec formats. Therefore, most of the description uses the
-        Network Abstraction Layer (NAL) concept. For simplicity, hashing is done on NAL Units
+        for the H.264 and H.265 video codec formats, for full details see references. 
+        Therefore, most of the description uses the Network Abstraction Layer (NAL) concept. 
+        For simplicity, hashing is done on NAL Units
         instead of full frame data. One frame may be split into multiple NAL Units and therefore
         generating multiple hashes per frame. Note that raw video is not covered, since there are
         no means to add signatures within the video format. There exists other codec standards
@@ -241,14 +240,17 @@
         risk of losing packets within a SEI frame, the specification allows the device to add
         redundancy by transmitting the same SEI multiple times; See Section "section_y3s_njq_bwb"
         below.</para>
-      <para><emphasis role="bold">Hashing algorithms</emphasis>. Hashing is used in two contexts; 1)
+      <para><emphasis role="bold">Hashing algorithms</emphasis>. Hashing algorithms, for example
+        those specififed in RFC 6234 in references, are generally used to compute a a fixed length
+        hash value from any arbitrary long input string. Hashing is used in two contexts; 1)
         to get a short representation of each NAL Unit to put in a list, and 2) as message digest
         when generating signatures. Note that these two can be different. The same hashing
         algorithms have to be used in both the device and the client. The device specifies which
         hashing algorithms were used, which for example limits the ability for the client to put
         extra security on some videos.</para>
       <para><emphasis role="bold">Signing algorithm</emphasis>. The standard specifies signing
-        algorithm through its OID [tr2:Global OID reference database]. Signing should be done in a trusted environment and there are
+        algorithm through its OID as definied by the relevant authority or searchable in the global
+        OID reference database. Signing should be done in a trusted environment and there are
         usually limitations to which signing algorithms are supported. This limits the scope, and
         the device decides which to use.</para>
       <para><emphasis role="bold">Bitrate increase</emphasis>. Adding SEI frames to the encoded
@@ -287,14 +289,14 @@
     <section xml:id="section_h3s_njq_bwb">
       <title>Detailed description on how the device generates SEI frames including
         signatures</title>
-      <para>The H.264 and H.265 codec formats allows the user to add arbitrary data to a stream
-        through SEI frames of type user data unregistered. <emphasis>Signed Video</emphasis> puts
-        the produced signatures and additional metadata in such frames. These SEI frames are ignored
-        by the decoder and will therefore not affect the video rendering. One obvious drawback is
-        that it is easy to change the video from signed to unsigned by dropping these SEI frames. In
-        some cases this can also be beneficial. For example, if the user is no longer interested in
-        its authenticity, the SEI frames can be removed and thereby reducing the bitrate. It is out
-        of scope to protect against lost SEI frames. Validating a video where SEIs have been lost or
+      <para>The H.264 and H.265 codec formats, as specified in referenced documents, allows the user
+        to add arbitrary data to a stream through SEI frames of type user data unregistered. 
+        <emphasis>Signed Video</emphasis> puts the produced signatures and additional metadata in such frames. 
+        These SEI frames are ignored by the decoder and will therefore not affect the video rendering. 
+        One obvious drawback is that it is easy to change the video from signed to unsigned by dropping
+        these SEI frames. In some cases this can also be beneficial. For example, if the user is no 
+        longer interested in its authenticity, the SEI frames can be removed and thereby reducing the bitrate. 
+        It is out of scope to protect against lost SEI frames. Validating a video where SEIs have been lost or
         removed will anyhow be marked as not authentic, or unsigned (if no SEIs are present).</para>
       <para>All operations are done on the encoded video stream. Each picture frame is split into
         NAL Units and <emphasis role="italic">Signed Video</emphasis> operates on these NAL Units.
@@ -1342,9 +1344,6 @@
     <para> Alliance for Open Media | AV1 Bitstream &amp; Decoding Process Specification </para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="https://aomedia.org/av1/specification/"/>&gt;</para>
-        <para>IETF RFC 6234 - US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF)</para>
-    <para role="reference">&lt;<link xlink:href="http://tools.ietf.org/html/rfc6234"
-        xmlns:xlink="http://www.w3.org/1999/xlink"/>&gt;</para>
     <para>IETF RFC 3447 Public-Key Cryptography Standards (PKCS) #1: RSA Cryptography Specifications
       Version 2.1</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
