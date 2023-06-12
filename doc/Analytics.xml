@@ -4,19 +4,19 @@
   <info>
     <title>Analytics Service Specification</title>
     <titleabbrev>Analytics</titleabbrev>
-    <releaseinfo>22.12</releaseinfo>
+    <releaseinfo>23.06</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>December, 2022</pubdate>
+    <pubdate>June, 2023</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
       </imageobject>
     </mediaobject>
     <copyright>
-      <year>2008-2022</year>
+      <year>2008-2023</year>
       <holder>ONVIF™ All rights reserved.</holder>
     </copyright>
     <legalnotice>
@@ -250,6 +250,14 @@
           <personname>Fredrik Svensson, Hans Busch</personname>
         </author>
         <revremark>Unify analytics and core mqtt attribute and value handling. Add Likelihood attribute to color type</revremark>
+      </revision>
+      <revision>
+        <revnumber>23.06</revnumber>
+        <date>Jun-2023</date>
+        <author>
+          <personname>Fredrik Svensson, Sujith Raman, Venki Aravapalli</personname>
+        </author>
+        <revremark>Addition of spherical coordinate descriptor, direction descriptor and barcode information. Rule additions for abondoned and removed objects.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -2782,19 +2790,21 @@ xmlns:acme="http://www.acme.com/schema"&gt;
       "Appearance": {
         "Shape": {
           "BoundingBox": {
-            "@left": 20.0, "@top": 20.0, "@right": 100.0, "@bottom": 30.0
+            "@left": 20.0, "@top": 80.0, "@right": 100.0, "@bottom": 30.0
           },
           "CenterOfGravity": {
             "@x": 60.0, "@y": 50.0
           },
           "Polygon": [{
-            "@x": 20.0, "@y": 30.0
-          }, {
-            "@x": 100.0, "@y": 30.0
-          }, {
-            "@x": 100.0, "@y": 80.0
-          }, {
-            "@x": 20.0, "@y": 80.0
+            "Point": [{
+              "@x": 20.0, "@y": 30.0
+              }, {
+              "@x": 100.0, "@y": 30.0
+              }, {
+              "@x": 100.0, "@y": 80.0
+              }, {
+              "@x": 20.0, "@y": 80.0
+            }]
           }]
         },
         "Color": {
@@ -2819,9 +2829,9 @@ xmlns:acme="http://www.acme.com/schema"&gt;
           }]
         },
         "HumanFace": {
-          "Gender:": "Male",
+          "Gender": "Male",
           "Age": {
-            "@Min": 20, "@Max": 30
+            "Min": 20, "Max": 30
           },
           "Accessory": {
             "Opticals": {
@@ -3816,8 +3826,9 @@ xmlns:acme="http://www.acme.com/schema"&gt;
     <section>
       <title>Events</title>
       <section>
-        <title>Audio Detected</title>
-        <para>Analytics engine can send the following event for analyzed audio data.</para>
+        <title>Audio Detected (deprecated)</title>
+        <para>Analytics engine can send the following event for analyzed audio data. This event is
+          deprecated in favor of events described in <xref linkend="appendix_hw3_vnr_nwb"/>.</para>
         <programlisting><![CDATA[<tt:MessageDescription IsProperty=“false">
   <tt:Source>
     <tt:SimpleItemDescription Name=“AudioSourceConfigurationToken"
@@ -3834,8 +3845,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
   </tt:Data >
   <tt:ParentTopic>tns1:AudioAnalytics/Audio/DetectedSound
   </tt:ParentTopic>
-</tt:MessageDescription>
-]]></programlisting>
+</tt:MessageDescription>]]></programlisting>
         <para>The Rule field is optional and contains the Rule instance name that generated the audio detected event.</para>
       </section>
     </section>
@@ -3909,6 +3919,9 @@ xmlns:acme="http://www.acme.com/schema"&gt;
 
           <para>In case of setting up any region based detection rule for event trigger (e.g. Field Detector, Loitering Detector, Declarative motion detector, Object Detection) rule should contain a parameter 'Field' ElementItem. The ElementItem identifies the region usually defined by a polygon for which the rule has been setup. The corresponding ElementItemDescription resembles the following:</para>
           <programlisting><![CDATA[<tt:ElementItemDescription Name="Field" Type="tt:Polygon">]]></programlisting>
+		  
+		  <para>If the rule supports activation and deactivation, the rule should contain a parameter 'Armed' SimpleItem. The corresponding SimpleItemDescription resembles the following:</para>
+          <programlisting><![CDATA[<<tt:SimpleItemDescription Name="Armed" Type="xs:boolean">]]></programlisting>		 
 
         </section>
       <section xml:id="_objectClass">
@@ -7470,6 +7483,73 @@ xmlns:acme="http://www.acme.com/schema"&gt;
       <para>If the IncludeImage configuration parameter is set to an empty string, device shall not include VehicleImage and VehicleImageURI event fields in the event message.</para>
       <para>If the IncludeImage configuration parameter is set as Embedded, device shall include VehicleImage event field in the event message.</para>
       <para>If the IncludeImage configuration parameter is set as LocalStorage or RemoteStorage, device shall include VehicleImageURI event field in the event message.</para>
+    </section>
+  </appendix>
+  <appendix xml:id="appendix_hw3_vnr_nwb">
+    <title>Audio analytics (normative)</title>
+    <section>
+      <title>Audio Classification</title>
+      <para>A rule engine can send the following event for detected audio classes.</para>
+      <programlisting><![CDATA[<tt:RuleDescription Name="tt:AudioClassDetector">
+  <tt:Parameters>
+    <tt:SimpleItemDescription Name="ClassFilter" Type="tt:StringList"/>
+    <tt:SimpleItemDescription Name="ConfidenceLevel" Type="xs:float"/>
+  </tt:Parameters>
+  <tt:Messages>
+    <tt:MessageDescription IsProperty="false">
+      <tt:Source>
+        <tt:SimpleItemDescription Name="AudioSource" Type="tt:ReferenceToken"/>
+        <tt:SimpleItemDescription Name="AnalyticsConfiguration" Type="tt:ReferenceToken"/>
+        <tt:SimpleItemDescription Name="Rule" Type="xs:string"/>
+      </tt:Source>
+      <tt:Data>
+        <tt:SimpleItemDescription Name="Class" Type="tt:StringList"/>
+        <tt:SimpleItemDescription Name="Score" Type="tt:FloatList"/>
+      </tt:Data >
+      <tt:ParentTopic>tns1:RuleEngine/AudioDetector/Class</tt:ParentTopic>
+    </tt:MessageDescription>
+  <tt:Messages>
+</tt:RuleDescription>
+]]></programlisting>
+      <variablelist role="op">
+        <varlistentry>
+          <term>Parameters</term>
+          <listitem>
+            <para role="param">ClassFilter - optional [tt:StringList]</para>
+            <para role="text">List of classes that the rule should operate on chosen from
+              tt:AudioClassification.</para>
+            <para role="param">ConfidenceLevel - optional [xs:float]</para>
+            <para role="text">Minimum confidence level for accepting a classification. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Topic</term>
+          <listitem>
+            <para role="text">tns1:RuleEngine/AudioDetector/Class</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem>
+            <para role="param">AudioSource [tt:ReferenceToken]</para>
+            <para role="text">The token of the audio source.</para>
+            <para role="param">AnalyticsConfiguration - optional [tt:ReferenceToken]</para>
+            <para role="text">Optional token of the analytics configuration this rule belongs
+              to.</para>
+            <para role="param">Rule - optional [xs:string]</para>
+            <para role="text">Optional name of the Rule that generated the event.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Data</term>
+          <listitem>
+            <para role="param">Class [tt:StringList]</para>
+            <para role="text">List of detected audio classifications of type tt:AudioClassification. </para>
+            <para role="param">Score - optional [tt:FloatList]</para>
+            <para role="text">Optional list of scores of detected audio classifications. </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
     </section>
   </appendix>
   <appendix role="revhistory">
