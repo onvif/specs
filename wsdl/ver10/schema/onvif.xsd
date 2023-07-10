@@ -8,12 +8,13 @@ Recipients of this document may copy, distribute, publish, or display this docum
 THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
 IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.
 -->
-<xs:schema xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="23.06">
+<xs:schema xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:tas="http://www.onvif.org/ver10/advancedsecurity/wsdl" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="23.06">
 	<xs:include schemaLocation="common.xsd"/>
 	<xs:import namespace="http://www.w3.org/2005/05/xmlmime" schemaLocation="http://www.w3.org/2005/05/xmlmime"/>
 	<xs:import namespace="http://www.w3.org/2003/05/soap-envelope" schemaLocation="http://www.w3.org/2003/05/soap-envelope"/>
 	<xs:import namespace="http://docs.oasis-open.org/wsn/b-2" schemaLocation="http://docs.oasis-open.org/wsn/b-2.xsd"/>
 	<xs:import namespace="http://www.w3.org/2004/08/xop/include" schemaLocation="http://www.w3.org/2004/08/xop/include"/>
+	<xs:import namespace="http://www.onvif.org/ver10/advancedsecurity/wsdl" schemaLocation="http://www.onvif.org/ver10/advancedsecurity/wsdl"/>
 	<!--===============================-->
 	<!--         Generic Types         -->
 	<!--===============================-->
@@ -7668,20 +7669,19 @@ and sample rate. </xs:documentation>
 			</xs:enumeration>
 		</xs:restriction>
 	</xs:simpleType>
-	<!--===============================-->
-	<xs:complexType name="RecordingEncryption">
+	<xs:simpleType name="KID">
+		<xs:restriction base="xs:hexBinary">
+			<xs:length value="16"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="StaticKeyEncryption">
 		<xs:sequence>
-			<xs:element name="KID">
-				<xs:simpleType>
-					<xs:restriction base="xs:hexBinary">
-						<xs:length value="16"/>
-					</xs:restriction>
-				</xs:simpleType>
+			<xs:element name="KID" type="tt:KID">
 				<xs:annotation>
 					<xs:documentation>Key ID of the associated key for encryption.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="Key" type="xs:hexBinary" minOccurs="0">
+			<xs:element name="Key" type="xs:hexBinary">
 				<xs:annotation>
 					<xs:documentation>
 						Key for encrypting content.
@@ -7689,6 +7689,30 @@ and sample rate. </xs:documentation>
 					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="CertificateEncryption">
+		<xs:sequence>
+			<xs:element name="CertificateID" type="tas:CertificateID" minOccurs="1" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>List of certificates used to encrypt the symmetric key for the PSSH box.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="KeyRotationDuration" type="xs:duration" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>
+					Frequency at which the device shall generate a new key to encrypt a new segment. 
+					If not specified, key rotation is disabled. 
+					KeyRotationDuration must be a positive duration value.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="RecordingEncryption">
+		<xs:sequence>
+			<xs:element name="StaticKey" type="tt:StaticKeyEncryption" minOccurs="0" maxOccurs="1" />
+			<xs:element name="Certificate" type="tt:CertificateEncryption" minOccurs="0" maxOccurs="1" />
 			<xs:element name="Track" type="xs:string" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation>
@@ -7696,16 +7720,6 @@ and sample rate. </xs:documentation>
 						If no track tokens are specified, all tracks are encrypted and no other encryption configurations shall exist for the recording.
 						Each track shall only be contained in one encryption configuration.
 					</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element name="CertificateId" type="tas:CertificateID" minOccurs="0" maxOccurs="unbounded">
-				<xs:annotation>
-					<xs:documentation>List of certificates used to encrypt the symmetric key for the PSSH box.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element name="KeyRotationDuration" type="xs:duration" minOccurs="0">
-				<xs:annotation>
-					<xs:documentation>Frequency at which the device shall generate a new key to encrypt a new segment. If not specified, key rotation is disabled.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
