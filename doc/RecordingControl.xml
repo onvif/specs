@@ -2064,95 +2064,77 @@ secfrac = "." 1*6DIGIT</programlisting>
         <section xml:id="_refKeyStorageStandardCenc">
           <title>Standard CENC system</title>
           <para>
-            When a file is frame encrypted a pssh 'CENC' box SHALL be present in the file according to [W3C 'cenc' Initialization Data Format].
+            When a file is frame encrypted exactly one pssh box of type 'CENC' box shall be present in the file according to [W3C 'cenc' Initialization Data Format].
             This is independent of the <literal>EncryptionMode</literal>.
+            Additionnal types of 'pssh' boxes may be present to support alternative DRM systems, such as <xref linkend="_refKeyStorageKeyRotationSystem" />.
           </para>
-          <para>
-            'Version' field SHALL be '1' and the 'SystemID' field SHALL be <literal>'1077efec-c0b2-4d02-ace3-3c1e52e2fb4b'</literal>.
-          </para>
-          <para>
-            The 'KID_count' SHALL be '1' with 'KID' field equal to the value of <literal>KID</literal> configured for the encryption entry as the key identifier.
-          </para>
+          <section>
+            <title>Syntax</title>
+          <programlisting><![CDATA[
+aligned(8) class ProtectionSystemSpecificHeaderBox extends FullBox('pssh', version=1, flags=0)
+{
+  unsigned int(8)[16] SystemID;
+  unsigned int(32) KID_count;
+  for (i=1; i <= KID_count; i++){
+    unsigned int(8)[16] KID;
+  }
+  unsigned int(32) DataSize = 0;
+}
+            ]]></programlisting>
+            <para>See <a href="https://www.w3.org/TR/eme-initdata-cenc/#example">example</a> of a CENC pssh box by W3C.</para>
+          </section>
+          <section>
+            <title>Semantics</title>
+            <para><literal>Version</literal> shall be '1'.</para>
+            <para><literal>Flags</literal> shall be '0'.</para>
+            <para><literal>SystemID</literal> shall be <literal>'1077efec-c0b2-4d02-ace3-3c1e52e2fb4b'</literal>.</para>
+            <para><literal>KID_count</literal> be equal to the number of different keys used in the file.</para>
+            <para><literal>KID</literal>, one for each <literal>RecordingEncryption</literal>.</para>
+            <para><literal>DataSize</literal> shall be '0'.</para>
+          </section>
         </section>
         <section xml:id="_refKeyStorageKeyRotationSystem">
           <title>Key rotation system</title>
           <para>
-            'Version' field SHALL be '1' and the 'SystemID' field SHALL be <literal>'ca774354-6f98-41b6-b17a-b15f7bbf678a'</literal>.
+            The box contains the required information to obtain the symmetric key, provided it has access to the certificate's private key (directly or through a key server, for example) and then decrypt the frames with it.
           </para>
           <para>
-            The 'KID_count' SHALL be '1' with 'KID' field equal to a generated UUID by the device. This 'KID' SHOULD be the same in all segments until the symmetric key changes.
-          </para>
-          <para>
-            'DataSize' SHALL be the size of the following 'Data' byte array, containing this binary structure:
-          </para>
-          <para>
-            <variablelist>
-              <varlistentry>
-               <term>EncryptedKeyEntryCount (uint)</term>
-               <listitem>
-                 <para>
-                   Number of entries containing encryption information required to decrypt the symmetric key. SHALL be 1 or more.
-                 </para>
-               </listitem>
-              </varlistentry>
-              <varlistentry>
-               <term>EncryptedKeyEntries (EncryptedKeyEntry[EncryptionEntryCount])</term>
-               <listitem>
-                 <para>
-                   A list of entries containing encryption information required to decrypt the symmetric key.
-                 </para>
-               </listitem>
-             </varlistentry>
-            </variablelist>
-          </para>
-          <para>
-            The <literal>EncryptedKeyEntry</literal> model is defined as:
-            <variablelist>
-             <varlistentry>
-               <term>CertificateThumbprintSize (uint)</term>
-               <listitem>
-                 <para>
-                   Size of the <literal>CertificateThumbprint</literal> field. SHALL be '20'.
-                 </para>
-               </listitem>
-             </varlistentry>
-            <varlistentry>
-              <term>CertificateThumbprint (byte[CertificateThumbprintSize])</term>
-              <listitem>
-                <para>
-                  Thumbprint of the certificate used to encrypted the symmetric key (Computed using SHA-1).
-                </para>
-              </listitem>
-            </varlistentry>
-            <varlistentry>
-              <term>EncryptedKeySize (uint)</term>
-              <listitem>
-                <para>
-                  Size of the <literal>EncryptedKey</literal> field. Valid values depend on the encryption algorithm used by the certificate.
-                </para>
-              </listitem>
-            </varlistentry>
-            <varlistentry>
-              <term>EncryptedKey (byte[EncryptedKeySize])</term>
-                <listitem>
-                  <para>
-                    The symmetric key (identified by KID) used for frame encryption, encrypted using the public key of the certificate.
-                  </para>
-                </listitem>
-              </varlistentry>
-            </variablelist>
-          </para>
-          <para>
-            This data structure and its containing 'pssh' box defined here allows for a client application to decrypt the symmetric key and then decrypt the frames with it.
-            The presence of the CENC 'pssh' box is highly recommended by W3C as it increases compatibility with standard players.
-            However, if <literal>Certificate</literal> is being used, the client application may not have access to the symmetric key generated by the device.
-            The second 'pssh' box contains the required information to obtain the symmetric key, provided it has access to the certificate's private key (directly or through a key server, for example).
-            A client application would be aware of this fact indicated by the presence of the second 'pssh' box.
             Additionnal 'pssh' boxes may be present to support alternative DRM systems.
-          </para>
-          <para>
             Note that DRM systems and client implementations are outside the scope of this specification.
           </para>
+          <section>
+            <title>Syntax</title>
+            <programlisting><![CDATA[
+aligned(8) class KeyRotationSystemHeaderBox extends FullBox('pssh', version=1, flags=0)
+{
+  unsigned int(8)[16] SystemID;
+  unsigned int(32) KID_count = 1;
+  unsigned int(8)[16] KID;
+  unsigned int(32) DataSize;
+  unsigned int(32) EncryptedKeyEntryCount;
+  for (i=1; i <= EncryptedKeyEntryCount; i++) {
+    unsigned int(32) CertificateThumbprintSize;
+    unsigned int(8)[CertificateThumbprintSize] CertificateThumbprint;
+    unsigned int(32) EncryptedKeySize;
+    unsigned int(8)[EncryptedKeySize] EncryptedKey;
+  }
+}
+            ]]></programlisting>
+          </section>
+          <section>
+            <title>Semantics</title>
+            <para><literal>Version</literal> shall be '1'.</para>
+            <para><literal>Flags</literal> shall be '0'.</para>
+            <para><literal>SystemID</literal> shall be <literal>'ca774354-6f98-41b6-b17a-b15f7bbf678a'</literal>.</para>
+            <para><literal>KID_count</literal> shall be '1'.</para>
+            <para><literal>KID</literal> is the generated UUID by the device. This <literal>KID</literal> should be the same in all segments until the symmetric key changes.</para>
+            <para><literal>DataSize</literal> is the size in bytes of all the other fields present in this box following this field.</para>
+            <para><literal>EncryptedKeyEntryCount</literal> Number of entries containing encryption information required to decrypt the symmetric key. Shall be 1 or more.</para>
+            <para><literal>CertificateThumbprintSize</literal> Size of the <literal>CertificateThumbprint</literal> field. Shall be '20'.</para>
+            <para><literal>CertificateThumbprint</literal> Thumbprint of the certificate used to encrypted the symmetric key (Computed using SHA-1).</para>
+            <para><literal>EncryptedKeySize</literal> Size of the <literal>EncryptedKey</literal> field. Valid values depend on the encryption algorithm used by the certificate.</para>
+            <para><literal>EncryptedKey</literal> The symmetric key (identified by <literal>KID</literal>) used for frame encryption, encrypted using the public key of the certificate.</para>
+          </section>
         </section>
       </section>
     </section>
