@@ -88,8 +88,7 @@ background-color: #d0d0d0;
 font-weight: bold;
 }
 literal {
-font-family: serif;
-font-weight: bold;
+font-family: monospace;
 }</xsl:variable>
     <xsl:template match="/">
         <html>
