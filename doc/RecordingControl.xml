@@ -2048,8 +2048,8 @@ secfrac = "." 1*6DIGIT</programlisting>
         The device shall include a <xref linkend="_refKeyStorageStandardCenc" /> Standard CENC PSSH box.
       </para>
       <para>
-        When using <literal>Certificate</literal> then the device shall generate a <literal>KID/Key</literal> pair and encrypt the <literal>Key</literal> with each certificate public key defined in the configuration. The encrypted keys shall be stored in the file using a <xref linkend="_refKeyStorageKeyRotationSystem" /> Key rotation system PSSH box.
-        When <literal>KeyRotationDuration</literal> is set then the device shall generate a new <literal>KID/Key</literal> pair at the specified time interval as defined by <literal>KeyRotationDuration</literal>.
+        When using <literal>Certificate</literal> then the device shall generate a <literal>KID/Key</literal> pair and encrypt the <literal>Key</literal> with each certificate public key defined in the configuration. The encrypted keys shall be stored in the file using a <xref linkend="_refKeyStorageKeyRotationSystem" /> Asymmetric key system PSSH box.
+        When <literal>KeyRotationDuration</literal> is set then the device shall generate a new <literal>KID/Key</literal> pair at the specified time interval as defined by <literal>KeyRotationDuration</literal>, but still use the current key until the segment is finished.
         New segments shall use the latest generated <literal>Key</literal> for its encryption.
       </para>
       <para>
@@ -2076,7 +2076,7 @@ aligned(8) class ProtectionSystemSpecificHeaderBox extends FullBox('pssh', versi
 {
   unsigned int(8)[16] SystemID;
   unsigned int(32) KID_count;
-  for (i=1; i <= KID_count; i++){
+  for (i=1; i <= KID_count; i++) {
     unsigned int(8)[16] KID;
   }
   unsigned int(32) DataSize = 0;
@@ -2101,6 +2101,7 @@ aligned(8) class ProtectionSystemSpecificHeaderBox extends FullBox('pssh', versi
             The symmetric key is encrypted once for each configured certificate using the public key.
             The client needs access to at least one of the certificates' private key to decrypt it (e.g. directly or through a key server).
             The client can then decrypt the frames using this symmetric key.
+            If tracks are encrypted using different keys, then one <literal>AsymmetricKeySystemHeaderBox</literal> will be present per <literal>KID</literal>.
           </para>
           <para>
             Additionnal 'pssh' boxes may be present to support alternative DRM systems.
@@ -2109,7 +2110,7 @@ aligned(8) class ProtectionSystemSpecificHeaderBox extends FullBox('pssh', versi
           <section>
             <title>Syntax</title>
             <programlisting><![CDATA[
-aligned(8) class KeyRotationSystemHeaderBox extends FullBox('pssh', version=1, flags=0)
+aligned(8) class AsymmetricKeySystemHeaderBox extends FullBox('pssh', version=1, flags=0)
 {
   unsigned int(8)[16] SystemID;
   unsigned int(32) KID_count = 1;
