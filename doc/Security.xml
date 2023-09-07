@@ -3687,10 +3687,11 @@
     </section>
     <section>
       <title>JWT-based authentication</title>
-      <para>The following functions are defined to control the set of accepted <emphasis>aud</emphasis> claims.</para>
+      <para>The following functions are defined to control the set of accepted <emphasis>aud</emphasis> claims. See also <xref linkend='_Ref395181339'/>.</para>
       <section>
         <title>GetJWTConfiguration</title>
-        <para>This operation returns the parameters of the JWT authorization used by the device.</para>
+        <para>This operation returns the parameters of the JWT authorization used by the device. A
+          device shall support this command if the capability JWTAuthorization is set.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -3702,7 +3703,8 @@
             <term>response</term>
             <listitem>
               <para role="param">Configuration - [tas:JWTConfiguration]</para>
-              <para role="text">The configuration parameter for JWT authorization used by the device.</para>
+              <para role="text">The configuration parameters for JWT authorization used by the
+                device.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -3721,13 +3723,16 @@
       </section>
       <section>
         <title>SetJWTConfiguration</title>
-        <para>This operation sets the parameters of the JWT authorization used by the device.</para>
+        <para>This operation sets the parameters of the JWT authorization used by the device. A
+          device shall support this command if the capability JWTAuthorization is set.</para>
+        <para>JWT client authorization of the device is enabled when at least one key or trusted issuer URI is provided.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
             <listitem>
               <para role="param">Configuration - [tas:JWTConfiguration]</para>
-              <para role="text">The configuration parameter for JWT authorization used by the device.</para>
+              <para role="text">The configuration parameters for JWT authorization used by the
+                device.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -3741,6 +3746,12 @@
             <listitem>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:TooManyAudiences</para>
               <para role="text">The list of audiences is too big to be saved.</para>
+              <para role="param">ter:Sender - ter:InvalidArgVal - ter:KeyID</para>
+              <para role="text">No key is stored under the requested KeyID.</para>
+              <para role="param">ter:Sender - ter:InvalidArgVal - ter:MaxIssuersExceeded</para>
+              <para role="text">Too many trusted issuers provided.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:CertPathValidationPolicyID </para>
+              <para role="text">No certification path validation policy is stored under the requested certification path validation policy ID.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -3750,6 +3761,7 @@
             </listitem>
           </varlistentry>
         </variablelist>
+        <para>A device shall support assignment of as many keys as its key store can hold. A device shall support at least two trusted issuers.</para>
       </section>
     </section>
     <section>
@@ -4060,6 +4072,15 @@
                 </entry>
                 <entry>
                   <para>Indicates whether the device supports enabling and disabling specific TLS versions.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>JWTAuthorization</para>
+                </entry>
+                <entry>
+                  <para>Indicates whether the device supports client authorization via JWT
+                    tokens.</para>
                 </entry>
               </row>
             </tbody>
