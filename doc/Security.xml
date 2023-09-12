@@ -1012,7 +1012,7 @@
           </listitem>
         </itemizedlist>
       </para>
-      <para>The JOSE header shall declare that the encoded object is a JSON Web Token by setting the <emphasis>typ</emphasis> claim to <emphasis>JWT</emphasis>, and the JWT is a JWS that is signed using ECDSA using P-256 (secp256r1) curve and SHA-256 hash algorithm, by setting the <emphasis>alg</emphasis> claim to <emphasis>ES256</emphasis>.</para>
+      <para>The JOSE header shall declare that the encoded object is a JSON Web Token by setting the <emphasis>typ</emphasis> claim to <emphasis>JWT</emphasis>, and the JWT is a JWS that is signed using the asymmetric algorithm identified by the <emphasis>alg</emphasis> claim with a value defined in RFC7518. Since the keystore does not support symmetric encryption, symmetric keyed hashing algorithms shall not be used.</para>
       <para>The JWT payload shall include the following standard claims:</para>
       <para>
         <itemizedlist>
@@ -3695,7 +3695,7 @@
       <section>
         <title>GetJWTConfiguration</title>
         <para>This operation returns the parameters of the JWT authorization used by the device. A
-          device shall support this command if the capability JWTAuthorization is set.</para>
+          device shall support this command if the capability JsonWebToken in the device service capabilities is set.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -3728,7 +3728,7 @@
       <section>
         <title>SetJWTConfiguration</title>
         <para>This operation sets the parameters of the JWT authorization used by the device. A
-          device shall support this command if the capability JWTAuthorization is set.</para>
+          device shall support this command if the capability JsonWebToken in the device service capabilities is set.</para>
         <para>JWT client authorization of the device is enabled when at least one key or trusted issuer URI is provided.</para>
         <variablelist role="op">
           <varlistentry>
@@ -4078,15 +4078,6 @@
                   <para>Indicates whether the device supports enabling and disabling specific TLS versions.</para>
                 </entry>
               </row>
-              <row>
-                <entry>
-                  <para>JWTAuthorization</para>
-                </entry>
-                <entry>
-                  <para>Indicates whether the device supports client authorization via JWT
-                    tokens.</para>
-                </entry>
-              </row>
             </tbody>
           </tgroup>
         </table>
@@ -4299,7 +4290,7 @@
                   <para>If true, the list of supported password-based encryption algorithms as
                     indicated by the PasswordBasedEncryptionAlgorithms capability shall contain at
                     least the algorithm <phrase>pbeWithSHAAnd3-KeyTripleDES-CBC</phrase>.</para>
-                  <para>If true either the capability EllipticCurves or RSAKeyLenghts shall be specified.</para>
+                  <para>If true, at least one capability between EllipticCurves and RSAKeyLenghts shall be specified.</para>
                 </entry>
               </row>
               <row>
@@ -4383,13 +4374,10 @@
                   </itemizedlist>
                   <para>If true, MaximumNumberOfCertificates&gt;=2 and MaximumNumberOfCertificationPaths&gt;0 shall hold.</para>
                   <para>If true, MaximumNumberOfKeys&gt;=2 shall hold.</para>
-                  <para>If true and the capability RSAKeyLenghts is not empty the following conditions shall be fulfilled:</para>
+                  <para>If true and the capability RSAKeyLenghts is not empty the following condition shall be fulfilled:</para>
                   <itemizedlist>
                     <listitem>
                       <para>The capability RSAKeyPairGeneration shall be specified .</para>
-                    </listitem>
-                    <listitem>
-                      <para>The list of supported signature algorithms as indicated by the SignatureAlgorithms capability shall contain at least the algorithms sha1-WithRSAEncryption and sha256WithRSAEncryption.</para>
                     </listitem>
                   </itemizedlist>
                   <para>If true and the capability EllipticCurves is provided, the following conditions shall be fulfilled:</para>
@@ -4447,13 +4435,10 @@
                       <para>The list of supported signature algorithms as indicated by the SignatureAlgorithms capability shall contain at least the algorithms sha1-WithRSAEncryption and sha256WithRSAEncryption.</para>
                     </listitem>
                   </itemizedlist>
-                  <para>If true and the capability EllipticCurves is provided, the following conditions shall be fulfilled:</para>
+                  <para>If true and the capability EllipticCurves is provided, the following condition shall be fulfilled:</para>
                   <itemizedlist>
                     <listitem>
                       <para>The capability ECCKeyPairGeneration shall be specified.</para>
-                    </listitem>
-                    <listitem>
-                      <para>The list of supported signature algorithms as indicated by the SignatureAlgorithms capability shall contain at least the algorithms ECDSA-With-SHA1 and ECDSA-With-SHA256.</para>
                     </listitem>
                   </itemizedlist>
                 </entry>
@@ -4629,13 +4614,13 @@
                   <para>If true, the device shall support</para>
                   <itemizedlist>
                     <listitem>
-                      <para>validating certification paths containing X.509v3 certificates that are signed with signatures of type sha1-WithRSAEncryption, sha256WithRSAEncrpytion, ECDSA-With-SHA1 or ECDSA-With-SHA256</para>
+                      <para>validating certification paths containing X.509v3 certificates that are signed with signatures of type sha1-WithRSAEncryption or sha256WithRSAEncrpytion</para>
                     </listitem>
                     <listitem>
                       <para>processing X.509 CRLs that are compliant to the CRL profile defined in [RFC 5280], Sect. 5 and that</para>
                       <itemizedlist>
                         <listitem>
-                          <para>are signed with signatures of type sha1-WithRSAEncryption, sha256WithRSAEncryption, ECDSA-With-SHA1 or ECDSA-With-SHA256 and</para>
+                          <para>are signed with signatures of type sha1-WithRSAEncryption or, sha256WithRSAEncryption and</para>
                         </listitem>
                         <listitem>
                           <para>are complete direct CRLs as defined in [RFC 5280] that are signed with the same signature key as the signature key that the CA uses to sign issued certificates</para>
@@ -4695,7 +4680,7 @@
               </row>
               <row>
                 <entry>EllipticCurves</entry>
-                <entry>If the device support JWT/based authorization, secp256r1 shall be listed in the list of supported elliptic curves.</entry>
+                <entry>The list of supported elliptic curves.</entry>
               </row>
             </tbody>
           </tgroup>
