@@ -212,8 +212,12 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
     <para>ONVIF PTZ Service Specification</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/srv/ptz/ONVIF-PTZ-Service-Spec.pdf"></link>&gt;</para>
-    <para>ONVIF Streaming  Specification</para>
+    <para>ONVIF Streaming Specification</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/stream/ONVIF-Streaming-Spec.pdf"></link>&gt;</para>
+    <para>ONVIF WebRTC Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/stream/ONVIF-WebRTC-Spec.pdf"></link>&gt;</para>
+    <para>ONVIF Security Service Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/stream/ONVIF-Security-Service-Spec.pdf"></link>&gt;</para>
   </chapter>
   <chapter>
     <title>Terms and Definitions</title>
@@ -2043,6 +2047,105 @@
         </variablelist>
       </section>
     </section>
+    <section xml:id="section_k4m_bbc_yyb">
+      <title>WebRTC</title>
+      <section xml:id="section_v4m_bbc_yyb">
+        <title>WebRTC configuration</title>
+        <para>This section is about configuring one or more WebRTC signaling servers that the device
+          should connect to be able to receive requests from clients to establish peer-to-peer
+          WebRTC connections. The signaling protocol that is used for this is descibed in the [ONVIF
+          WebRTC Specification]. A WebRTC configuration has the following parameters:</para>
+        <itemizedlist>
+          <listitem>
+            <para>Enabled [xs:boolean] – Enables/disables the configuration.</para>
+          </listitem>
+          <listitem>
+            <para>Connected [xs:boolean] – Indicates if the device is connected to the server. This
+              parameter is read-only.</para>
+          </listitem>
+          <listitem>
+            <para>SignalingServer [xs:anyURI] – The signaling server URI.</para>
+          </listitem>
+          <listitem>
+            <para>AuthorizationServer [tt:ReferenceToken] – The Authorization Server to use for
+              getting access tokens. This refers to an entity in the list of configured
+              Authorization Servers in the [ONVIF Security Service Specification].</para>
+          </listitem>
+          <listitem>
+            <para>DefaultProfile [tt:ReferenceToken] – The default media profile to use for
+              streaming if no specific profile is specified when initializing a session.</para>
+          </listitem>
+        </itemizedlist>
+      </section>
+      <section xml:id="section_wys_czg_ryb">
+        <title>GetWebRTCConfigurations</title>
+        <para>This operation gets the current WebRTC configuration for the device. The operation
+          shall be supported if the WebRTC capability is true.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Configuration - optional, unbounded
+                [tr2:WebRTCConfiguration]</para>
+              <para role="text">This message contains the WebRTC configurations for the device. If
+                empty, no configurations have been configured,</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="section_wvd_dzg_ryb">
+        <title>SetWebRTCConfigurations</title>
+        <para>This operation sets the WebRTC configuration for the device. The operation shall be
+          supported if the WebRTC capability is true.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Configuration - optional, unbounded
+                [tr2:WebRTCConfiguration]</para>
+              <para role="text">This message contains the WebRTC configurations to use for the
+                device. If empty, WebRTC is disabled,</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
     <section xml:id="_Ref484170228">
       <title>GetServiceCapabilities</title>
       <para>The capabilities reflect optional functions and functionality of a service. The information is static and does not change during device operation. </para>
@@ -2159,6 +2262,12 @@
         <varlistentry>
           <term>MultiTrackStreaming</term>
           <listitem><para>Indicates support for multiple video RTP streams in one RTSP session.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>WebRTC</term>
+          <listitem>
+            <para>Indicates support for accepting connections via WebRTC.</para>
+          </listitem>
         </varlistentry>
       </variablelist>
     </section>
