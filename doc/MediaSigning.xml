@@ -210,9 +210,7 @@
       <title>Signed video overview</title>
       <mediaobject>
         <imageobject>
-          <?oxy_comment_start author="FredrikS" timestamp="20220922T122033+0200" comment="Update image, last SEI should be after IDR"?>
-          <imagedata fileref="media/MediaSigning/signed_video.svg" contentwidth="170mm"
-          /><?oxy_comment_end?>
+          <imagedata fileref="media/MediaSigning/signed_video.svg" contentwidth="170mm"/>
         </imageobject>
       </mediaobject>
     </figure>
@@ -230,19 +228,19 @@
         between two Group of Pictures (GOPs), that is, triggered by an IDR frame. For short GOP
         lengths, the time between two GOP transitions may be shorter than the time it takes to
         perform the signing. The standard allows the device to sign multiple GOPs if necessary.
-        This is described in Section LINK TO CORRESPONDING SECTION BELOW.
+        This is described in Section <xref linkend="section_signing_multiple_gops" />.
         For very long, or infinite, GOPs the duration between signatures can be too long for
         practical usage. Therefore, the device is recommended to sign partial GOPs; See Section
-        TO BE ADDED.</para>
+        <xref linkend="section_signing_partial_gops" />.</para>
       <para><emphasis role="bold">Frame drops and packet losses</emphasis>. Adding a list of
         hashes of each NAL Unit combats the problem of lost frames, but cannot solve packet
         losses unless the affected NAL Unit is completely removed from the stream. To lower the
         risk of losing packets within a SEI frame, the specification allows the device to add
-        redundancy by transmitting the same SEI multiple times; See Section "section_y3s_njq_bwb"
-        below.</para>
+        redundancy by transmitting the same SEI multiple times; See Section
+        <xref linkend="section_y3s_njq_bwb" /> below.</para>
       <para><emphasis role="bold">Hashing algorithms</emphasis>. Hashing algorithms, for example
-        those specififed in RFC 6234 in references, are generally used to compute a a fixed length
-        hash value from any arbitrary long input string. Hashing is used in two contexts; 1)
+        those specififed in RFC 6234 in references, are generally used to compute a fixed length
+        hash value from any long input string. Hashing is used in two contexts; 1)
         to get a short representation of each NAL Unit to put in a list, and 2) as message digest
         when generating signatures. Note that these two can be different. The same hashing
         algorithms have to be used in both the device and the client. The device specifies which
@@ -256,9 +254,9 @@
       <para><emphasis role="bold">Bitrate increase</emphasis>. Adding SEI frames to the encoded
         video increases the bitrate. The list of NAL Unit hashes is the main contribution.
         Therefore, it is recommended to consider a hashing algorithm that produces reasonably large
-        hashes. Note that the main security lies in the hash used to generate the signature and not
-        the hash used to represent the NAL Unit. The device has an option to select a GOP level
-        mode, to lower the bitrate; See Section TO BE ADDED.</para>
+        hashes, e.g., SHA256. Note that the main security lies in the hash used to generate the
+        signature and not the hash used to represent the NAL Unit. The device has an option to
+        select a GOP level mode, to lower the bitrate; See Section TO BE ADDED.</para>
     </section>
     <section>
       <title>Basic rules for the device when signing a video</title>
@@ -268,7 +266,7 @@
           <listitem>
             <para>The NAL Unit types below must be hashed</para>
             <para>Picture NAL Units, that is, slices of IDR-, P- and B-frames.</para>
-            <para>All SEI frames generated according to this specification that does not include a
+            <para>All SEI frames generated according to this specification, if not including a
               signature.</para>
           </listitem>
           <listitem>
@@ -325,10 +323,12 @@
           </listitem>
           <listitem>
             <para>SEIs other than Signed Video specific</para>
-            <para>SEI frames are in general information frames that usually has no visible impact on
-              the video. Some of them can correctly be added to, or removed from, the stream at any
-              time. This makes it difficult to handle from an authenticity point of view. Therefore,
-              all SEI frames are ignored.</para>
+            <para>There are various types of SEI frames; See the H.264 and H.265 standards. In general,
+              these SEI frames include information that has no visible impact on the video. Further,
+              some of them can correctly be added to, or removed from, the stream at any point in
+              time. This makes it difficult to handle from an authenticity point of view since the
+              presence and order is important. Therefore, all other SEI frames than those described
+              in this specification are ignored.</para>
           </listitem>
         </itemizedlist>
       </para>
@@ -407,7 +407,8 @@
         <title>Example</title>
         <para>The following example figures show a typical example where each GOP is signed.</para>
         <figure>
-          <title>The I-frame marks the start of a new GOP. A SEI for the previous GOP is generated. This SEI is hashed and sent to the signing hardware for signature generation.</title>
+          <title>The I-frame marks the start of a new GOP. A SEI for the previous GOP is generated.
+            This SEI is hashed and sent to the signing hardware for signature generation.</title>
           <mediaobject>
             <imageobject>
               <imagedata fileref="media/MediaSigning/SigningGops01.svg" contentwidth="150mm"/>
@@ -465,21 +466,23 @@
         </figure>
       </section>
     </section>
-    <section>
+    <section xml:id="section_signing_multiple_gops">
       <title>Signing multiple GOPs</title>
       <para>As mentioned in the Limitation Section above, there are situations when signing each GOP
         is not feasible in real-time. The device has an option to decide to sign every X:th GOP to
         keep the stream signed.</para>
       <para>Generate a SEI for every GOP according to the Section above, but sign only every X:th
         GOP. That is, every X:th SEI includes a Signature TLV.</para>
-      <para>All generated SEI frames without a signature must be hashed as normal picture NAL Units.
-        Note that they have to be hashed in the same order as they appear in the stream.</para>
+      <para>All, by this specification, generated SEI frames without a signature must be hashed as
+        normal picture NAL Units. Note that they have to be hashed in the same order as they appear
+        in the stream.</para>
       <section>
         <title>Example</title>
         <para>The following example figures show how multiple short GOPs can be signed. The yellow
           boxes are used to illustrate unsigned SEIs and green boxes are signed SEIs.</para>
         <figure>
-          <title>The I-frame starts a new GOP and a SEI representing the previous GOP is generated. This SEI is not signed and can be injected to the stream instantly.</title>
+          <title>The I-frame starts a new GOP and a SEI representing the previous GOP is generated.
+            This SEI is not signed and can be injected to the stream instantly.</title>
           <mediaobject>
             <imageobject>
               <imagedata fileref="media/MediaSigning/SigningMultipleGops01.svg" contentwidth="150mm"/>
@@ -545,7 +548,7 @@
         </figure>
       </section>
     </section>
-    <section>
+    <section xml:id="section_signing_partial_gops">
       <title>Signing partial GOPs</title>
       <para>As mentioned in the Limitation Section above, very long, or even infinite, GOPs puts the
         validation side in an unacceptable situation since the duration between signatures is far to
@@ -1065,11 +1068,11 @@
       <section xml:id="section_u3s_njq_bwb">
         <title>Arbitrary data</title>
         <para>This optional field contains Abritrary data that the device vendor want to be
-          included. There is no guarantee that the Arbitrary data is reasonable or readable by
+          included. There is no guarantee that the data is reasonable or readable by
           anyone not previously knowledgeable in the area.</para>
-        <para xml:id="para_dv5_1gm_4xb">The Arbitrary data tag can be added to any SEI described in
+        <para xml:id="para_dv5_1gm_4xb">The data tag can be added to any SEI described in
           this specification or to a SEI of its own.</para>
-        <para>This tag can be useful to add vendro or device specific information and get it
+        <para>This tag can be useful to add vendor or device specific information and get it
           signed.</para>
       </section>
     </section>
@@ -1114,7 +1117,7 @@
         </listitem>
         <listitem>
           <para>If the emulation prevention bit is set in the reserved byte, apply emulation
-            preventionon the written data so far.</para>
+            prevention on the written data so far.</para>
         </listitem>
         <listitem>
           <para>Hash the written data from NAL Unit header to the last written TLV data. Denote this
@@ -1134,8 +1137,7 @@
       </itemizedlist>
     </section>
     <section xml:id="section_x3s_njq_bwb">
-      <title><?oxy_comment_start author="FredrikS" timestamp="20220920T130703+0200" comment="Write pseudo code for the generation. Move under section 5.2?"?>How
-        to generate the SEI signing a GOP<?oxy_comment_end?></title>
+      <title>How to generate the SEI signing a GOP</title>
       <itemizedlist>
         <listitem>
           <para>Write SEI NAL Unit header</para>
@@ -1190,8 +1192,7 @@
       </itemizedlist>
     </section>
     <section xml:id="section_y3s_njq_bwb">
-      <title><?oxy_comment_start author="FredrikS" timestamp="20220922T125620+0200" comment="Move under section 5.2?"?>How
-        to add a generated SEI to a video stream in a device</title><?oxy_comment_end?>
+      <title>How to add a generated SEI to a video stream in a device</title>
       <para>Without loss of generality, consider three consecutive GOPs each starting with an
         I-frame followed by 4 non-IDRs (P- or B-frames). In text format it would look like
           <code>IPPPPIPPPPIPPPP</code>. The signing information is collected in a SEI frame
@@ -1208,9 +1209,7 @@
         stream would look like <code>IPSSPPPISSPPPPIPPSSPP</code>.</para>
     </section>
     <section xml:id="section_ifs_zfm_4xb">
-      <title
-        ><?oxy_comment_start author="AxelK" timestamp="20220922T125620+0200" comment="Move?"?>Handling
-        SetSynchronizationPoint</title><?oxy_comment_end?>
+      <title>Handling SetSynchronizationPoint</title>
       <para> When the device recieves a SetSynchronizationPoint command, as specified in the media2
         specification, the device shall transmit a new instance of the send-only-once information AU
         as well as starting a new SEI signing segment in order for the video to be authenticatable
@@ -1307,10 +1306,7 @@
         validated against the claimed recording date rather than the current date. </para>
     </section>
     <section xml:id="section_cjs_njq_bwb">
-      <title>
-        <?oxy_comment_start author="FredrikS" timestamp="20220922T125717+0200" comment="Do we need to add info in Export FF?"?>Exporting
-        a Signed Media<?oxy_comment_end?>
-      </title>
+      <title>Exporting a Signed Media</title>
       <para>In order to be able to verify an exported segment of Signed Media, the client must
         include the "only sent once" SEI added in the beginning of the mediastream. This can be
         combined with the Onvif Export File Format in order to provide layered video authentication,
