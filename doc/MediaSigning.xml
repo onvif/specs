@@ -256,7 +256,7 @@
         Therefore, it is recommended to consider a hashing algorithm that produces reasonably large
         hashes, e.g., SHA256. Note that the main security lies in the hash used to generate the
         signature and not the hash used to represent the NAL Unit. The device has an option to
-        select a GOP level mode, to lower the bitrate; See Section TO BE ADDED.</para>
+        select a low bitrate mode; See Section <xref linkend="section_low_bitrate_mode" />.</para>
     </section>
     <section>
       <title>Basic rules for the device when signing a video</title>
@@ -1008,7 +1008,12 @@
       </section>
       <section xml:id="section_s3s_njq_bwb">
         <title>Hash list</title>
-        <para>This mandatory field contains the hash list, for a complete GOP; I- through P-frames.
+        <para>This optional field contains the hash list, for a complete GOP; I- through P-frames.
+        </para>
+        <para>When this tag is present in the SEI payload the validation side can validate individual
+          NAL Units.</para>
+        <para>When this tag is not present in the SEI payload the validation side can only validate
+          all NAL Units that has been signed, which in a normal case becomes all frames in a GoP.
         </para>
         <itemizedlist>
           <listitem>
@@ -1075,6 +1080,13 @@
         <para>This tag can be useful to add vendor or device specific information and get it
           signed.</para>
       </section>
+    </section>
+    <section xml:id="section_low_bitrate_mode">
+      <title>Low Bitrate Mode</title>
+      <para>As mentioned in the Limitation Section above, the SEI frames can become large due to
+        the hash list. To lower the bitrate overhead, the device has the option to skip the Hash
+        list tag; See above. The tradeoff is that it is no longer possible to identify
+        individual invalid and/or missing frames.</para>
     </section>
     <section xml:id="section_w3s_njq_bwb">
       <title>How to generate the first, send-only-once, SEI</title>
