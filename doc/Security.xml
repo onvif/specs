@@ -1280,7 +1280,12 @@ Added certificate-based client authentication</revremark>
           <section>
             <title>UploadKeyPairInPKCS8</title>
             <para>This operation uploads a key pair in a PKCS#8 data structure as specified in [RFC 5958, RFC 5959]. </para>
-            <para>If an encryption passphrase ID is supplied in the request, the device shall assume that the KeyPair parameter contains an EncryptedPrivateKeyInfo ASN.1 structure that is encrypted under the passphrase in the keystore that corresponds to the supplied ID, where the EncryptedPrivateKeyInfo structure contains both the private key and the corresponding public key. If no encryption passphrase ID is supplied, the device shall assume that the KeyPair parameter contains a OneAsymmetricKey ASN.1 structure which contains both the private key and the corresponding public key. If a passphrase is supplied, the device shall ignore an eventually supplied passphrase ID and assume that the KeyPair parameter contains an EncryptedPrivateKeyInfo ASN.1 structure that is encrypted under the supplied passphrase, where the EncryptedPrivateKeyInfo structure contains both the private key and the corresponding public key.</para>
+            <para>If a passphrase is either directly provided or as ID reference to a previously
+              uploaded passphrase, the device shall assume that the KeyPair parameter contains an
+              EncryptedPrivateKeyInfo ASN.1 structure that is encrypted with the given passphrase.
+              In case neither a passphrase nor a passphrase ID is provided the device shall assume
+              that the KeyPair parameter contains a OneAsymmetricKey ASN.1 structure which contains
+              both the private key and the corresponding public key. </para>
             <para>If the supplied key pair cannot be processed by the device, the device shall produce an UnsupportedPublicKeyAlgorithm fault and shall not store the uploaded key pair in the keystore.</para>
             <para>Key pairs are uniquely identified using key IDs. If a key pair exists in the keystore with the public key equal to the public key in the request and this key pair does not contain a private key, the device shall add the supplied private key to the existing key pair and return the ID of this key pair.</para>
             <para>If a key pair exists in the keystore with the public key equal to the public key in the request and this key pair contains a private key, the device shall leave the key pair unchanged and return the ID of this key pair.</para>
