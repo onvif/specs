@@ -266,11 +266,6 @@
       connection has been established the connection with the server can be dropped without
       affecting the peer-to-peer connection. It's however recommended to keep the server connection
       open to be able receive error messages from the server.</para>
-    <para>Since the headers of the messages differ depending on whether the message is sent between
-      client and server, or between device and server, we specify two separate versions of the
-      interface. One between client and server, called <emphasis>client-facing</emphasis> from now
-      on, and one between device and server, called <emphasis>device-facing</emphasis> from now
-      on.</para>
     <figure xml:id="_Ref493258797">
       <title>Signaling flow sequence diagram</title>
       <mediaobject>
@@ -279,571 +274,241 @@
         </imageobject>
       </mediaobject>
     </figure>
+    <section>
+      <title>WebSocket Connection Management</title>
+      <para>Both a client and a device need to connect to the server by setting up a WebSocket connection according to [RFC 6455].</para>
+      <para>A device shall connect to a signaling server as soon as the configuration contains a valid URI. </para>
+      <para>In case a connection is dropped the device shall reconnect automatically. Each client
+        should use an individual ascending interval strategy to avoid that all clients reconnect at
+        the same time.</para>
+      <para>Both device and client shall immediately send a register command as specified in section
+          <xref linkend="section_register"/> when they receive the HTTP 101 switching
+        protocol..</para>
+    </section>
     <section xml:id="section_ayt_v12_v5b">
-      <title>Connecting to the signaling server</title>
-      <para>Both a client and a device need to connect to the server by setting up a WebSocket with
-        valid access tokens that the server will accept. The connection handling is done using
-        WebSocket [RFC 6455].</para>
-      <para>The signaling messages are then sent as JSON text messages in the WebSocket. Please
-        refer to the Signaling Protocol AsyncAPI schema for specific details regarding the Signaling
-        Protocol.</para>
-      <section xml:id="section_hsq_qhn_rwb">
-        <title>Client</title>
-        <para>A client connects to the server by setting up a WebSocket to, for example:
-          <programlisting>wss://signaling.example.com/client?authorization=Bearer%20access_token</programlisting></para>
-        <para>Where <code>signaling.example.com</code> should be replaced with the server's address,
-          and <code>access_token</code> should be replaced with a valid access token that the server
-          will accept. See section <xref linkend="chapter_cwp_r2k_v5b"/> for how to get an access
-          token.</para>
-        <para>The WebSocket sub protocol shall be set to 'client.webrtc.onvif.org' for the
-          client.</para>
-      </section>
-      <section xml:id="section_isq_qhn_rwb">
-        <title>Device</title>
-        <para>A device must first be onboarded in order to be able to set up a WebSocket to the
-          server. See section <xref linkend="section_nsq_qhn_rwb"/> for more information. An
-          onboarded device then connects by setting up a WebSocket to, for example:</para>
-        <programlisting>wss://signaling.example.com/device?deviceId=myDeviceId&amp;orgId=myOrgId&amp;token=myToken</programlisting>
-        <para>Where <code>signaling.example.com</code> should be replaced with the server's address
-          and the <code>deviceId</code> and <code>orgId</code> (decided when onboarding) are used as
-          query strings when connecting. An access token needs to be provided (<code>token</code>).
-          See section <xref linkend="section_dwp_r2k_v5b"/> for information about how a device gets
-          an access token.</para>
-        <para>The WebSocket sub protocol shall be set to 'device.webrtc.onvif.org' for the
-          device.</para>
-      </section>
-      <section xml:id="section_zdt_ypd_svb">
-        <title>hello</title>
-        <para>Directly after connecting a WebSocket to the server the client or device gets a hello
-          message from the server, with the peer's assigned Signaling ID.</para>
-      </section>
-    </section>
-    <section xml:id="section_byt_v12_v5b">
-      <title>Message structure</title>
-      <para>Generally a message contains two parts: header and payload. The header part is processed
-        by the server and the payload part is intended for the peer (device or client).</para>
-      <para>Since message header content differs depending on whether the message is client- or
-        device-facing, the header keys are grouped accordingly while the payload keys are not. The
-        payload keys remain the same, regardless of peer.</para>
-      <para><emphasis role="bold">NOTE</emphasis>: Messages sent via the server may be delivered
-        out-of-order; for optimal scalability messages should be handled asynchronously.</para>
-      <para>Below are explanations of key/value pairs that are used in the protocol.</para>
-      <section xml:id="section_jsq_qhn_rwb">
-        <title>Header keys</title>
-        <section xml:id="section_cyt_v12_v5b">
-          <title>General header keys</title>
-          <para>The following key/value pairs are used in the header of both client- and
-            device-facing messages.</para>
-          <para>
-            <informaltable>
-              <tgroup cols="2">
-                <colspec colnum="1" colname="c1" colwidth="1*"/>
-                <colspec colnum="2" colname="c2" colwidth="3.55*"/>
-                <tbody>
-                  <row>
-                    <entry>
-                      <para><emphasis role="bold">Key</emphasis></para>
-                    </entry>
-                    <entry>
-                      <para><emphasis role="bold">Description</emphasis></para>
-                    </entry>
-                  </row>
-                  <row>
-                    <entry>
-                      <para>type</para>
-                    </entry>
-                    <entry>
-                      <para>Can be "initSession", "signaling" or "error"</para>
-                    </entry>
-                  </row>
-                </tbody>
-              </tgroup>
-            </informaltable>
-          </para>
-        </section>
-        <section xml:id="section_ksq_qhn_rwb">
-          <title>Client-facing header keys</title>
-          <para>The following key/value pairs are used in the header part in client messages.</para>
-          <para>
-            <informaltable>
-              <tgroup cols="2">
-                <colspec colnum="1" colname="c1" colwidth="1*"/>
-                <colspec colnum="2" colname="c2" colwidth="3.55*"/>
-                <tbody>
-                  <row>
-                    <entry>
-                      <para><emphasis role="bold">Key</emphasis></para>
-                    </entry>
-                    <entry>
-                      <para><emphasis role="bold">Description</emphasis></para>
-                    </entry>
-                  </row>
-                  <row>
-                    <entry>
-                      <para>deviceId</para>
-                    </entry>
-                    <entry>
-                      <para>The Signaling ID of the device to which the message is intended, or the
-                        device that sent the message. This ID is unique within the organization. See
-                        section <xref linkend="chapter_ryt_v12_v5b"/> for how to get available
-                        IDs.</para>
-                    </entry>
-                  </row>
-                  <row>
-                    <entry>
-                      <para>orgId</para>
-                    </entry>
-                    <entry>
-                      <para>The ID of the organization that the device belongs to. This ID is unique
-                        within the signaling server. See section <xref linkend="chapter_ryt_v12_v5b"
-                        /> for how to get available IDs.</para>
-                    </entry>
-                  </row>
-                  <row>
-                    <entry>
-                      <para>accessToken</para>
-                    </entry>
-                    <entry>
-                      <para>Access token for the logged in user. This should be in JWT format
-                        according to [RFC 7519]. See section <xref linkend="chapter_cwp_r2k_v5b"/>
-                        for how to get an access token. The token is checked by the peer for every
-                        command. If it has expiried it sends an unauthorized error and the client
-                        must retry with an updated token.</para>
-                    </entry>
-                  </row>
-                  <row>
-                    <entry>
-                      <para>correlationId</para>
-                    </entry>
-                    <entry>
-                      <para>An optional identifier chosen by the client that can be used to
-                        correlate the response from the signaling server with the request. Echoed
-                        back in the signaling server response.</para>
-                    </entry>
-                  </row>
-                </tbody>
-              </tgroup>
-            </informaltable>
-          </para>
-        </section>
-        <section xml:id="section_lsq_qhn_rwb">
-          <title>Device-facing header keys</title>
-          <para>The following key/value pairs are used in the header part in device messages.</para>
-          <informaltable>
-            <tgroup cols="2">
-              <colspec colnum="1" colname="c1" colwidth="1*"/>
-              <colspec colnum="2" colname="c2" colwidth="3.55*"/>
-              <tbody>
-                <row>
-                  <entry>
-                    <para><emphasis role="bold">Key</emphasis></para>
-                  </entry>
-                  <entry>
-                    <para><emphasis role="bold">Description</emphasis></para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>clientId</entry>
-                  <entry>The Signaling ID of the client to which the message is intended, or the
-                    client that sent the message. This ID is unique within the organization and the
-                    device gets this id from server during initSession.</entry>
-                </row>
-              </tbody>
-            </tgroup>
-          </informaltable>
-        </section>
-      </section>
-      <section xml:id="section_ozx_512_v5b">
-        <title>Payload keys</title>
-        <para>The following key/value pairs are used in the payload part of messages.</para>
-        <para>
-          <informaltable>
-            <tgroup cols="2">
-              <colspec colnum="1" colname="c1" colwidth="1*"/>
-              <colspec colnum="2" colname="c2" colwidth="3.76*"/>
-              <tbody>
-                <row>
-                  <entry>
-                    <para><emphasis role="bold">Key</emphasis></para>
-                  </entry>
-                  <entry>
-                    <para><emphasis role="bold">Description</emphasis></para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>apiVersion</para>
-                  </entry>
-                  <entry>
-                    <para>The API version that should be used in the request.</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>type</para>
-                  </entry>
-                  <entry>Specifies whether this message is a request or response.</entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>sessionId</para>
-                  </entry>
-                  <entry>An identifier chosen by the client that should be used for all subsequent
-                    messages belonging to this session to and from the device.</entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>method</para>
-                  </entry>
-                  <entry>Specifies which request method this message concerns.</entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>params</para>
-                  </entry>
-                  <entry>
-                    <para>Parameters related to the method</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>context</para>
-                  </entry>
-                  <entry>An optional identifier chosen by the requestor that can be used to
-                    correlate the response from the receiver with the request. Echoed back in the
-                    response.</entry>
-                </row>
-              </tbody>
-            </tgroup>
-          </informaltable>
-        </para>
-      </section>
-      <section xml:id="section_dyt_v12_v5b">
-        <title>Param level keys inside params blocks</title>
-        <para>The following key/value pairs are used inside <code>params</code> blocks in the
-          payload part of messages.</para>
-        <para>
-          <informaltable>
-            <tgroup cols="2">
-              <colspec colnum="1" colname="c1" colwidth="1*"/>
-              <colspec colnum="2" colname="c2" colwidth="4*"/>
-              <tbody>
-                <row>
-                  <entry>
-                    <para><emphasis role="bold">Key</emphasis></para>
-                  </entry>
-                  <entry>
-                    <para><emphasis role="bold">Description</emphasis></para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>type</para>
-                  </entry>
-                  <entry>
-                    <para>Sub function of the method. Can be "offer" or "answer".</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>profile</para>
-                  </entry>
-                  <entry>
-                    <para>The media profile to use for this session. If none is specified the device
-                      will choose a default profile. See section <xref linkend="chapter_ryt_v12_v5b"
-                      /> for how to get available profiles.</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>sdp</para>
-                  </entry>
-                  <entry>
-                    <para>An SDP record as described in RFC 8829.</para>
-                  </entry>
-                </row>
-                <row>
-                  <entry>
-                    <para>candidate</para>
-                  </entry>
-                  <entry>
-                    <para>An SDP ICE candidate formatted according to RFC8839, section 5.1.</para>
-                  </entry>
-                </row>
-              </tbody>
-            </tgroup>
-          </informaltable>
-        </para>
-      </section>
-      <section>
-        <title>Message acknowledging</title>
-        <para>Client and devices may acknowledge messages other than the initial hello message using
-          the appropriate headers defined above. The payload shall be either empty or signals one of
-          the errors defined in <xref linkend="section_myt_v12_v5b"/>.</para>
-        <para>The signaling server shall forward acknowledge messages to the peer.</para>
-      </section>
-    </section>
-    <section xml:id="section_eyt_v12_v5b">
-      <title>Initialize a new WebRTC session</title>
-      <para>A new WebRTC session is initiated by the client requesting the device to produce an SDP
-        offer using an <code>initSession</code> message.</para>
-      <section xml:id="section_fyt_v12_v5b">
-        <title>initSession</title>
-        <para>An <code>initSession</code> message is sent from the client to the signaling server to
-          request a new WebRTC session to a device. A message of type <code>live</code> should be
-          used to request a live video and/or audio session.</para>
-        <para>The server responds to the client with a copy of the <code>initSession</code> message,
-          including details for the STUN and TURN servers that can be used.</para>
-        <para>The server also sends a copy of the message, with updated headers, to the
-          device.</para>
-        <para>The device acknowledges that it has received the <code>initSession</code>
-          message.</para>
-      </section>
-      <section xml:id="section_a2t_ypd_svb">
-        <title>Faults</title>
-        <para>The following errors can be set in the <code>initSession</code> messages: 1100, 1101,
-          2100, 2101, 2102, 2103, 2104, 2105, 2106, 2107, 2108, 2109, 2110. See section <xref
-            linkend="section_myt_v12_v5b"/> for more details on errors.</para>
-      </section>
-    </section>
-    <section xml:id="section_gyt_v12_v5b">
-      <title>SDP record exchange</title>
-      <para>Once a P2P signaling channel has been set up using the <code>initSession</code> message
-        the next step is to exchange SDP records. The dynamics and the format of the SDP records are
-        defined in RFC 8829.</para>
-      <section xml:id="section_hyt_v12_v5b">
-        <title>setSdpOffer</title>
-        <para>A <code>setSdpOffer</code> message is always sent from the device, via server, to the
-          client.</para>
-        <para>The client may acknowledge the received SDP offer with a response after validating the
-          message. Although this is not strictly necessary it can be helpful to send these
-          acknowledgements to ease debugging the signaling flow. </para>
-      </section>
-      <section xml:id="section_iyt_v12_v5b">
-        <title>setSdpAnswer</title>
-        <para>A <code>setSdpAnswer</code> message is always sent from the client, via server, to the
-          device.</para>
-        <para>A device shall respond send an ACK response back to the client (via server) after
-          validating the message. This message indicates that the device has successfully validated
-          the <code>setSdpAnswer</code> request.</para>
-      </section>
-        <section xml:id="section_b2t_ypd_svb">
-        <title>Faults</title>
-        <para>The following errors can be set in the responses to the <code>setSdpOffer</code> or
-            <code>setSdpAnswer</code> messages: 1100, 1101, 2100, 2101, 2102, 2103, 2104, 2105,
-          2106, 2107, 2108, 2109, 2110. See section <xref linkend="section_myt_v12_v5b"/> for more
-          details on errors.</para>
-      </section>
-    </section>
-    <section xml:id="section_c2t_ypd_svb">
-      <title>ICE candidate exchange</title>
-      <para>Next step is to exchange ICE candidates. The format of the ICE candidate strings are
-        defined in RFC 8829.</para>
-      <section xml:id="section_jyt_v12_v5b">
-        <title>addIceCandidate</title>
-        <para>Both client and device produce ICE candidates and send them to each other, via the
-          server, in any order, using an <code>addIceCandidate</code> message.</para>
-        <para><emphasis role="bold">NOTE</emphasis>: Note that ICE candidates can arrive <emphasis
-            role="bold">before</emphasis> the SDP offer and the implementing client needs to handle
-          this.</para>
-        <para>If everything works as it should, a peer-to-peer WebRTC session can be set up between
-          client and device. After the session has been established the client can terminate the
-          WebSocket session to the signaling server and the peer-to-peer connection will not be
-          affected. However, it's recommended to keep the WebSocket session to the server open to be
-          able to receive event messages from the signaling server.</para>
-      </section>
-      <section xml:id="section_d2t_ypd_svb">
-        <title>Faults</title>
-        <para>The following errors can be set in the response to the <code>addIceCandidate</code>
-          message: 1100, 1101, 2100, 2101, 2102, 2103, 2104, 2105, 2106, 2107, 2108, 2109, 2110. See
-          section <xref linkend="section_myt_v12_v5b"/> for more details on errors.</para>
-      </section>
-    </section>
-    <section xml:id="section_myt_v12_v5b">
-      <title>Error handling</title>
-      <para>Errors that can be immediately reported when receiving a request are reported directly
-        in its corresponding response. However, errors may also occur later during the subsequent
-        session setup or after it has been setup and is running. These types of errors are reported
-        in an <code>event</code> message. Both 'events' and 'responses' include a numeric error
-        code, and a human-readable message. When errors are reported by the client or device the
-          <code>error</code> message is encapsulated in a <code>signaling</code> message. The server
-        may itself send errors by using its own <code>error</code> type message.</para>
-    <section xml:id="section_prn_3dj_3vb">
-      <title>Client and device error codes</title>
-      <informaltable>
-        <tgroup cols="2">
-          <colspec colnum="1" colname="col1" colwidth="1*"/>
-          <colspec colnum="2" colname="col2" colwidth="4*"/>
-          <thead>
-            <row>
-              <entry>
-                <para>Code</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>1100</para>
-              </entry>
-              <entry>
-                <para>Internal error</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>1101</para>
-              </entry>
-              <entry>
-                <para>Temporarily unavailable</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>1200</para>
-              </entry>
-              <entry>
-                <para>Media streaming failed, audio from client to device</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>1201</para>
-              </entry>
-              <entry>
-                <para>Media streaming failed, connection to upstream source lost</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>2100</para>
-              </entry>
-              <entry>
-                <para>API version not supported</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>2101</para>
-              </entry>
-              <entry>
-                <para>Invalid JSON</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>2102</para>
-              </entry>
-              <entry>
-                <para>Method not supported</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>2103</para>
-              </entry>
-              <entry>
-                <para>Required parameter missing</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>2104</para>
-              </entry>
-              <entry>
-                <para>Invalid parameter value specified</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>2105</para>
-              </entry>
-              <entry>
-                <para>Authorization failed</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>2106</para>
-              </entry>
-              <entry>
-                <para>Authentication failed</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </informaltable>
-    </section>
-      <section xml:id="section_nyt_v12_v5b">
-        <title>Server error codes</title>
-        <informaltable>
+      <title>Communication Protocol</title>
+      <para>The communication protocols shall use JSON-RPC version 1//2 over a WebSocket connection.
+        The table below provides the encodings to be used.</para>
+      <para>
+        <table frame="all">
+          <title>Parameter encoding</title>
           <tgroup cols="2">
-            <colspec colnum="1" colname="col1" colwidth="1*"/>
-            <colspec colnum="2" colname="col2" colwidth="4*"/>
+            <colspec colname="c1" colnum="1" colwidth="2.0*"/>
+            <colspec colname="c2" colnum="2" colwidth="8.0*"/>
             <thead>
               <row>
-                <entry>
-                  <para>Code</para>
-                </entry>
-                <entry>
-                  <para>Description</para>
-                </entry>
+                <entry><para>Type</para></entry>
+                <entry><para>Encoding</para></entry>
               </row>
             </thead>
             <tbody>
               <row>
-                <entry>
-                  <para>2105</para>
-                </entry>
-                <entry>
-                  <para>Authorization failed</para>
-                </entry>
+                <entry><para>JWT</para></entry>
+                <entry><para>Base64 encoded according to RFC 7519</para></entry>
               </row>
               <row>
-                <entry>
-                  <para>2107</para>
-                </entry>
-                <entry>
-                  <para>The access token has expired</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>2108</para>
-                </entry>
-                <entry>
-                  <para>Device disconnected. Client tries to send a message to a device that is not
-                    available to receive the message.</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>2109</para>
-                </entry>
-                <entry>
-                  <para>Client sends a message to a device that has signaling disabled</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>2110</para>
-                </entry>
-                <entry>Other error</entry>
+                <entry><para>SDP</para></entry>
+                <entry><para>SDP according to RFC 8866 with \r\n escaping</para></entry>
               </row>
             </tbody>
           </tgroup>
-        </informaltable>
+        </table>
+      </para>
+      <para>The following sections specify the parameters of the indivdual commands.</para>
+      <section>
+        <title xml:id="section_register">register</title>
+        <para> A signaling server shall expect this command to be setn once before any other command
+          ist sent over the WebSocket conneciton. The signaling server shall verify the validity of
+          the access token. Token details are outside of the scope of this specification.</para>
+        <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">AccessToken [JWT]</para>
+            <para role="text">Access token that authorizes the device or client..</para>
+            <para role="param">ID optional [string]</para>
+            <para role="text">The unnique ID of the device or client.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">ID [string]</para>
+            <para role="text">The ID assigned by the signaling server to the endpoint. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">401 Authorization failed</para>
+              <para role="text">The JWT token does not include the required claims or has expired.</para>
+              <para role="param">408 Invalid access token.</para>
+              <para role="text">The JWT token cannot be verified</para>
+            </listitem>
+          </varlistentry>
+      </variablelist>
       </section>
-      </section>
-    <section xml:id="section_fks_5rk_v5b">
-      <title>Reconnecting</title>
-      <para>If the session is disconnected it's up to the client to reconnect again using the same
-        procedure as was used initially, i.e. start from scratch. Each client should use an
-        individual ascending interval strategy to avoid that all clients reconnect at the same
-        time.</para>
+    </section>
+    <section>
+      <title xml:id="section_init">initSession</title>
+      <para> An ONVIF compliant signaling server shall support this command to establish a streaming
+        session between two peers.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">DeviceID [string]</para>
+            <para role="text">The device to connect to.</para>
+            <para role="param">AccessToken [JWT]</para>
+            <para role="text">Access token that authorizes the device or client..</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">SessionID [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session. </para>
+            <para role="param">STUN unbounded [string]</para>
+            <para role="text">List of STUN servers to be used. </para>
+            <para role="param">TURN unbounded [string]</para>
+            <para role="text">List of TURN servers to be used. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">401 Authorization failed</para>
+            <para role="text">The JWT token does not include the required claims or has expired.</para>
+            <para role="param">408 Invalid access token.</para>
+            <para role="text">The JWT token cannot be verified</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
+      <title xml:id="section_init2">initSession2</title>
+      <para> An ONVIF compliant device shall support this command to establish a streaming session
+        between two peers. After sending the response it shall immediately start to send an invite
+        for the session as specified in section .</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">SessionID [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session. </para>
+            <para role="param">STUN unbounded [string]</para>
+            <para role="text">List of STUN servers to be used. </para>
+            <para role="param">TURN unbounded [string]</para>
+            <para role="text">List of TURN servers to be used. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="text">Empty message</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">400 Bad Request</para>
+            <para role="text">Invalid session ID or missing STUN and TURN server.</para>
+            <para role="param">500 Internal Server Error</para>
+            <para role="text">The device cannot process the request</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
+      <title xml:id="section_invite">invite</title>
+      <para> An ONVIF compliant signaling server shall support this command to establish a streaming
+        session between two peers. It shall forward this command to the client and correspondingly
+        routes the response back to the device.</para>
+      <para>The dynamics and the format of the SDP records are defined in RFC 8829.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">SessionID [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session. </para>
+            <para role="param">Offer [SDP]</para>
+            <para role="text">The SDP offer provided by the device. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">Answer [SDP]</para>
+            <para role="text">The SDP answer provided by the client. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">400 Bad Request</para>
+            <para role="text">Invalid session ID or SDP payload.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
+      <title xml:id="section_setIceCandidate">addIceCandidate</title>
+      <para> An ONVIF compliant signaling server, device and client shall support this command to
+        signal new ICE candidates for the trickleICE procides as defined in RFC ....</para>
+      <para>A signaling server shall relay this command unaltered to the peer..</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">SessionID [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session. </para>
+            <para role="param">IceCandidate [SDP]</para>
+            <para role="text">The SDP update for the peer. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="text">&lt;none&gt;</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="text">&lt;none&gt;</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>The following errors can be set in the response to the <code>addIceCandidate</code>
+        message: 1100, 1101, 2100, 2101, 2102, 2103, 2104, 2105, 2106, 2107, 2108, 2109,
+        2110.</para>
+      <para>Both client and device produce ICE candidates and send them to each other, via the
+        server, in any order, using an <code>addIceCandidate</code> message.</para>
+      <para><emphasis role="bold">NOTE</emphasis>: Note that ICE candidates can arrive <emphasis
+        role="bold">before</emphasis> the SDP offer and the implementing client needs to handle
+        this.</para>
+      <para>If everything works as it should, a peer-to-peer WebRTC session can be set up between
+        client and device. After the session has been established the client can terminate the
+        WebSocket session to the signaling server and the peer-to-peer connection will not be
+        affected. However, it's recommended to keep the WebSocket session to the server open to be
+        able to receive event messages from the signaling server.</para>
+    </section>
+    <section>
+      <title>Example Flow (informative)</title>
+      <para>The following example shows the flow using JSON-RPC 1.0</para>
+      <programlisting><![CDATA[
+Client -> Server: { "method": "register", "params": ["JWT..."], "id":1}
+Server -> Client: { "result": "client-a1", "error": null, "id": 1}
+Device -> Server: { "method": "register", "params": ["JWT..."], "id":1}
+Server -> Device: { "result": "device-b1", "error": null, "id": 1}
+
+Client -> Server: { "method": "initSession", "params": ["JWT...", "device-b1"], "id":2}
+Server -> Device: { "method": "initSession2", "params": ["s1", ["STUN"}, {"TURN"]], "id":1}
+Device -> Server: { "result": null, "error": null, "id": 1}
+Server -> Client: { "result": {SessionID: "s1", STUN: [], TURN:[]}, "error": null, "id": 2}
+
+...
+]]></programlisting>
     </section>
   </chapter>
   <chapter xml:id="chapter_uyt_v12_v5b">
