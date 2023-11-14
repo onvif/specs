@@ -4,12 +4,12 @@
   <info>
     <title>WebRTC Specification</title>
     <titleabbrev>WebRTC</titleabbrev>
-    <releaseinfo>23.06</releaseinfo>
+    <releaseinfo>24.06 variant JSON-RPC</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate> June, 2023</pubdate>
+    <pubdate> Nov, 2023</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -73,6 +73,14 @@
     <para>IETF RFC 8866 - SDP: Session Description Protocol</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://tools.ietf.org/html/rfc8866"/>&gt;</para>
+    <para>IETF RFC 8839 - Session Description Protocol (SDP) Offer/Answer Procedures for
+      Interactive Connectivity Establishment (ICE)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="http://tools.ietf.org/html/rfc8839"/>&gt;</para>
+    <para>IETF RFC 8840 - A Session Initiation Protocol (SIP) Usage for Incremental Provisioning
+      of Candidates for the Interactive Connectivity Establishment (Trickle ICE)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="http://tools.ietf.org/html/rfc8840"/>&gt;</para>
     <para>IETF RFC 8489 - Session Traversal Utilities for NAT (STUN)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://tools.ietf.org/html/rfc8489"/>&gt;</para>
@@ -317,8 +325,8 @@
       <para>The following sections specify the parameters of the indivdual commands.</para>
       <section>
         <title xml:id="section_register">register</title>
-        <para> A signaling server shall expect this command to be setn once before any other command
-          ist sent over the WebSocket conneciton. The signaling server shall verify the validity of
+        <para> A signaling server shall expect this command to be sent once before any other command
+          is sent over the WebSocket connection. The signaling server shall verify the validity of
           the access token. Token details are outside of the scope of this specification.</para>
         <variablelist role="op">
         <varlistentry>
@@ -352,7 +360,8 @@
     <section>
       <title xml:id="section_init">initSession</title>
       <para> An ONVIF compliant signaling server shall support this command to establish a streaming
-        session between two peers.</para>
+        session between two peers. This request provides a list of STUN and TURN servers to both
+        peers.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -389,7 +398,7 @@
       <title xml:id="section_init2">initSession2</title>
       <para> An ONVIF compliant device shall support this command to establish a streaming session
         between two peers. After sending the response it shall immediately start to send an invite
-        for the session as specified in section .</para>
+        for the session as specified in section <xref linkend="section_invite"/>.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -421,9 +430,9 @@
     </section>
     <section>
       <title xml:id="section_invite">invite</title>
-      <para> An ONVIF compliant signaling server shall support this command to establish a streaming
+      <para>An ONVIF compliant signaling server shall support this command to establish a streaming
         session between two peers. It shall forward this command to the client and correspondingly
-        routes the response back to the device.</para>
+        route the response back to the device.</para>
       <para>The dynamics and the format of the SDP records are defined in RFC 8829.</para>
       <variablelist role="op">
         <varlistentry>
@@ -454,8 +463,8 @@
     <section>
       <title xml:id="section_setIceCandidate">addIceCandidate</title>
       <para> An ONVIF compliant signaling server, device and client shall support this command to
-        signal new ICE candidates for the trickleICE procides as defined in RFC ....</para>
-      <para>A signaling server shall relay this command unaltered to the peer..</para>
+        signal new ICE candidates for the trickleICE procides as defined in RFC 8840.</para>
+      <para>A signaling server shall relay this command unaltered to the peer.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -479,9 +488,6 @@
           </listitem>
         </varlistentry>
       </variablelist>
-      <para>The following errors can be set in the response to the <code>addIceCandidate</code>
-        message: 1100, 1101, 2100, 2101, 2102, 2103, 2104, 2105, 2106, 2107, 2108, 2109,
-        2110.</para>
       <para>Both client and device produce ICE candidates and send them to each other, via the
         server, in any order, using an <code>addIceCandidate</code> message.</para>
       <para><emphasis role="bold">NOTE</emphasis>: Note that ICE candidates can arrive <emphasis
@@ -509,6 +515,8 @@ Server -> Client: { "result": {SessionID: "s1", STUN: [], TURN:[]}, "error": nul
 
 ...
 ]]></programlisting>
+      <para/>
+      <para><emphasis>Remaining sections unaltered.</emphasis></para>
     </section>
   </chapter>
   <chapter xml:id="chapter_uyt_v12_v5b">
