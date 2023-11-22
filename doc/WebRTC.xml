@@ -346,16 +346,18 @@
         <varlistentry>
           <term>request</term>
           <listitem>
-            <para role="param">AccessToken [JWT]</para>
+            <para role="param">authorization [JWT]</para>
             <para role="text">Access token that authorizes the device or client..</para>
-            <para role="param">ID optional [string]</para>
+            <para role="param">id optional [string]</para>
             <para role="text">The unnique ID of the device or client.</para>
+            <para role="param">name optional [string]</para>
+            <para role="text">The human readable name of the device or client.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>response</term>
           <listitem>
-            <para role="param">ID [string]</para>
+            <para role="param">id [string]</para>
             <para role="text">The ID assigned by the signaling server to the endpoint. </para>
           </listitem>
         </varlistentry>
@@ -370,28 +372,29 @@
       </section>
     </section>
     <section>
-      <title xml:id="section_init">initSession</title>
-      <para> An ONVIF compliant signaling server shall support this command to establish a streaming
-        session between two peers. This request provides a list of STUN and TURN servers to both
-        peers.</para>
+      <title xml:id="section_init">connect</title>
+      <para>An ONVIF compliant signaling server and device shall support this command to establish a
+        streaming session between two peers. </para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
           <listitem>
-            <para role="param">DeviceID [string]</para>
-            <para role="text">The device to connect to.</para>
-            <para role="param">AccessToken [JWT]</para>
+            <para role="param">peer [string]</para>
+            <para role="text">The ID of the peer to connect to.</para>
+            <para role="param">authorization [JWT]</para>
             <para role="text">Access token that authorizes the device or client..</para>
-            <para role="param">Profile optional [string]</para>
+            <para role="param">profile optional [string]</para>
             <para role="text">Optional token of the media streaming profile to connect to.</para>
+            <para role="param">iceServers optional unbounded [URL]</para>
+            <para role="text">List of STUN and TURN servers to be used. </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>response</term>
           <listitem>
-            <para role="param">SessionID [string]</para>
+            <para role="param">session [string]</para>
             <para role="text">The ID assigned by the signaling server to the session. </para>
-            <para role="param">IceServers unbounded [URL]</para>
+            <para role="param">iceServers optional unbounded [URL]</para>
             <para role="text">List of STUN and TURN servers to be used. </para>
           </listitem>
         </varlistentry>
@@ -407,41 +410,11 @@
           </listitem>
         </varlistentry>
       </variablelist>
-    </section>
-    <section>
-      <title xml:id="section_init2">initSession2</title>
-      <para> An ONVIF compliant device shall support this command to establish a streaming session
-        between two peers. After sending the response it shall immediately start to send an invite
-        for the session as specified in section <xref linkend="section_invite"/>.</para>
-      <variablelist role="op">
-        <varlistentry>
-          <term>request</term>
-          <listitem>
-            <para role="param">SessionID [string]</para>
-            <para role="text">The ID assigned by the signaling server to the session. </para>
-            <para role="param">IceServers unbounded [URL]</para>
-            <para role="text">List of STUN and TURN servers to be used. </para>
-            <para role="param">Profile optional [string]</para>
-            <para role="text">Optional token of the media streaming profile to connect to.</para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>response</term>
-          <listitem>
-            <para role="text">Empty message</para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>faults</term>
-          <listitem>
-            <para role="param">400 Bad Request</para>
-            <para role="text">Invalid session ID or missing STUN and TURN server.</para>
-            <para role="param">500 Internal Server Error</para>
-            <para role="text">The device cannot process the request</para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
-      <para>Note, that the device is free to choose any streaming profile if no profile token is provided. </para>
+      <para>An ONVIF compliant signaling server shall provide a list of STUN and TURN servers in
+        both request and response such that both device and client use the same set of ICE
+        servers.</para>
+      <para>An ONVIF compliant device shall issue and invite method immediately after responding to
+        this method.</para>
     </section>
     <section>
       <title xml:id="section_invite">invite</title>
@@ -453,16 +426,16 @@
         <varlistentry>
           <term>request</term>
           <listitem>
-            <para role="param">SessionID [string]</para>
+            <para role="param">session [string]</para>
             <para role="text">The ID assigned by the signaling server to the session. </para>
-            <para role="param">Offer [SDP]</para>
+            <para role="param">offer [SDP]</para>
             <para role="text">The SDP offer provided by the device. </para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>response</term>
           <listitem>
-            <para role="param">Answer [SDP]</para>
+            <para role="param">answer [SDP]</para>
             <para role="text">The SDP answer provided by the client. </para>
           </listitem>
         </varlistentry>
@@ -480,7 +453,7 @@
       </variablelist>
     </section>
     <section>
-      <title xml:id="section_setIceCandidate">addIceCandidate</title>
+      <title xml:id="section_setIceCandidate">trickle</title>
       <para> An ONVIF compliant signaling server, device and client shall support this command to
         signal new ICE candidates for the trickleICE procides as defined in RFC 8840.</para>
       <para>A signaling server shall relay this command unaltered to the peer.</para>
@@ -488,9 +461,9 @@
         <varlistentry>
           <term>request</term>
           <listitem>
-            <para role="param">SessionID [string]</para>
+            <para role="param">session [string]</para>
             <para role="text">The ID assigned by the signaling server to the session. </para>
-            <para role="param">IceCandidate [SDP]</para>
+            <para role="param">candidate [SDP]</para>
             <para role="text">The SDP update for the peer. </para>
           </listitem>
         </varlistentry>
@@ -508,7 +481,7 @@
         </varlistentry>
       </variablelist>
       <para>Both client and device produce ICE candidates and send them to each other, via the
-        server, in any order, using an <code>addIceCandidate</code> message.</para>
+        server, in any order.</para>
       <para><emphasis role="bold">NOTE</emphasis>: Note that ICE candidates can arrive <emphasis
         role="bold">before</emphasis> the SDP offer and the implementing client needs to handle
         this.</para>
