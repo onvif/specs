@@ -86,6 +86,9 @@ padding: 1mm 3mm 1mm 3mm;
 .table>table>thead>tr>th {
 background-color: #d0d0d0;
 font-weight: bold;
+}
+literal {
+font-family: monospace;
 }</xsl:variable>
     <xsl:template match="/">
         <html>

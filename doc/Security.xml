@@ -9,7 +9,7 @@
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>Dec 2023</pubdate>
+    <pubdate>December 2023</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -139,6 +139,14 @@
           <personname>Ottavio Campana, Fredrik Svensson</personname>
         </author>
         <revremark>Added support for ECC cryptography, JSON Web Tokens, Authorization Servers using OAuth2 and OpenID Connect.</revremark>
+      </revision>
+      <revision>
+        <revnumber>23.06</revnumber>
+        <date>June-2023</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Remove requirement on passphrase support.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -463,7 +471,7 @@
                 <para>tas</para>
               </entry>
               <entry>
-                  <para>http://www.onvif.org/advancedsecurity/wsdl</para>
+                  <para>http://www.onvif.org/ver10/advancedsecurity/wsdl</para>
               </entry>
             </row>
             <row>
@@ -1668,8 +1676,13 @@
           </section>
           <section>
             <title>UploadKeyPairInPKCS8</title>
-            <para>This operation uploads a key pair in a PKCS#8 data structure as specified in RFC 5958, RFC 5959. </para>
-            <para>If an encryption passphrase ID is supplied in the request, the device shall assume that the KeyPair parameter contains an EncryptedPrivateKeyInfo ASN.1 structure that is encrypted under the passphrase in the keystore that corresponds to the supplied ID, where the EncryptedPrivateKeyInfo structure contains both the private key and the corresponding public key. If no encryption passphrase ID is supplied, the device shall assume that the KeyPair parameter contains a OneAsymmetricKey ASN.1 structure which contains both the private key and the corresponding public key. If a passphrase is supplied, the device shall ignore an eventually supplied passphrase ID and assume that the KeyPair parameter contains an EncryptedPrivateKeyInfo ASN.1 structure that is encrypted under the supplied passphrase, where the EncryptedPrivateKeyInfo structure contains both the private key and the corresponding public key.</para>
+            <para>This operation uploads a key pair in a PKCS#8 data structure as specified in [RFC 5958, RFC 5959]. </para>
+            <para>If a passphrase is either directly provided or as ID reference to a previously
+              uploaded passphrase, the device shall assume that the KeyPair parameter contains an
+              EncryptedPrivateKeyInfo ASN.1 structure that is encrypted with the given passphrase.
+              In case neither a passphrase nor a passphrase ID is provided the device shall assume
+              that the KeyPair parameter contains a OneAsymmetricKey ASN.1 structure which contains
+              both the private key and the corresponding public key. </para>
             <para>If the supplied key pair cannot be processed by the device, the device shall produce an UnsupportedPublicKeyAlgorithm fault and shall not store the uploaded key pair in the keystore.</para>
             <para>Key pairs are uniquely identified using key IDs. If a key pair exists in the keystore with the public key equal to the public key in the request and this key pair does not contain a private key, the device shall add the supplied private key to the existing key pair and return the ID of this key pair.</para>
             <para>If a key pair exists in the keystore with the public key equal to the public key in the request and this key pair contains a private key, the device shall leave the key pair unchanged and return the ID of this key pair.</para>
@@ -2021,7 +2034,7 @@
             <para>The uploaded certificate has to be linked to a key pair in the keystore.</para>
             <para>If no private key is required for the public key in the certificate and a key pair exists in the keystore with a public key equal to the public key in the certificate, the uploaded certificate is linked to the key pair identified by the supplied key ID by adding a reference from the certificate to the key pair.</para>
             <para>If no private key is required for the public key in the certificate and no key pair exists with the public key equal to the public key in the certificate, a new key pair with status <emphasis>ok </emphasis>is created with the public key from the certificate, and this key pair is linked to the uploaded certificate by adding a reference from the certificate to the key pair.</para>
-            <para>If a private key is required for the public key in the certificate, and a key pair exists in the keystore with a private key that matches the public key in the certificate, the uploaded certificate is linked to this key pair by adding a reference from the certificate to the key pair. If a private key is required for the public key and no such keypair exists in the keystore, the NoMatchingPrivateKey fault shall be produced and the certificate shall not be stored in the keystore.</para>
+            <para>If a private key is required for the public key in the certificate, and a key pair exists in the keystore with a private key that matches the public key in the certificate, the uploaded certificate is linked to this key pair by adding a reference from the certificate to the key pair. If a private key is required for the public key and no such keypair exists in the keystore, then NoMatchingPrivateKey fault shall be produced and the certificate shall not be stored in the keystore.</para>
             <para>The device shall assign the supplied Alias to the uploaded certificate.</para>
             <para>If a new key pair is generated, the device shall assign the supplied KeyAlias to it. Otherwise, the device shall ignore an eventually supplied KeyAlias.</para>
             <para>How the link between the uploaded certificate and a key pair is established is illustrated in <xref linkend="_Ref338934863"/>.</para>
@@ -2033,7 +2046,7 @@
                 </imageobject>
               </mediaobject>
             </figure>
-            <para>If the key pair that the certificate shall be linked to does not have status <emphasis>ok</emphasis>, an InvalidKeyID fault is produced, and the uploaded certificate is not stored in the keystore.</para>
+            <para>If the key pair that the certificate shall be linked to does not have status <emphasis>ok</emphasis>, an InvalidKeyStatus fault is produced, and the uploaded certificate is not stored in the keystore.</para>
             <para>If the signature algorithm that the signature of the supplied certificate is based on is not supported by the device, the device shall generate an UnsupportedSignatureAlgorithm fault and shall not store the uploaded certificate nor the contained public key in the keystore.</para>
             <para>If the device cannot process the uploaded certificate, a BadCertificate fault is produced and neither the uploaded certificate nor the public key are stored in the device’s keystore. The BadCertificate fault shall not be produced based on the mere fact that the device’s current time lies outside the interval defined by the notBefore and notAfter fields as specified by RFC 5280, Sect. 4.1.</para>
             <para>The device shall not mark the uploaded certificate as trusted.</para>
@@ -2079,7 +2092,7 @@
                   <para role="param">ter:Sender - ter:InvalidArgVal - ter:UnsupportedSignatureAlgorithm</para>
                   <para role="text"> The specified signature algorithm is not supported by the device.</para>
                   <para role="param">ter:Sender - ter:InvalidArgVal - ter:InvalidKeyStatus</para>
-                  <para role="text"> The key with the requested KeyID has an inappropriate status.</para>
+                  <para role="text"> The key pair has an inappropriate status.</para>
                 </listitem>
               </varlistentry>
               <varlistentry>
@@ -2819,7 +2832,9 @@
             <varlistentry>
               <term>request</term>
               <listitem>
-                <para role="param">CertificationPathID - [tas:CertificationPathID] The ID of the certification path to assign to the TLS server.</para>
+                <para role="param">CertificationPathID - [tas:CertificationPathID] </para>
+                <para role="text">The ID of the certification path to assign to the TLS
+                  server.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -2831,9 +2846,12 @@
             <varlistentry>
               <term>faults</term>
               <listitem>
-                <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificationPathID No certification path is stored in the keystore under the given certification path ID.</para>
-                <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPrivateKey The key pair that is associated with the first certificate in the certificate chain does not have an associated private key.</para>
-                <para role="param">env: Receiver - ter: Action - ter:MaximumNumberOfTLSCertificationPathsReached The maximum number of certification paths that may be assigned to the TLS server simultaneously is reached.</para>
+                <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificationPathID </para>
+                <para role="text">No certification path is stored in the keystore under the given certification path ID.</para>
+                <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPrivateKey </para>
+                <para role="text">The key pair that is associated with the first certificate in the certificate chain does not have an associated private key.</para>
+                <para role="param">env: Receiver - ter: Action - ter:MaximumNumberOfTLSCertificationPathsReached </para>
+                <para role="text">The maximum number of certification paths that may be assigned to the TLS server simultaneously is reached.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -3030,7 +3048,8 @@
             <varlistentry>
               <term>request</term>
               <listitem>
-                <para role="param">cnMapsToUser - [xs:boolean] A request for the device to enable or disable Common Name Mapping to User.</para>
+                <para role="param">cnMapsToUser - [xs:boolean]</para>
+                <para role="text">A request for the device to enable or disable Common Name Mapping to User.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -3042,7 +3061,8 @@
             <varlistentry>
               <term>faults</term>
               <listitem>
-                <para role="param">env:Receiver - ter:ActionNotSupported - ter:CnMapsToUserFailed The device does not support TLS client authentication, or TLS client authentication is not configured appropriately.</para>
+                <para role="param">env:Receiver - ter:ActionNotSupported - ter:CnMapsToUserFailed </para>
+                <para role="text">The device does not support TLS client authentication, or TLS client authentication is not configured appropriately.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -3060,13 +3080,14 @@
             <varlistentry>
               <term>request</term>
               <listitem>
-                <para role="param">This message is empty.</para>
+                <para role="text">This message is empty.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
               <term>response</term>
               <listitem>
-                <para role="text">cnMapsToUser - [xs:boolean] Whether cnMapsToUser is enabled.</para>
+                <para role="param">cnMapsToUser - [xs:boolean] </para>
+                <para role="text">Whether cnMapsToUser is enabled.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -3092,7 +3113,9 @@
             <varlistentry>
               <term>request</term>
               <listitem>
-                <para role="param">CertPathValidationPolicyID - [tas:CertPathValidationPolicyID] The ID of the certification path validation policy to assign to the TLS server.</para>
+                <para role="param">CertPathValidationPolicyID - [tas:CertPathValidationPolicyID] </para>
+                <para role="text">The ID of the certification path validation policy to assign to
+                  the TLS server.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -3104,8 +3127,11 @@
             <varlistentry>
               <term>faults</term>
               <listitem>
-                <para role="param">env:Sender - ter:InvalidArgVal - ter:CertPathValidationPolicyID No certification path validation policy is stored under the requested CertPathValidationPolicyID.</para>
-                <para role="param">env:Receiver - ter:Action - ter:MaximumNumberOfTLSCertPathValidationPoliciesReached The maximum number of certification path validation policies that may be assigned to the TLS server simultaneously is reached.</para>
+                <para role="param">env:Sender - ter:InvalidArgVal - ter:CertPathValidationPolicyID </para>
+                <para role="text">No certification path validation policy is stored under the
+                  requested CertPathValidationPolicyID.</para>
+                <para role="param">env:Receiver - ter:Action - ter:MaximumNumberOfTLSCertPathValidationPoliciesReached </para>
+                <para role="text">The maximum number of certification path validation policies that may be assigned to the TLS server simultaneously is reached.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -3124,7 +3150,8 @@
             <varlistentry>
               <term>request</term>
               <listitem>
-                <para role="param">CertPathValidationPolicyID - [tas:CertPathValidationPolicyID] The ID of the certification path validation policy to remove from the TLS server.</para>
+                <para role="param">CertPathValidationPolicyID - [tas:CertPathValidationPolicyID] </para>
+                <para role="text">The ID of the certification path validation policy to remove from the TLS server.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -3136,7 +3163,8 @@
             <varlistentry>
               <term>faults</term>
               <listitem>
-                <para role="param">env:Sender - ter:InvalidArgVal - ter:CertPathValidationPolicyID No certification path validation policy is stored under the requested CertPathValidationPolicyID.</para>
+                <para role="param">env:Sender - ter:InvalidArgVal - ter:CertPathValidationPolicyID </para>
+                <para role="text">No certification path validation policy is stored under the requested CertPathValidationPolicyID.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -3317,15 +3345,15 @@
           <varlistentry>
             <term>faults</term>
             <listitem>
-              <para role="param">foo env:Receiver - ter:Action - ter:MaximumNumberOfDot1XConfigurationsReached </para>
+              <para role="param">env:Receiver - ter:Action - ter:MaximumNumberOfDot1XConfigurationsReached </para>
               <para role="text">The device already has the number of configurations specified by MaximumNumberOfDot1XConfigurations.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:PassphraseID </para>
               <para role="text">A supplied passphrase ID cannot be processed by the device.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificationPathID </para>
               <para role="text">A supplied certification path ID cannot be processed by the device.</para>
-              <para role="param">env:Sender - ter:InvalidArgVal - ter: Dot1XMethod </para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:Dot1XMethod </para>
               <para role="text">A supplied IEEE 802.1X authentication method cannot be processed by the device.</para>
-              <para role="param">env:Sender - ter:InvalidArgVal - ter: Dot1XMethodCombination </para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:Dot1XMethodCombination </para>
               <para role="text">The combination of IEEE 802.1X authentication methods cannot be processed by the device.</para>
             </listitem>
           </varlistentry>
@@ -4294,7 +4322,6 @@
                       <para>UploadKeyPairInPKCS8</para>
                     </listitem>
                   </itemizedlist>
-                  <para>If true, MaximumNumberOfPassphrases &gt;0 shall hold.</para>
                   <para>If true, MaximumNumberOfKeys &gt; 0 shall hold.</para>
                   <para>If true, the list of supported password-based encryption algorithms as
                     indicated by the PasswordBasedEncryptionAlgorithms capability shall contain at
@@ -4340,7 +4367,6 @@
                       <para>DeleteCertificationPath</para>
                     </listitem>
                   </itemizedlist>
-                  <para>If true, MaximumNumberOfPassphrases &gt;0 shall hold.</para>
                   <para>If true, MaximumNumberOfKeys &gt;=2 shall hold.</para>
                   <para>If true, MaximumNumberOfCertificates &gt;=2 shall hold.</para>
                   <para>If true, MaximumNumberOfCertificattionPaths &gt;0 shall hold.</para>
@@ -4701,14 +4727,14 @@
       <section xml:id="_Ref353780603">
         <title>Key Status</title>
         <para>A device that indicates support for key handling via the MaximumNumberOfKeys capability shall provide information about key status changes through key status events.</para>
-        <para>A device shall include an OldStatus value unless NewStatus is generating.</para>
+        <para>A device shall include optional item OldStatus unless NewStatus is generating.</para>
         <programlisting><![CDATA[Topic: tns1:Advancedsecurity/Keystore/KeyStatus
 <tt:MessageDescription>
   <tt:Source>
     <tt:SimpleItemDescription Name="KeyID" Type="tas:KeyID"/>
   </tt:Source>
   <tt:Data>
-    <tt:SimpleItemDescriptionminOccurs=”0” Name="OldStatus" Type="tas:KeyStatus"/>
+    <tt:SimpleItemDescription Name="OldStatus" Type="tas:KeyStatus"/>
     <tt:SimpleItemDescription Name="NewStatus" Type="tas:KeyStatus"/>
   </tt:Data>
 </tt:MessageDescription>
