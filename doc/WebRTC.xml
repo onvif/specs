@@ -132,32 +132,21 @@
             <row>
               <entry align="left">
                 <para>
-                  <emphasis role="bold">Signaling ID</emphasis>
+                  <emphasis role="bold">Peer-ID</emphasis>
                 </para>
               </entry>
-              <entry>A peer's assigned ID provided by the signaling server in the <emphasis
-                  role="bold">hello</emphasis> message sent to a peer after it has connected a
-                WebSocket to the server.</entry>
+              <entry>A peer's assigned ID provided by the signaling server. Matches to GUID for
+                persistent peers like devices.</entry>
             </row>
             <row>
               <entry align="left">
                 <para>
-                  <emphasis role="bold">client-facing</emphasis>
+                  <emphasis role="bold">Session-ID</emphasis>
                 </para>
               </entry>
               <entry align="left">
-                <para>Messages that are sent between the Signaling Server and clients in either
-                  direction.</para>
+                <para>Identifier for a connection between peers.</para>
               </entry>
-            </row>
-            <row>
-              <entry align="left">
-                <para>
-                  <emphasis role="bold">device-facing</emphasis>
-                </para>
-              </entry>
-              <entry align="left">Messages that are sent between the Signaling Server and devices in
-                either direction.</entry>
             </row>
           </tbody>
         </tgroup>
@@ -500,19 +489,28 @@
       <para>The following example shows the flow using JSON-RPC 2.0. Note that for improved
         readability the madnatory JSON version string is not shown.</para>
       <programlisting><![CDATA[
-Client -> Server: { "method": "register", "params": {"AccessToken": "JWT..."}, "id":1}
-Server -> Client: { "result": "client-a1", "error": null, "id": 1}
-Device -> Server: { "method": "register", "params": {"AccessToken": "JWT..."}, "id":1}
-Server -> Device: { "result": "device-b1", "error": null, "id": 1}
+Client -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
+Server -> Client: { "result": "client-a1", "id": 1}
+Device -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
+Server -> Device: { "result": "device-b1", "id": 1}
 
-Client -> Server: { "method": "initSession", 
-                    "params": {"AccessToken": "JWT..."}, "DeviceID": "device-b1"}, "id":2}
-Server -> Device: { "method": "initSession2", 
-                    "params": {"SessionID": "s1", "IceServers": ["stun:1.2.3.4"}}, "id":1}
-Device -> Server: { "result": null, "error": null, "id": 1}
-Server -> Client: { "result": {"SessionID": "s1", "IceServers": ["stun:1.2.3.4"]}, 
-                    "error": null, "id": 2}
+Client -> Server: { "method": "connect", 
+                    "params": {"authorization": "JWT..."}, "DeviceID": "device-b1"}, "id":2}
+Server -> Device: { "method": "connect", 
+                    "params": {"session": "s1", "iceServers": ["stun:1.2.3.4"}}, "id":1}
+Device -> Server: { "result": {}, "id": 1}
+Server -> Client: { "result": {"SessionID": "s1", "iceServers": ["stun:1.2.3.4"]}, "id": 2}
 
+Device -> Server: { "method": "invite", "params": {"session": "s1", "offer": "SDP..."}, "id":2}
+Server -> Client: { "method": "invite", "params": {"session": "s1", "offer": "SDP..."}, "id":3}
+Client -> Server: { "result": {"answer": "SDP..."}, "id": 3}
+Server -> Device: { "result": {"answer": "SDP..."}, "id": 2}
+
+Device -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+Server -> Client: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+
+Client -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
 ...
 ]]></programlisting>
       <para/>
