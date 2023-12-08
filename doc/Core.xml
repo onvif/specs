@@ -534,6 +534,8 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc4861.txt"></link>&gt;</para>
     <para>RFC 4862, IPv6 Stateless Address Auto configuration</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc4862.txt"></link>&gt;</para>
+    <para>RFC 6750,  The OAuth 2.0 Authorization Framework: Bearer Token Usage</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc6750.txt"/>&gt;</para>
     <para>RFC 7519, JSON Web Token (JWT)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7519.txt"/>&gt;</para>
     <para>W3C SOAP Message Transmission Optimization Mechanism,</para>
@@ -2209,13 +2211,14 @@ DATE: when response was generated
         <para>The services defined in this standard, whenever consumed overt HTTP and HTTPS, shall be protected using digest authentication according to [RFC 2617] with the following exceptions.</para>
         <itemizedlist>
           <listitem>
-            <para>legacy devices supporting [WS-UsernameToken] and</para>
+            <para>Legacy devices supporting [WS-UsernameToken] and</para>
           </listitem>
           <listitem>
             <para>TLS client authorization and</para>
           </listitem>
           <listitem>
-            <para>devices supporting JWT client authorization based on [RFC 6750], only over HTTPS.</para>
+            <para>Devices supporting JWT client authorization based on [RFC 6750], only over
+              HTTPS.</para>
           </listitem>
         </itemizedlist>
         <para>If server supports both digest authentication as specified in [RFC 2617] and the user name token profile as specified in WS-Security the following behavior shall be adapted: a web service request can be authenticated on the HTTP level via digest authentication [RFC 2617] or on the web service level via the WS-Security (WSS) framework. If a client does not supply authentication credentials along with a web service request, the server shall assume that the client intends to use digest authentication [RFC 2617], if required. Hence, if a client does not provide authentication credentials when requesting a service that requires authentication, it will receive an HTTP 401 error according to [RFC 2617]. Note that this behaviour on the server’s side differs from the case of supporting only username token profile, which requires for this case an HTTP 400 error on the HTTP level and a SOAP:Fault env:Sender ter:NotAuthorized error on the WS level.</para>
@@ -2230,7 +2233,8 @@ DATE: when response was generated
           </mediaobject>
         </figure>
       	<para>Both digest authentication and WS-Security provide only a rudimentary level of security. In a system where security is important, it is recommended to always configure the device for TLS-based access (see Security Service). Digest authentication or WS-Security messages can be combined with TLS security for a client and server authentication. A protected transport level of security will provide an acceptable level of security in many systems.</para>
-        <para>Bearer tokens in HTTP headers do not provide security. It is recommended to always configure the device for TLS-based access (see Security Service). A protected transport level of security will provide an acceptable level of security in many systems. Bearer tokens should never be used without TLS.</para>
+        <para>JWT client authorization should only be used over TLS secured connections, in order to
+          protect bearer tokens against replay attacks.</para>
         <para>An ONVIF compliant device should authenticate an RTSP request at the RTSP level. If HTTP is used to tunnel the RTSP request the device shall not authenticate on the HTTP level.</para>
         <para>When authenticating RTSP or HTTP methods, an ONVIF compliant device shall use digest authentication [RFC 2617] or JWT-based authorization. The credentials shall be managed with the GetUsers, CreateUsers, DeleteUsers and SetUser methods. If the device also supports WS-Security, the same set of credentials shall be used.</para>
       </section>
@@ -8493,7 +8497,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
           </row>
           <row>
             <entry><para>JsonWebToken</para></entry>
-            <entry><para>Indication if the devices supports the JWT-based authentication with WS-Security Binary Security Token [WS-BinarySecurityToken]</para></entry>
+            <entry><para>Indication if the devices supports JWT-based authentication.</para></entry>
           </row>
           <row>
             <entry>
