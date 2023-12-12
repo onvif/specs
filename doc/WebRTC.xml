@@ -58,7 +58,7 @@
   </chapter>
   <chapter xml:id="chapter_uxt_v12_v5b">
     <title>Normative references</title>
-    <para>W3C WebRTC Specification: Real-Time Communication Between Browsers</para>
+    <para>W3C WebRTC Specification: Real-Time Communication in Browsers</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="https://www.w3.org/TR/webrtc/"/>&gt;</para>
     <para>IETF RFC 6455 - The WebSocket Protocol</para>
@@ -294,8 +294,8 @@
     <section xml:id="section_ayt_v12_v5b">
       <title>Communication Protocol</title>
       <para>The communication protocols shall use JSON-RPC version 2 over a WebSocket connection .
-        Parameters shall be passed by name. The table below provides the encodings to be
-        used.</para>
+        Parameters and responses shall be passed by name. The table below provides the encodings to
+        be used.</para>
       <para>
         <table frame="all">
           <title>Parameter encoding</title>
@@ -322,8 +322,12 @@
                 <entry><para>JSON encoding according to W3C WebRTC RTCIceCandidateInit</para></entry>
               </row>
               <row>
+                <entry><para>RTCIceServer</para></entry>
+                <entry><para>Connection parameters for a STUN or TURN server as defined by W3C WebRTC</para></entry>
+              </row>
+              <row>
                 <entry><para>URL</para></entry>
-                <entry><para>STURN or TURN server url encoded according to RFC 7064 or RFC 7065</para></entry>
+                <entry><para>STUN or TURN server url encoded according to RFC 7064 or RFC 7065</para></entry>
               </row>
             </tbody>
           </tgroup>
@@ -378,7 +382,7 @@
             <para role="text">Access token that authorizes the device or client..</para>
             <para role="param">profile optional [string]</para>
             <para role="text">Optional token of the media streaming profile to connect to.</para>
-            <para role="param">iceServers optional unbounded [URL]</para>
+            <para role="param">iceServers optional unbounded [RTCIceServer]</para>
             <para role="text">List of STUN and TURN servers to be used. </para>
           </listitem>
         </varlistentry>
@@ -387,7 +391,7 @@
           <listitem>
             <para role="param">session [string]</para>
             <para role="text">The ID assigned by the signaling server to the session. </para>
-            <para role="param">iceServers optional unbounded [URL]</para>
+            <para role="param">iceServers optional unbounded [RTCIceServer]</para>
             <para role="text">List of STUN and TURN servers to be used. </para>
           </listitem>
         </varlistentry>
@@ -404,9 +408,10 @@
         </varlistentry>
       </variablelist>
       <para>An ONVIF compliant signaling server shall provide a list of STUN and TURN servers in
-        both request and response such that both device and client use the same set of ICE
-        servers.</para>
-      <para>An ONVIF compliant device shall issue and invite method immediately after responding to
+        both request and response such that both device and client use the same set of ICE servers.
+        A compliant client and device shall support password based authentication of TURN
+        server.</para>
+      <para>An ONVIF compliant device shall issue an invite method immediately after responding to
         this method.</para>
     </section>
     <section>
@@ -495,11 +500,12 @@ Device -> Server: { "method": "register", "params": {"authorization": "JWT..."},
 Server -> Device: { "result": "device-b1", "id": 1}
 
 Client -> Server: { "method": "connect", 
-                    "params": {"authorization": "JWT..."}, "DeviceID": "device-b1"}, "id":2}
+              "params": {"authorization": "JWT..."}, "DeviceID": "device-b1"}, "id":2}
 Server -> Device: { "method": "connect", 
-                    "params": {"session": "s1", "iceServers": ["stun:1.2.3.4"}}, "id":1}
+              "params": {"session": "s1", "iceServers": [{"urls": "stun:1.2.3.4"}], "id":1}
 Device -> Server: { "result": {}, "id": 1}
-Server -> Client: { "result": {"SessionID": "s1", "iceServers": ["stun:1.2.3.4"]}, "id": 2}
+Server -> Client: { "result": {"SessionID": "s1", 
+                               "iceServers": [{urls:"stun:1.2.3.4"]}, "id": 2}
 
 Device -> Server: { "method": "invite", "params": {"session": "s1", "offer": "SDP..."}, "id":2}
 Server -> Client: { "method": "invite", "params": {"session": "s1", "offer": "SDP..."}, "id":3}
@@ -513,7 +519,6 @@ Client -> Server: { "method": "trickle", "params": {"session": "s1", "candidate"
 Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
 ...
 ]]></programlisting>
-      <para/>
       <para><emphasis>Remaining sections unaltered.</emphasis></para>
     </section>
   </chapter>
