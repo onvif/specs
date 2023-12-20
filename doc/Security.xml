@@ -1094,6 +1094,11 @@
         providing authentication of users and authorizing access to both device services and
         external services, like cloud storage.</para>
       <para>OAuth 2.0 is a specification that describes how to issue access tokens. It is defined in RFC6749. OpenID Connect has been developed as an extension of OAuth 2.0.</para>
+      <para>OAuth 2.0 clients registration, as specified RFC6749, for example sets up ClientId and
+        ClientSecret in addition to registering Authentication method listed in <xref
+          xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_smg_rzq_swb"/> and setting up
+        relevant metadata supporting client Authentication method, is a necessary prerequite before
+        client is used in OAuth2.0 and OpenID Connect flows.</para>
       <para>OAuth 2.0 includes the definition of a web API called "authorization endpoint". Requests to this API must include a parameter called <emphasis>response_type</emphasis> which can be either <emphasis>code</emphasis> or <emphasis>token</emphasis>. OpenID Connect extends the OAuth 2.0 specification, by adding the values <emphasis>id_token</emphasis> and <emphasis>none</emphasis> for <emphasis>response_type</emphasis> and allowing any combination of <emphasis>code</emphasis>, <emphasis>token</emphasis> and <emphasis>id_token</emphasis>.</para>
       <para>Any request for ID tokens must include <emphasis>openid</emphasis> in the <emphasis>scope</emphasis> request parameter.</para>
       <section xml:id="section_acl_4zq_swb">
@@ -1108,7 +1113,7 @@
             </imageobject>
           </mediaobject>
         </figure>
-        <para>A device can be setup to use JWTs obtained with this flow to allow access to its internal web interface for externally authenticated users. In that case an authorization server configuration with type OAuthAuthorizationCode should be created.</para>
+        <para>A device can be setup to use JWTs obtained with this flow to allow access to its internal web interface for externally authenticated users. In that case an authorization server configuration with type OAuthAuthorizationCode or OIDC2AuthorizationCode should be created.</para>
         <para>Access to the camera can be granted to users bearing either an ID Token or an Access Token, as long as the claims specified in <xref linkend="_Ref395181339"/> are present.</para>
       </section>
       <section xml:id="section_bcl_4zq_swb">
@@ -1284,8 +1289,8 @@
                   <para>client_secret_jwt</para>
                 </entry>
                 <entry>
-                  <para>Use a HMAC signed JWT using client_secret as shared secret, see OpenID
-                    Connect Core</para>
+                  <para>Use a HMAC signed JWT using client_secret as shared secret during client
+                    registration, see OpenID Connect Core</para>
                 </entry>
               </row>
               <row>
@@ -1293,7 +1298,8 @@
                   <para>private_key_jwt</para>
                 </entry>
                 <entry>
-                  <para>Use PKI signed JWT using private key, see OpenID Connect Core</para>
+                  <para>Use PKI signed JWT using private key, see OpenID Connect Core, public key
+                    shared with authorization server during client registration</para>
                 </entry>
               </row>
               <row>
@@ -1301,7 +1307,9 @@
                   <para>tls_client_auth</para>
                 </entry>
                 <entry>
-                  <para>Use PKI certificate to authenticate, see RFC 8705</para>
+                  <para>Use PKI certificate to authenticate, public key shared with authorization
+                    server during client registration and X.509 certificate used to setup mTLS with
+                    authorization server, see RFC 8705</para>
                 </entry>
               </row>
               <row>
@@ -1309,7 +1317,9 @@
                   <para>self_signed_tls_client_auth</para>
                 </entry>
                 <entry>
-                  <para>Use self-signed certificate to authenticate, see RFC 8705</para>
+                  <para>Use self-signed certificate to authenticate, public key shared with
+                    authorization server during client registration and self signed certificate used
+                    to setup mTLS with authorization server,see RFC 8705</para>
                 </entry>
               </row>
             </tbody>
