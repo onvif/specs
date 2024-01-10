@@ -346,7 +346,7 @@
             <para role="param">authorization [JWT]</para>
             <para role="text">Access token that authorizes the device or client..</para>
             <para role="param">id optional [string]</para>
-            <para role="text">The unnique ID of the device or client.</para>
+            <para role="text">The unique ID of the device or client.</para>
             <para role="param">name optional [string]</para>
             <para role="text">The human readable name of the device or client.</para>
           </listitem>
@@ -499,16 +499,16 @@
         readability the madnatory JSON version string is not shown.</para>
       <programlisting><![CDATA[
 Client -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
-Server -> Client: { "result": "client-a1", "id": 1}
+Server -> Client: { "result": { "id": "client-a1" }, "id": 1}
 Device -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
-Server -> Device: { "result": "device-b1", "id": 1}
+Server -> Device: { "result": { "id": "device-b1" }, "id": 1}
 
 Client -> Server: { "method": "connect", 
-              "params": {"authorization": "JWT..."}, "DeviceID": "device-b1"}, "id":2}
+              "params": {"authorization": "JWT...", "DeviceID": "device-b1"}, "id":2}
 Server -> Device: { "method": "connect", 
               "params": {"session": "s1", "iceServers": [{"urls": ["stun:1.2.3.4"]}], "id":1}
 Device -> Server: { "result": {}, "id": 1}
-Server -> Client: { "result": {"SessionID": "s1", 
+Server -> Client: { "result": {"session": "s1", 
                                "iceServers": [{"urls": ["stun:1.2.3.4"]}]}, "id": 2}
 
 Device -> Server: { "method": "invite", "params": {"session": "s1", "offer": "SDP..."}, "id":2}
