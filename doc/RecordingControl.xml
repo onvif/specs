@@ -190,6 +190,8 @@ Change Request 2061, 2063, 2065, 2109</revremark>
     <para role="reference">RFC 6381 — The 'Codecs' and 'Profiles' Parameters for "Bucket" Media Types &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.ietf.org/rfc/rfc6381.txt" />&gt;</para>
     <para role="reference">ONVIF Core Specification &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
     <para role="reference">ONVIF Schedule Service Specification &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/srv/sched/ONVIF-Scheduler-Service-Spec.pdf"></link>&gt; </para>
+    <para role="reference">NIST SP 800-38A — Recommendation for Block Cipher Modes of Operation: Methods and Techniques &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://csrc.nist.gov/pubs/sp/800/38/a/final"></link>&gt; </para>
+    <para role="reference">W3C "keyids" Initialization Data Format &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.w3.org/TR/eme-initdata-keyids"></link>&gt; </para>
   </chapter>
   <chapter>
     <title>Terms and Definitions</title>
@@ -485,6 +487,12 @@ Change Request 2061, 2063, 2065, 2109</revremark>
             <term>Encryption</term>
             <listitem>
               <para>Optional encryption configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>SegmentEncryption</term>
+            <listitem>
+              <para>Optional full segment encryption configuration.</para>
             </listitem>
           </varlistentry>
         </variablelist>
@@ -1593,6 +1601,15 @@ Change Request 2061, 2063, 2065, 2109</revremark>
             </para>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>SupportedEncryptionAlgorithms</term>
+          <listitem>
+            <para>
+              Supported encryption algorithms for segment encryption.
+              See tt:EncryptionAlgorithm for a list of definitions.
+            </para>
+          </listitem>
+        </varlistentry>
       </variablelist>
     </section>
     <section>
@@ -2011,41 +2028,57 @@ secfrac = "." 1*6DIGIT</programlisting>
     </section>
     <section xml:id="_refCloudRecordingEncryption">
       <title>Encryption</title>
-      <para>
-        A device signaling support for recording to an external target with encryption shall support writing encrypted files according to ISO/IEC 23001-7 (common encryption in ISO base media file format files).
-        Each <literal>Encryption</literal> entry configured for a recording covers a distinct set of tracks for which to apply the encryption, identified by the <literal>Track</literal> element.
-        If an encryption entry contains no <literal>Track</literal> elements, it covers all tracks of the recording.
-        If an encryption entry contains one or more <literal>Track</literal> elements, it covers the tracks indicated by the track tokens contained in these elements.
-        The device shall encrypt the covered tracks with the scheme given by the <literal>Mode</literal> configured for the encryption entry:
-      </para>
-      <para>
-        <variablelist>
-          <varlistentry>
-            <term>CENC</term>
-            <listitem>
-              <para>
-                AES-CTR mode full sample and video NAL Subsample encryption, defined in ISO/IEC 23001-7.
-              </para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>CBCS</term>
-            <listitem>
-              <para>
-                AES-CBC mode partial video NAL pattern encryption, defined in ISO/IEC 23001-7.
-              </para>
-            </listitem>
-          </varlistentry>
-        </variablelist>
-      </para>
-      <para>
-        The device shall create an individual initialization vector for each segment.
-        The device shall encrypt with the <literal>Key</literal> configured for the encryption entry as the encryption key.
-        The device shall interpret the <literal>KID</literal> configured for the encryption entry as a 16-byte hexadecimal value and use this value as the key identifier.
-      </para>
-      <para>
-        If an encryption entry is reconfigured for an active recording, the device shall continue to use the old configuration for any open segments and shall start to use the new configuration for new segments.
-      </para>
+      <section xml:id="_refSampleEncryption">
+        <title>Sample Encryption</title>
+        <para>
+          A device signaling support for recording to an external target with sample encryption shall support writing encrypted files according to ISO/IEC 23001-7 (common encryption in ISO base media file format files).
+          Each <literal>Encryption</literal> entry configured for a recording covers a distinct set of tracks for which to apply the encryption, identified by the <literal>Track</literal> element.
+          If an encryption entry contains no <literal>Track</literal> elements, it covers all tracks of the recording.
+          If an encryption entry contains one or more <literal>Track</literal> elements, it covers the tracks indicated by the track tokens contained in these elements.
+          The device shall encrypt the covered tracks with the scheme given by the <literal>Mode</literal> configured for the encryption entry:
+        </para>
+        <para>
+          <variablelist>
+            <varlistentry>
+              <term>CENC</term>
+              <listitem>
+                <para>
+                  AES-CTR mode full sample and video NAL Subsample encryption, defined in ISO/IEC 23001-7.
+                </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>CBCS</term>
+              <listitem>
+                <para>
+                  AES-CBC mode partial video NAL pattern encryption, defined in ISO/IEC 23001-7.
+                </para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+        </para>
+        <para>
+          The device shall create an individual initialization vector for each segment.
+          The device shall encrypt with the <literal>Key</literal> configured for the encryption entry as the encryption key.
+          The device shall interpret the <literal>KID</literal> configured for the encryption entry as a 16-byte hexadecimal value and use this value as the key identifier.
+        </para>
+        <para>
+          If an encryption entry is reconfigured for an active recording, the device shall continue to use the old configuration for any open segments and shall start to use the new configuration for new segments.
+        </para>
+      </section>
+      <section xml:id="_refSegmentEncryption">
+        <title>Segment Encryption</title>
+        <para>
+          A device signaling support for recording to an external target with segment encryption shall support writing encrypted files according to NIST SP 800-38A — Recommendation for Block Cipher Modes of Operation: Methods and Techniques.
+          The device shall lists which encryption algorithm it supports using the SupportedEncryptionAlgorithms capability.
+          When uploading the segment to the external object storage, the device shall include the following attributes in the metadata: <literal>CertThumb</literal>, <literal>Key</literal>, <literal>KID</literal>, <literal>IV</literal> and <literal>EncAlgo</literal>.
+          The listed metadata attributes are necessary in order to be able to decrypt the encoded segment.
+          <literal>KeyRotationDurationFrequency</literal> indicates at which frequency the device shall generate a new key to encrypt a new segment. If not specified, key rotation is per segment.
+        </para>
+        <para>
+          If an encryption entry is reconfigured for an active recording, the device shall continue to use the old configuration for any open segments and shall start to use the new configuration for new segments.
+        </para>
+      </section>
     </section>
     <section xml:id="_refCloudRecordingObjectAttributes">
       <title>Object attributes</title>
@@ -2219,6 +2252,61 @@ secfrac = "." 1*6DIGIT</programlisting>
               </entry>
               <entry>
                 <para>Integer</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>CertThumb</literal></para>
+              </entry>
+              <entry>
+                <para>Certificate thumbprint using SHA256</para>
+              </entry>
+              <entry>
+                <para>Base64 string</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>Key</literal></para>
+              </entry>
+              <entry>
+                <para>Symmetric key encrypted using public key of certificate defined in CertThumb</para>
+              </entry>
+              <entry>
+                <para>Base64 string</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>KID</literal></para>
+              </entry>
+              <entry>
+                <para>Key ID for the encrypted segment. See [W3C "keyids"]</para>
+              </entry>
+              <entry>
+                <para>Base64 String</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>IV</literal></para>
+              </entry>
+              <entry>
+                <para>Initialization vector</para>
+              </entry>
+              <entry>
+                <para>Base64 string</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>EncAlgo</literal></para>
+              </entry>
+              <entry>
+                <para>See tt:EncryptionAlgorithm</para>
+              </entry>
+              <entry>
+                <para>String</para>
               </entry>
             </row>
           </tbody>

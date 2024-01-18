@@ -7678,6 +7678,24 @@ and sample rate. </xs:documentation>
 			</xs:enumeration>
 		</xs:restriction>
 	</xs:simpleType>
+	<xs:simpleType name="EncryptionAlgorithm">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="AES-128-CBC">
+				<xs:annotation>
+					<xs:documentation>
+						AES 128 bit key using chain-block cypher mode [NIST SP 800-38A]
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="AES-256-CTR">
+				<xs:annotation>
+					<xs:documentation>
+						AES 256 bit key using counter mode [NIST SP 800-38A]
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
 	<!--===============================-->
 	<xs:complexType name="RecordingEncryption">
 		<xs:sequence>
@@ -7711,6 +7729,36 @@ and sample rate. </xs:documentation>
 					Mode of encryption.
 					See tt:EncryptionMode for a list of definitions and capability trc:SupportedEncryptionModes for the supported encryption modes.
 				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="SegmentEncryption">
+		<xs:sequence>
+			<!--When <literal>KeyRotationDuration</literal> is set then the device shall generate a new <literal>KID/Key</literal> pair at the specified time interval as defined by <literal>KeyRotationDuration</literal>, but still use the current key until the segment is finished.-->
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+		</xs:sequence>
+		<xs:attribute name="CertificateID" type="xs:token" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="EncryptionAlgorithm" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					See tt:EncryptionAlgorithm list for possible values. (AES-128)
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="KeyRotationDuration" type="xs:duration" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+				Frequency at which the device shall generate a new key to encrypt a new segment.
+				If not specified, key rotation is per segment.
+				KeyRotationDuration must be a positive duration value.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
@@ -7754,10 +7802,17 @@ and sample rate. </xs:documentation>
 			<xs:element name="Encryption" type="tt:RecordingEncryption" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation>
-						Optional encryption configuration.
+						Optional frame encryption configuration [Common encryption ISO/IEC 23001-7:2016]. This is mutually exclusive with tt:SegmentEncryption.
 						See capability trc:EncryptionEntryLimit for the number of supported entries.
 						By specifying multiple encryption entries per recording, different tracks can be encrypted with different configurations.
 						Each track shall only be contained in one encryption configuration.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="SegmentEncryption" type="tt:SegmentEncryption" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>
+						Optional full segment encryption configuration.
 					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
