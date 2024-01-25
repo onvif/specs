@@ -71,6 +71,10 @@
     <para> 	Identity within Internet Public Key Infrastructure Using X.509 (PKIX)</para>
     <para>	Certificates in the Context of Transport Layer Security (TLS)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://tools.ietf.org/html/rfc6125"></link>&gt; </para>
+    <para>IETF RFC 6455 - The WebSocket Protocol</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://tools.ietf.org/html/rfc6455"></link>&gt; </para>
+    <para>IETF RFC 6750 - The OAuth 2.0 Authorization Framework: Bearer Token Usage</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://tools.ietf.org/html/rfc6750"></link>&gt; </para>
     <para>IETF RFC 7540 - Hypertext Transfer Protocol Version 2 (HTTP/2)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://tools.ietf.org/html/rfc7540"></link>&gt; </para>
     <para>IETF RFC 8441 - Bootstrapping WebSockets with HTTP/2</para>
@@ -180,15 +184,57 @@
     <title>Uplink</title>
     <section>
       <title>Connection Establishment</title>
-      <para>The device initiates the connection to the cloud service. <xref linkend="_Ref505091745" /> shows the three phases. In the first phase the device acts as TLS client that connects to the cloud service. Please note that the figure only shows the most relevant packets. Details of the TCP and TLS exchange are out of scope of this specification. The second phase includes the connection upgrade to HTTP/2 which is confirmed by the cloud service with a 101 HTTP response. The third phase of the connection than fully complies to an HTTP2 connection as if it were initiated from the cloud service.</para>
-      <figure xml:id="_Ref505091745">
-        <title>Connection initiation from the device</title>
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="media/Uplink/image4.svg" contentwidth="128mm" />
-          </imageobject>
-        </mediaobject>
-      </figure>
+      <para>There are two connection mechanism available for a device to connect to a remote client. The device can either use an http/2 reverse tunnel or a WebSocket.</para>
+      <section>
+        <title>Establishing the reverse tunnel</title>
+        <para>
+          The device initiates the connection to the cloud service. This is done in three phases.
+          Phase 2 and 3 depend on the protocol being used and are detailed below.
+          In the first phase the device acts as TLS client that connects to the cloud service.
+          Details of the TCP and TLS exchange are out of scope of this specification.
+        </para>
+        <section>
+          <title>Native h2c-reverse</title>
+          <para> <!-- HTTP/2 normal -->
+            The second phase includes the connection upgrade to HTTP/2 h2c-reverse protocol which is confirmed by the cloud service with a 101 HTTP response.
+            The third phase of the connection than fully complies to an HTTP2 connection as if it were initiated from the cloud service.
+            Please note that the figure only shows the most relevant packets.
+          </para>
+          <figure xml:id="_Ref505091745">
+            <title>Connection initiation from the device</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="media/Uplink/image4.svg" contentwidth="128mm" />
+              </imageobject>
+            </mediaobject>
+          </figure>
+        </section>
+        <section>
+          <title>WebSocket h2c-reverse</title>
+          <para> <!-- WebSocket normal -->
+            The second phase includes the connection upgrade to a WebSocket with the reverse HTTP2 subprotocol which is confirmed by the cloud service with a 101 HTTP response.
+            The third phase of the connection then fully complies to an HTTP2 connection as if it were initiated from the cloud services, using WebSocket binary frames.
+            Please note that the figure only shows the most relevant packets.
+            You may provide an access token by adding a query parameter to the WebSocket URI as defined by [RFC6750] Section 2.3.
+          </para>
+          <figure xml:id="_Ref484594140">
+            <title>Connection initiation from the device</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="media/Uplink/Websocket-Upgrade.svg" contentwidth="128mm" />
+              </imageobject>
+            </mediaobject>
+          </figure>
+        </section>
+        <section>
+          <title>HTTP/2 Frames</title>
+          <para>Once an http/2 connection has been established the communication parameters are negotiated as specified by RFC 7540 so that the uplink can be used to exchange frames between the remote client and the local service.</para>
+        </section>
+        <section>
+          <title>HTTP Transactions</title>
+          <para>The uplink shall be used in reverse direction for http requests and responses. The remote client shall send requests that are served in a standard http manner by the local service.</para>
+        </section>
+      </section>
     </section>
     <section>
       <title>Connection Management</title>
