@@ -210,19 +210,22 @@
     <section>
       <title>Authentication</title>
       <para>Note that for the following discussion the roles of client and server are swapped.</para>
-      <para>The remote client shall authenticate itself using a valid server certificate. The service shall verify the validity of the remote certificate according to RFC 6125. </para>
-      <para>The service shall authenticate itself at the remote client using TLS client authentication according to RFC 5246 or subsequent specifications.</para>
-      <para>To uniquely identify local service on remote client, it is recommended to have a unique client certificate installed on each local service. For example, CN field or Serial number of installed certificate could be used to uniquely identify the local service.</para>
-      <para>The device shall assign any tunneled HTTP or RTSP request the UserLevel that is
-        configured for the configuration without the need of further authentication request headers. </para>
-    </section>
-    <section>
-      <title>HTTP/2 Frames</title>
-      <para>Once an http/2 connection has been established the communication parameters are negotiated as specified by RFC 7540 so that the uplink can be used to exchange frames between the remote client and the local service.</para>
-    </section>
-    <section>
-      <title>HTTP Transactions</title>
-      <para>The uplink shall be used in reverse direction for http requests and responses. The remote client shall send requests that are served in a standard http manner by the local service.</para>
+      <para>The remote client shall authenticate itself using a valid server certificate. The service shall verify the validity of the remote certificate according to RFC 6125.</para>
+      <section>
+        <title>mTLS authentication</title>
+        <para>When using mTLS authentication, the service shall authenticate itself at the remote client using TLS client authentication according to RFC 5246 or subsequent specifications.</para>
+        <para>To uniquely identify local service on remote client, it is recommended to have a unique client certificate installed on each local service. For example, CN field or Serial number of installed certificate could be used to uniquely identify the local service.</para>
+        <para>The device shall assign any tunneled HTTP or RTSP request the UserLevel that is configured for the configuration without the need of further authentication request headers. </para>
+        <para>To use this authentication mechanism, the <literal>CertificateID</literal> shall be set in the <literal>UplinkConfiguration</literal>.</para>
+      </section>
+      <section>
+        <title>JWT authentication</title>
+        <para>When using JWT authentication, the local service shall provide a JWT token when sending the upgrade request.</para>
+        <para>The remote client shall validate the JWT token provided following the JWT specification as defined in the Core specification.</para>
+        <para>The device shall assign any tunneled HTTP or RTSP request the UserLevel that is configured for the configuration without the need of further authentication request headers.</para>
+        <para>When a device indicates JsonWebToken is supported through its Capabilities, then it shall support JWT authentication in this specification.</para>
+        <para>To use this authentication mechanism, the <literal>AuthorizationServerConfigurationToken</literal> shall be set in the <literal>UplinkConfiguration</literal>.</para>
+      </section>
     </section>
     <section>
       <title>Media Streaming</title>
@@ -319,12 +322,24 @@
         <varlistentry>
           <term>faults</term>
           <listitem>
-            <para role="param">ter:Sender - ter:InvalidArgVal - ter:CertificateID</para>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificateID</para>
             <para role="text"> No certificate is stored under the requested CertificateID.</para>
-            <para role="param">ter:Sender - ter:InvalidArgVal -
-              ter:CertPathValidationPolicyID</para>
-            <para role="text"> No certification path validation policy is stored under the requested
-              ID.</para>
+          </listitem>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:AuthorizationServerConfigurationToken</para>
+            <para role="text"> No AuthorizationServerConfiguration exists for the specified token.</para>
+          </listitem>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgs - ter:MissingAuthentication</para>
+            <para role="text">CertificateID and AuthorizationServerConfigurationToken are both missing.</para>
+          </listitem>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgs - ter:AmbiguousAuthentication</para>
+            <para role="text">CertificateID and AuthorizationServerConfigurationToken are mutually exclusive.</para>
+          </listitem>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgs - ter:JsonWebTokenNotSupported</para>
+            <para role="text">Cannot set AuthorizationServerConfigurationToken when JsonWebToken is not supported.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
