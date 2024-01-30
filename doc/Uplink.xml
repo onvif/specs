@@ -208,6 +208,8 @@
               </imageobject>
             </mediaobject>
           </figure>
+          <para>This protocol shall be used when the uri protocol states 'https'. A device signaling
+            support for https via its Protocol capability shall support native h2c-reverse.</para>
         </section>
         <section>
           <title>WebSocket h2c-reverse</title>
@@ -227,6 +229,9 @@
               </imageobject>
             </mediaobject>
           </figure>
+          <para>This protocol shall be used when the uri protocol states 'wss'. A device signaling
+            support for wss via its Protocol capability shall support h2c-reverse over
+            WebSocket.</para>
         </section>
         <section>
           <title>HTTP/2 Frames</title>
@@ -264,7 +269,7 @@
         <para>When using mTLS authentication, the service shall authenticate itself at the remote client using TLS client authentication according to RFC 5246 or subsequent specifications.</para>
         <para>To uniquely identify local service on remote client, it is recommended to have a unique client certificate installed on each local service. For example, CN field or Serial number of installed certificate could be used to uniquely identify the local service.</para>
         <para>The device shall assign any tunneled HTTP or RTSP request the UserLevel that is configured for the configuration without the need of further authentication request headers. </para>
-        <para>To use this authentication mechanism, the <literal>CertificateID</literal> shall be set in the <literal>UplinkConfiguration</literal>.</para>
+        <para>If the <literal>CertificateID</literal> is present in the <literal>UplinkConfiguration</literal> the device shall use this authentication mechanism.</para>
       </section>
       <section>
         <title>JWT authentication</title>
@@ -272,7 +277,7 @@
         <para>The remote client shall validate the JWT token provided following the JWT specification as defined in the Core specification.</para>
         <para>The device shall assign any tunneled HTTP or RTSP request the UserLevel that is configured for the configuration without the need of further authentication request headers.</para>
         <para>When a device indicates JsonWebToken is supported through its Capabilities, then it shall support JWT authentication in this specification.</para>
-        <para>To use this authentication mechanism, the <literal>AuthorizationServerConfigurationToken</literal> shall be set in the <literal>UplinkConfiguration</literal>.</para>
+        <para>If the <literal>AuthorizationServer</literal> token is present in the <literal>UplinkConfiguration</literal> the device shall use this authentication mechanism.</para>
       </section>
     </section>
     <section>
@@ -378,8 +383,8 @@
             <para role="text">CertificateID and AuthorizationServerConfigurationToken are both missing.</para>
             <para role="param">env:Sender - ter:InvalidArgs - ter:AmbiguousAuthentication</para>
             <para role="text">CertificateID and AuthorizationServerConfigurationToken are mutually exclusive.</para>
-            <para role="param">env:Sender - ter:InvalidArgs - ter:JsonWebTokenNotSupported</para>
-            <para role="text">Cannot set AuthorizationServerConfigurationToken when JsonWebToken is not supported.</para>
+            <para role="param">env:Sender - ter:InvalidArgs - ter:ProtocolNotSupported</para>
+            <para role="text">The provided protocol is not supported by the device.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -428,6 +433,14 @@
         <varlistentry>
           <term>MaxUplinks</term>
           <listitem><para>Maximum number of uplink connections that can be configured</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Protocols</term>
+          <listitem><para>Supported protocols [https, wss]</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>AuthorizationModes</term>
+          <listitem><para>Supported authorization mode [mTLS, JWT]</para></listitem>
         </varlistentry>
       </variablelist>
     </section>

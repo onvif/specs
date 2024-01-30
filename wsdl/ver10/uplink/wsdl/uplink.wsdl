@@ -31,6 +31,18 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:simpleType name="Protocols">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="https"></xs:enumeration>	<!-- native h2c-reverse -->
+					<xs:enumeration value="wss"></xs:enumeration>	<!-- h2c-reverse over WebSocket -->
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType name="AuthorizationModes">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="mTLS"></xs:enumeration>	<!-- TLS with Client Certificate -->
+					<xs:enumeration value="JWT"></xs:enumeration>	<!-- JWT token -->
+				</xs:restriction>
+			</xs:simpleType>
 			<xs:complexType name="Capabilities">
 				<xs:sequence>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first Vendor then ONVIF -->
@@ -40,9 +52,14 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>Maximum number of uplink connections that can be configured.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
-				<xs:attribute name="WebSocket" type="xs:boolean">
+				<xs:attribute name="Protocols" type="tt:StringList">
 					<xs:annotation>
-						<xs:documentation>Can upgrade uplink connection to a WebSocket.</xs:documentation>
+						<xs:documentation>Protocols supported by the device. Defined values are 'https' for native h2c-reverse and 'wss' for h2c-reverse over WebSocket as defined by tup:Protocols.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="AuthorizationModes" type="tt:StringList">
+					<xs:annotation>
+						<xs:documentation>Supported authorization mode [mTLS JWT] as defined by tup:AuthorizationModes.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
@@ -80,9 +97,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first ONVIF then Vendor -->
 				</xs:sequence>
-				<xs:attribute name="UpgradeWithWebSocket" type="xs:boolean" default="false">
-					<xs:annotation><xs:documentation>Indicates if the upgrade must be done using the WebSocket protocol.</xs:documentation></xs:annotation>
-				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
