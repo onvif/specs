@@ -745,7 +745,7 @@
         <title>The reserved byte</title>
         <para>Right after the UUID, and before the TLV data, is a reserved byte. This byte represent
           bit flags of information that cannot be put in the TLV structure.</para>
-        <para>The first bit should be set to 1 if this is an "only sent once" SEI.</para>
+        <para>The first bit should be set to 1 if this is a "start-of-stream" SEI.</para>
         <para>The second bit should be set to 1 if emulation prevention was applied
           <emphasis role="bold">before</emphasis> this SEI (the document) was hashed for signing.
         </para>
@@ -754,14 +754,14 @@
           bytes.</para>
       </section>
       <section xml:id="section_m3s_njq_bwb">
-        <title>Information sent only once</title>
+        <title>Start of stream</title>
         <para>Large data blobs like certificates are preferably sent only once. This "only need
-          once" information should be put in a separate SEI, with the corresponding bit in the
-          reserved byte set to 1, and signed. This separates the SEI from the video stream and can
-          be copied and added to any exported material.</para>
-        <para>If the video is signed with a user provisioned signing key, this "only sent once" SEI
+          once" information can be put in a separate "start-of-stream" SEI, with the corresponding
+          bit in the reserved byte set to 1, and signed. This separates the "start-of-stream" SEI
+          from the video stream and can be copied and added to any exported material.</para>
+        <para>If the video is signed with a user provisioned signing key, this "start-of-stream" SEI
           should be signed with the manifacturer provisioned signing key. Note that both
-          certificates and Public keys have to be included in the SEI.</para>
+          certificates of Public keys have to be included in the "start-of-stream" SEI.</para>
       </section>
       <section xml:id="section_n3s_njq_bwb">
         <title>TLV tags</title>
@@ -1053,8 +1053,8 @@
         <para>The leaf certificate includes the Public key, and upon successful verification can
           safely be extracted to use when verifying the signatures.</para>
         <para>Note that the certificate chain must not include the CA certificate.</para>
-        <para>Note that this tag is mandatory in the first SEI and optional thereafter. If sent
-          only once, it has to be part of a SEI marked with the "sent only once" flag.</para>
+        <para>Note that this tag is mandatory in the "start-of-stream" SEI and optional thereafter.
+          If sent at stream start, it has to be part of a SEI marked with the "start-of-stream" flag.</para>
         <itemizedlist>
           <listitem>
             <para>Tag version (1 byte)</para>
@@ -1089,7 +1089,7 @@
         individual invalid and/or missing frames.</para>
     </section>
     <section xml:id="section_w3s_njq_bwb">
-      <title>How to generate the first, send-only-once, SEI</title>
+      <title>How to generate the first "start-of-stream" SEI</title>
       <itemizedlist>
         <listitem>
           <para>Write SEI NAL Unit header</para>
@@ -1115,7 +1115,7 @@
               0x6f</code></para>
         </listitem>
         <listitem>
-          <para>Write the reserved byte with the only-sent-once flag set; <code>0x80</code>.</para>
+          <para>Write the reserved byte with the "start-of-stream" flag set; <code>0x80</code>.</para>
           <para>If emulation prevention will be applied before hashing the SEI for signing, set the
             emulation prevention bit; <code>0xc0</code>.</para>
         </listitem>
@@ -1174,7 +1174,7 @@
               0x6f</code></para>
         </listitem>
         <listitem>
-          <para>Write the reserved byte without the only-sent-once flag set;
+          <para>Write the reserved byte without the "start-of-stream" flag set;
             <code>0x00</code>.</para>
           <para>If emulation prevention will be applied before hashing the SEI for signing, set the
             emulation prevention bit; <code>0xc0</code>.</para>
@@ -1223,8 +1223,9 @@
     <section xml:id="section_ifs_zfm_4xb">
       <title>Handling SetSynchronizationPoint</title>
       <para> When the device recieves a SetSynchronizationPoint command, as specified in the media2
-        specification, the device shall transmit a new instance of the send-only-once information AU
-        as well as starting a new SEI signing segment in order for the video to be authenticatable
+        specification, the device shall transmit a new instance of the "start-of-stream" SEI (if the
+        device apply the principle of "start-of-stream" SEIs). Further, the device should start
+        a new SEI signing segment in order for the video to be authenticatable
         from the synchronization point forward.</para>
     </section>
   </chapter>
@@ -1236,10 +1237,10 @@
     <title>Client considerations (informative)</title>
     <section xml:id="section_z3s_njq_bwb">
       <title>Minimum requirements for client handling of a signed video stream</title>
-      <para>Attached to the first AU of a signed video stream may be a SEI including all
-        information that is only sent once; The only-sent-once bit is set. This SEI
-        should be stored for later use. Further, when exporting a video segment to file,
-        this SEI shall be added to the first AU of that recording.</para>
+      <para>Attached to the first AU of a signed video stream may be a "start-of-stream" SEI
+        including all information that is only sent once; The "start-of-stream" bit is set.
+        This SEI should be stored for later use. Further, when exporting a video segment to file,
+        this "start-of-stream" SEI shall be added to the first AU of that recording.</para>
       <para>The client shall not remove any SEI-frames from the stream. It is possible to move
         them to the AU including the I-frame of the GOP the particular SEI did sign.</para>
     </section>
@@ -1253,27 +1254,27 @@
             <para>Get the manufacturer CA certificate from an external source.</para>
           </listitem>
           <listitem>
-            <para>Extract the manufacturer Certificate from the "only sent once" SEI.</para>
+            <para>Extract the manufacturer Certificate from the "start-of-stream" SEI.</para>
           </listitem>
           <listitem>
             <para>Verify the extracted certificate with the CA certificate.</para>
           </listitem>
           <listitem>
-            <para>Extract the manufacturer Public Key from the "only sent once" SEI.</para>
+            <para>Extract the manufacturer Public Key from the "start-of-stream" SEI.</para>
           </listitem>
           <listitem>
             <para>Verify the extracted Public Key with the extracted certificate.</para>
           </listitem>
           <listitem>
-            <para>Verify the signature of the "only sent once" SEI with the extracted Public Key.
+            <para>Verify the signature of the "start-of-stream" SEI with the extracted Public Key.
             </para>
           </listitem>
           <listitem>
             <para>If a user provisioned signing key was used, get the user CA certificate from an
               external source.</para>
-            <para>Extract the user provisioned Certificate from the "only sent once" SEI.</para>
+            <para>Extract the user provisioned Certificate from the "start-of-stream" SEI.</para>
             <para>Verify the extracted user provisioned certificate with the CA certificate.</para>
-            <para>Extract the user provisioned Public Key from the "only sent once" SEI.</para>
+            <para>Extract the user provisioned Public Key from the "start-of-stream" SEI.</para>
             <para>Verify the extracted user provisioned Public Key with the extracted user
               provisioned certificate.</para>
           </listitem>
@@ -1320,7 +1321,7 @@
     <section xml:id="section_cjs_njq_bwb">
       <title>Exporting a Signed Media</title>
       <para>In order to be able to verify an exported segment of Signed Media, the client must
-        include the "only sent once" SEI added in the beginning of the mediastream. This can be
+        include the "start-of-stream" SEI added in the beginning of the mediastream. This can be
         combined with the Onvif Export File Format in order to provide layered video authentication,
         the media signing covers authenticity in the media layer where as the Export File Format
         provides validity on the container level. Even if this Signed Media specification is used,
