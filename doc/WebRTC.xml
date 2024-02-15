@@ -1,0 +1,652 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="docbook.xsl" type="text/xsl" ?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="book_rxt_v12_v5b">
+  <info>
+    <title>WebRTC Specification</title>
+    <titleabbrev>WebRTC</titleabbrev>
+    <releaseinfo>24.06</releaseinfo>
+    <author>
+      <orgname>ONVIF™</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate>Feb 2024 Draft for IPR Review</pubdate>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="media/logo.png" contentwidth="60mm"/>
+      </imageobject>
+    </mediaobject>
+    <copyright>
+      <year>2008-2024</year>
+      <holder>ONVIF™ All rights reserved.</holder>
+    </copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so
+        long as this copyright notice, license and disclaimer are retained with all copies of the
+        document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR
+        AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+        LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+        NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE;
+        OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS,
+        TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY
+        DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR
+        RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION,
+        MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2)
+        SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR
+        DISTRIBUTION OF THIS DOCUMENT. THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT
+        APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR
+        RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF
+        THE CORPORATION.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>24.06</revnumber>
+        <date>Feb 2022</date>
+        <author>
+          <personname>Fredrik Svensson, Jonas Cremon, Karin Hedlund, Hans Busch</personname>
+        </author>
+        <revremark>Version for IPR Review</revremark>
+      </revision>
+    </revhistory>
+  </info>
+  <chapter xml:id="chapter_txt_v12_v5b">
+    <title>Scope </title>
+    <para>This document defines how WebRTC and related protocols are to be used for ONVIF clients
+      and devices to establish a peer-to-peer connection between a client and a device using a
+      signaling server.</para>
+    <para> Sending event and analytics metadata as well as PTZ and other commands via WebRTC
+      datachannels is outside of the scope of this version of the specifcation. Similar future
+      versions of the specification may address a directory protocol to query organizations,
+      devices and profiles. </para>
+  </chapter>
+  <chapter xml:id="chapter_uxt_v12_v5b">
+    <title>Normative references</title>
+    <para>W3C WebRTC Specification: Real-Time Communication in Browsers</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="https://www.w3.org/TR/webrtc/"/>&gt;</para>
+    <para>IETF RFC 6455 - The WebSocket Protocol</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="http://tools.ietf.org/html/rfc6455"/>&gt;</para>
+    <para>IETF RFC 8829 - JavaScript Session Establishment Protocol (JSEP)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://tools.ietf.org/html/rfc8829"/>&gt;</para>
+    <para>IETF RFC 5245 - Interactive Connectivity Establishment (ICE)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://tools.ietf.org/html/rfc5245"/>&gt;</para>
+    <para>IETF RFC 8866 - SDP: Session Description Protocol</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://tools.ietf.org/html/rfc8866"/>&gt;</para>
+    <para>IETF RFC 8839 - Session Description Protocol (SDP) Offer/Answer Procedures for
+      Interactive Connectivity Establishment (ICE)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="http://tools.ietf.org/html/rfc8839"/>&gt;</para>
+    <para>IETF RFC 8840 - A Session Initiation Protocol (SIP) Usage for Incremental Provisioning
+      of Candidates for the Interactive Connectivity Establishment (Trickle ICE)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="http://tools.ietf.org/html/rfc8840"/>&gt;</para>
+    <para>IETF RFC 8489 - Session Traversal Utilities for NAT (STUN)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://tools.ietf.org/html/rfc8489"/>&gt;</para>
+    <para>IETF RFC 8656 - Traversal Using Relays around NAT (TURN)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://tools.ietf.org/html/rfc8856"/>&gt;</para>
+    <para>IETF RFC 7519 - JSON Web Token (JWT)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="http://tools.ietf.org/html/rfc7519"/>&gt;</para>
+    <para>IETF RFC 6749 - The OAuth 2.0 Authorization Framework</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="http://tools.ietf.org/html/rfc6749"/>&gt;</para>
+    <para>IETF RFC 7064 - URI Scheme for the Session Traversal Utilities for NAT (STUN) Protocol</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="https://datatracker.ietf.org/doc/html/rfc7064"/>&gt;</para>
+    <para>IETF RFC 7065 - Traversal Using Relays around NAT (TURN) Uniform Resource Identifiers</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="https://datatracker.ietf.org/doc/html/rfc7065"/>&gt;</para>
+    <para>JSON-RPC 2.0</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="https://www.jsonrpc.org/specification"/>&gt;</para>
+    <para>OpenID Connect Core</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="https://openid.net/specs/openid-connect-core-1_0.html"/>&gt;</para>
+    <para>ONVIF Security Service Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="https://www.onvif.org/specs/srv/security/ONVIF-Security-Service-Spec.pdf"/>&gt;</para>
+  </chapter>
+  <chapter xml:id="chapter_vxt_v12_v5b">
+    <title>Terms and Definitions</title>
+    <section xml:id="section_wxt_v12_v5b">
+      <title>Definitions</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="1*"/>
+          <colspec colname="c2" colwidth="2.45*"/>
+          <tbody valign="top">
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Signaling Server</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>A server that manages the WebRTC connections between clients and
+                  devices.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Peer-ID</emphasis>
+                </para>
+              </entry>
+              <entry>A peer's assigned ID provided by the signaling server. Matches to GUID for
+                persistent peers like devices.</entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Session-ID</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>Identifier for a connection between peers.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+    <section xml:id="section_xxt_v12_v5b">
+      <title>Abbreviations</title>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*"/>
+          <colspec colname="c2" colwidth="76*"/>
+          <tbody valign="top">
+            <row>
+              <entry valign="middle">
+                <para>ICE</para>
+              </entry>
+              <entry valign="middle">
+                <para>Interactive Connectivity Establishment</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>NAT</para>
+              </entry>
+              <entry valign="middle">
+                <para>Network Address Translation</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>P2P</para>
+              </entry>
+              <entry valign="middle">
+                <para>Peer-to-peer</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>SDP</para>
+              </entry>
+              <entry valign="middle">
+                <para>Session Description Protocol</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>STUN</para>
+              </entry>
+              <entry valign="middle">
+                <para>Session Traversal Utilities for NAT</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>TURN</para>
+              </entry>
+              <entry valign="middle">
+                <para>Traversal Using Relays around NAT</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
+                <para>WebRTC</para>
+              </entry>
+              <entry valign="middle">
+                <para>Web Real-Time Communication</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+  </chapter>
+  <chapter xml:id="chapter_yxt_v12_v5b">
+    <title>Overview</title>
+    <para>The WebRTC standard includes APIs for communicating with an ICE Server, but the signaling
+      component is not part of it. Signaling is needed in order for two peers to share how they
+      should connect.</para>
+    <para>Signaling can be implemented in many different ways, and the WebRTC standard doesn't
+      prefer any specific solution.</para>
+    <para>This specification contains documentation and examples of the signaling protocol used in
+      ONVIF to set up a WebRTC peer-to-peer connection. The setup involves three participants:
+        <emphasis role="italic">client</emphasis>, <emphasis role="italic">device</emphasis> and
+        <emphasis role="italic">signaling server</emphasis>.</para>
+    <figure xml:id="_Ref493258796">
+      <title>Client, device, signaling server</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="media/WebRTC/client_device_server_triangle.svg"
+            contentwidth="120mm"/>
+        </imageobject>
+      </mediaobject>
+    </figure>
+    <para>In this figure,<itemizedlist>
+        <listitem>
+          <para>The <emphasis role="italic">client</emphasis> represents a real user who initiates
+            the WebRTC session.</para>
+        </listitem>
+        <listitem>
+          <para>The <emphasis role="italic">device</emphasis> is the resource delivering the media,
+            for example a camera.</para>
+        </listitem>
+        <listitem>
+          <para>The <emphasis role="italic">signaling server</emphasis> is the mediator that both
+              <emphasis role="italic">client</emphasis> and <emphasis role="italic"
+              >device</emphasis> connect to in order to establish a peer-to-peer connection between
+            them.</para>
+        </listitem>
+      </itemizedlist></para>
+    <para>The <emphasis>Signaling Protocol</emphasis> described in this specification details the
+      data exchange between client and device via the signaling server.</para>
+    <para>Once a peer-to-peer connection has been established, how WebRTC is used is described in the
+      WebRTC usage chapter.</para>
+  </chapter>
+  <chapter xml:id="chapter_zxt_v12_v5b">
+    <title>Signaling Protocol</title>
+    <para>The <emphasis role="italic">Signaling Protocol</emphasis> defines the messages between a
+        <emphasis role="italic">client</emphasis> and a <emphasis role="italic">device</emphasis> in
+      a WebRTC system with the intention of esatblishing a peer-to-peer connection between the
+      client and a device. The messages are always sent via the <emphasis>signaling
+        server</emphasis> called <emphasis>server</emphasis> from now on. Once a peer-to-peer
+      connection has been established the connection with the server can be dropped without
+      affecting the peer-to-peer connection. It's however recommended to keep the server connection
+      open to be able receive error messages from the server.</para>
+    <figure xml:id="_Ref493258797">
+      <title>Signaling flow sequence diagram</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="media/WebRTC/webrtc_signaling_flow.svg" contentwidth="160mm"/>
+        </imageobject>
+      </mediaobject>
+    </figure>
+    <section>
+      <title>WebSocket Connection Management</title>
+      <para>Both a client and a device need to connect to the server by setting up a WebSocket
+        connection according to [RFC 6455]. The WebSocket sub protocol shall be set to
+        'webrtc.onvif.org'.</para>
+      <para>A device shall connect to a signaling server as soon as the configuration contains a valid URI. </para>
+      <para>In case a connection is dropped the device shall reconnect automatically. Each client
+        should use an individual ascending interval strategy to avoid that all clients reconnect at
+        the same time.</para>
+      <para>Both device and client shall immediately send a register command as specified in section
+          <xref linkend="section_register"/> when they receive the HTTP 101 switching
+        protocol.</para>
+    </section>
+    <section xml:id="section_ayt_v12_v5b">
+      <title>Communication Protocol</title>
+      <para>The communication protocols shall use JSON-RPC version 2 over a WebSocket connection .
+        Parameters and responses shall be passed by name. The table below provides the encodings to
+        be used.</para>
+      <para>
+        <table frame="all">
+          <title>Parameter encoding</title>
+          <tgroup cols="2">
+            <colspec colname="c1" colnum="1" colwidth="2.0*"/>
+            <colspec colname="c2" colnum="2" colwidth="8.0*"/>
+            <thead>
+              <row>
+                <entry><para>Type</para></entry>
+                <entry><para>Encoding</para></entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry><para>JWT</para></entry>
+                <entry><para>Base64 encoded according to RFC 7519</para></entry>
+              </row>
+              <row>
+                <entry><para>SDP</para></entry>
+                <entry><para>SDP according to RFC 8866 with \r\n escaping</para></entry>
+              </row>
+              <row>
+                <entry><para>IceCandidate</para></entry>
+                <entry><para>JSON encoding according to W3C WebRTC RTCIceCandidateInit</para></entry>
+              </row>
+              <row>
+                <entry><para>RTCIceServer</para></entry>
+                <entry><para>Connection parameters for a STUN or TURN server as defined by W3C WebRTC</para></entry>
+              </row>
+              <row>
+                <entry><para>URL</para></entry>
+                <entry><para>STUN or TURN server url encoded according to RFC 7064 or RFC 7065</para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </para>
+      <para>The following sections specify the parameters of the indivdual commands.</para>
+      <section xml:id="section_register">
+        <title>register</title>
+        <para> A signaling server shall expect this command to be sent once before any other command
+          is sent over the WebSocket connection. The signaling server shall verify the validity of
+          the access token. Token details are outside of the scope of this specification.</para>
+        <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">authorization [JWT]</para>
+            <para role="text">Access token that authorizes the device or client..</para>
+            <para role="param">id optional [string]</para>
+            <para role="text">The unique ID of the device or client.</para>
+            <para role="param">name optional [string]</para>
+            <para role="text">The human readable name of the device or client.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">id [string]</para>
+            <para role="text">The ID assigned by the signaling server to the endpoint. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">401 Authorization failed</para>
+              <para role="text">The JWT token cannot be verified, does not include the required claims or has expired.</para>
+            </listitem>
+          </varlistentry>
+      </variablelist>
+      </section>
+    </section>
+    <section xml:id="section_init">
+      <title>connect</title>
+      <para>An ONVIF compliant signaling server and device shall support this command to establish a
+        streaming session between two peers. </para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">peer [string]</para>
+            <para role="text">The ID of the peer to connect to.</para>
+            <para role="param">authorization [JWT]</para>
+            <para role="text">Access token that authorizes the device or client.</para>
+            <para role="param">session optional [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session.</para>
+            <para role="param">profile optional [string]</para>
+            <para role="text">Optional token of the media streaming profile to connect to.</para>
+            <para role="param">iceServers optional unbounded [RTCIceServer]</para>
+            <para role="text">List of STUN and TURN servers to be used. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">session optional [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session. </para>
+            <para role="param">iceServers optional unbounded [RTCIceServer]</para>
+            <para role="text">List of STUN and TURN servers to be used. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">401 Authorization failed</para>
+            <para role="text">The JWT token cannot be verified, does not include the required claims or has expired.</para>
+            <para role="param">408 Request Timeout</para>
+            <para role="text">The peer did not react.</para>
+            <para role="param">480 Temporary unavailable.</para>
+            <para role="text">The target device is currently unavailable.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>An ONVIF compliant signaling server shall provide the session ID and a list of STUN and TURN servers in
+        both request and response such that both device and client use the same set of ICE servers.
+        A compliant client and device shall support password based authentication of TURN server.
+        The urls parameter of the iceServers shall always be encoded as array of strings. The
+        optional shortcut defined by W3C WebRTC specification of passing a single string shall not
+        be used. </para>
+      <para>An ONVIF compliant device shall issue an invite method immediately after responding to
+        this method.</para>
+    </section>
+    <section xml:id="section_invite">
+      <title>invite</title>
+      <para>An ONVIF compliant signaling server shall support this command to establish a streaming
+        session between two peers. It shall forward this command to the client and correspondingly
+        route the response back to the device.</para>
+      <para>The dynamics and the format of the SDP records are defined in RFC 8829.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">session [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session. </para>
+            <para role="param">offer [SDP]</para>
+            <para role="text">The SDP offer provided by the device. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">answer [SDP]</para>
+            <para role="text">The SDP answer provided by the client. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">400 Bad Request</para>
+            <para role="text">Invalid session ID or SDP payload.</para>
+            <para role="param">408 Request Timeout</para>
+            <para role="text">The peer did not react.</para>
+            <para role="param">410 Gone</para>
+            <para role="text">The peer is no more available.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section xml:id="section_trickle">
+      <title>trickle</title>
+      <para>An ONVIF compliant signaling server, device and client shall support this command to
+        signal new ICE candidates for the trickleICE procedure as defined in RFC 8840.</para>
+      <para>A signaling server shall relay this command unaltered to the peer.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">session [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session. </para>
+            <para role="param">candidate [IceCandidate]</para>
+            <para role="text">The ICE Candidate SDP update for the peer. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="text">&lt;none&gt;</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="text">&lt;none&gt;</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>Both client and device produce ICE candidates and send them to each other, via the
+        server, in any order.</para>
+      <para><emphasis role="bold">NOTE</emphasis>: Note that ICE candidates can arrive <emphasis
+        role="bold">before</emphasis> the SDP offer and the implementing client needs to handle
+        this.</para>
+      <para>If everything works as it should, a peer-to-peer WebRTC session can be set up between
+        client and device. After the session has been established the client can terminate the
+        WebSocket session to the signaling server and the peer-to-peer connection will not be
+        affected. However, it's recommended to keep the WebSocket session to the server open to be
+        able to receive event messages from the signaling server.</para>
+    </section>
+    <section>
+      <title>Example Flow (informative)</title>
+      <para>The following example shows the flow using JSON-RPC 2.0. Note that for improved
+        readability the madnatory JSON version string is not shown.</para>
+      <programlisting><![CDATA[
+Client -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
+Server -> Client: { "result": { "id": "client-a1" }, "id": 1}
+Device -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
+Server -> Device: { "result": { "id": "device-b1" }, "id": 1}
+
+Client -> Server: { "method": "connect", 
+              "params": {"authorization": "JWT...", "DeviceID": "device-b1"}, "id":2}
+Server -> Device: { "method": "connect", 
+              "params": {"session": "s1", "iceServers": [{"urls": ["stun:1.2.3.4"]}], "id":1}
+Device -> Server: { "result": {}, "id": 1}
+Server -> Client: { "result": {"session": "s1", 
+                               "iceServers": [{"urls": ["stun:1.2.3.4"]}]}, "id": 2}
+
+Device -> Server: { "method": "invite", "params": {"session": "s1", "offer": "SDP..."}, "id":2}
+Server -> Client: { "method": "invite", "params": {"session": "s1", "offer": "SDP..."}, "id":3}
+Client -> Server: { "result": {"answer": "SDP..."}, "id": 3}
+Server -> Device: { "result": {"answer": "SDP..."}, "id": 2}
+
+Device -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+Server -> Client: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+
+Client -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+...
+]]></programlisting>
+      <para><emphasis>Remaining sections unaltered.</emphasis></para>
+    </section>
+  </chapter>
+  <chapter xml:id="chapter_uyt_v12_v5b">
+    <title>WebRTC Usage</title>
+    <para>This chapter describes ONVIF specific usage of WebRTC regarding how to send data between
+      the client and device on the peer-to-peer connection.</para>
+    <para>Devices MAY define profiles for different streaming scenarios that can be choosen by the
+      client based on the available bandwidth or other limiting factors. For example, a specific
+      profile for mobile clients, another one for high quality streaming, etc.</para>
+    <section xml:id="section_vyt_v12_v5b">
+      <title>Video</title>
+      <para>When using WebRTC with a web browser only certain codecs will work. Because of this
+        ONVIF recommends to use the h.264 codec.</para>
+      <para>In line with WebRTC standard, ONVIF also recommends to always use congestion control to
+        ensure that WebRTC cannot be used to flood the network.</para>
+    </section>
+    <section xml:id="section_wyt_v12_v5b">
+      <title>Audio</title>
+      <para>When using WebRTC with a web browser only certain codecs will work. Because of this
+        ONVIF recommends to use the Opus or PCMU codec.</para>
+      <para>For two-way audio it's recommended to use echo cancellation to avoid feedback
+        loops.</para>
+    </section>
+  </chapter>
+  <appendix xml:id="chapter_cwp_r2k_v5b">
+    <title>Authentication with OpenID</title>
+    <para>This informative section describe how clients and devices may autheticate using JWT 
+      tokens obtained via OpenID Connect to access the signaling server.</para>
+    <section xml:id="section_msq_qhn_rwb">
+      <title>User login and access</title>
+      <para>A user logs in and gets an access token using OAuth2 and OpenID Connect. This is
+        described in the [ONVIF Security Service Specification].</para>
+    </section>
+    <section xml:id="section_dwp_r2k_v5b">
+      <title>Device access</title>
+      <para>In order for a device to connect to a signaling server an Authorization Server
+        Configuration must have been set up during device onboarding. See the [ONVIF Security
+        Service] regarding Authorization Server Configurations. This configuration tells the device
+        how to get an access token that can be used to connect to the signaling server. Typically a
+        configuration is created that allows the device to use OAuth2 Client Credentials Grant flow
+        using <code>private_key_jwt</code> as client authentication method as described in [OpenID
+        Connect Core]. In case <code>private_key_jwt</code> is used, the JWT contains these
+        claims:</para>
+      <table>
+        <title>JWT claims when using <code>private_key_jwt</code> (informative)</title>
+        <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="20*"/>
+          <colspec colname="c2" colnum="2" colwidth="80*"/>
+          <thead>
+            <row>
+              <entry>
+                <para>Claim</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>iss</para>
+              </entry>
+              <entry>
+                <para>client_id, an id that uniqely identifies the device, e.g.
+                  orgId/deviceId</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>sub</para>
+              </entry>
+              <entry>
+                <para>client_id, an id that uniqely identifies the device, e.g.
+                  orgId/deviceId</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>aud</para>
+              </entry>
+              <entry>
+                <para>Authorization server URI</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>jti</para>
+              </entry>
+              <entry>
+                <para>Random nonce</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>exp</para>
+              </entry>
+              <entry>
+                <para>Expiration time</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>iat (optional)</para>
+              </entry>
+              <entry>
+                <para>Issuance time</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>NOTE: This is one way for a device to authenticate. Other setups are possible depending
+        on the specific Authorization Server and Signaling Server configurations.</para>
+    </section>
+  </appendix>
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para/>
+  </appendix>
+</book>

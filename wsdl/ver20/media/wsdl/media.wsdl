@@ -82,6 +82,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							applied by the device to a corresponding privacy mask for all other video source configuration associated with the same video source.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="WebRTC" type="xs:int">
+					<xs:annotation>
+						<xs:documentation>Indicates number of supported WebRTC configurations.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<xs:element name="Capabilities" type="tr2:Capabilities2"/>
@@ -1217,6 +1222,81 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>
 			<xs:element name="DeleteMaskResponse" type="tr2:SetConfigurationResponse"/>
 			<!--============Mask Schema End================-->
+			<!--============WebRTC===================-->
+			<xs:complexType name="WebRTCConfiguration">
+				<xs:sequence>
+					<xs:element name="SignalingServer" type="xs:anyURI">
+						<xs:annotation>
+							<xs:documentation>The signaling server URI.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="CertPathValidationPolicyID" type="xs:string" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The CertPathValidationPolicyID for validating the signaling server certificate.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AuthorizationServer" type="tt:ReferenceToken">
+						<xs:annotation>
+							<xs:documentation>The Authorization Server to use for getting access tokens. This refers to an entity in the list of configured Authorization Servers in the [ONVIF Security Service Specification].</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="DefaultProfile" type="tt:ReferenceToken">
+						<xs:annotation>
+							<xs:documentation>The default media profile to use for streaming if no specific profile is specified when initializing a session.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Enabled " type="xs:boolean">
+						<xs:annotation>
+							<xs:documentation> Enables/disables the configuration.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Connected " type="xs:boolean" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation> Enables/disables the configuration.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			
+			<xs:element name="GetWebRTCConfigurations">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			
+			<xs:element name="GetWebRTCConfigurationsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="WebRTCConfiguration" type="tr2:WebRTCConfiguration" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Video Source Configuration Token that specifies an existing video source configuration that the options shall be compatible with.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetWebRTCConfigurations">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="WebRTCConfiguration" type="tr2:WebRTCConfiguration" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Video Source Configuration Token that specifies an existing video source configuration that the options shall be compatible with.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetWebRTCConfigurationsResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
 			<!--============ Schema End================-->
 		</xs:schema>
 	</wsdl:types>
@@ -1499,6 +1579,18 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</wsdl:message>
 	<wsdl:message name="DeleteMaskResponse">
 		<wsdl:part name="parameters" element="tr2:DeleteMaskResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetWebRTCConfigurationsRequest">
+		<wsdl:part name="parameters" element="tr2:GetWebRTCConfigurations"/>
+	</wsdl:message>
+	<wsdl:message name="GetWebRTCConfigurationsResponse">
+		<wsdl:part name="parameters" element="tr2:GetWebRTCConfigurationsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetWebRTCConfigurationsRequest">
+		<wsdl:part name="parameters" element="tr2:SetWebRTCConfigurations"/>
+	</wsdl:message>
+	<wsdl:message name="SetWebRTCConfigurationsResponse">
+		<wsdl:part name="parameters" element="tr2:SetWebRTCConfigurationsResponse"/>
 	</wsdl:message>
 	<wsdl:portType name="Media2">
 		<!--===============================-->
@@ -1824,6 +1916,16 @@ image will be updated automatically and independent from calls to GetSnapshotUri
 			<wsdl:documentation>Delete the Mask.</wsdl:documentation>
 			<wsdl:input message="tr2:DeleteMaskRequest"/>
 			<wsdl:output message="tr2:DeleteMaskResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetWebRTCConfigurations">
+			<wsdl:documentation>This operation gets the current WebRTC configuration for the device.</wsdl:documentation>
+			<wsdl:input message="tr2:GetWebRTCConfigurationsRequest"/>
+			<wsdl:output message="tr2:GetWebRTCConfigurationsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetWebRTCConfigurations">
+			<wsdl:documentation>This operation sets the WebRTC configuration for the device.</wsdl:documentation>
+			<wsdl:input message="tr2:SetWebRTCConfigurationsRequest"/>
+			<wsdl:output message="tr2:SetWebRTCConfigurationsResponse"/>
 		</wsdl:operation>
 		<!--==============Mask Operation End=================-->
 	</wsdl:portType>
@@ -2268,5 +2370,25 @@ image will be updated automatically and independent from calls to GetSnapshotUri
 			</wsdl:output>
 		</wsdl:operation>
 		<!--==============Mask Operation End=================-->
+		<!--==============WebRTC=================-->
+		<wsdl:operation name="GetWebRTCConfigurations">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/GetWebRTCConfigurations"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetWebRTCConfigurations">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/SetWebRTCConfigurations"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<!--==============WebRTC End=================-->
 	</wsdl:binding>
 </wsdl:definitions>
