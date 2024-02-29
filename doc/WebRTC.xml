@@ -498,6 +498,82 @@
         affected. However, it's recommended to keep the WebSocket session to the server open to be
         able to receive event messages from the signaling server.</para>
     </section>
+    <section xml:id="section_error_notification">
+      <title>error</title>
+      <para>An ONVIF compliant signaling server, device and client shall support sending or receiving notifications signaling that an error has occurred.</para>
+      <para>This message is a [JSON-RPC] "Request notification" and shall include [JSON-RPC] "Error object" in its <literal>params</literal> field.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">code [int]</para>
+            <para role="text">A number that indicates the error type that occurred.</para>
+            <para role="param">message [string]</para>
+            <para role="text">A string providing a short description of the error. The message should be limited to a concise single sentence.</para>
+            <para role="param">session [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="text">&lt;none&gt;</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="text">&lt;none&gt;</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>The following table defines possible error codes:</para>
+      <table>
+        <title>WebRTC signaling errors</title>
+        <tgroup cols="3">
+          <colspec colname="c1" colwidth="49*" />
+          <colspec colname="c2" colwidth="13*" />
+          <colspec colname="c3" colwidth="37*" />
+          <thead>
+            <row>
+              <entry>
+                <para>Signaling Error</para>
+              </entry>
+              <entry>
+                <para>Error Code</para>
+              </entry>
+              <entry>
+                <para>Reason</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody valign="top">
+            <row>
+              <entry>
+                <para>Malformed candidate</para>
+              </entry>
+              <entry>
+                <para>1001</para>
+              </entry>
+              <entry>
+                <para>The trickle ICE candidate received is malformed.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>Peer disconnected</para>
+              </entry>
+              <entry>
+                <para>1002</para>
+              </entry>
+              <entry>
+                <para>A peer in the session has closed its websocket connection with the Signaling Server.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
     <section>
       <title>Example Flow (informative)</title>
       <para>The following example shows the flow using JSON-RPC 2.0. Note that for improved
