@@ -458,7 +458,7 @@
               <para role="param">session [string]</para>
               <para role="text">The ID assigned by the signaling server to the session.</para>
               <para role="param">candidate [IceCandidate]</para>
-              <para role="text">The ICE Candidate SDP update for the peer.</para>
+            <para role="text">The ICE Candidate SDP update for the peer. </para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -485,7 +485,7 @@
           affected.</para>
       </section>
       <section xml:id="section_done">
-        <title>done</title>
+        <title>trickleDone</title>
         <para>An ONVIF compliant signaling server, device and client shall support this command to
           signal there will be no more ICE candidates sent by this peer for the trickleICE procedure.</para>
         <para>A signaling server shall relay this command unaltered to the peer.</para>
@@ -495,8 +495,8 @@
             <listitem>
               <para role="param">session [string]</para>
               <para role="text">The ID assigned by the signaling server to the session. </para>
-              <para role="param">candidate count [int]</para>
-              <para role="text">The total number of ICE Candidates sent by this peer for this session. </para>
+            <para role="param">candidate count [int]</para>
+            <para role="text">The total number of ICE Candidates sent by this peer for this session. </para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -512,13 +512,11 @@
             </listitem>
           </varlistentry>
         </variablelist>
-        <para>Both client and device MUST send this message only once after sending their last ICE candidate.</para>
+      <para>Both client and device MUST send this message only once after sending their last ICE candidate.</para>
         <para><emphasis role="bold">NOTE</emphasis>: Note that this message can arrive <emphasis
-          role="bold">before</emphasis> the last ICE Candidate and the implementing client needs to handle
-          this.</para>
-        <para>This message lets a peer ensure it received all the ICE Candidates from the other peer by
-          comparing the number of received ICE Candidates to the count specified in the message. This can
-          help a peer select a candidate pair knowing that there won't be any additionnal candidates.</para>
+        role="bold">before</emphasis> the last ICE candidate and the peer needs to handle this.</para>
+      <para>This message lets a peer ensure it received all the ICE Candidates from the other peer by
+        comparing the number of received ICE candidates to the count specified in the message.</para>
       </section>
       <section>
         <title>Example Flow (informative)</title>
@@ -548,6 +546,15 @@
 
   Client -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
   Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+
+Client -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+
+Client -> Server: { "method": "trickleDone", "params": {"session": "s1", "candidateCount": 2}}
+Server -> Device: { "method": "trickleDone", "params": {"session": "s1", "candidateCount": 2}}
+
+Device -> Server: { "method": "trickleDone", "params": {"session": "s1", "candidateCount": 1}}
+Server -> Client: { "method": "trickleDone", "params": {"session": "s1", "candidateCount": 1}}
   ...
   ]]></programlisting>
       </section>
