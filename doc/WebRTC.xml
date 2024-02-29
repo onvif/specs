@@ -264,7 +264,7 @@
       <emphasis role="italic">client</emphasis> and a <emphasis role="italic">device</emphasis> 
       with the intention of establishing a WebRTC peer-to-peer connection between the
       client and a device. The messages are always sent via the <emphasis>signaling
-      server</emphasis> called <emphasis>server</emphasis> from now on. Once a peer-to-peer
+        server</emphasis> called <emphasis>server</emphasis> from now on. Once a peer-to-peer
       connection has been established the connection with the server can be dropped without
       affecting the peer-to-peer connection.</para>
     <figure xml:id="_Ref493258797">
@@ -278,7 +278,7 @@
     <section>
       <title>WebSocket Connection Management</title>
       <para>Both a client and a device need to connect to the server by setting up a WebSocket
-        connection according to [RFC 6455]. The WebSocket subprotocol shall be set to
+        connection according to [RFC 6455]. The WebSocket sub protocol shall be set to
         'webrtc.onvif.org'.</para>
       <para>A device shall connect to a signaling server as soon as the configuration contains a valid URI. </para>
       <para>In case a connection is dropped the device shall reconnect automatically. Each client
@@ -290,7 +290,7 @@
     </section>
     <section xml:id="section_ayt_v12_v5b">
       <title>Communication Protocol</title>
-      <para>The communication protocols shall use JSON-RPC version 2 over a WebSocket connection.
+      <para>The communication protocols shall use JSON-RPC version 2 over a WebSocket connection .
         Parameters shall be passed through an Object by-name [JSON-RPC section 4.2]. The table below provides the encodings to
         be used.</para>
       <para>
@@ -360,166 +360,242 @@
           </varlistentry>
       </variablelist>
       </section>
-      <section xml:id="section_init">
-        <title>connect</title>
-        <para>An ONVIF compliant signaling server and device shall support this command to establish a
-          streaming session between two peers.</para>
-        <variablelist role="op">
-          <varlistentry>
-            <term>request</term>
-            <listitem>
+    <section xml:id="section_init">
+      <title>connect</title>
+      <para>An ONVIF compliant signaling server and device shall support this command to establish a
+        streaming session between two peers. </para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
               <para role="param">peer optional [string]</para>
-              <para role="text">The ID of the peer to connect to.</para>
-              <para role="param">authorization [JWT]</para>
-              <para role="text">Access token that authorizes the device or client.</para>
-              <para role="param">session optional [string]</para>
-              <para role="text">The ID assigned by the signaling server to the session.</para>
-              <para role="param">profile optional [string]</para>
+            <para role="text">The ID of the peer to connect to.</para>
+            <para role="param">authorization [JWT]</para>
+            <para role="text">Access token that authorizes the device or client.</para>
+            <para role="param">session optional [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session.</para>
+            <para role="param">profile optional [string]</para>
               <para role="text">Optional token of the media streaming profile to use.</para>
-              <para role="param">iceServers optional unbounded [RTCIceServer]</para>
-              <para role="text">List of STUN and TURN servers to be used.</para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>response</term>
-            <listitem>
-              <para role="param">session optional [string]</para>
-              <para role="text">The ID assigned by the signaling server to the session.</para>
-              <para role="param">iceServers optional unbounded [RTCIceServer]</para>
-              <para role="text">List of STUN and TURN servers to be used.</para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>faults</term>
-            <listitem>
-              <para role="param">401 Authorization failed</para>
-              <para role="text">The JWT token cannot be verified, does not include the required claims or has expired.</para>
+            <para role="param">iceServers optional unbounded [RTCIceServer]</para>
+            <para role="text">List of STUN and TURN servers to be used. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">session optional [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session. </para>
+            <para role="param">iceServers optional unbounded [RTCIceServer]</para>
+            <para role="text">List of STUN and TURN servers to be used. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">401 Authorization failed</para>
+            <para role="text">The JWT token cannot be verified, does not include the required claims or has expired.</para>
               <para role="param">403 Forbidden</para>
               <para role="text">The client is not authorized to connect to the provided peer.</para>
-              <para role="param">480 Temporary unavailable.</para>
-              <para role="text">The target device is currently unavailable.</para>
-            </listitem>
-          </varlistentry>
-        </variablelist>
-        <para>An ONVIF compliant signaling server shall provide the session ID and a list of STUN and TURN servers in
+            <para role="param">480 Temporary unavailable.</para>
+            <para role="text">The target device is currently unavailable.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>An ONVIF compliant signaling server shall provide the session ID and a list of STUN and TURN servers in
           both request and response such that both device and client can use them.
-          A compliant client and device shall support password based authentication of TURN server.
-          The urls parameter of the iceServers shall always be encoded as array of strings. The
-          optional shortcut defined by W3C WebRTC specification of passing a single string shall not
-          be used.</para>
-        <para>An ONVIF compliant device shall issue an invite method immediately after responding to
-          this method.</para>
-      </section>
-      <section xml:id="section_invite">
-        <title>invite</title>
-        <para>An ONVIF compliant signaling server shall support this command to establish a streaming
-          session between two peers. It shall forward this command to the client and correspondingly
-          route the response back to the device.</para>
-        <para>The dynamics and the format of the SDP records are defined in RFC 8829.</para>
-        <variablelist role="op">
-          <varlistentry>
-            <term>request</term>
-            <listitem>
-              <para role="param">session [string]</para>
-              <para role="text">The ID assigned by the signaling server to the session.</para>
-              <para role="param">offer [SDP]</para>
-              <para role="text">The SDP offer provided by the device.</para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>response</term>
-            <listitem>
-              <para role="param">answer [SDP]</para>
-              <para role="text">The SDP answer provided by the client. </para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>faults</term>
-            <listitem>
-              <para role="param">400 Bad Request</para>
-              <para role="text">Invalid session ID or SDP payload.</para>
-              <para role="param">408 Request Timeout</para>
-              <para role="text">The peer did not react.</para>
-              <para role="param">410 Gone</para>
-              <para role="text">The peer is no more available.</para>
-            </listitem>
-          </varlistentry>
-        </variablelist>
-      </section>
-      <section xml:id="section_trickle">
-        <title>trickle</title>
-        <para>An ONVIF compliant signaling server, device and client shall support this command to
-          signal new ICE candidates for the trickleICE procedure as defined in RFC 8840.</para>
-        <para>A signaling server shall relay this command unaltered to the peer.</para>
-        <variablelist role="op">
-          <varlistentry>
-            <term>request</term>
-            <listitem>
-              <para role="param">session [string]</para>
-              <para role="text">The ID assigned by the signaling server to the session.</para>
-              <para role="param">candidate [IceCandidate]</para>
-              <para role="text">The ICE Candidate SDP update for the peer. </para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>response</term>
-            <listitem>
-              <para role="text">&lt;none&gt;</para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>faults</term>
-            <listitem>
-              <para role="text">&lt;none&gt;</para>
-            </listitem>
-          </varlistentry>
-        </variablelist>
-        <para>Both client and device produce ICE candidates and send them to each other, via the
+        A compliant client and device shall support password based authentication of TURN server.
+        The urls parameter of the iceServers shall always be encoded as array of strings. The
+        optional shortcut defined by W3C WebRTC specification of passing a single string shall not
+        be used. </para>
+      <para>An ONVIF compliant device shall issue an invite method immediately after responding to
+        this method.</para>
+    </section>
+    <section xml:id="section_invite">
+      <title>invite</title>
+      <para>An ONVIF compliant signaling server shall support this command to establish a streaming
+        session between two peers. It shall forward this command to the client and correspondingly
+        route the response back to the device.</para>
+      <para>The dynamics and the format of the SDP records are defined in RFC 8829.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">session [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session. </para>
+            <para role="param">offer [SDP]</para>
+            <para role="text">The SDP offer provided by the device. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">answer [SDP]</para>
+            <para role="text">The SDP answer provided by the client. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">400 Bad Request</para>
+            <para role="text">Invalid session ID or SDP payload.</para>
+            <para role="param">408 Request Timeout</para>
+            <para role="text">The peer did not react.</para>
+            <para role="param">410 Gone</para>
+            <para role="text">The peer is no more available.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section xml:id="section_trickle">
+      <title>trickle</title>
+      <para>An ONVIF compliant signaling server, device and client shall support this command to
+        signal new ICE candidates for the trickleICE procedure as defined in RFC 8840.</para>
+      <para>A signaling server shall relay this command unaltered to the peer.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">session [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session. </para>
+            <para role="param">candidate [IceCandidate]</para>
+            <para role="text">The ICE Candidate SDP update for the peer. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="text">&lt;none&gt;</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="text">&lt;none&gt;</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>Both client and device produce ICE candidates and send them to each other, via the
           server. Once all ICE candidates have been sent by a peer, it shall send a last trickle 
           notification with an empty ICE candidate content to indicate that all candidates have
           been sent according to RFC 8838.</para>
-        <para><emphasis role="bold">NOTE</emphasis>: Note that ICE candidates can arrive <emphasis
-          role="bold">before</emphasis> the SDP offer and the implementing client needs to handle
-          this.</para>
-        <para>If everything works as it should, a peer-to-peer WebRTC session can be set up between
-          client and device. After the session has been established the client can terminate the
-          WebSocket session to the signaling server and the peer-to-peer connection will not be
+      <para><emphasis role="bold">NOTE</emphasis>: Note that ICE candidates can arrive <emphasis
+        role="bold">before</emphasis> the SDP offer and the implementing client needs to handle
+        this.</para>
+      <para>If everything works as it should, a peer-to-peer WebRTC session can be set up between
+        client and device. After the session has been established the client can terminate the
+        WebSocket session to the signaling server and the peer-to-peer connection will not be
           affected.</para>
-      </section>
-      <section>
-        <title>Example Flow (informative)</title>
-        <para>The following example shows the flow using JSON-RPC 2.0. Note that for improved
+    </section>
+    <section xml:id="section_error_notification">
+      <title>error</title>
+      <para>An ONVIF compliant signaling server, device and client shall support sending or receiving notifications signaling that an error has occurred.</para>
+      <para>This message is a [JSON-RPC] "Request notification" and shall include [JSON-RPC] "Error object" in its <literal>params</literal> field.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">code [int]</para>
+            <para role="text">A number that indicates the error type that occurred.</para>
+            <para role="param">message [string]</para>
+            <para role="text">A string providing a short description of the error. The message should be limited to a concise single sentence.</para>
+            <para role="param">session [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="text">&lt;none&gt;</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="text">&lt;none&gt;</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>The following table defines possible error codes:</para>
+      <table>
+        <title>WebRTC signaling errors</title>
+        <tgroup cols="3">
+          <colspec colname="c1" colwidth="49*" />
+          <colspec colname="c2" colwidth="13*" />
+          <colspec colname="c3" colwidth="37*" />
+          <thead>
+            <row>
+              <entry>
+                <para>Signaling Error</para>
+              </entry>
+              <entry>
+                <para>Error Code</para>
+              </entry>
+              <entry>
+                <para>Reason</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody valign="top">
+            <row>
+              <entry>
+                <para>Malformed candidate</para>
+              </entry>
+              <entry>
+                <para>1001</para>
+              </entry>
+              <entry>
+                <para>The trickle ICE candidate received is malformed.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>Peer disconnected</para>
+              </entry>
+              <entry>
+                <para>1002</para>
+              </entry>
+              <entry>
+                <para>A peer in the session has closed its websocket connection with the Signaling Server.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section>
+      <title>Example Flow (informative)</title>
+      <para>The following example shows the flow using JSON-RPC 2.0. Note that for improved
           readability the mandatory JSON version string is not shown.</para>
-        <programlisting><![CDATA[
-  Client -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
-  Server -> Client: { "result": { "id": "client-a1" }, "id": 1}
-  Device -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
-  Server -> Device: { "result": { "id": "device-b1" }, "id": 1}
+      <programlisting><![CDATA[
+Client -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
+Server -> Client: { "result": { "id": "client-a1" }, "id": 1}
+Device -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
+Server -> Device: { "result": { "id": "device-b1" }, "id": 1}
 
-  Client -> Server: { "method": "connect", 
-                "params": {"authorization": "JWT...", "DeviceID": "device-b1"}, "id":2}
-  Server -> Device: { "method": "connect", 
+Client -> Server: { "method": "connect", 
+              "params": {"authorization": "JWT...", "DeviceID": "device-b1"}, "id":2}
+Server -> Device: { "method": "connect", 
                 "params": {"session": "s1", "iceServers": [{"urls": ["stun:1.2.3.4"]}], "id":2}
   Device -> Server: { "result": {}, "id": 2}
-  Server -> Client: { "result": {"session": "s1", 
-                                "iceServers": [{"urls": ["stun:1.2.3.4"]}]}, "id": 2}
+Server -> Client: { "result": {"session": "s1", 
+                               "iceServers": [{"urls": ["stun:1.2.3.4"]}]}, "id": 2}
 
   Device -> Server: { "method": "invite", "params": {"session": "s1", "offer": "SDP..."}, "id":3}
-  Server -> Client: { "method": "invite", "params": {"session": "s1", "offer": "SDP..."}, "id":3}
-  Client -> Server: { "result": {"answer": "SDP..."}, "id": 3}
+Server -> Client: { "method": "invite", "params": {"session": "s1", "offer": "SDP..."}, "id":3}
+Client -> Server: { "result": {"answer": "SDP..."}, "id": 3}
   Server -> Device: { "result": {"answer": "SDP..."}, "id": 3}
 
-  Device -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
-  Server -> Client: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
-
-  Client -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
-  Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+Device -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+Server -> Client: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
 
 Client -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
 Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
-  ...
-  ]]></programlisting>
-      </section>
+
+Client -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
+...
+]]></programlisting>
+    </section>
     </section>
   </chapter>
   <chapter xml:id="chapter_uyt_v12_v5b">
@@ -529,8 +605,8 @@ Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate"
     <section xml:id="section_uyt_v12_v5b">
       <title>Bandwidth management</title>
       <para>Devices may define profiles for different streaming scenarios that can be chosen by the
-       client based on the available bandwidth or other limiting factors. For example, a specific
-       profile for mobile clients, another one for high quality streaming, etc.</para>
+      client based on the available bandwidth or other limiting factors. For example, a specific
+      profile for mobile clients, another one for high quality streaming, etc.</para>
       <para>Devices should estimate available uplink bandwidth and reduce stream
        bitrate as needed to avoid packet loss. It may be achieved by switching the currently
        streamed profile into a profile with a lower bitrate encoding. Devices are allowed to
