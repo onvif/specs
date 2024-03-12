@@ -457,8 +457,8 @@
             <listitem>
               <para role="param">session [string]</para>
               <para role="text">The ID assigned by the signaling server to the session.</para>
-              <para role="param">candidate [IceCandidate]</para>
-            <para role="text">The ICE Candidate SDP update for the peer. </para>
+              <para role="param">candidate optional [IceCandidate]</para>
+              <para role="text">The ICE Candidate SDP update for the peer. </para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -475,7 +475,8 @@
           </varlistentry>
         </variablelist>
         <para>Both client and device produce ICE candidates and send them to each other, via the
-          server, in any order.</para>
+          server. Once all ICE candidates have been sent by a peer, it shall send a last trickle 
+          notification with an empty ICE candidate to indicate that all candidates have been sent.</para>
         <para><emphasis role="bold">NOTE</emphasis>: Note that ICE candidates can arrive <emphasis
           role="bold">before</emphasis> the SDP offer and the implementing client needs to handle
           this.</para>
@@ -483,40 +484,6 @@
           client and device. After the session has been established the client can terminate the
           WebSocket session to the signaling server and the peer-to-peer connection will not be
           affected.</para>
-      </section>
-      <section xml:id="section_done">
-        <title>trickleDone</title>
-        <para>An ONVIF compliant signaling server, device and client shall support this command to
-          signal there will be no more ICE candidates sent by this peer for the trickleICE procedure.</para>
-        <para>A signaling server shall relay this command unaltered to the peer.</para>
-        <variablelist role="op">
-          <varlistentry>
-            <term>request</term>
-            <listitem>
-              <para role="param">session [string]</para>
-              <para role="text">The ID assigned by the signaling server to the session. </para>
-            <para role="param">candidate count [int]</para>
-            <para role="text">The total number of ICE Candidates sent by this peer for this session. </para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>response</term>
-            <listitem>
-              <para role="text">&lt;none&gt;</para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>faults</term>
-            <listitem>
-              <para role="text">&lt;none&gt;</para>
-            </listitem>
-          </varlistentry>
-        </variablelist>
-      <para>Both client and device MUST send this message only once after sending their last ICE candidate.</para>
-        <para><emphasis role="bold">NOTE</emphasis>: Note that this message can arrive <emphasis
-        role="bold">before</emphasis> the last ICE candidate and the peer needs to handle this.</para>
-      <para>This message lets a peer ensure it received all the ICE Candidates from the other peer by
-        comparing the number of received ICE candidates to the count specified in the message.</para>
       </section>
       <section>
         <title>Example Flow (informative)</title>
@@ -549,12 +516,6 @@
 
 Client -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
 Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
-
-Client -> Server: { "method": "trickleDone", "params": {"session": "s1", "candidateCount": 2}}
-Server -> Device: { "method": "trickleDone", "params": {"session": "s1", "candidateCount": 2}}
-
-Device -> Server: { "method": "trickleDone", "params": {"session": "s1", "candidateCount": 1}}
-Server -> Client: { "method": "trickleDone", "params": {"session": "s1", "candidateCount": 1}}
   ...
   ]]></programlisting>
       </section>
