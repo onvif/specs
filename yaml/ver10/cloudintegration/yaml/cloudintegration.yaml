@@ -1,0 +1,144 @@
+openapi: 3.0.0
+info:
+  title: Cloud Integration Specification
+  contact:
+    name: ONVIF Technical Specification
+    url: https://github.com/onvif/specs
+    email: help@onvif.org
+  license:
+    name: ONVIF Contributor License Agreement
+    url: https://github.com/onvif/specs/blob/development/LICENSE.md
+  version: 0.0.1
+
+components:
+  schemas:
+    Base64DERencodedASN1Value:
+      type: object
+      properties:
+        Value:
+          type: string
+          format: byte
+      required:
+        - Value
+
+    JWTConfiguration:
+      type: object
+      properties:
+        Audiences:
+          description: The list of all the aud claims, which the recipient identifies with.
+          type: array
+          items:
+            type: string
+        TrustedIssuers:
+          description: If present, this is the list to URIs pointing to the metadata file conforming to RFC8414, such as "https://your.domain/.well-known/openid-configuration" , of the trusted Open ID Connect servers issuing JWT tokens. Using metadata, the device can reach the information about the JWKS and implement the rotation of the keys accordingly.
+          type: array
+          items:
+            type: string
+            format: uri
+        JWTCertificate:
+          description: The certificate holding the public ECC key used to validate JWTs.
+          items: 
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+        JWTTrustAnchor:
+          description: The certificate with the public key used to validate the TLS certificate of the OIDC server.
+          items: 
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+      required:
+        - Audiences
+
+    UplinkConfiguration:
+      type: object
+      properties:
+        RemoteAddress:
+          description: Uniform resource locator by which the remote client can be reached.
+          type: string
+          format: uri
+        UserLevel:
+          description: Authorization level that will be assigned to the uplink connection.
+          type: string
+          enum: [Administrator, Operator, User]
+        UplinkTrustAnchor:
+          items: 
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+          description: The certificate with the public key used to validate the TLS certificate of the uplink server.
+      required:
+        - RemoteAddress
+        - UserLevel
+
+    EndpointReferenceType:
+      type: object
+      properties:
+        Address:
+          type: string
+          format: uri
+      required:
+        - Address
+
+    startDeviceSharing:
+      type: object
+      properties:
+        ShareToken:
+          items: 
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+          description: The share token, to prove permission to share the device.
+        JWTConfiguration:
+          items: 
+            $ref: '#/components/schemas/JWTConfiguration'
+          description: Configuration of JWT authentication.
+        UplinkConfiguration:
+          items: 
+            $ref: '#/components/schemas/UplinkConfiguration'
+          description: Configuration of the uplink service.
+        EndpointReference:
+          items: 
+            $ref: '#/components/schemas/EndpointReferenceType'
+          description: The endpoint to be notified to inform that the operation was completed.
+      required:
+        - ShareToken
+        - JWTConfiguration
+        - UplinkConfiguration
+        - EndpointReference
+
+    deviceSharingCompleted:
+      type: object
+      properties:
+        ShareToken:
+          items: 
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+          description: The share token, to identify the shared device.
+        DevicePublicKey:
+          items: 
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+          description: The public key of the device.
+      required:
+        - ShareToken
+        - DevicePublicKey
+
+paths:
+  /startDeviceSharing:
+    post:
+      description: This operation triggers sharing a device to a new Operational Cloud Service.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/startDeviceSharing'
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Invalid Argument Value
+
+  /deviceSharingCompleted:
+    post:
+      description: This operation notified the Operational Cloud that the camera was successfully configured. 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/deviceSharingCompleted'
+      responses:
+        '200':
+          description: Success
