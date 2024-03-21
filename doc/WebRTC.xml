@@ -541,11 +541,23 @@ Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate"
     <title>WebRTC Usage</title>
     <para>This chapter describes ONVIF specific usage of WebRTC regarding how to send data between
       the client and device on the peer-to-peer connection.</para>
-    <para>Devices may define profiles for different streaming scenarios that can be chosen by the
-      client based on the available bandwidth or other limiting factors. For example, a specific
-      profile for mobile clients, another one for high quality streaming, etc.</para>
-    <para>A device shall support generating and receiving host, server reflexive and relay ICE candidates as defined in [RFC 8445].</para>
-    <para>A device shall handle passive ICE TCP candidates as defined in [RFC 6544]. On reception, it shall generate an active ICE TCP candidate to match and establish a TCP connection to the endpoint announced by the candidate. A device is not required to listen on a TCP endpoint and generate a passive ICE TCP candidate.</para>
+    <section xml:id="section_uyt_v12_v5b">
+      <title>Bandwidth management</title>
+      <para>Devices may define profiles for different streaming scenarios that can be chosen by the
+       client based on the available bandwidth or other limiting factors. For example, a specific
+       profile for mobile clients, another one for high quality streaming, etc.</para>
+      <para>Devices should estimate available uplink bandwidth and reduce stream
+       bitrate as needed to avoid packet loss. It may be achieved by switching the currently
+       streamed profile into a profile with a lower bitrate encoding. Devices are allowed to
+       switch only between profiles with the same video source and same video codec. Once there
+       is enough available bandwidth, devices should aim to switch back to the initially selected
+       profile.</para>
+    </section>
+	<section>
+		<title>ICE candidates</title>
+	    <para>A device shall support generating and receiving host, server reflexive and relay ICE candidates as defined in [RFC 8445].</para>
+    	<para>A device shall handle passive ICE TCP candidates as defined in [RFC 6544]. On reception, it shall generate an active ICE TCP candidate to match and establish a TCP connection to the endpoint announced by the candidate. A device is not required to listen on a TCP endpoint and generate a passive ICE TCP candidate.</para>
+	</section>
     <section xml:id="section_vyt_v12_v5b">
       <title>Video</title>
       <para>When using WebRTC with a web browser only certain codecs will work. Because of this
