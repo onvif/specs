@@ -376,9 +376,15 @@
           <code>document</code>, which later will be signed.</para>
       <para>All NAL Unit data, from the NAL Unit header to the last byte, including the stop bit,
         should be hashed. The start code is excluded when hashing.</para>
-      <para>If the I-frame is sliced into multiple NAL Uints, the hash of the primary slice should
+      <para>If the I-frame is sliced into multiple NAL Units, the hash of the primary slice should
         be used as <code>h_anch = H(Iprimaryslice)</code>. The other NAL Units of the I-frame are
         hashed in the linked manner described above.</para>
+      <para>The NAL Units should be hashed in the same order as the encoder emits them, that is, in
+        decoding order. For example, consider 4 consecutive images with data D1, D2, D3, D4.
+        Let the encoder use a GOP structure with two B-frames, which in presentation order would be
+        I-B-B-P. The order out from the encoder becomes I1-P4-B2-B3, which also is the order of
+        which they should be hashed and put in the list of hashes
+        [h_ach, hash(P4), hash(B2), hash(B3)].</para>
       <para>A hash (<code>gophash</code>) of the list of hashes is added to metadata, <code>gophash
           = H(h_anch, hash(P1), hash(P2), ..., hash(PN))</code>. The <code>gophash</code> simplifies
         validation, since verifying each hash in the list of hashes is only necessary when
@@ -1008,7 +1014,7 @@
       </section>
       <section xml:id="section_s3s_njq_bwb">
         <title>Hash list</title>
-        <para>This optional field contains the hash list, for a complete GOP; I- through P-frames.
+        <para>This optional field contains the hash list, for a complete GOP; I- through P- and B-frames.
         </para>
         <para>When this tag is present in the SEI payload the validation side can validate individual
           NAL Units.</para>
