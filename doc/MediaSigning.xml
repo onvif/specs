@@ -1016,11 +1016,8 @@
         <title>Hash list</title>
         <para>This optional field contains the hash list, for a complete GOP; I- through P- and B-frames.
         </para>
-        <para>When this tag is present in the SEI payload the validation side can validate individual
-          NAL Units.</para>
-        <para>When this tag is not present in the SEI payload the validation side can only validate
-          all NAL Units that has been signed, which in a normal case becomes all frames in a GoP.
-        </para>
+        <para>The presence of this field is controlled by the Low Bitrate Mode; See Section
+          <xref linkend="section_low_bitrate_mode"/>.</para>
         <itemizedlist>
           <listitem>
             <para>Tag version (1 byte)</para>
@@ -1089,10 +1086,17 @@
     </section>
     <section xml:id="section_low_bitrate_mode">
       <title>Low Bitrate Mode</title>
-      <para>As mentioned in the Limitation Section above, the SEI frames can become large due to
-        the hash list. To lower the bitrate overhead, the device has the option to skip the Hash
-        list tag; See above. The tradeoff is that it is no longer possible to identify
-        individual invalid and/or missing frames.</para>
+      <para>As mentioned in the Limitation Section <xref linkend="section_g3s_njq_bwb"/> above,
+        the SEI frames can become large due to the hash list. To lower the bitrate overhead,
+        the device has the option to skip the Hash list tag; See Section
+        <xref linkend="section_s3s_njq_bwb"/>. Skipping the Hash list tag is referred to as
+        the Low Bitrate Mode.</para>
+      <para>The Low Bitrate Mode affects the authentication. It is no longer possible to
+        identify individual invalid and/or missing frames, since individual hashes are not
+        transmitted. Instead, validation is based on the (partial) GOP hash present in the
+        general GOP information tag; See Section <xref linked="section_o3s_njq_bwb"/>. For a
+        correctly verified (partial) GOP hash, all NAL Units now have to be present and
+        correct.</para>
     </section>
     <section xml:id="section_w3s_njq_bwb">
       <title>How to generate the first "start-of-stream" SEI</title>
