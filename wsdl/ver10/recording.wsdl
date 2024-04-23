@@ -640,6 +640,140 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>
 
 			<!--===============================-->
+			<xs:element name="ExportRecordedSegments">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Time" type="tt:DateTimeRange">
+							<xs:annotation>
+								<xs:documentation>The start to end time of the query.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="JobToken" type="tt:RecordingJobReference">
+							<xs:annotation>
+								<xs:documentation>The recording job token.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Track" type="tt:TrackType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The type of the track to be exported.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="ExportRecordedSegmentsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="OperationToken" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Unique operation token for client to associate the relevant events.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Segment" type="tt:UploadSegmentResult" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:complexType name="UploadSegmentResult">
+				<xs:sequence>
+					<xs:element name="StartTime" type="xs:dateTime">
+						<xs:annotation>
+							<xs:documentation>Same precision as defined in the Recording Control specification for segment objects.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="EndTime" type="xs:dateTime">
+						<xs:annotation>
+							<xs:documentation>Same precision as defined in the Recording Control specification for segment objects.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MediaType" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>As defined in RFC 6381 including section 3 Codecs.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="StoragePath" type="xs:string" >
+						<xs:annotation>
+							<xs:documentation>List of exported file names. The device can also use AsyncronousOperationStatus event to publish this list.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:complexType>
+			<xs:element name="StopExportRecordedSegments">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="OperationToken" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Unique ExportRecordedData operation token</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="StopExportRecordedSegmentsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Segment" type="trc:ExportRecordedSegmentStatus" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation> </xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first Vendor then ONVIF -->
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<xs:complexType name="ExportRecordedSegmentStatus">
+				<xs:sequence>
+					<xs:element name="StoragePath" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>Unique ExportRecordedData operation token</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Status" type="trc:UploadStatus">
+						<xs:annotation>
+							<xs:documentation>See trc:UploadStatus for allowed values.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:complexType>
+			<xs:simpleType name="UploadStatus">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="Pending"/>
+					<xs:enumeration value="Completed"/>
+					<xs:enumeration value="Failed"/>
+					<xs:enumeration value="Exporting"/>
+				</xs:restriction>
+			</xs:simpleType>
+
+			<xs:element name="GetExportRecordedDataState">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="OperationToken" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Unique ExportRecordedData operation token</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetExportRecordedDataStateResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Progress" type="xs:float">
+							<xs:annotation>
+								<xs:documentation>Progress percentage of ExportRecordedData operation.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="FileProgressStatus" type="tt:ArrayOfFileProgress">
+							<xs:annotation>
+								<xs:documentation> </xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first Vendor then ONVIF -->
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<!--===============================-->
 			<xs:complexType name="RecordingOptions">
 				<xs:sequence>
 					<xs:element name="Job" type="trc:JobOptions"/>
