@@ -3,13 +3,13 @@
 <book xmlns="http://docbook.org/ns/docbook" version="5.0">
   <info>
     <title>Cloud Specification</title>
-    <titleabbrev>Uplink</titleabbrev>
-    <releaseinfo>23.06</releaseinfo>
+    <titleabbrev>Cloud</titleabbrev>
+    <releaseinfo>24.06</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate> June, 2023</pubdate>
+    <pubdate> June, 2024</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -20,9 +20,24 @@
       <holder>ONVIF™ All rights reserved.</holder>
     </copyright>
     <legalnotice>
-      <para>Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.</para>
-      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.</para>
-      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.</para>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so
+        long as this copyright notice, license and disclaimer are retained with all copies of the
+        document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR
+        AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+        LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+        NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE;
+        OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS,
+        TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY
+        DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR
+        RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION,
+        MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2)
+        SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR
+        DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT
+        APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR
+        RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF
+        THE CORPORATION.</para>
     </legalnotice>
     <revhistory>
       <revision>
@@ -37,7 +52,8 @@
   </info>
   <chapter>
     <title>Scope </title>
-    <para>This document defines the connection protocol for connecting a web service behind a firewall to a client reachable in the internet.</para>
+    <para>This document defines the connection protocol for sharing cloud native devices between
+      cloud-based clients.</para>
   </chapter>
   <chapter>
     <title>Normative references</title>
@@ -55,10 +71,6 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
     <para>ONVIF Media2 Service Specification</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/srv/media/ONVIF-Media2-Service-Spec.pdf"></link>&gt;</para>
-    <para>ONVIF Streaming Specification</para>
-    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/stream/ONVIF-Streaming-Spec.pdf"></link>&gt;</para>
-    <para>Apple Computer Inc. RTSP over HTTP, Tunneling QuickTime RTSP and RTP over HTTP</para>
-    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://opensource.apple.com/source/QuickTimeStreamingServer/QuickTimeStreamingServer-412.42/Documentation/RTSP_Over_HTTP.pdf"></link>&gt;</para>
   </chapter>
   <chapter>
     <title>Terms and Definitions</title>
@@ -199,6 +211,101 @@
         </imageobject>
       </mediaobject>
     </figure>
+    <section>
+      <title>Web Services </title>
+      <para>Unlie for other services defined by ONVIF, in this document the term Web Services is the
+        name of a standardized method of integrating applications using open, platform independent
+        Web Services standards such as JSON, OpenAPI 3.0.0 and YAML over an IP network. JOSN is used
+        as the data description syntax, OpenAPI is used for message transfer and YAML is used for
+        describing the services.</para>
+      <para>
+        <xref linkend="_Ref211940201"/> gives an overview of the basic principles for development
+        based on Web Services and OpenAPI. The service provider (MCS) implements the ONVIF service.
+        The service is described using the YAML-based file. Then, the YAML file is used as the basis
+        for the service requester (OCS) implementation/integration. Integration is simplified
+        through the use of code generating tools that generate platform specific code that can be
+        used by the developers to integrate the Web Service.</para>
+      <para>The Web Service provider and requester communicate using the OpenAPI message exchange
+        protocol. OpenAPI is a lightweight messaging protocol used to encode the information in a
+        Web Service request and in a response message before sending them over a network. OpenAPI
+        messages are independent of any operating system or protocol and may be transported using a
+        variety of Internet protocols. This ONVIF standard defines conformant transport protocols
+        for the SOAP messages for the described Web Services.</para>
+      <para>The Web Service overview section introduces into the general ONVIF service structure,
+        the command definition syntax in the specification, error handling principles and the
+        adopted Web Service security mechanisms.</para>
+      </section>
+      <section xml:id="_Ref208379139">
+        <title>Security</title>
+        <section>
+          <title>Authentication</title>
+          <para>The services defined in this standard, whenever consumed, shall be protected using
+          digest authentication according to [RFC 2617] over HTTP and HTTPS or JWT client
+          authorization based on [RFC 6750], only over HTTPS. Additional information about HTTP
+          digest  authenticationcan can be found the ONVIF Core specification, while the JWT client
+          authorization can be found in the ONVIF Security Service.</para>
+          <para>MCS and OCS may support the SHA-256 hashing algorithm in HTTP and HTTPS. An ONVIF
+          compliant service should follow [RFC 7616].</para>
+        </section>
+        <section>
+          <title>User levels and access classes for the service</title>
+          <para>Since this service is only meant to enable sharing devices between different cloud
+          services, there is no need for defining different access classes to authorized access to
+          the functions defined in this specification.</para>
+        </section>
+      </section>
+  </chapter>
+  <chapter>
+    <title>Device sharing</title>
+    <section>
+      <title>startDeviceSharing</title>
+      <para>This operation triggers sharing a device to a new Operational Cloud Service.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="text">startDeviceSharing [startDeviceSharing]</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">This is an empty message</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="text">400 - Invalid Argument Value</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
+      <title>deviceSharingCompleted</title>
+      <para>This operation notifies the new Operational Cloud Service that the camera was
+        successfully configured.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="text">deviceSharigCompleted [deviceSharigCompleted]</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para>This is an empty message.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="text">No command specific faults defined.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
   </chapter>
   <appendix role="revhistory">
     <title>Revision History</title>
