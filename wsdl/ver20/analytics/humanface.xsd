@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Copyright (c) 2008-2019 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2023 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
@@ -10,7 +10,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tt="http://www.onvif.org/ver10/schema" 
 		   xmlns:fc="http://www.onvif.org/ver20/analytics/humanface" 
 		   targetNamespace="http://www.onvif.org/ver20/analytics/humanface"
-		   elementFormDefault="qualified" version="19.12">
+		   elementFormDefault="qualified" version="23.12">
 	<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../ver10/schema/onvif.xsd"/>
 	<!--===============================-->
 	<!--    human face    -->
@@ -121,7 +121,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<xs:simpleType name="EyeShape">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="Almond"/>
-			<xs:enumeration value="Slitty"/>
 			<xs:enumeration value="Round"/>
 			<xs:enumeration value="Other"/>
 		</xs:restriction>
@@ -148,7 +147,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<xs:sequence>
 			<xs:element name="Shape" type="xs:string" minOccurs="0">
 			<xs:annotation> 
-				<xs:documentation>Describe the shape of the eye, acceptable values are defined in fc:EyeBrowShape.</xs:documentation> 
+				<xs:documentation>Describe the shape of the eye, acceptable values are defined in fc:EyeShape.</xs:documentation> 
 			</xs:annotation>
 			</xs:element> 
 			<xs:element name="Eyelid" type="xs:string" minOccurs="0">
@@ -275,6 +274,21 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:enumeration value="Other"/>				
 		</xs:restriction>
 	</xs:simpleType>	
+
+	<xs:simpleType name="HatType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Cap"/>
+		</xs:restriction>
+	</xs:simpleType>	
+	
+	<xs:simpleType name="HelmetType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="ConstructionCap"/>
+			<xs:enumeration value="CycleCap"/>
+			<xs:enumeration value="RidingHat"/>
+		</xs:restriction>
+	</xs:simpleType>	
+	
 	<xs:complexType name="PoseAngle">
 		<xs:sequence>
 			<xs:element name="PoseAngles" type="tt:GeoOrientation" minOccurs="0">
@@ -302,6 +316,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:annotation> 
 				<xs:documentation>Describe the Color of the accessory.</xs:documentation> 
 			</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Subtype" type="xs:string" minOccurs="0">
+				<xs:annotation> 
+					<xs:documentation>Optional subtype of the accessory. For definitions refer enumerations starting with 
+						the accessory name followed by 'Type' like fc:HatType or fc:HelmetType.</xs:documentation> 
+				</xs:annotation> 
 			</xs:element> 
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
 		</xs:sequence>
