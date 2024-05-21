@@ -6232,10 +6232,12 @@ onvif://www.onvif.org/name/ARV-453
       <section>
         <title>Configuration Renewal</title>
         <para>
-          The configuration allows for a renewal endpoint to be set. If the device supports this feature, it shall automatically renew the credentials when they are about to expire.
+          The configuration allows for a renewal endpoint to be set. If the device supports this feature, it shall automatically renew the credentials 
+          when they are about to expire.
         </para>
         <para>
-          The device shall do a GET request to the configured <literal>RenewalEndpoint</literal> with a JWT token retrieved from the configured <literal>AuthorizationServer</literal>. The endpoint shall respond with a JSON payload with the following structure:
+          The device shall do a GET request to the configured <literal>RenewalEndpoint</literal> with a JWT token retrieved from the configured 
+          <literal>AuthorizationServer</literal>. The endpoint shall respond with a JSON payload with the following structure:
           <programlisting><![CDATA[Content-Type: application/vnd.onvif.storageconfiguration.renewal+json
 
 {
@@ -6249,7 +6251,14 @@ onvif://www.onvif.org/name/ARV-453
     },
     "expiresAt": "<ISO 8601 date-time>"
 }]]></programlisting>
-          The device shall ensure to renew the configuration before the expiration provided by the <literal>expiresAt</literal> field. If the renewal endpoint fails to provide a valid response, the device shall continue to use the existing configuration and retry the renewal later using an exponential backoff strategy.
+          When the device receive a configuration with the <literal>ConfigurationRenewal</literal> set, it shall immediately contact
+          the renewal endpoint to get up-to-date credentials. The device may use the credentials provided by the configuration in the
+          meantime to avoid service disruption.
+        </para>
+        <para>
+          The device shall ensure to renew the configuration before the expiration provided by the <literal>expiresAt</literal> field.
+          If the renewal endpoint fails to provide a valid response, the device shall continue to use the existing configuration and retry
+          later using an exponential backoff strategy.
         </para>
       </section>
       <section>
