@@ -2071,7 +2071,8 @@ secfrac = "." 1*6DIGIT</programlisting>
         <para>
           A device signaling support for recording to an external target with segment encryption shall support writing encrypted files according to NIST SP 800-38A — Recommendation for Block Cipher Modes of Operation: Methods and Techniques.
           The device shall lists which encryption algorithm it supports using the SupportedEncryptionAlgorithms capability.
-          When uploading the segment to the external object storage, the device shall include the following attributes in the metadata: <literal>CertThumb</literal>, <literal>Key</literal>, <literal>KID</literal>, <literal>IV</literal> and <literal>EncAlgo</literal>.
+          When uploading the segment to the external object storage, the device shall include the following attributes in the metadata: <literal>CertThumb1</literal>, <literal>CertThumb2</literal>,
+          <literal>Key1</literal>, <literal>Key2</literal>, <literal>KID</literal>, <literal>IV</literal> and <literal>EncAlgo</literal>.
           The listed metadata attributes are necessary in order to be able to decrypt the encoded segment.
           <literal>KeyRotationDurationFrequency</literal> indicates at which frequency the device shall generate a new key to encrypt a new segment. If not specified, key rotation is per segment.
         </para>
@@ -2256,10 +2257,10 @@ secfrac = "." 1*6DIGIT</programlisting>
             </row>
             <row>
               <entry>
-                <para><literal>CertThumb</literal></para>
+                <para><literal>CertThumb1</literal></para>
               </entry>
               <entry>
-                <para>Certificate thumbprint using SHA256</para>
+                <para>Primary certificate thumbprint using SHA256</para>
               </entry>
               <entry>
                 <para>Base64 string</para>
@@ -2267,10 +2268,32 @@ secfrac = "." 1*6DIGIT</programlisting>
             </row>
             <row>
               <entry>
-                <para><literal>Key</literal></para>
+                <para><literal>CertThumb2</literal></para>
               </entry>
               <entry>
-                <para>Symmetric key encrypted using public key of certificate defined in CertThumb</para>
+                <para>Secondary certificate thumbprint using SHA256</para>
+              </entry>
+              <entry>
+                <para>Base64 string</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>Key1</literal></para>
+              </entry>
+              <entry>
+                <para>Symmetric key encrypted using public key of primary certificate defined in CertThumb1</para>
+              </entry>
+              <entry>
+                <para>Base64 string</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para><literal>Key2</literal></para>
+              </entry>
+              <entry>
+                <para>Symmetric key encrypted using public key of secondary certificate defined in CertThumb2</para>
               </entry>
               <entry>
                 <para>Base64 string</para>
