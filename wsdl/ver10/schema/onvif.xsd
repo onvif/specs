@@ -7723,6 +7723,11 @@ and sample rate. </xs:documentation>
 					<xs:documentation>Token of a storage configuration.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
+			<xs:element name="StorageStrategy" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Strategy to be used on how to store recordings, see tt:StorageStrategy for allowed values. If undefined, defaults to External.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:element name="Format" type="xs:string">
 				<xs:annotation>
 					<xs:documentation>
@@ -7765,6 +7770,31 @@ and sample rate. </xs:documentation>
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
+	<xs:simpleType name="StorageStrategy">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="External">
+				<xs:annotation>
+					<xs:documentation>Indicates that device must record to the storage defined by the StorageConfiguration token.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="Local">
+				<xs:annotation>
+					<xs:documentation>
+						Indicates that device must record on its local storage and can export recorded data to the external 
+						storage using ExportRecordedSegments.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="Both">
+				<xs:annotation>
+					<xs:documentation>
+						Indicates that device must record on both local storage and external storage and locally recorded data can
+						be exported if connectivity issue prevented export to external storage during normal operation.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
 	<!--===============================-->
 	<xs:simpleType name="RecordingStatus">
 		<xs:restriction base="xs:string">
@@ -7992,7 +8022,7 @@ and sample rate. </xs:documentation>
 			</xs:element>
 			<xs:element name="MaximumRetentionTime" type="xs:duration">
 				<xs:annotation>
-					<xs:documentation>Sspecifies the maximum time that data in any track within the
+					<xs:documentation>Specifies the maximum time that data in any track within the
 				recording shall be stored. The device shall delete any data older than the maximum retention
 				time. Such data shall not be accessible anymore. If the MaximumRetentionPeriod is set to 0,
 				the device shall not limit the retention time of stored data, except by resource constraints.

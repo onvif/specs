@@ -655,7 +655,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						</xs:element>
 						<xs:element name="Track" type="tt:TrackType" minOccurs="0">
 							<xs:annotation>
-								<xs:documentation>The type of the track to be exported.</xs:documentation>
+								<xs:documentation>The optional track type to be exported.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -666,10 +666,14 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:sequence>
 						<xs:element name="OperationToken" type="tt:ReferenceToken">
 							<xs:annotation>
-								<xs:documentation>Unique operation token for client to associate the relevant events.</xs:documentation>
+								<xs:documentation>Unique operation token for client to query the status of the export.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
-						<xs:element name="Segment" type="trc:UploadSegmentResult" maxOccurs="unbounded"/>
+						<xs:element name="Segment" type="trc:UploadSegmentResult" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Information about the segment(s) to be exported.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
@@ -692,7 +696,9 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:element>
 					<xs:element name="StoragePath" type="xs:string" >
 						<xs:annotation>
-							<xs:documentation>List of exported file names. The device can also use AsyncronousOperationStatus event to publish this list.</xs:documentation>
+							<xs:documentation>
+								The URI which combines the storage configuration StoragePath and the segment object path.
+							</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 				</xs:sequence>
@@ -702,7 +708,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:sequence>
 						<xs:element name="OperationToken" type="tt:ReferenceToken">
 							<xs:annotation>
-								<xs:documentation>Unique ExportRecordedData operation token</xs:documentation>
+								<xs:documentation>Unique ExportRecordedSegments operation token</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -711,9 +717,9 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:element name="StopExportRecordedSegmentsResponse">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="Segment" type="trc:ExportRecordedSegmentStatus" maxOccurs="unbounded">
+						<xs:element name="Segment" type="trc:ExportRecordedSegmentStatus" minOccurs="0" maxOccurs="unbounded">
 							<xs:annotation>
-								<xs:documentation> </xs:documentation>
+								<xs:documentation>Information about the exported segments.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first Vendor then ONVIF -->
@@ -725,7 +731,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:sequence>
 					<xs:element name="StoragePath" type="xs:string">
 						<xs:annotation>
-							<xs:documentation>Unique ExportRecordedData operation token</xs:documentation>
+							<xs:documentation>The URI which combines the storage configuration StoragePath and the segment object path.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:element name="Status" type="trc:UploadStatus">
@@ -760,7 +766,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:sequence>
 						<xs:element name="Segment" type="trc:ExportRecordedSegmentStatus" maxOccurs="unbounded">
 							<xs:annotation>
-								<xs:documentation> </xs:documentation>
+								<xs:documentation>Information about the exported segments.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first Vendor then ONVIF -->
@@ -1097,21 +1103,21 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 
 		<wsdl:operation name="ExportRecordedSegments">
 			<wsdl:documentation>
-			Exports the selected recordings (from existing recorded data) to the given storage target based on the requested file format. 
+			Exports the selected recorded segments (from existing recorded data) to the storage attached to the given recording job.
 			</wsdl:documentation>
 			<wsdl:input message="trc:ExportRecordedSegments"/>
 			<wsdl:output message="trc:ExportRecordedSegmentsResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="StopExportRecordedSegments">
 			<wsdl:documentation>
-			Stops the selected ExportRecordedData operation. 
+			Stops the selected ExportRecordedSegments operation.
 			</wsdl:documentation>
 			<wsdl:input message="trc:StopExportRecordedSegments"/>
 			<wsdl:output message="trc:StopExportRecordedSegmentsResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="GetExportRecordedSegmentState">
 			<wsdl:documentation>
-			Retrieves the status of selected ExportRecordedData operation. 
+			Retrieves the status of selected ExportRecordedSegments operation. 
 			</wsdl:documentation>
 			<wsdl:input message="trc:GetExportRecordedSegmentState"/>
 			<wsdl:output message="trc:GetExportRecordedSegmentStateResponse"/>
