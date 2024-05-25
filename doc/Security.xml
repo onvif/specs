@@ -1090,35 +1090,39 @@
     </section>
     <section xml:id="section_b4m_rs4_rwb">
       <title>Authorization Servers</title>
-      <para>This section describes use of external authorization servers that can be used for
-        providing authentication of users and authorizing access to both device services and
-        external services, like cloud storage.</para>
-      <para>OAuth 2.0 is a specification that describes how to issue access tokens. It is defined in RFC6749. OpenID Connect has been developed as an extension of OAuth 2.0.</para>
-      <para>OAuth 2.0 includes the definition of a web API called "authorization endpoint". Requests to this API must include a parameter called <emphasis>response_type</emphasis> which can be either <emphasis>code</emphasis> or <emphasis>token</emphasis>. OpenID Connect extends the OAuth 2.0 specification, by adding the values <emphasis>id_token</emphasis> and <emphasis>none</emphasis> for <emphasis>response_type</emphasis> and allowing any combination of <emphasis>code</emphasis>, <emphasis>token</emphasis> and <emphasis>id_token</emphasis>.</para>
-      <para>Any request for ID tokens must include <emphasis>openid</emphasis> in the <emphasis>scope</emphasis> request parameter.</para>
+      <para>This section describes use of external authorization servers for authenticating users
+        and controlling access to resources. It can be used for granting access to both the device
+        itself and to external services, like cloud storage.</para>
+      <para>Different approaches are explained for granting access to human users and for machine to
+        machne authorization. Both approaches base on OAuth 2.0 as defined in RFC6749. OpenID
+        Connect has been developed as an extension of OAuth 2.0 especially for granting access to
+        human users.</para>
+      <para><?oxy_comment_start author="hbusch" timestamp="20240525T164725+0200" comment="Too much detail for the introduction. We may want to move details to sub sections."?>OAuth
+        2.0 includes the definition of a web API called "authorization endpoint". Requests to this
+        API must include a parameter called <emphasis>response_type</emphasis> which can be either
+          <emphasis>code</emphasis> or <emphasis>token</emphasis>. OpenID Connect extends the OAuth
+        2.0 specification, by adding the values <emphasis>id_token</emphasis> and
+          <emphasis>none</emphasis> for <emphasis>response_type</emphasis> and allowing any
+        combination of <emphasis>code</emphasis>, <emphasis>token</emphasis> and
+          <emphasis>id_token</emphasis>.<?oxy_comment_end?></para>
+      <?oxy_comment_start author="hbusch" timestamp="20240525T164805+0200" comment="Where does this requirement come from?"?>
+      <para>Any request for ID tokens must include <emphasis>openid</emphasis> in the
+          <emphasis>scope</emphasis> request parameter.<?oxy_comment_end?></para>
+      <?oxy_comment_start author="hbusch" timestamp="20240525T164836+0200" comment="Arbitrary details. Suggest to remove."?>
       <para>For example OAuth 2.0 client registration, as specified by RFC6749 requires
         configuration of ClientId, ClientSecret, an authentication method according to <xref
           xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_smg_rzq_swb"/>plus server
         dependent supplemental parameters before the client can use the OAuth2.0 and OpenID Connect
         flow.</para>
-      <section xml:id="section_acl_4zq_swb">
-        <title>User authentication and authorization</title>
-        <para>Users can retrieve JWTs from an OpenID Connect server by authenticating and authorizing access to resources by following the OAuth2 Authorization Code Flow.</para>
-        <para>The Authorization Code Flow is summarized in <xref linkend="_Ref350769588"/>.</para>
-        <figure xml:id="_Ref350769588">
-          <title>OpenID Connect authorization code flow for users</title>
-          <mediaobject>
-            <imageobject>
-              <imagedata fileref="media/Security/image6.svg" contentwidth="159.97mm"/>
-            </imageobject>
-          </mediaobject>
-        </figure>
-        <para>A device can be setup to use JWTs obtained with this flow to allow access to its internal web interface for externally authenticated users. In that case an authorization server configuration with type OAuthAuthorizationCode or OIDC2AuthorizationCode should be created.</para>
-        <para>Access to the camera can be granted to users bearing either an ID Token or an Access Token, as long as the claims specified in <xref linkend="_Ref395181339"/> are present.</para>
-      </section>
+      <?oxy_comment_end?>
       <section xml:id="section_bcl_4zq_swb">
         <title>Device authentication and authorization</title>
-        <para>Devices will typically use the Oauth2 Client Credentials Grant Flow to gain access to resources. There are a number of different ways for a device (called a client in the OAuth2 Spec) to authenticate with the server using this flow, listed in <xref xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_smg_rzq_swb"/></para>
+        <para>Devices typically use the Oauth2 Client Credentials Grant Flow to gain access to
+          resources. The device (called a client in the OAuth2 Spec) authenticates itself at the
+          authorization server according to one of the methods listed in <xref
+            xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_smg_rzq_swb"/>. In case of
+          success the authorization server responds to the request with an access token that
+          authorizes access to the actual resource.</para>
         <para>The Client Credentials Flow is summarized in <xref linkend="_Ref350769589"/>.</para>
         <figure xml:id="_Ref350769589">
           <title>OpenID Connect client credentials flow for devices</title>
@@ -1128,7 +1132,34 @@
             </imageobject>
           </mediaobject>
         </figure>
-        <para>Since in the case of a camera accessing a remote resource there is no user involved and no identity to be checked, cameras are expected to use Access Tokens to perform this operation.</para>
+        <?oxy_comment_start author="hbusch" timestamp="20240525T164224+0200" comment="Not sure why this talks about access token. Suggest to remove this sentence."?>
+        <para>Since in the case of a camera accessing a remote resource there is no user involved
+          and no identity to be checked, cameras are expected to use Access Tokens to perform this
+          operation.<?oxy_comment_end?></para>
+      </section>
+      <section xml:id="section_acl_4zq_swb">
+        <title>User authentication and authorization</title>
+        <para>This flow separates retrieval of access token in two steps to allow separation of
+          authentication and authorization. Users can retrieve JWTs from an OpenID Connect server by
+          authenticating and authorizing access to resources by following the OAuth2 Authorization
+          Code Flow.</para>
+        <para>The Authorization Code Flow is summarized in <xref linkend="_Ref350769588"/>.</para>
+        <figure xml:id="_Ref350769588">
+          <title>OpenID Connect authorization code flow for users</title>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="media/Security/image6.svg" contentwidth="159.97mm"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+        <para>A device can be setup to use JWTs obtained with this flow to allow access to its web
+          interface for externally authenticated users. In that case an authorization server
+          configuration with type OAuthAuthorizationCode or OIDC2AuthorizationCode should be
+          created.</para>
+        <para><?oxy_comment_start author="hbusch" timestamp="20240525T164423+0200" comment="This requirement is not special for this flow. Suggest to remove."?>Access
+          to the camera can be granted to users bearing either an ID Token or an Access Token, as
+          long as the claims specified in <xref linkend="_Ref395181339"/> are
+          present.<?oxy_comment_end?></para>
       </section>
       <section xml:id="section_ccl_4zq_swb">
         <title>Authorization server configuration</title>
@@ -1182,18 +1213,21 @@
               </row>
               <row>
                 <entry>KeyID</entry>
-                <entry>Key identifier for the <emphasis>private_key_jwt</emphasis> authentication method</entry>
+                <entry>Key identifier for the <emphasis>private_key_jwt</emphasis> authentication
+                  method</entry>
               </row>
               <row>
                 <entry>CertificateID</entry>
-                <entry>Certificate identifier for the <emphasis>self_signed_tls_client_auth</emphasis> authentication method</entry>
+                <entry>Certificate identifier for the
+                    <emphasis>self_signed_tls_client_auth</emphasis> authentication method</entry>
               </row>
               <row>
                 <entry>
                   <para>Type</para>
                 </entry>
                 <entry>
-                  <para>The type of configuration, see <xref xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_ry3_fbr_swb"/> for
+                  <para>The type of configuration, see <xref
+                      xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_ry3_fbr_swb"/> for
                     possible values.</para>
                 </entry>
               </row>
@@ -1202,7 +1236,8 @@
                   <para>ClientAuth</para>
                 </entry>
                 <entry>
-                  <para>The type of client authentication method to use, see <xref xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_smg_rzq_swb"/> for
+                  <para>The type of client authentication method to use, see <xref
+                      xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_smg_rzq_swb"/> for
                     possible values.</para>
                 </entry>
               </row>
