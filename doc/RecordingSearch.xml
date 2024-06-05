@@ -1503,7 +1503,7 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
   <appendix>
     <title>Deprecated Interfaces</title>
     <section>
-      <title>A.1	Method for returning search status</title>
+      <title>Method for returning search status</title>
       <para>The definition and interface for the returning search status have been deprecated with release 16.06. The following interfaces have been removed from the specification:</para>
       <itemizedlist>
         <listitem>
@@ -1511,6 +1511,107 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
         </listitem>
       </itemizedlist>
       <para>The definition is available via the link &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/srv/rsrch/ONVIF-RecordingSearch-Service-Spec-v1606.pdf">https://www.onvif.org/specs/srv/rsrch/ONVIF-RecordingSearch-Service-Spec-v1606.pdf</link>&gt;.</para>
+    </section>
+  </appendix>
+  <appendix xml:id="_refSegmentExport">
+    <title>Segment export (Normative)</title>
+    <section xml:id="_refSegmentExportOverview">
+      <title>Overview</title>
+      <para>
+        This annex describes the requirements for recording and exporting media streams in a cloud-friendly format.
+        Device will need to record on their local storage when a <literal>RecordingTargetConfiguration</literal> has its strategy set to "Local" or "Both".
+        While the device can record locally using any format, segments can be queried at any time and the resulting list of segments MUST be stable.
+        "Stable" here is defined in the sense that each frame will always be part of the same segment and the available segments are immutable.
+      </para>
+      <para>
+        Specific recorded segments can then be exported to the cloud on request and each exported segment MUST yield the same result (a CMAF or MP4 file 
+        containing all its frames) on a successful export operation.
+      </para>
+      <para>
+        The deterministic properties of the segments (when queried or exported) facilitate features like HLS or MPEG-DASH playback from the device,
+        and also a simple way to implement on-demand video tricking from the local storage for a device to the cloud.
+      </para>
+    </section>
+    <section xml:id="_refSegmentExportRecording">
+      <title>Recording segments</title>
+      <para>
+        There are three possible recording strategies as defined for <literal>RecordingTargetConfiguration</literal>:
+        <variablelist>
+          <varlistentry>
+            <term>Cloud (default)</term>
+            <listitem>
+              <para>
+                The device will automatically upload each recorded segment to the Cloud location as soon as possible. After completion or on error the data won't be kept locally on the device. 
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Local</term>
+            <listitem>
+              <para>
+                The device will record the segments on its local storage and keep it there for as long as possible.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Both</term>
+            <listitem>
+              <para>
+                The device will record the segments on its local storage and keep it there for as long as possible. It will also attempt to automatically upload each segment to the Cloud location as they become available.
+              </para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </para>
+      <para>
+        When recording on its local storage, the device may need to delete the oldest recording segments if storage space is insufficient.
+      </para>
+      <para>
+        When uploading to the configured Cloud location, if an error occurs the device can retry but should abandon if the operation took too long and the next segment is ready to be uploaded.
+        Only whole segments should be uploaded and committed to the cloud storage (no incomplete segment should be made available on failure).
+      </para>
+    </section>
+    <section xml:id="_refSegmentExportCommands">
+      <title>Segment export commands</title>
+      <para>
+        The <literal>ListRecordedSegments</literal> command lists the segments currently available for export from the device local storage.
+        For a given time range, this command should always return the same segments with two exceptions: the newly recorded segments are added as they become
+        available, and the deleted segments are removed from it (for example if the device had to delete them to make room for the new ones).
+      </para>
+      <para>
+        The <literal>ExportRecordedSegments</literal> command starts an export operation for all segment (partially or entirely) contained in the 
+        specified time range. Multiple operations at the same time can be queued and processed sequentially. While the operation is being executed 
+        the segments must not be deleted until they are uploaded (but the following ones can be). Segments should be uploaded in chronological order.
+        Progression can be tracked with <literal>GetExportRecordedSegmentState</literal>. Operations can be cancelled at any time with <literal>StopExportRecordedSegments</literal>.
+        The segment names use should follow <xref linkend="_refCloudRecordingSegmentObjects">Cloud Recording Segment Objects format</xref>, with <literal>counter</literal> starting at zero for the first segment of each export operation.
+      </para>
+      <para>
+        Note: it is possible that the segments listed with <literal>ListRecordedSegments</literal> are not exactly the ones exported with <literal>ExportRecordedSegments</literal>
+        as some segments could be deleted/added in-between the two commands being executed.
+      </para>
+    </section>
+    <section xml:id="_refSegmentExportStability">
+      <title>Segment stability</title>
+      <para>
+        Segment stability is essential for this feature: each frame must be part of exactly one segment and each segment must always be immutable in time.
+        Additionnally, each segment must start with a keyframe to make it independent from the previous one. Some devices may record frames in a proprietary 
+        format, so the segments won't exist until exported to the cloud storage. Since the device must be able to list them beforehand, we suggest a simple
+        algorithm to determin how many segments will be in each time range and which frames will be part of them.
+      </para>
+      <para>
+        The figure <xref linkend="_refSegmentExportStabilityExample" /> illustrate how a global real time clock timestamp (that doesn't reset on device reboot 
+        or resync on NTP) could be segmented in time ranges for the target segment duration with a modulus operation. Then each boundary of these ranges is 
+        adjusted to match the time of the next keyframe. The result is the list of segment boundaries that overlap with the original time range of the query. 
+        Care should be taken not to return the most recent segment if it is incomplete (when more frames may be appended to it later, i.e.: it overlaps with the current time).
+      </para>
+      <figure xml:id="_refSegmentExportStabilityExample">
+        <title>Example of possible algorithm to ensure segment stability</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="media/RecordingSearch/segmentExportStabilityExample 1.svg" contentwidth="120mm" />
+          </imageobject>
+        </mediaobject>
+      </figure>
     </section>
   </appendix>
   <appendix role="revhistory">
