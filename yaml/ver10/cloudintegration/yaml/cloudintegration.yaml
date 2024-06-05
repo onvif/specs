@@ -8,7 +8,7 @@ info:
   license:
     name: ONVIF Contributor License Agreement
     url: https://github.com/onvif/specs/blob/development/LICENSE.md
-  version: 24.06
+  version: "24.12"
 
 components:
   schemas:
@@ -20,6 +20,39 @@ components:
           format: byte
       required:
         - Value
+
+    EndpointReferenceType:
+      type: object
+      properties:
+        Address:
+          type: string
+          format: uri
+      required:
+        - Address
+
+    DeviceConfiguration:
+      type: object
+      properties:
+        ShareToken:
+          description: The share token, to prove permission to share the device.
+          item:
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+        EndpointReference:
+          description: The endpoint to be notified to inform that the operation was completed. It may be more then one if the requesting cloud has redundant URIs to receive the notification.
+          items:
+            $ref: '#/components/schemas/EndpointReferenceType'
+
+    DeviceInformation:
+      type: object
+      properties:
+        ShareToken:
+          description: The share token, to prove permission to share the device.
+          item:
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+        DevicePublicKey:
+          description: The public key of the device.
+          item:
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
 
     JWTConfiguration:
       type: object
@@ -37,11 +70,11 @@ components:
             format: uri
         JWTCertificate:
           description: The certificate holding the public ECC key used to validate JWTs.
-          items: 
+          items:
             $ref: '#/components/schemas/Base64DERencodedASN1Value'
         JWTTrustAnchor:
           description: The certificate with the public key used to validate the TLS certificate of the OIDC server.
-          items: 
+          items:
             $ref: '#/components/schemas/Base64DERencodedASN1Value'
       required:
         - Audiences
@@ -58,61 +91,42 @@ components:
           type: string
           enum: [Administrator, Operator, User]
         UplinkTrustAnchor:
-          items: 
+          items:
             $ref: '#/components/schemas/Base64DERencodedASN1Value'
           description: The certificate with the public key used to validate the TLS certificate of the uplink server.
       required:
         - RemoteAddress
         - UserLevel
 
-    EndpointReferenceType:
-      type: object
-      properties:
-        Address:
-          type: string
-          format: uri
-      required:
-        - Address
-
     startDeviceSharing:
       type: object
       properties:
-        ShareToken:
-          items: 
-            $ref: '#/components/schemas/Base64DERencodedASN1Value'
-          description: The share token, to prove permission to share the device.
+        CamerasConfiguration:
+          items:
+            $ref: '#/components/schemas/DeviceConfiguration'
+          description: For each camera requested to be shared, it is necessary to pass both the shared token and the endpoint reference.
         JWTConfiguration:
-          items: 
+          items:
             $ref: '#/components/schemas/JWTConfiguration'
           description: Configuration of JWT authentication.
         UplinkConfiguration:
-          items: 
+          items:
             $ref: '#/components/schemas/UplinkConfiguration'
           description: Configuration of the uplink service.
-        EndpointReference:
-          items: 
-            $ref: '#/components/schemas/EndpointReferenceType'
-          description: The endpoint to be notified to inform that the operation was completed.
       required:
-        - ShareToken
+        - CamerasConfiguration
         - JWTConfiguration
         - UplinkConfiguration
-        - EndpointReference
 
     deviceSharingCompleted:
       type: object
       properties:
-        ShareToken:
-          items: 
-            $ref: '#/components/schemas/Base64DERencodedASN1Value'
-          description: The share token, to identify the shared device.
-        DevicePublicKey:
-          items: 
-            $ref: '#/components/schemas/Base64DERencodedASN1Value'
-          description: The public key of the device.
+        DevicesInformation:
+          items:
+            $ref: '#/components/schemas/DeviceInformation'
+          description: For each shared device, the share token and the public key will be provided.
       required:
-        - ShareToken
-        - DevicePublicKey
+        - DevicesInformation
 
 paths:
   /startDeviceSharing:
