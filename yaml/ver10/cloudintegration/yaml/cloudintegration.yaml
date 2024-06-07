@@ -32,68 +32,30 @@ components:
       required:
         - Address
 
-    DeviceConfiguration:
+    AuthorizationServerConfiguration:
       type: object
+      description: This schema is the equivalent of tas:AuthorizationServerConfigurationData
       properties:
-        ShareToken:
-          description: The share token, to prove permission to share the device.
-          item:
-            $ref: '#/components/schemas/Base64DERencodedASN1Value'
-        EndpointReferences:
-          description: The endpoint to be notified to inform that the operation was completed. It may be more then one if the requesting cloud has redundant URIs to receive the notification.
-          items:
-            $ref: '#/components/schemas/EndpointReferenceType'
+        ServerURI:
+          description: Authorization server address
+          type: string
+        ClientID:
+          description: Client identifier issued by the authorization server
+          type: string
+        Scope:
+          description: The requested access scope
+          type: string
       required:
-        - ShareToken
-        - EndpointReferences
-
-    DeviceInformation:
-      type: object
-      properties:
-        ShareToken:
-          description: The share token, to know what device the public key is associated to.
-          item:
-            $ref: '#/components/schemas/Base64DERencodedASN1Value'
-        DevicePublicKey:
-          description: The public key of the device.
-          item:
-            $ref: '#/components/schemas/Base64DERencodedASN1Value'
-      required:
-        - ShareToken
-        - DevicePublicKey
-
-    JWTConfiguration:
-      type: object
-      properties:
-        Audiences:
-          description: The list of all the aud claims, which the recipient identifies with.
-          type: array
-          items:
-            type: string
-        TrustedIssuers:
-          description: If present, this is the list to URIs pointing to the metadata file conforming to RFC8414, such as "https://your.domain/.well-known/openid-configuration" , of the trusted Open ID Connect servers issuing JWT tokens. Using metadata, the device can reach the information about the JWKS and implement the rotation of the keys accordingly.
-          type: array
-          items:
-            type: string
-            format: uri
-        JWTCertificate:
-          description: The certificate holding the public ECC key used to validate JWTs.
-          items:
-            $ref: '#/components/schemas/Base64DERencodedASN1Value'
-        JWTTrustAnchor:
-          description: The certificate with the public key used to validate the TLS certificate of the OIDC server.
-          items:
-            $ref: '#/components/schemas/Base64DERencodedASN1Value'
-      required:
-        - Audiences
+        - ServerURI
+        - ClientID
 
     UplinkConfiguration:
       type: object
       properties:
         RemoteAddress:
           description: Uniform resource locator by which the remote client can be reached.
-          type: string
-          format: uri
+          item:
+            $ref: '#/components/schemas/EndpointReferenceType'
         UserLevel:
           description: Authorization level that will be assigned to the uplink connection.
           type: string
@@ -106,6 +68,45 @@ components:
         - RemoteAddress
         - UserLevel
 
+    DeviceConfiguration:
+      type: object
+      properties:
+        ShareToken:
+          description: The share token, to prove permission to share the device.
+          item:
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+        EndpointReferences:
+          description: The endpoint to be notified to inform that the operation was completed. It may be more then one if the requesting cloud has redundant URIs to receive the notification.
+          items:
+            $ref: '#/components/schemas/EndpointReferenceType'
+        UplinkConfiguration:
+          description: Per-device uplink configuration
+          items:
+            $ref: '#/components/schemas/UplinkConfiguration'
+        AuthorizationServerConfiguration:
+          items:
+            $ref: '#/components/schemas/AuthorizationServerConfiguration'
+      required:
+        - ShareToken
+        - EndpointReferences
+        - UplinkConfiguration
+        - AuthorizationServerConfiguration
+
+    DeviceInformation:
+      type: object
+      properties:
+        ShareToken:
+          description: The share token, to know what device the public key is associated to.
+          items:
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+        DevicePublicKey:
+          description: The public key of the device.
+          items:
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+      required:
+        - ShareToken
+        - DevicePublicKey
+
     startDeviceSharing:
       type: object
       properties:
@@ -113,18 +114,8 @@ components:
           items:
             $ref: '#/components/schemas/DeviceConfiguration'
           description: For each camera requested to be shared, it is necessary to pass both the shared token and the endpoint reference.
-        JWTConfiguration:
-          items:
-            $ref: '#/components/schemas/JWTConfiguration'
-          description: Configuration of JWT authentication.
-        UplinkConfiguration:
-          items:
-            $ref: '#/components/schemas/UplinkConfiguration'
-          description: Configuration of the uplink service.
       required:
         - CamerasConfiguration
-        - JWTConfiguration
-        - UplinkConfiguration
 
     deviceSharingCompleted:
       type: object
