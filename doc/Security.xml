@@ -4861,10 +4861,29 @@
       <para>All other configuration of the TLS server on a device is outside the scope of this specification revision and may be addressed by later revisions of this document.</para>
     </section>
   </chapter>
+  <appendix xml:id= "q5l_q5m_51c">
+    <title>JWT Content example</title>
+    <para>Here is an example of JWT components to be encoded into a JWT Token</para>
+    <programlisting><![CDATA[{
+    "typ":"JWT",
+    "alg":"ES256",
+}.{
+    "iss":"server.path.com", // FQDN of the server that issued the JWT
+    "nbf":1670482800, // not before Thursday, December 8, 2022 7:00:00 AM (GMT)
+    "exp":1670572800, // expire at Friday, December 9, 2022 8:00:00 AM (GMT)
+    "aud":"target.audience",
+    "roles":["onvif:Operator"]
+}
+]]></programlisting>
+    <para>which is base64url-encoded in three parts according to RFC 7519 as</para>
+    <programlisting>eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJzZXJ2ZXIucGF0aC5jb20iLCJuYmYiOjE2NzA0ODI4MDAsImV
+4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmNlIiwicm9sZXMiOlsib252aWY6T3BlcmF0b3IiXX0.SflKxw
+RJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</programlisting>
+  </appendix>
   <appendix xml:id="_Ref460769599">
     <title>JWT over SCTP example</title>
     <para>JWT, whose content example is shown in <xref xmlns:xlink="http://www.w3.org/1999/xlink"
-        linkend="q5l_q5m_51c"/>, can be used in the WS-Security header of the SOAP request:</para>
+        linkend="q5l_q5m_51c"/>, can be used in the WS-Security header of the SOAP request. To conform to the BinarySecurityToken format, the JWT is base64-encoded a second time.</para>
     <programlisting><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"
               xmlns:enc="http://www.w3.org/2003/05/soap-encoding"
