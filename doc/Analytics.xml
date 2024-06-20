@@ -4375,7 +4375,8 @@ xmlns:acme="http://www.acme.com/schema"&gt;
       <para>The Object Track Aggregation rule generates an object track aggregation event per detected object in below listed scenarios </para>
       <itemizedlist>
         <listitem>
-          <para> When an object of any of the configured object types enters the field of view to mark initiation of object tracking process. </para>
+          <para> When an object type from list of configured object types enters the field of view
+            to mark initiation of object tracking process. </para>
         </listitem>
         <listitem>
           <para> When the detected object leaves the field of view to mark completion of object tracking process. </para>
@@ -4391,8 +4392,6 @@ xmlns:acme="http://www.acme.com/schema"&gt;
             <para role="text">List of classes to be detected.</para>
             <para role="param">ConfidenceLevel - optional [xs:float]</para>
             <para role="text">Minimum confidence level for accepting a classification. </para>
-            <para role="param">DwellTime - optional [xs:duration]</para>
-            <para role="text">Duration an object must be visible before accepting a classification.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -4410,14 +4409,17 @@ xmlns:acme="http://www.acme.com/schema"&gt;
         <varlistentry>
           <term>Data</term>
           <listitem>
-            <para role="param">TrackStart - optional [xs:dateTime]</para>
-            <para role="text">Time at which object tracking process initiated. </para>
+            <para role="param">TrackStart [xs:dateTime]</para>
+            <para role="text">Time at which object tracking process initiated, typically when the
+              object is first seen in a scene.</para>
             <para role="param">TrackEnd - optional [xs:dateTime</para>
-            <para role="text">Time at which object tracking process completed. </para>            
-            <para role="param">ObjectTrackAggregation - optional, unbounded [tt:Object]</para>
-            <para role="text">Optional track aggregation of objects triggering this rule. </para>
-            <para role="param">ObjectTrackComplement - optional, unbounded  [tt:ObjectTrackComplement]</para>
-            <para role="text">Optional complementary description of objects triggering this rule. </para>
+            <para role="text">Time at which object tracking process completed, typically when the
+              object left or no longer visible in the scene.</para>            
+            <para role="param">ObjectTrackAggregation - optional [tt:Object]</para>
+            <para role="text">Optional track aggregation data of an object initial or final accrued during track duration.</para>
+            <para role="param">ObjectTrackComplement - optional, unbounded
+              [tt:ObjectTrackComplement]</para>
+            <para role="text">Optional complementary description of an object to provide additional context.</para>
           </listitem>
         </varlistentry>
       </variablelist>      
@@ -4426,7 +4428,6 @@ xmlns:acme="http://www.acme.com/schema"&gt;
   <tt:Parameters>
     <tt:SimpleItemDescription Name="ClassFilter" Type=" tt:StringList"/>
     <tt:SimpleItemDescription Name=“ConfidenceLevel" Type="xs:float"/>
-    <tt:SimpleItemDescription Name=“DwellTime" Type="xs:duration"/>
   </tt:Parameters>
   <tt:Messages>
     <tt:Source>
@@ -4438,7 +4439,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
       <tt:ElementItemDescription Type=“tt:Object" Name=“ObjectTrackAggregation"/>
       <tt:ElementItemDescription Type=“tt:ObjectTrackComplement" Name=“ObjectTrackComplement"/>
     </tt:Data>
-    <tt:ParentTopic>tns1:RuleEngine//ObjectTrack/Aggregation</tt:ParentTopic>
+    <tt:ParentTopic>tns1:RuleEngine/ObjectTrack/Aggregation</tt:ParentTopic>
   </tt:Messages>
 </tt:RuleDescription>
 ]]></programlisting>
