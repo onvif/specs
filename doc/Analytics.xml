@@ -4372,26 +4372,29 @@ xmlns:acme="http://www.acme.com/schema"&gt;
     </section>
     <section>
       <title>Object Track Aggregation</title>
-      <para>The Object Track Aggregation rule generates an object track aggregation event per detected object in below listed scenarios </para>
+      <para>The Object Track Aggregation rule generates an object track aggregation event  for below
+        listed scenarios </para>
       <itemizedlist>
         <listitem>
-          <para> When an object type from list of configured object types enters the field of view
-            to mark initiation of object tracking process. </para>
+          <para> Optionally, Initial aggregation after an object appears in the field of view. </para>
         </listitem>
         <listitem>
-          <para> When the detected object leaves the field of view to mark completion of object tracking process. </para>
+          <para> Optionally, Intermediate aggregation while the object is present in the field of
+            view.</para>
+        </listitem>
+        <listitem>
+          <para> Final aggregation when the object is no longer visible in the field of view. </para>
         </listitem>
       </itemizedlist>
-      <para>Initial aggregation event shall include object track start time along with the optional initial aggregation and complementary data of object description. </para>
-      <para>Final aggregation event shall include object track start and end times along with optional final aggregation and complementary data of object description. </para>
       <variablelist role="op">
         <varlistentry>
           <term>Parameters</term>
           <listitem>
             <para role="param">ClassFilter [tt:StringList]</para>
-            <para role="text">List of classes to be detected.</para>
+            <para role="text">List of classes to be aggregated.</para>
             <para role="param">ConfidenceLevel - optional [xs:float]</para>
-            <para role="text">Minimum confidence level for accepting a classification. </para>
+            <para role="text">Minimum confidence level of object classification for generating
+              aggregation event. </para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -4409,16 +4412,20 @@ xmlns:acme="http://www.acme.com/schema"&gt;
         <varlistentry>
           <term>Data</term>
           <listitem>
-            <para role="param">TrackStart [xs:dateTime]</para>
-            <para role="text">Time at which object tracking process initiated, typically when the
-              object is first seen in a scene.</para>
-            <para role="param">TrackEnd - optional [xs:dateTime]</para>
-            <para role="text">Time at which object tracking process completed, typically when the
-              object left or no longer visible in the scene.</para>          
-            <para role="param">ObjectTrackAggregation - optional [tt:Object]</para>
-            <para role="text">Optional track aggregation data of an object initial or final accrued during track duration.</para>
+            <para role="param">AggregationStart - mandatory [xs:dateTime] </para>
+            <para role="text">All aggregation events shall set object track start time as the
+              AggregationStart time. </para>
+            <para role="param">AggregationEnd - mandatory [xs:dateTime]</para>
+            <para role="text">AggregationEnd time is usually set to the the last time the object was
+              observed before the aggregation. Final aggregation event shall set the field as the
+              object track end time.</para>          
+            <para role="param">ObjectTrackAggregation - mandatory [tt:Object]</para>
+            <para role="text">Track aggregation data of an object.</para>
             <para role="param">ObjectTrackComplement - optional, unbounded [tt:ObjectTrackComplement]</para>
             <para role="text">Optional complementary description of an object to provide additional context.</para>
+            <para role="param">FinalAggregation - optional [xs:boolean]</para>
+            <para role="text">Signals TRUE for final aggregation event for the detected
+              object.</para>
           </listitem>
         </varlistentry>
       </variablelist>      
@@ -4433,8 +4440,9 @@ xmlns:acme="http://www.acme.com/schema"&gt;
       ...
     </tt:Source>
     <tt:Data>
-      <tt:SimpleItemDescription Name=“TrackStart" Type=“xs:dateTime" />
-      <tt:SimpleItemDescription Name=“TrackEnd" Type=“xs:dateTime" />
+      <tt:SimpleItemDescription Name=“AggregationStart" Type=“xs:dateTime" />
+      <tt:SimpleItemDescription Name=“AggregationEnd" Type=“xs:dateTime" />
+      <tt:SimpleItemDescription Name=“FinalAggregation" Type=“xs:boolean" />
       <tt:ElementItemDescription Name=“ObjectTrackAggregation" Type=“tt:Object"/>
       <tt:ElementItemDescription Name=“ObjectTrackComplement" Type=“tt:ObjectTrackComplement"/>
     </tt:Data>
