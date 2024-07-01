@@ -1015,7 +1015,7 @@
     </section>
     <section xml:id="_Ref395181339">
       <title>JWT-based client authorization</title>
-      <para>Unlike with HTTP Digest and WS-UsernameToken authentication, this specification defines how to associate clients with the different User Levels as defined in the ONVIF Core Specification. Devices are not expected to have the user credentials stored in their memory, instead they will verify that the user has been correctly authenticated by a trusted service based on OpenID Connect and authorize accessing different functions, based on the claims presented in the supplied JWT. JWTs can be presented has headers in case of HTTPS or RTSP, or they can be embedded in SOAP messages, in the form of binary security tokens. In case JWTs are embedded in binary security tokens, their content is base64-encoded according to RFC 7519.</para>
+      <para>Unlike with HTTP Digest and WS-UsernameToken authentication, this specification defines how to associate clients with the different User Levels as defined in the ONVIF Core Specification. Devices are not expected to have the user credentials stored in their memory, instead they will verify that the user has been correctly authenticated by a trusted service based on OpenID Connect and authorize accessing different functions, based on the claims presented in the supplied JWT. JWTs can be presented as headers in case of HTTPS or RTSP, or they can be embedded in SOAP messages, in the form of binary security tokens. In case JWTs are embedded in binary security tokens, their content is base64url-encoded according to RFC 7519.</para>
       <para>JWTs consists of three elements:</para>
       <para>
         <itemizedlist>
@@ -1057,7 +1057,7 @@
           </listitem>
         </itemizedlist>
       </para>
-      <para>The signature is evaluated by applying ECDSA using secp256r1 and SHA-256 hashing to the base64-encoded header and payload, concatenated by a '.'</para>
+      <para>The signature is evaluated by applying ECDSA using secp256r1 and SHA-256 hashing to the base64url-encoded header and payload, concatenated by a '.'</para>
       <programlisting>ECDSA-SHA256 (base64UrlEncode(header) + "." +
               base64UrlEncode(payload),
               secp256r1))</programlisting>
@@ -4875,20 +4875,22 @@
     "roles":["onvif:Operator"]
 }
 ]]></programlisting>
-    <para>which is base64-encoded as</para>
+    <para>which is base64url-encoded in three parts according to RFC 7519 as</para>
     <programlisting>eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJzZXJ2ZXIucGF0aC5jb20iLCJuYmYiOjE2NzA0ODI4MDAsImV
-4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmNlIiwicm9sZXMiOlsib252aWY6T3BlcmF0b3IiXX0=.SflKxw
+4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmNlIiwicm9sZXMiOlsib252aWY6T3BlcmF0b3IiXX0.SflKxw
 RJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</programlisting>
-    <para>While the individual components of the JWT are already base64-encoded, the whole structure is not technically base64-encoded. Therefore it is necessary to base64-encode it again, leading to</para>
-    <programlisting>ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOaUo5LmV5SnBjM01pT2lKelpYSjJaWEl1Y0dGMGFDNW
-piMjBpTENKdVltWWlPakUyTnpBME9ESTRNREFzSW1WNGNDSTZNVFkzTURVM01qZ3dNQ3dpWVhWa0lqb2lkR0Z5
-WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9pSnZiblpwWmpwUGNHVnlZWFJ2Y2lKOS5TZmxLeHdSSlNNZU
-tLRjJRVDRmd3BNZUpmMzZQT2s2eUpWX2FkUXNzdzVj</programlisting>
   </appendix>
   <appendix xml:id="_Ref460769599">
     <title>JWT over SCTP example</title>
-    <para>JWT, whose content example is shown in <xref xmlns:xlink="http://www.w3.org/1999/xlink"
-        linkend="q5l_q5m_51c"/>, can be used in the WS-Security header of the SOAP request:</para>
+    <para>A JWT, whose content example is shown in <xref xmlns:xlink="http://www.w3.org/1999/xlink"
+        linkend="q5l_q5m_51c"/>, can be used in the WS-Security header of the SOAP request. To conform
+        to the BinarySecurityToken format, the JWT itself must be base64-encoded before being embedded
+        in the request:</para>
+    <programlisting><![CDATA[ZZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOaUo5LmV5SnBjM01pT2lKelpYSjJaWEl1Y0dGMGFDNW
+piMjBpTENKdVltWWlPakUyTnpBME9ESTRNREFzSW1WNGNDSTZNVFkzTURVM01qZ3dNQ3dpWVhWa0lqb2lkR0Z5
+WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9sc2liMjUyYVdZNlQzQmxjbUYwYjNJaVhYMC5TZmxLeHdSSl
+NNZUtLRjJRVDRmd3BNZUpmMzZQT2s2eUpWX2FkUXNzdzVj]]></programlisting>
+    <para>This encoded token can then be added to the SOAP request in a BinarySecurityToken element.</para>
     <programlisting><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"
               xmlns:enc="http://www.w3.org/2003/05/soap-encoding"
@@ -4942,10 +4944,9 @@ X-Frame-Options: SAMEORIGIN]]></programlisting>
         linkend="q5l_q5m_51c"/></para>
     <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
 Host: 10.XX.XX.XX
-Authorization: Bearer ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOaUo5LmV5SnBjM01pT2lK
-elpYSjJaWEl1Y0dGMGFDNWpiMjBpTENKdVltWWlPakUyTnpBME9ESTRNREFzSW1WNGNDSTZNVFkzTURVM01qZ3
-dNQ3dpWVhWa0lqb2lkR0Z5WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9sc2liMjUyYVdZNlQzQmxjbUYw
-YjNJaVhYMD0uU2ZsS3h3UkpTTWVLS0YyUVQ0ZndwTWVKZjM2UE9rNnlKVl9hZFFzc3c1Yw==
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJzZXJ2ZXIucGF0aC5
+jb20iLCJuYmYiOjE2NzA0ODI4MDAsImV4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmNlIiwic
+m9sZXMiOlsib252aWY6T3BlcmF0b3IiXX0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
 Content-Type: application/soap+xml; charset=utf-8
 Content-Length: 299
 
@@ -4985,10 +4986,9 @@ nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"]]></programlisting>
       content looks like the example is shown in <xref xmlns:xlink="http://www.w3.org/1999/xlink"
         linkend="q5l_q5m_51c"/></para>
     <programlisting><![CDATA[DESCRIBE rtsp://10.XX.XX.XX/stream RTSP/1.0
-Authorization: Bearer ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOaUo5LmV5SnBjM01pT2lK
-elpYSjJaWEl1Y0dGMGFDNWpiMjBpTENKdVltWWlPakUyTnpBME9ESTRNREFzSW1WNGNDSTZNVFkzTURVM01qZ3
-dNQ3dpWVhWa0lqb2lkR0Z5WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9sc2liMjUyYVdZNlQzQmxjbUYw
-YjNJaVhYMD0uU2ZsS3h3UkpTTWVLS0YyUVQ0ZndwTWVKZjM2UE9rNnlKVl9hZFFzc3c1Yw==
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJzZXJ2ZXIucGF0aC5
+jb20iLCJuYmYiOjE2NzA0ODI4MDAsImV4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmNlIiwic
+m9sZXMiOlsib252aWY6T3BlcmF0b3IiXX0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
 CSeq: 2
 User-Agent: ./onvifClient
 Accept: application/sdp]]></programlisting>
