@@ -115,10 +115,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
-			<xs:element name="ListRecordedSegments">
-				<xs:annotation>
-					<xs:documentation>Gets segments available within a time range.</xs:documentation>
-				</xs:annotation>
+			<xs:element name="FindRecordedSegments">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="Time" type="tt:DateTimeRange">
@@ -131,12 +128,64 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 								<xs:documentation>The recording configuration token.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
+						<xs:element name="MaxMatches" type="xs:int" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The search will be completed after this many matches. If not specified, the search will continue until reaching the endpoint or until the session expires.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="KeepAliveTime" type="xs:duration">
+							<xs:annotation>
+								<xs:documentation>The time the search session will be kept alive after responding to this and subsequent requests. A device shall support at least values up to ten seconds.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="FindRecordedSegmentsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="SearchToken" type="tt:JobToken"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="ListRecordedSegments">
+				<xs:annotation>
+					<xs:documentation>Gets segments available within a time range.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="SearchToken" type="tt:JobToken">
+							<xs:annotation>
+								<xs:documentation>The search session to get results from.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="MinResults" type="xs:int" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The minimum number of results to return in one response.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="MaxResults" type="xs:int" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The maximum number of results to return in one response.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="WaitTime" type="xs:duration" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The maximum time before responding to the request, even if the MinResults parameter is not fulfilled.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
 			<xs:element name="ListRecordedSegmentsResponse">
 				<xs:complexType>
 					<xs:sequence>
+						<xs:element name="SearchState" type="tt:SearchState">
+							<xs:annotation>
+								<xs:documentation>The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element name="Segment" type="tse:ListRecordedSegmentsResultList" minOccurs="0" maxOccurs="unbounded">
 							<xs:annotation>
 								<xs:documentation>Information about an exportable segment.</xs:documentation>
@@ -558,6 +607,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="GetMediaAttributesResponse">
 		<wsdl:part name="parameters" element="tse:GetMediaAttributesResponse"/>
 	</wsdl:message>
+	<wsdl:message name="FindRecordedSegments">
+		<wsdl:part name="parameters" element="tse:FindRecordedSegments"/>
+	</wsdl:message>
+	<wsdl:message name="FindRecordedSegmentsResponse">
+		<wsdl:part name="parameters" element="tse:FindRecordedSegmentsResponse"/>
+	</wsdl:message>
 	<wsdl:message name="ListRecordedSegments">
 		<wsdl:part name="parameters" element="tse:ListRecordedSegments"/>
 	</wsdl:message>
@@ -658,8 +713,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<wsdl:output message="tse:GetRecordingSearchResultsResponse"/>
 		</wsdl:operation>
 		<!--===============================-->
+		<wsdl:operation name="FindRecordedSegments">
+			<wsdl:documentation>Creates a search operation to list available recorded segments related to the specified recording configuration.</wsdl:documentation>
+			<wsdl:input message="tse:FindRecordedSegments"/>
+			<wsdl:output message="tse:FindRecordedSegmentsResponse"/>
+		</wsdl:operation>
 		<wsdl:operation name="ListRecordedSegments">
-			<wsdl:documentation>Lists available recorded segments related to the specified JobToken.</wsdl:documentation>
+			<wsdl:documentation>Lists available recorded segments related to the specified RecordingToken.</wsdl:documentation>
 			<wsdl:input message="tse:ListRecordedSegments"/>
 			<wsdl:output message="tse:ListRecordedSegmentsResponse"/>
 		</wsdl:operation>

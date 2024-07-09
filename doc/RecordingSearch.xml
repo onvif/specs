@@ -1390,6 +1390,35 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
       </variablelist>
     </section>
     <section>
+      <title>FindRecordedSegments</title>
+      <para>Creates a search operation to list available recorded segments related to the specified recording configuration.</para>
+      <para>The JobToken can then be used with ListRecordedSegments to obtain the available recorded segments.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">Time [tt:DateTimeRange]</para>
+            <para role="param">RecordingToken [tt:RecordingReference]</para>
+            <para role="param">MaxMatches [xs:int]</para>
+            <para role="param">KeepAliveTime [xs:duration]</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">SearchToken [tt:JobToken]</para>
+            <para role="text">The token used in ListRecordedSegments to get the segments.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="access">READ_MEDIA</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
       <title>ListRecordedSegments</title>
       <para>Lists available recorded segments related to the specified JobToken.</para>
       <para>The listed segments shall have a stable start and end time as defined in Annex Stable Recordings.</para>
@@ -1397,13 +1426,18 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
         <varlistentry>
           <term>request</term>
           <listitem>
-            <para role="param">Time [tt:DateTimeRange]</para>
-            <para role="param">JobToken [tt:RecordingJobReference]</para>
+            <para role="param">SearchToken [tt:JobToken]</para>
+            <para role="param">MinResults [xs:int]</para>
+            <para role="param">MaxResults [xs:int]</para>
+            <para role="param">WaitTime [xs:duration]</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>response</term>
           <listitem>
+            <para role="param">SearchState [tt:SearchState]</para>
+            <para role="text">The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed.
+              <br/>- enum { 'Queued', 'Searching', 'Completed', 'Unknown' }</para>
             <para role="param">Segment [tse:ListRecordedSegmentsResultList]</para>
             <para role="text">Contains a collection of segments with some basic metadata associated with the recording.</para>
           </listitem>
