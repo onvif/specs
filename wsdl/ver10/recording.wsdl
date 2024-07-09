@@ -658,6 +658,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 								<xs:documentation>The optional track type to be exported.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
+						<xs:element name="OmitSequenceNumber" type="xs:boolean" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>An optional flag indicating whether the device includes the sequence number in the storage path for each segment.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
@@ -669,9 +674,9 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 								<xs:documentation>Unique operation token for client to query the status of the export.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
-						<xs:element name="Segment" type="trc:UploadSegmentResult" minOccurs="0" maxOccurs="unbounded">
+						<xs:element name="NumberOfSegments" type="xs:int" >
 							<xs:annotation>
-								<xs:documentation>Information about the segment(s) to be exported.</xs:documentation>
+								<xs:documentation>Number of segments to be exported by this operation.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -701,6 +706,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							</xs:documentation>
 						</xs:annotation>
 					</xs:element>
+					<xs:element name="Status" type="trc:UploadStatus">
+						<xs:annotation>
+							<xs:documentation>See trc:UploadStatus for allowed values.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first Vendor then ONVIF -->
 				</xs:sequence>
 			</xs:complexType>
 			<xs:element name="StopExportRecordedSegments">
@@ -714,29 +725,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-			<xs:element name="StopExportRecordedSegmentsResponse">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="Segment" type="trc:ExportRecordedSegmentStatus" minOccurs="0" maxOccurs="unbounded">
-							<xs:annotation>
-								<xs:documentation>Information about the exported segments.</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first Vendor then ONVIF -->
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
+			<xs:element name="StopExportRecordedSegmentsResponse" />
 
 			<xs:complexType name="ExportRecordedSegmentStatus">
 				<xs:sequence>
-					<xs:element name="StoragePath" type="xs:string">
+					<xs:element name="Segment" type="trc:UploadSegmentResult" minOccurs="0" maxOccurs="unbounded">
 						<xs:annotation>
-							<xs:documentation>The URI which combines the storage configuration StoragePath and the segment object path.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:element name="Status" type="trc:UploadStatus">
-						<xs:annotation>
-							<xs:documentation>See trc:UploadStatus for allowed values.</xs:documentation>
+							<xs:documentation>Information about the segment(s) to be exported.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 				</xs:sequence>
@@ -758,21 +753,20 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 								<xs:documentation>Unique ExportRecordedSegment operation token</xs:documentation>
 							</xs:annotation>
 						</xs:element>
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
-			<xs:element name="GetExportRecordedSegmentStateResponse">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="Segment" type="trc:ExportRecordedSegmentStatus" maxOccurs="unbounded">
+						<xs:element name="Start" type="xs:int">
 							<xs:annotation>
-								<xs:documentation>Information about the exported segments.</xs:documentation>
+								<xs:documentation>The start index for the segment results.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
-						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first Vendor then ONVIF -->
+						<xs:element name="Count" type="xs:int">
+							<xs:annotation>
+								<xs:documentation>The number of segment results to be provided in the response.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
+			<xs:element name="GetExportRecordedSegmentStateResponse" type="trc:ExportRecordedSegmentStatus" />
 
 			<!--===============================-->
 			<xs:complexType name="RecordingOptions">
