@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="../../../ver20/util/onvif-wsdl-viewer.xsl"?>
 <!--
-Copyright (c) 2008-2022 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2024 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
@@ -10,7 +10,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tup="http://www.onvif.org/ver10/uplink/wsdl" targetNamespace="http://www.onvif.org/ver10/uplink/wsdl">
 	<wsdl:types>
-		<xs:schema targetNamespace="http://www.onvif.org/ver10/uplink/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="22.06">
+		<xs:schema targetNamespace="http://www.onvif.org/ver10/uplink/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="24.06">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../schema/onvif.xsd"/>
 			<!--  Message Request/Responses elements  -->
 			<!--===============================-->
@@ -31,6 +31,18 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:simpleType name="Protocols">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="https"></xs:enumeration>	<!-- native h2c-reverse -->
+					<xs:enumeration value="wss"></xs:enumeration>	<!-- h2c-reverse over WebSocket -->
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType name="AuthorizationModes">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="mTLS"></xs:enumeration>	<!-- TLS with Client Certificate -->
+					<xs:enumeration value="JWT"></xs:enumeration>	<!-- JWT token -->
+				</xs:restriction>
+			</xs:simpleType>
 			<xs:complexType name="Capabilities">
 				<xs:sequence>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first Vendor then ONVIF -->
@@ -38,6 +50,16 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:attribute name="MaxUplinks" type="xs:int">
 					<xs:annotation>
 						<xs:documentation>Maximum number of uplink connections that can be configured.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="Protocols" type="tt:StringList">
+					<xs:annotation>
+						<xs:documentation>Protocols supported by the device. Defined values are 'https' for native h2c-reverse and 'wss' for h2c-reverse over WebSocket as defined by tup:Protocols.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="AuthorizationModes" type="tt:StringList">
+					<xs:annotation>
+						<xs:documentation>Supported authorization mode [mTLS JWT] as defined by tup:AuthorizationModes.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
@@ -56,7 +78,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:element name="RemoteAddress" type="xs:anyURI">
 						<xs:annotation><xs:documentation>Uniform resource locator by which the remote client can be reached.</xs:documentation></xs:annotation>
 					</xs:element>
-					<xs:element name="CertificateID" type="xs:string">
+					<xs:element name="CertificateID" type="xs:string" minOccurs="0">
 						<xs:annotation><xs:documentation>ID of the certificate to be used for client authentication.</xs:documentation></xs:annotation>
 					</xs:element>
 					<xs:element name="UserLevel" type="xs:string">
@@ -69,6 +91,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:annotation>
 							<xs:documentation> CertPathValidationPolicyID used to validate the uplink server certificate. If CertPathValidationPolicyID is not configured, uplink server certificate shall not be validated. </xs:documentation>
 						</xs:annotation>
+					</xs:element>
+					<xs:element name="AuthorizationServer" type="tt:ReferenceToken" minOccurs="0">
+						<xs:annotation><xs:documentation> JWTConfiguration token referring to an Authorization server that provides JWT token to authorize with the uplink server.</xs:documentation></xs:annotation>
+					</xs:element>
+					<xs:element name="Error" type="xs:string" minOccurs="0">
+						<xs:annotation><xs:documentation>Optional user readable error information (readonly).</xs:documentation></xs:annotation>
 					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first ONVIF then Vendor -->
 				</xs:sequence>
@@ -96,7 +124,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:sequence>
 						<xs:element name="Configuration" type="tup:Configuration">
 							<xs:annotation>
-								<xs:documentation>SConfiguration to be added or modified.</xs:documentation>
+								<xs:documentation>Configuration to be added or modified.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
