@@ -9,7 +9,7 @@
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>Feb 2024 Draft for IPR Review - see sections 5.1.1.2 and 5.3.2</pubdate>
+    <pubdate>June 2024</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm" />
@@ -211,7 +211,7 @@
           <figure xml:id="_Ref505091745">
             <title>Connection initiation from the device</title>
             <mediaobject>
-              <imageobject>identify 
+              <imageobject> 
                 <imagedata fileref="media/Uplink/image4.svg" contentwidth="128mm" />
               </imageobject>
             </mediaobject>
@@ -254,8 +254,13 @@
     <section>
       <title>Connection Management</title>
       <para>A local service that is offered to a remote client for utilization is responsible for maintaining an operational communication channel. Since the connection needs to be established from the service to the remote client this connection is called uplink. The uplink shall be secured via TLS. </para>
-      <para>The service shall monitor whether the remote client is able to communicate via the uplink. It may use the HTTP/2 ping mechanism to check whether a link is still operational if no packets have been received for a longer period of time.</para>
-      <para>A local service shall close and reconnect the uplink whenever no packets have been received from the remote client for more than 30 seconds. Each camera shall use an individual ascending interval strategy to avoid that all cameras connect at the same time.</para>
+      <para>The local service shall monitor whether the remote client is able to communicate via the
+        uplink. It may use the HTTP/2 ping mechanism to check whether a link is still operational if
+        no packets have been received for a longer period of time.</para>
+      <para>The local service shall close and reconnect the uplink whenever no packets have been
+        received from the remote client for more than 30 seconds. Each camera shall use an
+        individual ascending interval strategy to avoid that all cameras connect at the same
+        time.</para>
       <para>The following example shows patterns chosen by two cameras A and B:</para>
       <itemizedlist>
         <listitem>
@@ -265,16 +270,23 @@
           <para>Camera B: 2s, 4s, 8s, 16s, 30s, 30s, 30s ...</para>
         </listitem>
       </itemizedlist>
-      <para>If the uplink list contains multiple entries the device shall try to establish all connections in parallel. </para>
-      <para>Note that this specification assumes that scenarios with multiple clients are designed such that they do not interfere with each other. The coordination between such multiple clients is outside of the scope of the specification.</para>
+      <para>If multiple uplink configurations are included, the device shall try to establish 
+        all connections from the list and maintain those connections in parallel.</para>
+      <para>Note that this specification expects different clients may try to reach multiple local
+        services and it is assumed services and clients are designed such that they do not interfere
+        with each other. The coordination between such multiple clients and services is outside of
+        the scope of the specification.</para>
     </section>
     <section>
       <title>Authentication</title>
       <para>Note that for the following discussion the roles of client and server are swapped.</para>
-      <para>The remote client shall authenticate itself using a valid server certificate. The service shall verify the validity of the remote certificate according to RFC 6125.</para>
+      <para>The remote client shall authenticate itself using a valid server certificate. The local
+        service shall verify the validity of the remote certificate according to RFC 6125.</para>
       <section>
         <title>mTLS authentication</title>
-        <para>When using mTLS authentication, the service shall authenticate itself at the remote client using TLS client authentication according to RFC 5246 or subsequent specifications.</para>
+        <para>When using mTLS authentication, the local service shall authenticate itself at the
+          remote client using TLS client authentication according to RFC 5246 or subsequent
+          specifications.</para>
         <para>To uniquely identify a local service on remote client, it is recommended to have a unique client certificate installed on each local service. For example, CN field or Serial number of installed certificate could be used to uniquely identify the local service.</para>
         <para>The device shall assign any tunneled HTTP or RTSP request the UserLevel that is configured for the configuration without the need of further authentication request headers. </para>
         <para>If the <literal>CertificateID</literal> is present in the <literal>UplinkConfiguration</literal> the device shall use this authentication mechanism.</para>
@@ -294,8 +306,8 @@
         <title>Introduction</title>
         <para>The ONVIF Media Service Specification and the ONVIF Streaming Specification define
           various mechanism for streaming Video, Audio and Metadata. This specification defines how
-          to apply streaming over http. Usage of other communication mechanism like UDP unicast and
-          multicast are outside of the scope of this specification.</para>
+          to apply streaming over http/2. Usage of other communication mechanisms like UDP unicast
+          and multicast are outside of the scope of this specification.</para>
       </section>
       <section>
         <title>RTSP over HTTP</title>
@@ -310,8 +322,8 @@
       </section>
       <section>
         <title>RTSP over WebSockets</title>
-        <para>A device signaling support for websockets over RTSP via its capabilities shall support
-          RFC 8441 on the uplink.</para>
+        <para>A device signaling support for websockets over RTSP via its capability
+          RTSPWebSocketUri shall support RFC 8441 on the uplink.</para>
       </section>
     </section>
   </chapter>
@@ -321,22 +333,36 @@
       <title>Configuration parameters</title>
       <itemizedlist>
         <listitem>
-          <para>RemoteAddress Uniform resource locator by which the remote client can be reached.</para>
+          <para>RemoteAddress : Uniform resource locator by which the remote client can be
+            reached.</para>
         </listitem>
         <listitem>
-          <para>CertificateID	ID of the certificate to be used for client authentication.</para>
+          <para>CertificateID : ID of the certificate to be used for client authentication.</para>
         </listitem>
         <listitem>
-          <para>UserLevel	Authorization level that will be assigned to the uplink connection</para>
+          <para>UserLevel : Authorization level that will be assigned to the uplink
+            connection</para>
         </listitem>
         <listitem>
-          <para>Status	Current connection status</para>
+          <para>Status :  Current connection status</para>
         </listitem>
          <listitem>
-          <para>CertPathValidationPolicyID  ID of Certificate Validation policy to validate the remote uplink server certficate. If not configured, server certificate shall not be validated. </para>
+          <para>CertPathValidationPolicyID : ID of Certificate Validation policy to validate the
+            remote uplink server certficate. If not configured, server certificate shall not be
+            validated. </para>
+        </listitem>
+        <listitem>
+          <para>AuthorizationServer :  JWTConfiguration token referring to an Authorization server
+            that provides JWT token to authorize with the uplink server.</para>
+        </listitem>
+        <listitem>
+          <para>Error : Optional user readable error information (readonly).</para>
         </listitem>
       </itemizedlist>
-      <para>Field RemoteAddress is used as key of the list of uplink configurations.</para>
+      <para>The device shall interpret the field RemoteAddress as key to a specific uplink
+        configuration.</para>
+      <para>A device shall reject a configuration containing both CertificateID and
+        AuthorizationServer. </para>
     </section>
     <section>
       <title>GetUplinks</title>
@@ -385,6 +411,10 @@
           <listitem>
             <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificateID</para>
             <para role="text"> No certificate is stored under the requested CertificateID.</para>
+            <para role="param">env:Sender - ter:InvalidArgVal -
+              ter:CertPathValidationPolicyID</para>
+            <para role="text"> No certificate validation policy is stored under the requested
+              CertPathValidationPolicyID.</para>
             <para role="param">env:Sender - ter:InvalidArgVal - ter:AuthorizationServerConfigurationToken</para>
             <para role="text"> No AuthorizationServerConfiguration exists for the specified token.</para>
             <para role="param">env:Sender - ter:InvalidArgs - ter:MissingAuthentication</para>
