@@ -4370,6 +4370,84 @@ xmlns:acme="http://www.acme.com/schema"&gt;
 </tt:RuleDescription>
 ]]></programlisting>
     </section>
+    <section>
+      <title>Object Track Aggregation</title>
+      <para>The Object Track Aggregation rule generates an object track aggregation event for below
+        listed scenarios </para>
+      <itemizedlist>
+        <listitem>
+          <para> Optionally, Initial aggregation after an object appears OR an Intermediate aggregation in the field of view 
+            or an Intermediate aggregation while the object is present in the field of view.</para>
+        </listitem>
+        <listitem>
+          <para> Final aggregation when the object is no longer visible in the field of view. </para>
+        </listitem>
+      </itemizedlist>
+      <variablelist role="op">
+        <varlistentry>
+          <term>Parameters</term>
+          <listitem>
+            <para role="param">ClassFilter [tt:StringList]</para>
+            <para role="text">List of classes to be aggregated.</para>
+            <para role="param">ConfidenceLevel - optional [xs:float]</para>
+            <para role="text">Minimum confidence level of object classification for generating
+              aggregation event. </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Topic</term>
+          <listitem>
+            <para role="param">tns1:RuleEngine/ObjectTrack/Aggregation</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Source</term>
+          <listitem>
+            <para role="text">See <xref linkend="_msgSource"/></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Data</term>
+          <listitem>
+            <para role="param">AggregationStart - mandatory [xs:dateTime] </para>
+            <para role="text">All aggregation events shall set object track start time as the
+              AggregationStart time. </para>
+            <para role="param">AggregationEnd - mandatory [xs:dateTime]</para>
+            <para role="text">AggregationEnd time is usually set to the the last time the object was
+              observed before the aggregation. Final aggregation event shall set the field as the
+              object track end time.</para>          
+            <para role="param">ObjectTrackAggregation - mandatory [tt:Object]</para>
+            <para role="text">Track aggregation data of an object.</para>
+            <para role="param">ObjectTrackComplement - optional, unbounded [tt:ObjectTrackComplement]</para>
+            <para role="text">Optional complementary description of an object to provide additional context.</para>
+            <para role="param">FinalAggregation - optional [xs:boolean]</para>
+            <para role="text">Signals TRUE for final aggregation event for the detected
+              object.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>      
+      <para>See below example for a Object Track Aggregation definition:</para>
+      <programlisting><![CDATA[<tt:RuleDescription Name="tt:ObjectAggregation">
+  <tt:Parameters>
+    <tt:SimpleItemDescription Name="ClassFilter" Type="tt:StringList"/>
+    <tt:SimpleItemDescription Name="ConfidenceLevel" Type="xs:float"/>
+  </tt:Parameters>
+  <tt:Messages>
+    <tt:Source>
+      ...
+    </tt:Source>
+    <tt:Data>
+      <tt:SimpleItemDescription Name="AggregationStart" Type="xs:dateTime"/>
+      <tt:SimpleItemDescription Name="AggregationEnd" Type="xs:dateTime"/>
+      <tt:SimpleItemDescription Name="FinalAggregation" Type="xs:boolean"/>
+      <tt:ElementItemDescription Name="ObjectTrackAggregation" Type="tt:Object"/>
+      <tt:ElementItemDescription Name="ObjectTrackComplement" Type="tt:ObjectTrackComplement"/>
+    </tt:Data>
+    <tt:ParentTopic>tns1:RuleEngine/ObjectTrack/Aggregation</tt:ParentTopic>
+  </tt:Messages>
+</tt:RuleDescription>
+]]></programlisting>
+    </section>
   </appendix>
   <appendix>
     <title>Cell motion detection (informative)</title>
