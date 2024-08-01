@@ -2167,6 +2167,244 @@
         </variablelist>
       </section>
     </section>
+	<section xml:id="section_k4m_bcd_yyz">
+      <title>Audio Clip Management</title>
+      <section>
+        <title>Audio Clip Configuration</title>
+        <para>This section is about uploading one or more pre-recorded audio clips to the device.
+          The uploaded audio clips can be played by the user on need basis or on configured schedule time or 
+		  when the associated event is triggered. Audio Clip configuration has the following parameters:</para>
+        <itemizedlist>
+          <listitem>
+            <para>Enabled [xs:boolean] – Enables/disables audio clip configuration.</para>
+          </listitem>
+          <listitem>
+            <para>Name [xs:string] – Name of the audio clip configuration.</para>
+          </listitem>
+          <listitem>
+            <para>Token [tt:ReferenceToken] – Unique Token associated with the audio clip configuration.</para>
+          </listitem>
+          <listitem>
+            <para>Type [xs:string] - Format of the audio clip. For definitions see tt:SupportedAudioClipFormat parameter.</para>
+          </listitem>          
+          <listitem>
+            <para>RepeatCycles [xs:int] - Number of times the audio clip can be repeated when it is played. The value 0 means no repeat
+            , -1 means repeat infinite i.e repeat the audio clip until it is stopped by user operation.</para>
+          </listitem>
+		  <listitem>
+            <para>Gain [xs:int] [optional] - Optional Gain to control volume of the audio clip when it is played.</para>
+          </listitem>
+		  <listitem>
+            <para>ScheduleToken [pt:ReferenceToken] [optional] - Optional Schedule token associated with the audio clip configuration. Audio clip can be played when configured schedule is triggered.</para>
+          </listitem>
+        </itemizedlist>
+        <para>The device should accept optional ScheduleToken from the client if it supports ONVIF Schedule service specification.</para>
+      </section>
+      <section xml:id="section_wys_czg_ryc">
+        <title>GetAudioClipConfigurations</title>
+        <para>This operation gets audio clip configurations from the device.		
+		If audio clip token is provided, the device shall return the audio clip configuration associated with the token.
+		If no token is provided, the device shall return all audio clip configurations exist in the device.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Token - optional
+                [tt:ReferenceToken]</para>
+              <para role="text">Token associated with the audio clip configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">AudioClipsConfiguration - optional, unbounded
+                [tr2:AudioClipConfiguration]</para>
+              <para role="text">This message contains audio clip configurations of the device.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoAudioClip</para>
+              <para role="text">The audio clip token does not exist.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="section_wvd_dzg_ryd">
+        <title>AddAudioClipConfiguration</title>
+        <para>This operation adds audio clip configuration to the device and provides audio clip upload 
+		URI to the client. The response to the command includes an HTTP URL to which the audio clip may 
+		be uploaded	with in the expiry time. If the client could not upload audio clip within the URL expiry time, 
+		the associated audio clip configuration can be removed permanently from the device.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">AudioClipConfiguration - 
+                [tr2:AudioClipconfiguration]</para>
+              <para role="text"> Audio Clip Configuration</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Token - [tt:ReferenceToken]</para>
+              <para role="text">Token of the audio clip configuration uploaded.</para>
+              <para role="param">UploadUri - [xs:anyURI]</para>
+              <para role="text">A URL to which the audio clip may be uploaded.</para>
+              <para role="param">ExpiryTime - [xsd:DateTime]</para>
+              <para role="text">Expiry time before which client should upload audio clip to the UploadUri.</para>             
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Receiver - ter:Action - ter:MaxAudioClipLimit</para>
+              <para role="text">The maximum number of audio clip configurations supported by the device has been reached.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidConfig</para>
+              <para role="text">The configuration parameters are not possible to set.</para>         
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+        <para></para>
+        <para>Note: Audio clip upload to the device can fail in the following scenarios.</para>
+        <itemizedlist>
+          <listitem>
+            <para>When the Upload Url is expired.</para>
+          </listitem>
+          <listitem>
+            <para>The format of the audio clip upload does not match with Type parameter in the associated audio clip configuration.</para>
+          </listitem>
+          <listitem>
+            <para>Size of the audio clip upload exceeds MaxAudioClipSize parameter in KB.</para>
+          </listitem>
+        </itemizedlist>              
+      </section>    
+	  <section xml:id="section_wvd_dzg_rye">
+        <title>SetAudioClipConfiguration</title>
+        <para>This operation modifies existing audio clip configuration in the device.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">AudioClipConfiguration - 
+                [[tr2:AudioClipconfiguration]</para>
+              <para role="text"> Audio Clip Configuration to modify.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+			  <para role="param">env:Sender - ter:InvalidArgVal - ter:NoAudioClip</para>
+              <para role="text">The audio clip token does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidConfig</para>
+              <para role="text">The configuration parameters are not possible to set.</para>         
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+	    <para> Note: Format of the audio clip cannot be changed during SetAudioClipConfiguration operation.</para>
+      </section> 
+	  <section xml:id="section_wvd_dzg_ryf">
+        <title>DeleteAudioClipConfiguration</title>
+        <para>This operation deletes audio clip configuration and associated audio clip in the device.
+		The audio clip should be de-associated with the event trigger if it is already associated before this operation.
+		This operation fails if the device is playing the audio clip same time due to user operation or schedule or event trigger.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Token - 
+                [tt:ReferenceToken]</para>
+              <para role="text"> Token of the Audio Clip</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoAudioClip</para>
+              <para role="text">The audio clip token does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:AudioClipDeleteError</para>
+              <para role="text">The audio clip cannot be deleted due to device current usage.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+	  <section xml:id="section_wvd_dzg_ryg">
+        <title>PlayAudioClip</title>
+        <para>This operation play or stop ongoing audio clip in the device.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Token - [tt:ReferenceToken]</para>
+              <para role="text"> Token of the Audio Clip to play or stop.</para>
+              <para role="param">AudioOutputToken - [tt:ReferenceToken]</para>
+              <para role="text"> Token of the physical Audio Output.</para>
+              <para role="param">Play - [xs:boolean]</para>
+              <para role="text"> If it is true play the audio clip, if it is false stop ongoing audio clip.</para>
+            </listitem>			       
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoAudioClip</para>
+              <para role="text">The audio clip token does not exist.</para>
+			  <para role="param">env:Sender - ter:InvalidArgVal - ter:NoAudioOutput</para>
+              <para role="text">The audio output token does not exist.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+	</section>
     <section xml:id="_Ref484170228">
       <title>GetServiceCapabilities</title>
       <para>The capabilities reflect optional functions and functionality of a service. The information is static and does not change during device operation. </para>
@@ -2291,7 +2529,22 @@
           </listitem>
         </varlistentry>
       </variablelist>
-    </section>
+    <para>The following audio clip capabilites are available:</para>
+	<variablelist>
+        <varlistentry>
+          <term>MaxAudioClipLimit</term>
+          <listitem><para>Indicates the supported Maximum number of audio clips can be uploaded.</para></listitem>
+        </varlistentry>
+		<varlistentry>
+          <term>MaxAudioClipSize</term>
+          <listitem><para>Indicates Maximum size of the audio clip can be uploaded in KB.</para></listitem>
+        </varlistentry>
+		<varlistentry>
+          <term>SupportedAudioClipFormat</term>
+          <listitem><para>Indicates Supported audio clip formats by the device i.e WAV, MP3, OGG.</para></listitem>
+        </varlistentry>
+	</variablelist>
+	</section>
     <section>
       <title>Events</title>
       <section>

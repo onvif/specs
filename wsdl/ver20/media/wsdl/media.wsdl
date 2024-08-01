@@ -43,6 +43,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							<xs:documentation>Streaming capabilities.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
+					<xs:element name="AudioClipCapabilities" type="tr2:AudioClipCapabilities">
+						<xs:annotation>
+							<xs:documentation>AudioClip capabilities.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 				</xs:sequence>
 				<xs:attribute name="SnapshotUri" type="xs:boolean">
@@ -147,6 +152,28 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>Indicates support for live media streaming via RTSPS and SRTP.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:complexType name="AudioClipCapabilities">
+				<xs:sequence>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:attribute name="MaxAudioClipLimit" type="xs:int">
+					<xs:annotation>
+						<xs:documentation> Indicates Maximum number of audio clips can be uploaded to the device.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="MaxAudioClipSize" type="xs:float">
+					<xs:annotation>
+						<xs:documentation>Indicates Maximum size of the audio clip can be uploaded in KB.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="SupportedAudioClipFormat" type="tt:StringAttrList">
+					<xs:annotation>
+						<xs:documentation>Indicates Supported audio clip formats i.e WAV, MP3, OGG by the device.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>				
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
@@ -1300,6 +1327,170 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<!--============AudioClipManagement===================-->
+			<xs:complexType name="AudioClipConfiguration">
+				<xs:sequence>					
+					<xs:element name="Enabled" type="xs:boolean">
+						<xs:annotation>
+							<xs:documentation> Enables/disables the audio clip configuration.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Name" type="xs:string">
+					<xs:annotation>
+						<xs:documentation> Name of the audio clip configuration.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="Token" type="tt:ReferenceToken">
+					<xs:annotation>
+						<xs:documentation> Unique Token associated with audio clip configuration.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="Type" type="xs:string">
+					<xs:annotation>
+						<xs:documentation> Format of the audio clip. For definitions see tt:SupportedAudioClipFormat parameter.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="RepeatCycles" type="xs:int">
+					<xs:annotation>
+						<xs:documentation> Number of times the audio clip can be repeated when it is played. The value 0 means no repeat
+						, -1 means repeat infinite i.e repeat the audio clip until it is stopped by the user operation.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="Gain" type="xs:int" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation> Optional Gain to control volume of the audio clip when it is played.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="ScheduleToken" type="tt:ReferenceToken" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation> Optional Schedule Token associated with the audio clip configuration. Audio clip can be played when configured schedule is triggered.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			
+			<xs:element name="GetAudioClipConfigurations">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Audio Clip Token.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>			
+			<xs:element name="GetAudioClipConfigurationsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="AudioClipsConfiguration" type="tr2:AudioClipConfiguration" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Audio clip configurations exists in the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			
+			<xs:element name="AddAudioClipConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="AudioClipConfiguration" type="tr2:AudioClipConfiguration">
+							<xs:annotation>
+								<xs:documentation>Audio Clip Configuration to add.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>			
+			<xs:element name="AddAudioClipConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken">						
+							<xs:annotation>
+								<xs:documentation>Unique Token associated with audio clip configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="UploadUri" type="xs:anyURI">						
+							<xs:annotation>
+								<xs:documentation>An URL to which the audio clip may be uploaded.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="ExpiryTime" type="xs:dateTime">						
+							<xs:annotation>
+								<xs:documentation>Expiry time before which client should upload audio clip to the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>				
+			</xs:element>
+			
+			<xs:element name="SetAudioClipConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="AudioClipConfiguration" type="tr2:AudioClipConfiguration">
+							<xs:annotation>
+								<xs:documentation>Audio Clip Configuration to modify.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>			
+			<xs:element name="SetAudioClipConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+				
+			<xs:element name="DeleteAudioClipConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Token of the audio clip configuration to be deleted from the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>			
+			<xs:element name="DeleteAudioClipConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<xs:element name="PlayAudioClip">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Unique Token associated with audio clip configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="AudioOutputToken" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Token of the physical Audio Output.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Play" type="xs:boolean">
+							<xs:annotation>
+								<xs:documentation>If it is true Play the audio clip, if it is false stop ongoing audio clip.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>				
+			</xs:element>			
+			<xs:element name="PlayAudioClipResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>			
+			<!--===============================-->
 			<!--============ Schema End================-->
 		</xs:schema>
 	</wsdl:types>
@@ -1594,6 +1785,36 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</wsdl:message>
 	<wsdl:message name="SetWebRTCConfigurationsResponse">
 		<wsdl:part name="parameters" element="tr2:SetWebRTCConfigurationsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetAudioClipConfigurationsRequest">
+		<wsdl:part name="parameters" element="tr2:GetAudioClipConfigurations"/>
+	</wsdl:message>
+	<wsdl:message name="GetAudioClipConfigurationsResponse">
+		<wsdl:part name="parameters" element="tr2:GetAudioClipConfigurationsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="AddAudioClipConfigurationRequest">
+		<wsdl:part name="parameters" element="tr2:AddAudioClipConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="AddAudioClipConfigurationResponse">
+		<wsdl:part name="parameters" element="tr2:AddAudioClipConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetAudioClipConfigurationRequest">
+		<wsdl:part name="parameters" element="tr2:SetAudioClipConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetAudioClipConfigurationResponse">
+		<wsdl:part name="parameters" element="tr2:SetAudioClipConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteAudioClipConfigurationRequest">
+		<wsdl:part name="parameters" element="tr2:DeleteAudioClipConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteAudioClipConfigurationResponse">
+		<wsdl:part name="parameters" element="tr2:DeleteAudioClipConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="PlayAudioClipRequest">
+		<wsdl:part name="parameters" element="tr2:PlayAudioClip"/>
+	</wsdl:message>
+	<wsdl:message name="PlayAudioClipResponse">
+		<wsdl:part name="parameters" element="tr2:PlayAudioClipResponse"/>
 	</wsdl:message>
 	<wsdl:portType name="Media2">
 		<!--===============================-->
@@ -1931,6 +2152,40 @@ image will be updated automatically and independent from calls to GetSnapshotUri
 			<wsdl:output message="tr2:SetWebRTCConfigurationsResponse"/>
 		</wsdl:operation>
 		<!--==============Mask Operation End=================-->
+		<!--==============AudioClipManagement Operation Begin=================-->
+		<wsdl:operation name="GetAudioClipConfigurations">
+			<wsdl:documentation>This operation gets audio clip configurations from the device. If audio clip token is provided, 
+				the device shall return the audio clip configuration associated with the token.
+				If no token is provided, the device shall return all audio clip configurations exist in the device.</wsdl:documentation>
+			<wsdl:input message="tr2:GetAudioClipConfigurationsRequest"/>
+			<wsdl:output message="tr2:GetAudioClipConfigurationsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="AddAudioClipConfiguration">
+			<wsdl:documentation>This operation adds audio clip configuration to the device and provides audio clip upload 
+				URI to the client. The response to the command includes an HTTP URL to which the audio clip may 
+				be uploaded within the expiry time. If the client did not upload audio clip within the URL expiry time, 
+				the associated audio clip configuration can be removed permanently from the device.</wsdl:documentation>
+			<wsdl:input message="tr2:AddAudioClipConfigurationRequest"/>
+			<wsdl:output message="tr2:AddAudioClipConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetAudioClipConfiguration">
+			<wsdl:documentation>This operation modifies exitsing audio clip configuration in the device.</wsdl:documentation>
+			<wsdl:input message="tr2:SetAudioClipConfigurationRequest"/>
+			<wsdl:output message="tr2:SetAudioClipConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteAudioClipConfiguration">
+			<wsdl:documentation>This operation deletes audio clip configuration and associated audio clip in the device.
+				The audio clip should be de-associated with the event trigger if it is already associated before this operation.
+				This operation fails if the device is playing the audio clip same time due to user operation or schedule or event trigger.</wsdl:documentation>
+			<wsdl:input message="tr2:DeleteAudioClipConfigurationRequest"/>
+			<wsdl:output message="tr2:DeleteAudioClipConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="PlayAudioClip">
+			<wsdl:documentation>This operation play or stop ongoing audio clip in the device.</wsdl:documentation>
+			<wsdl:input message="tr2:PlayAudioClipRequest"/>
+			<wsdl:output message="tr2:PlayAudioClipResponse"/>
+		</wsdl:operation>
+		<!--==============AudioClipManagement Operation End=================-->
 	</wsdl:portType>
 	<wsdl:binding name="Media2Binding" type="tr2:Media2">
 		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
@@ -2393,5 +2648,52 @@ image will be updated automatically and independent from calls to GetSnapshotUri
 			</wsdl:output>
 		</wsdl:operation>
 		<!--==============WebRTC End=================-->
+		<!--==============AudioClipManagement=================-->
+		<wsdl:operation name="GetAudioClipConfigurations">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/GetAudioClipConfigurations"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="AddAudioClipConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/AddAudioClipConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetAudioClipConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/SetAudioClipConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteAudioClipConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/DeleteAudioClipConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="PlayAudioClip">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/PlayAudioClip"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<!--==============AudioClipManagement End=================-->
 	</wsdl:binding>
 </wsdl:definitions>
