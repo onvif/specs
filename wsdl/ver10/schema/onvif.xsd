@@ -1807,12 +1807,106 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							<xs:documentation>Volume setting of the output. The applicable range is defined via the option AudioOutputOptions.OutputLevelRange.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
+					<xs:element name="EQPresetToken" type="tt:ReferenceToken" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Optional audio EQ preset token to be applied to the audio output.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 				</xs:sequence>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
+
+	<xs:simpleType name="FrequencyRange">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="20Hz-60Hz">
+            <xs:annotation>
+                <xs:documentation>Sub-bass frequencies.</xs:documentation>
+            </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="60Hz-250Hz">
+            <xs:annotation>
+                <xs:documentation>Bass frequencies.</xs:documentation>
+            </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="250Hz-500Hz">
+            <xs:annotation>
+                <xs:documentation>Low midrange frequencies.</xs:documentation>
+            </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="500Hz-2kHz">
+            <xs:annotation>
+                <xs:documentation>Midrange frequencies.</xs:documentation>
+            </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="2kHz-4kHz">
+            <xs:annotation>
+                <xs:documentation>Upper midrange frequencies.</xs:documentation>
+            </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="4kHz-20kHz">
+            <xs:annotation>
+                <xs:documentation>High frequencies.</xs:documentation>
+            </xs:annotation>
+        </xs:enumeration>
+    </xs:restriction>
+</xs:simpleType>
+
+	<!--===============================-->
+	<!--          FrequencyLevelPair            -->
+	<!--===============================-->
+	<xs:complexType name="FrequencyLevelPair">
+    	<xs:sequence>
+        <xs:element name="FrequencyRange" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>Defined in tt:FrequencyRange, e.g., 20Hz-60Hz, 2kHz-4kHz.(Readonly)</xs:documentation>
+            </xs:annotation>
+        </xs:element>
+        <xs:element name="Level" type="xs:float">
+            <xs:annotation>
+                <xs:documentation>Normalized value (0.0 ~ 1.0).</xs:documentation>
+            </xs:annotation>
+        </xs:element>
+		<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+    	</xs:sequence>
+	</xs:complexType>
+
+	<!--===============================-->
+	<!--          EQPreset            -->
+	<!--===============================-->
+	<xs:complexType name="EQPreset">
+		<xs:sequence>
+			<xs:element name="Token" type="tt:ReferenceToken">
+				<xs:annotation>
+					<xs:documentation>Unique identifier for the preset.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Name" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Preset name. (Readonly)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="ScheduleToken" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional schedule token (if supported).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="isFrequencyLevelEditable" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation>Indicates if the device allows changing the frequency level.(Readonly)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="FrequencyLevelPair" type="tt:FrequencyLevelPair" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>List of frequency level pairs, each defined by a frequency range and a normalized level value (0.0 ~ 1.0).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+		</xs:sequence>
+	</xs:complexType>
+
 	<!--===============================-->
 	<!--          AudioOutputConfigurationOptions            -->
 	<!--===============================-->
@@ -1849,6 +1943,16 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:annotation>
 					<xs:documentation>Minimum and maximum level range supported for this Output.</xs:documentation>
 				</xs:annotation>
+			</xs:element>
+			<xs:element name="EQPresetScheduleSupport" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Indicates whether EQPreset scheduling is supported.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="EQPresets" type="tt:EQPreset" minOccurs="0" maxOccurs="unbounded">
+			<xs:annotation>
+					<xs:documentation>List of supported EQPresets.</xs:documentation>
+			</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 		</xs:sequence>
