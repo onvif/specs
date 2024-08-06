@@ -479,7 +479,7 @@
                 <para>tas</para>
               </entry>
               <entry>
-                  <para>http://www.onvif.org/ver10/advancedsecurity/wsdl</para>
+                <para>http://www.onvif.org/ver10/advancedsecurity/wsdl</para>
               </entry>
             </row>
             <row>
@@ -527,242 +527,29 @@
           <para>IEEE 802.1X</para>
         </listitem>
       </itemizedlist>
-      <para>Basic security features such as user authentication based on WS UsernameToken and HTTP Authentication as well as a default access policy are specified in the ONVIF Core Specification as part of the device management service.</para>
-      <para>WSDL for the Security Configuration Service is specified in &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/advancedsecurity/wsdl/security.wsdl">http://www.onvif.org/ver10/advancedsecurity/wsdl/security.wsdl</link>&gt;.</para>
-      <para>All sections in this specification are normative unless explicitly marked as informative.</para>
+      <para>Basic security features such as user authentication based on WS UsernameToken and HTTP
+        Authentication as well as a default access policy are specified in the ONVIF Core
+        Specification as part of the device management service.</para>
+      <para>WSDL for the Security Configuration Service is specified in &lt;<link
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xlink:href="http://www.onvif.org/ver10/advancedsecurity/wsdl/security.wsdl"
+          >http://www.onvif.org/ver10/advancedsecurity/wsdl/security.wsdl</link>&gt;.</para>
+      <para>All sections in this specification are normative unless explicitly marked as
+        informative.</para>
     </section>
     <section>
       <title>Certificate-based Client Authentication</title>
-      <section>
-        <title>Overview</title>
-        <para>A client may be authenticated based on a certification path that it presents to the server, e.g., a TLS client is authenticated by a TLS server.</para>
-        <para>The certificate-based authentication is performed according to a certification path validation algorithm that enforces a certification path validation policy. A certification path validation policy contains at least one trust anchor (in the form of a certificate) that the device shall assume to be correct. Furthermore, a certification path validation policy contains sources of revocation information to be considered when determining whether a certificate in question has been revoked. This specification uses CRLs as sources of revocation information, while future versions may include additional sources.</para>
-        <para>A certificate revocation list (CRL) contains certificates that have been revoked by the issuing CA. Therefore, the private key corresponding to the public key in a revoked certificate shall be considered compromised.</para>
-      </section>
-      <section xml:id="_Ref395181338">
-        <title>Certification path validation</title>
-        <para>This section defines an algorithm to validate a certification path that is, e.g., supplied by an ONVIF client to an ONVIF device.</para>
-        <para>Algorithm input:</para>
-        <orderedlist>
-          <listitem>
-            <para>Certification path c<subscript>1</subscript>,…,c<subscript>m</subscript></para>
-          </listitem>
-          <listitem>
-            <para>Current date and time</para>
-          </listitem>
-          <listitem>
-            <para>Certification path validation policy</para>
-          </listitem>
-        </orderedlist>
-        <para>Algorithm output:</para>
-        <itemizedlist>
-          <listitem>
-            <para>
-              <emphasis>valid</emphasis> if the certification path is considered valid, <emphasis>invalid</emphasis> otherwise.</para>
-          </listitem>
-        </itemizedlist>
-        <para>Algorithm steps:</para>
-        <orderedlist>
-          <listitem>
-            <para>Construct all prospective certification paths c<subscript>1</subscript>,…,c<subscript>n</subscript> from the input certification path c<subscript>1</subscript>,…,c<subscript>m</subscript> as specified in Sect. <xref linkend="_Ref392600159"/>. If no prospective certification path can be constructed from the input certification path, return <emphasis>invalid</emphasis>.</para>
-          </listitem>
-          <listitem>
-            <para>For all prospective certification paths c<subscript>1</subscript>,…,c<subscript>n</subscript></para>
-            <orderedlist numeration="loweralpha">
-              <listitem>
-                <para>Determine whether c<subscript>1</subscript>,…,c<subscript>n</subscript> is valid by applying the algorithm defined in Sect. <xref linkend="_Ref392600142"/> with inputs</para>
-                <itemizedlist>
-                  <listitem>
-                    <para>Prospective certification path c<subscript>1</subscript>,…,c<subscript>n</subscript></para>
-                  </listitem>
-                  <listitem>
-                    <para>Current date and time</para>
-                  </listitem>
-                  <listitem>
-                    <para>Certification path validation policy</para>
-                  </listitem>
-                </itemizedlist>
-              </listitem>
-              <listitem>
-                <para>If c<subscript>1</subscript>,…,c<subscript>n</subscript> is valid, output <emphasis>valid.</emphasis></para>
-              </listitem>
-            </orderedlist>
-          </listitem>
-          <listitem>
-            <para>Output <emphasis>invalid</emphasis>.</para>
-          </listitem>
-        </orderedlist>
-        <para>A device that supports certification path validation as defined in this specification shall implement this algorithm.</para>
-      </section>
-      <section xml:id="_Ref392600159">
-        <title>Construct Prospective Certification Paths</title>
-        <para>This section defines an algorithm to construct prospective certification paths from an input certification path as indicated by the certification path validation policy.</para>
-        <para>Algorithm input:</para>
-        <orderedlist>
-          <listitem>
-            <para>Certification path c<subscript>1</subscript>,…,c<subscript>m</subscript></para>
-          </listitem>
-          <listitem>
-            <para>Certification path validation policy</para>
-          </listitem>
-        </orderedlist>
-        <para>Algorithm output:</para>
-        <orderedlist>
-          <listitem>
-            <para>Prospective certification paths c<subscript>1</subscript>,…,c<subscript>n </subscript>if at least one prospective certification path exists.</para>
-          </listitem>
-          <listitem>
-            <para>NULL if no prospective certification path exists.</para>
-          </listitem>
-        </orderedlist>
-        <para>Algorithm steps:</para>
-        <orderedlist>
-          <listitem>
-            <para>For all i in {1,…,m} such that c<subscript>i</subscript> is considered a trust anchor according to the certification path validation policy, add c<subscript>1</subscript>,…,c<subscript>i </subscript>to the set of prospective certification paths.</para>
-          </listitem>
-          <listitem>
-            <para>Determine all certification path extensions c<subscript>m+1</subscript>,…,c<subscript>n</subscript> such that</para>
-            <itemizedlist>
-              <listitem>
-                <para>for all c<subscript>i</subscript> with i in {m+1,…n-1}, the issuer of c<subscript>i</subscript> is the subject of c<subscript>i+1</subscript></para>
-              </listitem>
-              <listitem>
-                <para>c<subscript>n</subscript> is considered a trust anchor according to the certification path validation policy</para>
-              </listitem>
-            </itemizedlist>
-          </listitem>
-          <listitem>
-            <para>Add all extended certification paths c<subscript>1</subscript>,…,c<subscript>m</subscript>,c<subscript>m+1</subscript>,…,c<subscript>n </subscript>to the set of prospective certification paths.</para>
-          </listitem>
-          <listitem>
-            <para>Return the set of prospective certification paths.</para>
-          </listitem>
-        </orderedlist>
-      </section>
-      <section xml:id="_Ref392600142">
-        <title>Validate Prospective Certification Path</title>
-        <para>This section defines an algorithm to validate a prospective certification path.</para>
-        <para>Algorithm input:</para>
-        <orderedlist>
-          <listitem>
-            <para>Prospective certification path c<subscript>1</subscript>,…,c<subscript>n</subscript></para>
-          </listitem>
-          <listitem>
-            <para>Current date and time <emphasis>t</emphasis></para>
-          </listitem>
-          <listitem>
-            <para>Certification path validation policy</para>
-          </listitem>
-        </orderedlist>
-        <para>Algorithm output:</para>
-        <itemizedlist>
-          <listitem>
-            <para>
-              <emphasis>True</emphasis> if certification path is considered valid under the certification path validation policy, <emphasis>false</emphasis> otherwise.</para>
-          </listitem>
-        </itemizedlist>
-        <para>Algorithm steps:</para>
-        <orderedlist>
-          <listitem>
-            <para>Execute the algorithm specified in RFC 5280, Sect. 6.1, with inputs</para>
-            <orderedlist numeration="loweralpha">
-              <listitem>
-                <para>Prospective certification path c<subscript>n</subscript>,…,c<subscript>1</subscript></para>
-              </listitem>
-              <listitem>
-                <para>Current date and time <emphasis>t</emphasis></para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>User-initial-policy-set</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>Initial-policy-mapping-inhibit</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>Initial-explicit-policy</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>Initial-any-policy-inhibit</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>Initial-permitted-subtrees</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>Initial-excluded-subtrees</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-            </orderedlist>
-          </listitem>
-          <listitem>
-            <para>If the output of step (1) contains a success indication, return <emphasis>true</emphasis>. Otherwise, return <emphasis>false</emphasis>.</para>
-          </listitem>
-        </orderedlist>
-        <para>For determining the revocation status of a given certificate <emphasis>cert</emphasis> (Step (3) in RFC 5280, Sect. 6.1.3) in Step (1), the device shall use the algorithm defined in Sect. <xref linkend="_Ref392600406"/> with inputs</para>
-        <orderedlist numeration="loweralpha">
-          <listitem>
-            <para>Certificate := <emphasis>cert</emphasis></para>
-          </listitem>
-          <listitem>
-            <para>Certification path validation policy</para>
-          </listitem>
-        </orderedlist>
-        <para>In order to determine whether an X.509 version 1 or version 2 certificate is a CA certificate as required in RFC 5280, Sect. 6.1.4, step (k), the device shall use the source specified in the cA-information-source-for-v1-and-v2 information of the certification path validation policy.</para>
-      </section>
-      <section xml:id="_Ref392600406">
-        <title>Determine Certificate Revocation Status</title>
-        <para>Algorithm input:</para>
-        <orderedlist>
-          <listitem>
-            <para>Certificate <emphasis>cert</emphasis></para>
-          </listitem>
-          <listitem>
-            <para>Certification path validation policy</para>
-          </listitem>
-        </orderedlist>
-        <para>Algorithm output:</para>
-        <itemizedlist>
-          <listitem>
-            <para>REVOKED if certificate is considered revoked.</para>
-          </listitem>
-          <listitem>
-            <para>UNREVOKED if certificate is considered to have been released from hold.</para>
-          </listitem>
-          <listitem>
-            <para>UNDERTERMINED if the certificate is considered neither revoked nor released from hold.</para>
-          </listitem>
-        </itemizedlist>
-        <para>Algorithm steps:</para>
-        <orderedlist>
-          <listitem>
-            <para>For all CRLs <emphasis>l</emphasis> that shall be considered according to the certification path validation policy, execute the CRL validation algorithm defined in RFC 5280, Sect. 6.3 with inputs</para>
-            <orderedlist numeration="loweralpha">
-              <listitem>
-                <para>Certificate := the certificate <emphasis>cert</emphasis></para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>use-deltas</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-            </orderedlist>
-          </listitem>
-          <listitem>
-            <para>For all other sources of revocation information to be considered according to the certification path validation policy, determine the revocation status of the certificate <emphasis>cert</emphasis> based on the certification path validation policy.</para>
-          </listitem>
-          <listitem xml:id="_Ref392600111">
-            <para>Combine the outputs of steps (1) and (2) as specified by the certification path validation policy and output the result.</para>
-          </listitem>
-        </orderedlist>
-      </section>
-      <section>
-        <title>Certification Path Validation Policy</title>
+      <para>Devices can request the connecting client to include a so called client certificate by
+        providing a list of accepted certificate issuers. During the initial TLS handshake the
+        client proves with a signature that it posesses the private key of the certificate. The TLS
+        server needs to verify the authenticity of the certificate by using certification path
+        validation according to RFC 5280 as detailed out in the next sections.</para>
+    </section>
+    <section>
+      <title>Certificate Path Verification</title>
         <section>
           <title>Certification Path Validation Algorithm Parameters</title>
-          <para>By default, a device shall use the values defined in <xref linkend="_Ref395170314"/> for the algorithm parameters defined in RFC 5280, Sect. 6.1.1 for the certification path validation algorithm defined in Sect. <xref linkend="_Ref392600142"/>.</para>
+          <para>By default, a device shall use the values defined in <xref linkend="_Ref395170314"/> for the algorithm parameters defined in RFC 5280, Sect. 6.1.1.</para>
           <table xml:id="_Ref395170314">
             <title>Default parameter values for the certification path validation algorithm</title>
             <tgroup cols="3">
@@ -866,7 +653,7 @@
         </section>
         <section>
           <title> Revocation Status Checking </title>
-          <para>By default, a device shall use the parameter values defined in <xref linkend="_Ref395170420"/> for the parameters defined in RFC 5280, Sect. 6.1.1 for the CRL-based certificate revocation status checking algorithm defined in Sect. <xref linkend="_Ref392600406"/>.</para>
+          <para>By default, a device shall use the parameter values defined in <xref linkend="_Ref395170420"/> for the parameters defined in RFC 5280, Sect. 6.1.1.</para>
           <table xml:id="_Ref395170420">
             <title>Default parameter values for the revocation status checking algorithm</title>
             <tgroup cols="3">
@@ -918,11 +705,12 @@
         </section>
         <section>
           <title>Trust Anchors</title>
-          <para>The trust anchors assigned to the certification path validation policy shall be used as trust anchor input to the certification path validation algorithm specified in Sect. <xref linkend="_Ref392600142"/>.</para>
+          <para>The trust anchors assigned to the certification path validation policy shall be used as trust anchor input to the certification path validation algorithm specified in RFC 5280.</para>
         </section>
         <section>
           <title>Certificate Repository for constructing Certification Paths</title>
-          <para>By default, the certification path validation algorithm specified in Sect. <xref linkend="_Ref395181338"/> shall consider all certificates in the keystore on the device when constructing prospective certification paths.</para>
+          <para>By default, the certification path validation shall consider all certificates in the
+          keystore on the device when constructing prospective certification paths.</para>
         </section>
         <section>
           <title>Specific certification path validation parameters</title>
@@ -964,55 +752,6 @@
           </table>
         </section>
       </section>
-      <section>
-        <title>Validate CRLs</title>
-        <para>By default, the device shall use the following algorithm to obtain and validate the certification path for a CRL issuer in Step (f) of the CRL processing algorithm defined in RFC 5280, Sect. 6.3.3.</para>
-        <para>Algorithm input:</para>
-        <orderedlist>
-          <listitem>
-            <para>CRL</para>
-          </listitem>
-          <listitem>
-            <para>Certification path validation policy</para>
-          </listitem>
-        </orderedlist>
-        <para>Algorithm output: <emphasis>valid</emphasis> if the CRL is considered valid, <emphasis>invalid</emphasis> otherwise</para>
-        <para>Algorithm steps:</para>
-        <orderedlist>
-          <listitem>
-            <para>Let c<subscript>1</subscript>,…,c<subscript>m</subscript> denote the certificates in the certificate repository for constructing certification paths as defined by the certification path validation policy that contain the issuer of <emphasis>l</emphasis> as subject.</para>
-          </listitem>
-          <listitem>
-            <para>For each certificate c<subscript>i</subscript></para>
-            <orderedlist numeration="loweralpha">
-              <listitem>
-                <para>Execute the certification path validation algorithm defined in Sect. <xref linkend="_Ref395181338"/> with input</para>
-                <itemizedlist>
-                  <listitem>
-                    <para>The certification path with c<subscript>i</subscript> as the only certificate in the path</para>
-                  </listitem>
-                  <listitem>
-                    <para>Current time and date</para>
-                  </listitem>
-                  <listitem>
-                    <para>Certification path validation policy</para>
-                  </listitem>
-                </itemizedlist>
-              </listitem>
-              <listitem>
-                <para>If c<subscript>i</subscript> is valid, verify the signature of the CRL with the subject public key in c<subscript>i</subscript>.</para>
-              </listitem>
-              <listitem>
-                <para>If the signature verification was successful, return <emphasis>valid</emphasis>.</para>
-              </listitem>
-            </orderedlist>
-          </listitem>
-          <listitem>
-            <para>Return <emphasis>invalid.</emphasis></para>
-          </listitem>
-        </orderedlist>
-      </section>
-    </section>
     <section xml:id="_Ref395181339">
       <title>JWT-based client authorization</title>
       <para>Unlike with HTTP Digest and WS-UsernameToken authentication, this specification defines how to associate clients with the different User Levels as defined in the ONVIF Core Specification. Devices are not expected to have the user credentials stored in their memory, instead they will verify that the user has been correctly authenticated by a trusted service based on OpenID Connect and authorize accessing different functions, based on the claims presented in the supplied JWT. JWTs can be presented as headers in case of HTTPS or RTSP, or they can be embedded in SOAP messages, in the form of binary security tokens. In case JWTs are embedded in binary security tokens, their content is base64url-encoded according to RFC 7519.</para>
@@ -2681,7 +2420,6 @@
             <title>CreateCertPathValidationPolicy</title>
             <para>This operation creates a certification path validation policy.</para>
             <para>Certification path validation policies are uniquely identified using certification path validation policy IDs. The device shall generate a new certification path validation policy ID for the created certification path validation policy.</para>
-            <para>For the certification path validation parameters that are not represented in the certPathValidationParameters data type, the device shall use the default values specified in Sect. <xref linkend="_Ref392600111"/>.</para>
             <para>If the device does not have enough storage capacity for storing the certification path validation policy to be created, the device shall produce a maximum number of certification path validation policies reached fault and shall not create a certification path validation policy.</para>
             <para>If there is at least one trust anchor certificate ID in the request for which there exists no certificate in the device’s keystore, the device shall produce a CertificateID fault and shall not create a certification path validation policy.</para>
             <para>If the device cannot process the supplied certification path validation parameters, the device shall produce a CertPathValidationParameters fault and shall not create a certification path validation policy.</para>
@@ -3144,7 +2882,7 @@
         </section>
         <section>
           <title>AddCertPathValidationPolicyAssignment</title>
-          <para>This operation assigns a certification path validation policy to the TLS server on the device. The TLS server shall enforce the policy when authenticating TLS clients and consider a client authentic if and only if the algorithm defined in Sect. <xref linkend="_Ref395181338"/> returns <emphasis>valid</emphasis>.</para>
+          <para>This operation assigns a certification path validation policy to the TLS server on the device. The TLS server shall enforce the policy when authenticating TLS clients and consider a client authentic if Certificaton Path Validation according to section 6 of RFC 5280 succeeds.</para>
           <para>If no certification path validation policy is stored under the requested CertPathValidationPolicyID, the device shall produce a CertPathValidationPolicyID fault.</para>
           <para>A TLS server may use different certification path validation policies to authenticate clients. Therefore more than one certification path validation policy may be assigned to the TLS server. If the maximum number of certification path validation policies that may be assigned to the TLS server simultaneously is reached, the device shall produce a MaximumNumberOfTLSCertPathValidationPoliciesReached fault and shall not assign the requested certification path validation policy to the TLS server.</para>
           <variablelist role="op">
@@ -4828,7 +4566,7 @@
         <para>Devices may be required to use different trust anchors for different security features. Therefore, trust in a certificate is indicated as part of a certification path validation policy rather than globally, e.g., with an attribute of the X509Certificate data type. </para>
       </listitem>
       <listitem>
-        <para>RFC 5280, Sect. 6.1.4 (k) mandates that every certificate in a certification path except for the end entity certificate must be verified to be a CA certificate. For X.509 version 3 certificates, this is verified through the CA attribute in the basic constraints extension. For X.509 version 1 and 2 certificates, this information must be supplied by out-of-band mechanisms. Within the scope of this specification, the only means to obtain this information is the trust anchor information contained in the certification path validation algorithm. Therefore, the default certification path validation policy mandates that the certification path validation algorithm defined in Sect. <xref linkend="_Ref392600142"/> consider all certificates that are not marked as trust anchor as non-CA certificates.</para>
+        <para>RFC 5280, Sect. 6.1.4 (k) mandates that every certificate in a certification path except for the end entity certificate must be verified to be a CA certificate. For X.509 version 3 certificates, this is verified through the CA attribute in the basic constraints extension. For X.509 version 1 and 2 certificates, this information must be supplied by out-of-band mechanisms. Within the scope of this specification, the only means to obtain this information is the trust anchor information contained in the certification path validation algorithm. </para>
       </listitem>
       <listitem>
         <para>When configuring IEEE 802.1X, it is usually necessary to upload a password to the device’s keystore.  This should be done either on a private network (e.g., using a direct network connection between a laptop and a device) or using TLS (SSL) on the device to encrypt client / device traffic.</para>
