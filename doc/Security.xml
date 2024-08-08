@@ -1015,6 +1015,8 @@
     </section>
     <section xml:id="_Ref395181339">
       <title>JWT-based client authorization</title>
+      <section>
+        <title>General</title>
       <para>Unlike with HTTP Digest and WS-UsernameToken authentication, this specification defines how to associate clients with the different User Levels as defined in the ONVIF Core Specification. Devices are not expected to have the user credentials stored in their memory, instead they will verify that the user has been correctly authenticated by a trusted service based on OpenID Connect and authorize accessing different functions, based on the claims presented in the supplied JWT. JWTs can be presented as headers in case of HTTPS or RTSP, or they can be embedded in SOAP messages, in the form of binary security tokens. In case JWTs are embedded in binary security tokens, their content is base64url-encoded according to RFC 7519.</para>
       <para>JWTs consists of three elements:</para>
       <para>
@@ -1063,6 +1065,34 @@
               secp256r1))</programlisting>
       <para>The evaluated signature is further appended to the encoded header and payload with a '.' separator, to get the final JWT. Appendix <xref linkend="_Ref460769599"/> demonstrates the construction or a JWT.</para>
       <para>The signature is used to protect the JWT data integrity and JWT source authenticity.</para>
+      </section>
+      <section>
+        <title>Configuration</title>
+        <para>The folowing parameters are defined:</para>
+        <variablelist>
+          <varlistentry>
+            <term>Audiences</term>
+            <listitem><para>One or more audience strings. A device shall reject a token if none of the provided strings matches.</para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>TrustedIssuer</term>
+            <listitem><para>Optional list of trusted issuer metaadata URIs. A device shall reject a token if the list is
+                non-empty and the token does not match the information provided via one of the
+                issuer metadata URIs.</para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>KeyID</term>
+            <listitem><para>Optional list of  keys. A device shall reject a token if this list is non-empty and none of
+                the provided keys can verify the signature.</para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>ValidationPolicy</term>
+            <listitem><para>Optional cert path validation policies to verify trusted issuers. If this list is non-empty a
+                device shall only accept trusted issuere with matching TLS server
+                certificates.</para></listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
       <section>
         <title>Usage of JWT-based client authentication over HTTP</title>
         <para>Since authentication tokens contain sensitive information that could be easily used to perform replay attacks, JWT-based client authentication shall not be used over unencrypted HTTP connections.</para>
