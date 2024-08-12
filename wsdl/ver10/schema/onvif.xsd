@@ -1472,6 +1472,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:documentation>True if the metadata stream shall contain the PTZ position</xs:documentation>
 				</xs:annotation>
 			</xs:element>
+			<xs:element name="FieldOfView" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>True if the metadata stream shall contain the field-of-view information</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
@@ -1562,6 +1567,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Extension" type="tt:PTZStatusFilterOptionsExtension" minOccurs="0"/>
+			<xs:element name="FieldOfViewSupported" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>True if the device is able to stream the field-of-view information.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
@@ -6718,16 +6728,34 @@ If set to 0.0, infinity will be used.</xs:documentation>
 		<xs:sequence>
 			<xs:element name="Point" type="tt:Vector" minOccurs="2" maxOccurs="unbounded"/>
 		</xs:sequence>
+<!--		<xs:attribute name='dummy'/> uncomment for compilation with Visual Studio --> 
 	</xs:complexType>
 	<xs:element name="Polyline" type="tt:Polyline"/>
 	<!--===============================-->
+	
 	<xs:simpleType name="Direction">
+		<xs:union memberTypes="tt:ExtendedDirection"/>
+	</xs:simpleType>
+	
+	<xs:simpleType name="ExtendedDirection">
+		<xs:annotation>
+			<xs:documentation>Entering represents object coming into the polygon boundary.</xs:documentation>
+			<xs:documentation>Exiting represents object going out of the polygon boundary.</xs:documentation>
+			<xs:documentation>Approaching represents distance of object to camera sensor decreasing over time.</xs:documentation>
+			<xs:documentation>Departing represents distance of object to camera sensor increasing over time.</xs:documentation>		
+		</xs:annotation>
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="Left"/>
 			<xs:enumeration value="Right"/>
 			<xs:enumeration value="Any"/>
+			<!-- Add new values -->
+			<xs:enumeration value="Entering"/>
+			<xs:enumeration value="Exiting"/>
+			<xs:enumeration value="Approaching"/>
+			<xs:enumeration value="Departing"/>
 		</xs:restriction>
 	</xs:simpleType>
+	
 	<!--    Analytics Configuration    -->
 	<!--===============================-->
 	<xs:complexType name="AnalyticsEngineConfiguration">
@@ -6893,36 +6921,6 @@ If set to 0.0, infinity will be used.</xs:documentation>
 		<xs:sequence>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 		</xs:sequence>
-	</xs:complexType>
-	<!--===============================-->
-	<xs:complexType name="PolylineArray">
-		<xs:sequence>
-			<xs:element name="Segment" type="tt:Polyline" maxOccurs="unbounded">
-				<xs:annotation>
-					<xs:documentation>Contains array of Polyline</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element name="Extension" type="tt:PolylineArrayExtension" minOccurs="0"/>
-		</xs:sequence>
-		<xs:anyAttribute processContents="lax"/>
-	</xs:complexType>
-	<!--===============================-->
-	<xs:complexType name="PolylineArrayExtension">
-		<xs:sequence>
-			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
-		</xs:sequence>
-	</xs:complexType>
-	<!--===============================-->
-	<xs:complexType name="PolylineArrayConfiguration">
-		<xs:sequence>
-			<xs:element name="PolylineArray" type="tt:PolylineArray">
-				<xs:annotation>
-					<xs:documentation>Contains PolylineArray configuration data</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
-		</xs:sequence>
-		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
 	<xs:complexType name="MotionExpression">
