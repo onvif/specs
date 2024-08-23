@@ -4374,6 +4374,12 @@ xmlns:acme="http://www.acme.com/schema"&gt;
             <para role="param">ConfidenceLevel - optional [xs:float]</para>
             <para role="text">Minimum confidence level of object classification for generating
               aggregation event. </para>
+            <para role="param">ReportTimeInterval - optional [xs:duration]</para>
+            <para role="text">Optional time interval to control update frequency. If omitted only
+              final aggregation shall be provided.</para>
+            <para role="param">ObjectComplementDataFilter - optional [tt:StringList]</para>
+            <para role="text">Optional elements to be included in Object complement data. If
+              omitted, no complement data shall be provided.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -4398,10 +4404,11 @@ xmlns:acme="http://www.acme.com/schema"&gt;
             <para role="text">AggregationEnd time is usually set to the the last time the object was
               observed before the aggregation. Final aggregation event shall set the field as the
               object track end time.</para>          
-            <para role="param">ObjectTrackAggregation - mandatory [tt:Object]</para>
+            <para role="param">Object - mandatory [tt:Object]</para>
             <para role="text">Track aggregation data of an object.</para>
-            <para role="param">ObjectTrackComplement - optional, unbounded [tt:ObjectTrackComplement]</para>
-            <para role="text">Optional complementary description of an object to provide additional context.</para>
+            <para role="param">ObjectComplementData - optional, unbounded
+              [tt:ObjectComplementData]</para>
+            <para role="text">Optional additional description of an object to provide enriched context.</para>
             <para role="param">FinalAggregation - optional [xs:boolean]</para>
             <para role="text">Signals TRUE for final aggregation event for the detected
               object.</para>
@@ -4413,6 +4420,8 @@ xmlns:acme="http://www.acme.com/schema"&gt;
   <tt:Parameters>
     <tt:SimpleItemDescription Name="ClassFilter" Type="tt:StringList"/>
     <tt:SimpleItemDescription Name="ConfidenceLevel" Type="xs:float"/>
+    <tt:SimpleItemDescription Name="ReportTimeInterval" Type="xs:float"/>
+    <tt:SimpleItemDescription Name="ObjectComplementDataFilter" Type="tt:StringList"/>
   </tt:Parameters>
   <tt:Messages>
     <tt:Source>
@@ -4422,12 +4431,34 @@ xmlns:acme="http://www.acme.com/schema"&gt;
       <tt:SimpleItemDescription Name="AggregationStart" Type="xs:dateTime"/>
       <tt:SimpleItemDescription Name="AggregationEnd" Type="xs:dateTime"/>
       <tt:SimpleItemDescription Name="FinalAggregation" Type="xs:boolean"/>
-      <tt:ElementItemDescription Name="ObjectTrackAggregation" Type="tt:Object"/>
-      <tt:ElementItemDescription Name="ObjectTrackComplement" Type="tt:ObjectTrackComplement"/>
+      <tt:ElementItemDescription Name="Object" Type="tt:Object"/>
+      <tt:ElementItemDescription Name="ObjectComplementData" Type="tt:ObjectComplementData"/>
     </tt:Data>
     <tt:ParentTopic>tns1:RuleEngine/ObjectTrack/Aggregation</tt:ParentTopic>
   </tt:Messages>
 </tt:RuleDescription>
+]]></programlisting>
+      <para>The object types may differ between devices. See below for example rule options, based on the description language parameter options defined in <xref linkend="_Toc529533198" />.</para>
+      <programlisting><![CDATA[<tan:GetRuleOptionsResponse>
+  <tan:RuleOptions Name="ClassFilter" RuleType="tt:ObjectDetection">
+    <tt:StringList>Person Vehicle Face LicensePlate</tt:StringList>
+  </tan:RuleOptions>
+  <tan:RuleOptions Name="ConfidenceLevel" RuleType="tt:ObjectDetection">
+    <tt:FloatRange>
+      <tt:Min>0.0</tt:Min>
+      <tt:Max>100.0</tt:Max>
+    </tt:FloatRange>
+  </tan:RuleOptions>
+  <tan:RuleOptions Name="ReportTimeInterval" RuleType="tt:ObjectDetection">
+    <tt:DurationRange >
+      <tt:Min>PT1S</tt:Min>
+      <tt:Max>PT1M</tt:Max>
+    </tt:DurationRange>
+  </tan:RuleOptions>
+  <tan:RuleOptions Name="ObjectComplementDataFilter" RuleType="tt:ObjectDetection">
+    <tt:StringList>Object/Appearance/Image Object/Appearance/Shape/BoundingBox</tt:StringList>
+  </tan:RuleOptions>
+</tan:GetRuleOptionsResponse>
 ]]></programlisting>
     </section>
   </appendix>
