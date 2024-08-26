@@ -218,7 +218,8 @@
         instead of full frame data. One frame may be split into multiple NAL Units and therefore
         generating multiple hashes per frame. Note that raw video is not covered, since there are
         no means to add signatures within the video format. There exists other codec standards
-        where the same technique can be applied though, e.g., AV1.</para>
+        where the same technique can be applied though, but the sepcification consider H.264 and
+        H.265.</para>
       <para><emphasis role="bold">Signing frequency</emphasis>. Signing is done upon transition
         between two Group of Pictures (GOPs), that is, triggered by an IDR frame. For short GOP
         lengths, the time between two GOP transitions may be shorter than the time it takes to
@@ -336,10 +337,14 @@
         between these IDRs are prediction frames and can be either P- or B-frames. Without loss of
         generality, both of these are throughout the text denoted P-frames. Further, for simplicity
         IDRs are referred to as I-frames in this context.</para>
-      <para>Each NAL Unit (except those ignored; See above) is hashed in a linked manner. Since
-        every P-frame directly or indirectly refers to the I-frame starting the GOP they are linked
-        together. If the I-frame is modified it indirectly modifies the P-frames. Therefore, each
-        P-frame is hashed together with the dependent I-frame.</para>
+      <para>Each NAL Unit, except SEI-frames (see below) and those ignored (see above), is hashed
+        in a linked manner. Since every P-frame directly or indirectly refers to the I-frame
+        starting the GOP they are linked together. If the I-frame is modified it indirectly
+        modifies the P-frames. Therefore, each P-frame is hashed together with the dependent
+        I-frame.</para>
+      <para>SEI-frames are hashed individually. The benefit is that the hash becomes independent
+        of any I-frame. The SEI-frame content may then be verified and trusted even if an I-frame
+        suffer from, for example, packet loss.</para>
       <para>Figure <xref linkend="linkedhashesfig"/> illustrates the linking procedure where a
         frame is encaptured in a single NAL Unit. The hash of the IDR-frame is stored and used to
         generate a second hash together with the hash of each P-frame in the GOP.</para>
@@ -474,9 +479,9 @@
         keep the stream signed.</para>
       <para>Generate a SEI for every GOP according to the Section above, but sign only every X:th
         GOP. That is, every X:th SEI includes a Signature TLV.</para>
-      <para>All, by this specification, generated SEI frames without a signature must be hashed as
-        normal picture NAL Units. Note that they have to be hashed in the same order as they appear
-        in the stream.</para>
+      <para>All, by this specification, generated SEI frames without a signature must be hashed and
+        added to the list of NAL Unit hashes. Note that they have to be hashed in the same order as
+        they appear in the stream.</para>
       <section>
         <title>Example</title>
         <para>The following example figures show how multiple short GOPs can be signed. The yellow
