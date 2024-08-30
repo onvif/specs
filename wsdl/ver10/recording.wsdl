@@ -132,6 +132,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="TemporarySegmentDurationOverrideSupported" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>
+							Indicates if the device supports the RequestTemporarySegmentDurationOverride command.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<xs:element name="Capabilities" type="trc:Capabilities"/>
@@ -683,6 +690,32 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
+			<xs:complexType name="TemporarySegmentDurationOverrideRequest">
+				<xs:sequence>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:attribute name="TargetSegmentDuration" type="xs:duration" minOccurs="1">
+					<xs:annotation>
+						<xs:documentation>The new target duration for recorded segments.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="Expiration" type="xs:duration" minOccurs="1">
+					<xs:annotation>
+						<xs:documentation>The length of time during which the override request is to be in effect.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="RecordingConfiguration" type="tt:RecordingReference" minOccurs="1">
+					<xs:annotation>
+						<xs:documentation>The recording configuration for which the override is requested.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<xs:complexType name="TemporarySegmentDurationOverrideResponse">
+				<xs:sequence>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+			</xs:complexType>
 		</xs:schema>
 	</wsdl:types>
 	<wsdl:message name="GetServiceCapabilitiesRequest">
@@ -811,6 +844,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</wsdl:message>
 	<wsdl:message name="GetExportRecordedDataStateResponse">
 		<wsdl:part name="parameters" element="trc:GetExportRecordedDataStateResponse"/>
+	</wsdl:message>
+	<wsdl:message name="TemporarySegmentDurationOverrideRequest">
+		<wsdl:part name="parameters" element="trc:TemporarySegmentDurationOverrideRequest"/>
+	</wsdl:message>
+	<wsdl:message name="TemporarySegmentDurationOverrideResponse">
+		<wsdl:part name="parameters" element="trc:TemporarySegmentDurationOverrideResponse"/>
 	</wsdl:message>
 	
 	<wsdl:portType name="RecordingPort">
@@ -968,6 +1007,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</wsdl:documentation>
 			<wsdl:input message="trc:GetExportRecordedDataStateRequest"/>
 			<wsdl:output message="trc:GetExportRecordedDataStateResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="RequestTemporarySegmentDurationOverride">
+			<wsdl:documentation>
+			Requests a temporary override of the target segment duration for a recording configuration. 
+			</wsdl:documentation>
+			<wsdl:input message="trc:TemporarySegmentDurationOverrideRequest"/>
+			<wsdl:output message="trc:TemporarySegmentDurationOverrideResponse"/>
 		</wsdl:operation>
 		
 	</wsdl:portType>
@@ -1156,6 +1202,15 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="GetExportRecordedDataState">
 			<soap:operation soapAction="http://www.onvif.org/ver10/recording/wsdl/GetExportRecordedDataState"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="RequestTemporarySegmentDurationOverride">
+			<soap:operation soapAction="http://www.onvif.org/ver10/recording/wsdl/RequestTemporarySegmentDurationOverride"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
