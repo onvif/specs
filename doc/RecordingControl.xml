@@ -2116,7 +2116,7 @@ secfrac = "." 1*6DIGIT</programlisting>
                 <para><literal>Duration</literal></para>
               </entry>
               <entry>
-                <para>Duration of the segment</para>
+                <para>Exact duration of the segment. Sum of the duration of each frame in the file, if there are multiple tracks the video track shall be used if present.</para>
               </entry>
               <entry>
                 <para>ISO 8601-1</para>
@@ -2231,7 +2231,7 @@ secfrac = "." 1*6DIGIT</programlisting>
                 <para>The <literal>timescale</literal> (or clock) from the segment in hertz</para>
               </entry>
               <entry>
-                <para>Integer</para>
+                <para>Integer (See <xref linkend="_refTimescaleAttribute"/>)</para>
               </entry>
             </row>
             <row>
@@ -2241,7 +2241,7 @@ secfrac = "." 1*6DIGIT</programlisting>
                 </para>
               </entry>
               <entry>
-                <para>Seek table describing the segment structure</para>
+                <para>Seek table to efficiently locate file fragments and seek in the file</para>
               </entry>
               <entry>
                 <para>String (See <xref linkend="_refSeekTableAttribute"/>)</para>
@@ -2259,24 +2259,13 @@ secfrac = "." 1*6DIGIT</programlisting>
       <section xml:id="_refSeekTableAttribute">
         <title>SeekTable Attribute</title>
         <para>
-          This seek table attribute is a string that list fragments in the MP4/CMAF segment to enable accessing and downloading specific parts. The value shall be formatted as:
-        </para>
-        <programlisting>
-          <![CDATA[
-value                  = fragmentDescription(n) ["," fragmentDescription(n+1)]
-fragmentDescription(n) = fragmentOffset(n) "-" fragmentDuration(n)
-fragmentOffset(n)      = 1*DIGIT (starting offset of n-th fragment in bytes)
-fragmentDuration(n)    = 1*DIGIT (duration of n-th fragment in "Timescale" units)
-          ]]>
-        </programlisting>
-        <para>e page)
-          When the <literal>SeekTable</literal> attribute is present it shall represent the entirety of the segment. The first fragment offset shall exclude the <literal>FileTypeBox</literal> and <literal>MovieBox</literal>. The <literal>fragmentOffset</literal> points to the first byte of the first <literal>SegmentType</literal> of the fragment. The sum of <literal>fragmentDuration</literal> of each element shall be equal to the total duration of the segment. For the multiplexed file format, if the segment contains multiple tracks (and thus different durations) then the device shall use consistently the same track for each segment to build the <literal>SeekTable</literal>. In this case the device should prioritize using the video track.
+          This seek table attribute is a string that contains the 'mfra' (Movie Fragment Random Access) box corresponding to the associated ISO file. It is encoded in base64 with padding according to RFC 4658. The binary format of the box is defined in ISO/IEC 14496-12:2012 section 8.8.9. This optional box has to be the last one at the end of the file. It is copied in the object metadata to allow the receiver to efficiently locate file fragments and seek in the file without the need to access the file itself.
         </para>
         <para>
-          The list shall be limited to a maximum of 20 elements to limit the size of the object metadata. For this purpose continuous fragment descriptions can be merged together (in this case their duration will be summed together and only the first offset is kept). The device should try to merge the fragment description with the shortest duration first.
+          When the <literal>SeekTable</literal> attribute is present it shall contain at least one entry for the very first sample of each track. The device should attempt to include additional entries locating the first frame of each subsequent fragment but they could also be omitted to limit the size of the seek table. By definition, each entry can only reference a sample that is a random access point (ie: a keyframe). The device should avoid including more entries than those suggested here.
         </para>
         <figure xml:id="_refSeekTableStructure">
-          <title>Seek table built accordingly to the ISO file structure with possible merge of two fragment descriptions</title>
+          <title>Typical structure of a Movie Fragment Random Access ('mfra') box</title>
           <mediaobject>
             <imageobject>
               <imagedata fileref="media/RecordingControl/seekTableStructure.svg" contentwidth="130mm"/>
