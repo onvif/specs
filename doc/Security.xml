@@ -2521,6 +2521,47 @@
             </variablelist>
           </section>
           <section>
+            <title>SetCertificationPath</title>
+            <para>This operation allows to modify a certification path. A device shall support this
+              method if support for SetCertPath is signaled via its capabilities.</para>
+            <variablelist role="op">
+              <varlistentry>
+                <term>request</term>
+                <listitem>
+                  <para role="param">CertificationPathID - [tas:CertificationPathID] </para>
+                  <para role="text">The ID of the certification path to modify.</para>
+                  <para role="param">CertificateIDs - [tas:CertificateIDs] </para>
+                  <para role="text">The IDs of the certificates to include in the certification path, where each certificate signature except for the last one in the path must be verifiable with the public key certified by the next certificate in the path.</para>
+                  <para role="param">Alias - optional [xs:string] </para>
+                  <para role="text">The client-defined alias of the certification path.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>response</term>
+                <listitem>
+                  <para role="text">This message is empty.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>faults</term>
+                <listitem>
+                  <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificationPathID </para>
+                  <para role="text">No certification path is stored under the requested certification path ID.</para>
+                  <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificateID </para>
+                  <para role="text">No certificate is stored under the requested CertificateID.</para>
+                  <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidCertificationPath </para>
+                  <para role="text">At least one certificate in the certification path is not correctly signed with the public key in the next certificate in the path.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>access class</term>
+                <listitem>
+                  <para role="access">READ_SYSTEM_SECRET</para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </section>
+          <section>
             <title>DeleteCertificationPath</title>
             <para>This operation deletes a certification path from the device’s keystore.</para>
             <para>This operation shall not delete the certificates that are referenced by the certification path.</para>
@@ -2797,6 +2838,85 @@
                 <term>access class</term>
                 <listitem>
                   <para role="access">READ_SYSTEM_SECRET</para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </section>
+          <section>
+            <title>GetAllCertPathValidationPolicies</title>
+            <para>This operation returns all certification path validation policies that are stored in the keystore on the device.</para>
+            <para>If no certification path validation policy is stored in the device’s keystore, an empty list is returned.</para>
+            <variablelist role="op">
+              <varlistentry>
+                <term>request</term>
+                <listitem>
+                  <para role="text">This message is empty.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>response</term>
+                <listitem>
+                  <para role="param">CertPathValidationPolicy - optional, unbounded - [tas:CertPathValidationPolicy] </para>
+                  <para role="text">A list of all certification path validation policies that are stored in the keystore on the device.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>faults</term>
+                <listitem>
+                  <para role="text">None</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>access class</term>
+                <listitem>
+                  <para role="access">READ_SYSTEM_SECRET</para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </section>
+          <section>
+            <title>SetCertPathValidationPolicy</title>
+            <para>This operation allows to modify a certification path validation policy in the
+              keystore on the device. A device shall support this method if support for SetCertPath
+              is signaled via its capabilities.</para>
+            <variablelist role="op">
+              <varlistentry>
+                <term>request</term>
+                <listitem>
+                  <para role="param">CertPathValidationPolicyID - [tas:CertPathValidationPolicyID] </para>
+                  <para role="text">The ID of the certification path validation policy to be modified.</para>
+                  <para role="param">Parameters - [tas:CertPathValidationParameters] </para>
+                  <para role="text">The parameters of the certification path validation
+                    policy.</para>
+                  <para role="param">TrustAnchor - unbounded [tas:TrustAnchor] </para>
+                  <para role="text">The trust anchors of the certification path validation
+                    policy.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>response</term>
+                <listitem>
+                  <para role="text">This message is empty.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>faults</term>
+                <listitem>
+                  <para role="param">env:Sender - ter:InvalidArgVal - ter:CertPathValidationPolicyID </para>
+                  <para role="text">No certification path validation policy is stored under the requested certification path validation policy ID.</para>
+                  <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificateID </para>
+                  <para role="text">No certificate is stored under the requested
+                    CertificateID.</para>
+                  <para role="param">env:Sender - ter:InvalidArgVal -
+                    ter:CertPathValidationParameters </para>
+                  <para role="text">The specified certification path validation parameters are
+                    invalid.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>access class</term>
+                <listitem>
+                  <para role="access">WRITE_SYSTEM</para>
                 </listitem>
               </varlistentry>
             </variablelist>
@@ -4132,6 +4252,11 @@
                 <entry>
                   <para>Indicates the device requires that each certificate with private key has its own unique key.</para>
                 </entry>
+              </row>
+              <row>
+                <entry><para>SetCertPath</para></entry>
+                <entry><para>The device supports modification of certificate path and certificate
+                  validation path.</para></entry>
               </row>
             </tbody>
           </tgroup>
