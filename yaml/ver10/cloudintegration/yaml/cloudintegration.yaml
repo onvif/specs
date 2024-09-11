@@ -13,23 +13,19 @@ info:
 components:
   schemas:
     Base64DERencodedASN1Value:
-      description: |
-        This schema is the equivalent of tas:Base64DERencodedASN1Value
-        in the Security Service specification.
+      description: This schema is the equivalent of tas:Base64DERencodedASN1Value in the Security Service specification.
       type: string
       format: byte
       examples: [ Base64DERencodedASN1Value ]
 
     EndpointReferenceType:
-      description: |
-        This schema is the equivalent of wsa:EndpointReferenceType in
-        the WA-Addressing 1.0 specification.
+      description: This schema is the equivalent of wsa:EndpointReferenceType in the WA-Addressing 1.0 specification.
+      type: string
       format: uri
 
     AuthorizationServerConfiguration:
       type: object
-      description: |
-        This schema is the equivalent of tas:AuthorizationServerConfigurationData
+      description: This schema is the equivalent of tas:AuthorizationServerConfigurationData
       properties:
         ServerURI:
           description: Authorization server address
@@ -48,21 +44,17 @@ components:
       type: object
       properties:
         RemoteAddress:
-          description: |
-            Uniform resource locator by which the remote client can be reached.
+          description: Uniform resource locator by which the remote client can be reached.
           item:
             $ref: '#/components/schemas/EndpointReferenceType'
         UserLevel:
-          description: |
-            Authorization level that will be assigned to the uplink connection.
+          description: Authorization level that will be assigned to the uplink connection.
           type: string
           enum: [Administrator, Operator, User]
         UplinkTrustAnchor:
           items:
             $ref: '#/components/schemas/Base64DERencodedASN1Value'
-          description: |
-            The certificate with the public key used to validate the TLS
-            certificate of the uplink server.
+          description: The certificate with the public key used to validate the TLS certificate of the uplink server.
       required:
         - RemoteAddress
         - UserLevel
@@ -75,10 +67,7 @@ components:
           item:
             $ref: '#/components/schemas/Base64DERencodedASN1Value'
         EndpointReferences:
-          description: |
-            The endpoint to be notified to inform that the operation was
-            completed. It may be more then one if the requesting cloud
-            has redundant URIs to receive the notification.
+          description: The endpoint to be notified to inform that the operation was completed. It may be more then one if the requesting cloud has redundant URIs to receive the notification.
           items:
             $ref: '#/components/schemas/EndpointReferenceType'
         UplinkConfiguration:
@@ -98,8 +87,7 @@ components:
       type: object
       properties:
         ShareToken:
-          description: |
-            The share token, to know what device the public key is associated to.
+          description: The share token, to know what device the public key is associated to.
           $ref: '#/components/schemas/Base64DERencodedASN1Value'
         DevicePublicKey:
           description: The public key of the device.
@@ -108,66 +96,37 @@ components:
         - ShareToken
         - DevicePublicKey
 
-    StartDeviceSharing:
+    startDeviceSharing:
       type: object
       properties:
         DeviceConfigurations:
           items:
             $ref: '#/components/schemas/DeviceConfiguration'
-          description: |
-            For each camera requested to be shared, it is necessary to pass
-            both the shared token and the endpoint reference.
+          description: For each camera requested to be shared, it is necessary to pass both the shared token and the endpoint reference.
       required:
         - DeviceConfigurations
 
-    DeviceSharingCompleted:
+    deviceSharingCompleted:
       type: object
       properties:
         DevicesInformation:
           items:
             $ref: '#/components/schemas/DeviceInformation'
-          description: |
-            For each shared device, the share token and the public key will
-            be provided.
+          description: For each shared device, the share token and the public key will be provided.
       required:
         - DevicesInformation
-
-    FirmwareSearchFilter:
-      type: object
-      properties:
-        model:
-          description: |
-            The value of model must be the value returned in the model field of
-            tds:GetDeviceInformationResponse
-          type: string
-        limit:
-          description: |
-            An opitonal parameter to limit the number of versions returned.
-            When this parameter is specified, versions are assumed to be
-            ordered, so that paging can be implemented.
-          type: integer
-        offset:
-          description: |
-            An opitonal parameter to specify the offest of the versions
-            returned. When this parameter is specified, versions are
-            assumed to be ordered, so that paging can be implemented.
-          type: integer
-      required:
-        - model
 
 paths:
   /startDeviceSharing:
     post:
       summary: Start device sharing.
-      description: |
-        This operation triggers sharing a device with a new Operational
-        Cloud Service.
+      description: This operation triggers sharing a device with a new Operational Cloud Service.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/StartDeviceSharing'
+              $ref: '#/components/schemas/startDeviceSharing'
       responses:
         '200':
           description: Success
@@ -177,35 +136,33 @@ paths:
   /deviceSharingCompleted:
     post:
       summary: Device sharing completed notification.
-      description: |
-        This operation notifies the new Operational Cloud Service that the
-        camera was successfully configured.
+      description: This operation notifies the new Operational Cloud Service that the camera was successfully configured.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DeviceSharingCompleted'
+              $ref: '#/components/schemas/deviceSharingCompleted'
       responses:
         '200':
           description: Success
 
   /getAvailableFWImages:
     post:
-      summary: |
-        Returns the list of FW images currently available on the
-        manufacturer cloud for the given model.
+      summary: Returns the list of FW images currently available on the manufacturer cloud for the given model.
+      description: The value of model must be the value returned in the model field of GetDeviceInformationResponse
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FirmwareSearchFilter'
+              type: object
+              properties:
+                model:
+                  type: string
       responses:
         '200':
-          description: |
-            Successfully returned a list of FW versions available for
-            the given model.
+          description: Successfully returned a list of FW versions available for the given model.
           content:
             application/json:
               schema:
