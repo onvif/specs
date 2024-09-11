@@ -297,11 +297,11 @@
       </revision>
       <revision>
         <revnumber>25.06</revnumber>
-        <date>Dec-2023</date>
+        <date>Jun-2025</date>
         <author>
           <personname>Ottavio Campana</personname>
         </author>
-        <revremark>Add support for editable user levels</revremark>
+        <revremark>Add support for user roles</revremark>
       </revision>
     </revhistory>
   </info>
@@ -2384,8 +2384,7 @@ X-Frame-Options: SAMEORIGIN]]></programlisting>
         </section>
         <section xml:id="_Ref306200377">
           <title>User Levels</title>
-          <para>Each user is associated exactly one user level. The following user levels are
-            pre-defined:</para>
+          <para>Each user is associated exactly one of the following user levels:</para>
           <orderedlist>
             <listitem>
               <para>Administrator</para>
@@ -2403,8 +2402,10 @@ X-Frame-Options: SAMEORIGIN]]></programlisting>
               <para>Anonymous</para>
             </listitem>
           </orderedlist>
-          <para>Devices may allow creating new user levels and associating the permitted functions
-            for the newly created classes.</para>
+          <para>For users with Extended user level, device will authenticate requests as for other
+            user levels, but authorization will depend on the informazion configured in the
+            corresponding <emphasis>Extension</emphasis> field of the corresponding
+              <emphasis>User</emphasis> element.</para>
           <para>Unauthenticated users are placed into the anonymous category and a device shall not allow users to be added to the anonymous user level category. </para>
         </section>
         <section xml:id="AccessClasses">
@@ -2580,17 +2581,37 @@ X-Frame-Options: SAMEORIGIN]]></programlisting>
           <para>A device that signals support for the Default Access Policy via the respective capability shall support at least one user of each user level Administrator, Operator and User.</para>
         </section>
         <section>
-          <title>Editable user levels</title>
-          <para>To have finer control of invokable functions, new user levels may be defined, see
-            <xref linkend="_Ref443486820"/>.</para>
-          <para>Unlike the pre-defined user levels, editable user levels are associated with
-            functions and not with access classes. Therefore, it is possibile to create user levels
-            with the minimum set of access rights to the functions for every specific
-            application.</para>
-          <para>For backwards compatibility, when a user is configured to use an editable user level
-            it has to be mapped to the user level <emphasis>Extended</emphasis> and the
-              <emphasis>UserExtension</emphasis> field must have the EditableUserLevel populated
-            accordingly.</para>
+          <title>User roles</title>
+          <para>To have finer control of invokable functions, extended users levels may be
+            associated to one or more roles, see <xref linkend="_Ref443486820"/>.</para>
+          <para>Devices supporting user roles shall predefine the following non editable
+            roles:</para>
+          <itemizedlist>
+            <listitem>
+              <para><emphasis>onvif:Administrator</emphasis> : the predefined role corresponding to
+                the Administrator user level. Users with Administrator user level and extended users
+                with onvif:Administrator role shall be idempotent.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>onvif:Operator</emphasis> : the predefined role corresponding to the
+                Operator user level. Users with Operator user level and extended users with
+                onvif:Operator role shall be idempotent.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>onvif:User</emphasis> : the predefined role corresponding to the User
+                user level. Users with User user level and extended users with onvif:User role shall
+                be idempotent.</para>
+            </listitem>
+          </itemizedlist>
+          <para>The usage of the <emphasis>onvif:</emphasis> prefix for new roles is reserved and
+            shall not be used to create custom user roles. Roles with the
+              <emphasis>onvif:</emphasis> prefix are fixed and cannot be edited.</para>
+          <para>The name of custom user roles shall not include spaces.</para>
+          <para>Unlike user levels, more than one role may be associated with an Extended User. As
+            an example, in this way it is possibile to define a new set of credentials with
+            onvif:User and PTZControl roles, to give a user the possibility of accessing a camera
+            and to only control the PTZ, without altering any other state of the device, such as
+            I/Os.</para>
         </section>
       </section>
       <section>
@@ -3334,13 +3355,12 @@ onvif://www.onvif.org/name/ARV-453
                 </row>
                 <row>
                   <entry>
-                    <para>MaxEditableUserLevels</para>
+                    <para>MaxUserRoles</para>
                   </entry>
                   <entry>
                     <para>Whenever set to an integer greater than zero, it signals that the device
-                      supports editable user levels, as described in section <xref
-                        linkend="_Ref443486820"/>. It indicates the maximum number of editable user
-                      levels.</para>
+                      supports user roles, as described in section <xref linkend="_Ref443486820"/>.
+                      It indicates the maximum number of editable user levels.</para>
                   </entry>
                 </row>
                 <row>
@@ -5693,37 +5713,36 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
       </section>
       <section xml:id="_Ref443486820">
-        <title>Editable user levels</title>
-        <para>A device that signals support for editable user levels handling via the Security
-          Capability MaxEditableUserLevels shall support these operations.</para>
+        <title>User roles</title>
+        <para>A device that signals support for user roles handling via the Security Capability
+          MaxUserRoles shall support these operations.</para>
         <section>
-          <title>Get editable user levels</title>
-          <para>This operation returns the editable user levels configured in the device. Whenever
-            on editable user level is passed in the request, information only about that level is
-            returned.</para>
+          <title>Get user roles</title>
+          <para>This operation returns the user roles configured in the device, including the
+            pre-defined onvif ones corresponding to the Administrator, Operator and User levels.
+            Whenever the name of a user role is passed in the request, information only about that
+            level is returned.</para>
           <variablelist role="op">
             <varlistentry>
               <term>request</term>
               <listitem>
-                <para role="param">EditableUserlLevel - optional [tt:EditableUserLevel]</para>
-                <para role="text">If a value is defined for EditableUserLevel, then only the
-                  information for that level is returned.</para>
+                <para role="param">Name - optional [xs:string]</para>
+                <para role="text">If a value is defined for Name, then only the information for the
+                  user role matching that name is returned.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
               <term>response</term>
               <listitem>
-                <para role="param">EditableUserlLevels - optional unbounded
-                  [tt:EditableUserLevel]</para>
-                <para role="text">Information about one or more editable user levels.
-                </para>
+                <para role="param">UserRoles - optional unbounded [tt:UserRole]</para>
+                <para role="text">Information about one or more user roles. </para>
               </listitem>
             </varlistentry>
             <varlistentry>
               <term>faults</term>
               <listitem>
-                <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidEditableUserLevel</para>
-                <para role="text">The specified editable user level does not exist.</para>
+                <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidUserRole</para>
+                <para role="text">The specified user role does not exist.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -5735,19 +5754,19 @@ onvif://www.onvif.org/name/ARV-453
           </variablelist>
         </section>
         <section>
-          <title>Set editable user level</title>
-          <para>This operation configures an editable user level in the device. If the
-            level passed in EditableUserLevel already exists in the device, its configuration is
-            overwritten. Otherwise, a new editable user level is created.</para>
+          <title>Set user role</title>
+          <para>This operation configures a user role in the device. If the name passed in the
+            UserRole argument already exists in the device, its configuration will be overwritten.
+            Otherwise, a new role will be created.</para>
           <para>A client is expected to use the capabilities of the device to request only functions
-            that are implemented in the device. In case a client requests an unknow or not
+            that are implemented in the device. In case a client requests an unknown or not
             implemented function, the device must return an error.</para>
           <variablelist role="op">
             <varlistentry>
               <term>request</term>
               <listitem>
-                <para role="param">EditableUserlLevel - [tt:EditableUserLevel]</para>
-                <para role="text">The editable user level to be created or overwritten.</para>
+                <para role="param">UserRole - [tt:UserRole]</para>
+                <para role="text">The user role to be created or overwritten.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -5759,11 +5778,14 @@ onvif://www.onvif.org/name/ARV-453
             <varlistentry>
               <term>faults</term>
               <listitem>
-                <para role="param>">env:Receiver - ter:Action - ter:TooManyEditableUserLevels</para>
-                <para role="text">Maximum number of supported editable user levels exceeded.</para>
+                <para role="param>">env:Receiver - ter:Action - ter:TooManyUserRoles</para>
+                <para role="text">Maximum number of supported user roles exceeded.</para>
                 <para role="param>">env:Receiver - ter:Action - ter:FunctionNotImplemented</para>
                 <para role="text">One or more requested functions are not implemented in the
                   device.</para>
+                <para role="param">env:Sender - ter:OperationProhibited</para>
+                <para role="text">The client cannot create or edit roles starting with the onvif:
+                  prefix.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -5775,14 +5797,14 @@ onvif://www.onvif.org/name/ARV-453
           </variablelist>
         </section>
         <section>
-          <title>Delete editable user level</title>
-          <para>This operation deletes an editable user level in the device. </para>
+          <title>Delete user role</title>
+          <para>This operation deletes an user role in the device. </para>
           <variablelist role="op">
             <varlistentry>
               <term>request</term>
               <listitem>
-                <para role="param">EditableUserlLevel - [tt:EditableUserLevel]</para>
-                <para role="text">The editable user level that has to be deleted.</para>
+                <para role="param">Name - [xs:string]</para>
+                <para role="text">The user role that has to be deleted.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
@@ -5794,9 +5816,10 @@ onvif://www.onvif.org/name/ARV-453
             <varlistentry>
               <term>faults</term>
               <listitem>
-                <para role="param">env:Sender - ter:InvalidArgVal -
-                  ter:InvalidEditableUserLevel</para>
-                <para role="text">The specified editable user level does not exist.</para>
+                <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidUserRole</para>
+                <para role="text">The specified user role does not exist.</para>
+                <para role="param">env:Sender - ter:OperationProhibited</para>
+                <para role="text">The client delete roles starting with the onvif: prefix.</para>
               </listitem>
             </varlistentry>
             <varlistentry>
