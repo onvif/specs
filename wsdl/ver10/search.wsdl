@@ -155,24 +155,19 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:annotation>
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="SearchToken" type="tt:JobToken">
+						<xs:element name="Time" type="tt:DateTimeRange">
 							<xs:annotation>
-								<xs:documentation>The search session to get results from.</xs:documentation>
+								<xs:documentation>The start to end time of the query.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
-						<xs:element name="MinResults" type="xs:int" minOccurs="0">
+						<xs:element name="RecordingToken" type="tt:RecordingReference">
 							<xs:annotation>
-								<xs:documentation>The minimum number of results to return in one response.</xs:documentation>
+								<xs:documentation>The recording configuration token.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 						<xs:element name="MaxResults" type="xs:int" minOccurs="0">
 							<xs:annotation>
 								<xs:documentation>The maximum number of results to return in one response.</xs:documentation>
-							</xs:annotation>
-						</xs:element>
-						<xs:element name="WaitTime" type="xs:duration" minOccurs="0">
-							<xs:annotation>
-								<xs:documentation>The maximum time before responding to the request, even if the MinResults parameter is not fulfilled.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -181,17 +176,17 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:element name="ListRecordedSegmentsResponse">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="SearchState" type="tt:SearchState">
-							<xs:annotation>
-								<xs:documentation>The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed.</xs:documentation>
-							</xs:annotation>
-						</xs:element>
 						<xs:element name="Segment" type="tse:ListRecordedSegmentsResultList" minOccurs="0" maxOccurs="unbounded">
 							<xs:annotation>
 								<xs:documentation>Information about an exportable segment.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
+					<xs:attribute name="HasMoreResults" type="xs:boolean" use="required">
+						<xs:annotation>
+							<xs:documentation>A value indicating that the search has reached the maximum count and a new request must be sent to continue the search.</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
 				</xs:complexType>
 			</xs:element>
 			<xs:complexType name="ListRecordedSegmentsResultList">
