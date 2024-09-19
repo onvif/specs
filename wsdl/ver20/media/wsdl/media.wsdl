@@ -1328,7 +1328,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>
 			<!--===============================-->
 			<!--============AudioClipManagement===================-->
-			<xs:complexType name="AudioClipConfiguration">
+			<xs:complexType name="AudioClip">
 				<xs:sequence>					
 					<xs:element name="Enabled" type="xs:boolean">
 						<xs:annotation>
@@ -1340,14 +1340,9 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation> Name of the audio clip.</xs:documentation>
 					</xs:annotation>
 					</xs:element>
-					<xs:element name="Token" type="tt:ReferenceToken">
+					<xs:element name="AudioOutputToken" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
 					<xs:annotation>
-						<xs:documentation> Unique Token associated with the audio clip.</xs:documentation>
-					</xs:annotation>
-					</xs:element>
-					<xs:element name="AudioOutputToken" type="tt:ReferenceToken">
-					<xs:annotation>
-						<xs:documentation> Token of the physical Audio Output.</xs:documentation>
+						<xs:documentation> Optional Token list of physical Audio Outputs. </xs:documentation>
 					</xs:annotation>
 					</xs:element>
 					<xs:element name="Type" type="xs:string">
@@ -1360,25 +1355,49 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation> Number of times the audio clip can be repeated when it is played. The value 0 means no repeat i.e. play the audio clip, does not repeat after the first play. 1 means play the audio clip and repeat once after the first play. -1 means repeat the audio clip infinite after the first play until the clip is stopped by the user operation.</xs:documentation>
 					</xs:annotation>
 					</xs:element>
-					<xs:element name="Gain" type="xs:int" minOccurs="0">
+					<xs:element name="RepeatInterval" type="xs:int" minOccurs="0">
 					<xs:annotation>
-						<xs:documentation> Optional Gain to control volume of the audio clip when it is played.</xs:documentation>
+						<xs:documentation>Optional time interval between auido clips when audio clip is repeated in seconds.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioOutputLevel" type="xs:int" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation> Optional level to control volume of the audio clip when it is played.</xs:documentation>
 					</xs:annotation>
 					</xs:element>
 					<xs:element name="ScheduleToken" type="tt:ReferenceToken" minOccurs="0">
 					<xs:annotation>
 						<xs:documentation> Optional Schedule Token associated with the audio clip configuration. Audio clip can be played when configured schedule is triggered.</xs:documentation>
 					</xs:annotation>
-					</xs:element>
-					<xs:element name="PlayStatus" type="xs:boolean" minOccurs="0">
-					<xs:annotation>
-						<xs:documentation> Optional PlayStatus to describe the audio clip is currently playing or not. This parameter is read-only.</xs:documentation>
-					</xs:annotation>
-					</xs:element>
+					</xs:element>					
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 				</xs:sequence>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
+			
+			<!--===============================-->
+			<xs:complexType name="GetAudioClipsResponseItem">
+				<xs:sequence>
+					<xs:element name="Token" type="tt:ReferenceToken">
+						<xs:annotation>
+							<xs:documentation>Unique Token associated with the audio clip.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Configuration" type="tr2:AudioClip">
+						<xs:annotation>
+							<xs:documentation>Configuration of the Audio Clip.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="PlayStatus" type="xs:boolean" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Optional PlayStatus to describe the audio clip is currently playing or not. PlayStatus should be false during RepeatInterval when the audio clip is repeated.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->
 			
 			<xs:element name="GetAudioClips">
 				<xs:complexType>
@@ -1394,9 +1413,9 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:element name="GetAudioClipsResponse">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="AudioClipsConfiguration" type="tr2:AudioClipConfiguration" minOccurs="0" maxOccurs="unbounded">
+						<xs:element name="AudioClipItem" type="tr2:GetAudioClipsResponseItem" minOccurs="0" maxOccurs="unbounded">
 							<xs:annotation>
-								<xs:documentation>Audio clip configurations exists in the device.</xs:documentation>
+								<xs:documentation>List of Audio clip items.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -1406,7 +1425,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:element name="AddAudioClip">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="AudioClipConfiguration" type="tr2:AudioClipConfiguration">
+						<xs:element name="Configuration" type="tr2:AudioClip">
 							<xs:annotation>
 								<xs:documentation>Audio Clip Configuration to add.</xs:documentation>
 							</xs:annotation>
@@ -1439,7 +1458,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:element name="SetAudioClip">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="AudioClipConfiguration" type="tr2:AudioClipConfiguration">
+						<xs:element name="Token" type="tt:ReferenceToken">						
+							<xs:annotation>
+								<xs:documentation>Unique Token associated with the audio clip.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Configuration" type="tr2:AudioClip">
 							<xs:annotation>
 								<xs:documentation>Audio Clip Configuration to modify.</xs:documentation>
 							</xs:annotation>
@@ -1480,9 +1504,9 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 								<xs:documentation>Unique Token associated with the audio clip.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
-						<xs:element name="AudioOutputToken" type="tt:ReferenceToken" minOccurs="0">
+						<xs:element name="AudioOutputToken" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
 							<xs:annotation>
-								<xs:documentation>Optional Token of the physical Audio Output. If the AudioOutputToken is not provided in the API request, the AudioOutputToken in AudioClipConfiguration to be used.</xs:documentation>
+								<xs:documentation>Optional Token list of physical Audio Outputs. If the AudioOutputToken is not provided in the API request, the AudioOutputToken in AudioClipConfiguration to be used.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 						<xs:element name="Play" type="xs:boolean">
