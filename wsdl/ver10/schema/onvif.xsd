@@ -1807,11 +1807,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							<xs:documentation>Volume setting of the output. The applicable range is defined via the option AudioOutputOptions.OutputLevelRange.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element name="EQPresetToken" type="tt:ReferenceToken" minOccurs="0">
-						<xs:annotation>
-							<xs:documentation>Optional audio EQ preset token to be applied to the audio output.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 				</xs:sequence>
 				<xs:anyAttribute processContents="lax"/>
@@ -1855,18 +1850,18 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 </xs:simpleType>
 
 	<!--===============================-->
-	<!--          FrequencyGainPair            -->
+	<!--          FrequencyDecibelPair            -->
 	<!--===============================-->
-	<xs:complexType name="FrequencyGainPair">
+	<xs:complexType name="FrequencyDecibelPair">
     	<xs:sequence>
         <xs:element name="FrequencyRange" type="xs:string">
             <xs:annotation>
                 <xs:documentation>Defined in tt:FrequencyRange, e.g., 20Hz-60Hz, 2kHz-4kHz.(Readonly)</xs:documentation>
             </xs:annotation>
         </xs:element>
-        <xs:element name="Gain" type="xs:float">
+        <xs:element name="Decibel" type="xs:float">
             <xs:annotation>
-                <xs:documentation>Normalized value (0.0 ~ 1.0).</xs:documentation>
+                <xs:documentation>Decibel value associated with the frequency.</xs:documentation>
             </xs:annotation>
         </xs:element>
 		<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
@@ -1888,19 +1883,24 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:documentation>Preset name. (Readonly)</xs:documentation>
 				</xs:annotation>
 			</xs:element>
+			<xs:element name="isDefault" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation>This shows if the EQ preset is set as the default. When the scheduler isn't active, this preset will be in use. Only one preset can be marked as default among the eqpresets linked to an audio output.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:element name="ScheduleToken" type="xs:string" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>Optional schedule token (if supported).</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="isFrequencyGainEditable" type="xs:boolean">
+			<xs:element name="isFrequencyDecibelEditable" type="xs:boolean">
 				<xs:annotation>
-					<xs:documentation>Indicates whether the device allows changing the gain level for frequencies. (Readonly)</xs:documentation>
+					<xs:documentation>Indicates whether the device allows changing the decibel level for frequencies. (Readonly)</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="FrequencyGainPair" type="tt:FrequencyGainPair" minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="FrequencyDecibelPair" type="tt:FrequencyDecibelPair" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation>List of frequency gain pairs, each defined by a frequency range and a normalized gain value (0.0 ~ 1.0).</xs:documentation>
+					<xs:documentation>List of frequency decibel pairs, each defined by a frequency range and its corresponding decibel value.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
