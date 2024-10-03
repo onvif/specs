@@ -1596,6 +1596,46 @@ Change Request 2061, 2063, 2065, 2109</revremark>
       </variablelist>
     </section>
     <section>
+      <title>ListRecordedSegments</title>
+      <para>Lists available recorded segments related to the specified RecordingToken.</para>
+      <para>
+        The device shall provide results in StartTime ascending order.
+        The device can decide to send less results if it needs to. 
+        The device shall indicate if there are more segments available in the time range by having the HasMoreResults field set to True.
+      </para>
+      <para>
+        When the HasMoreResults field is set to True in the response, the client shall adapt its next query by changing the From field
+        to the last EndTime received from the previous request. The client should continue until the HasMoreResults field is set to False.
+      </para>
+      <para>The listed segments shall have a stable start and end time as defined in Annex Stable Recordings.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">Time [tt:DateTimeRange]</para>
+            <para role="param">RecordingToken [tt:RecordingReference]</para>
+            <para role="param">MaxResults [xs:int]</para>
+            <para role="text">The maximum number of results to return in one response.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">HasMoreResults [xs:boolean]</para>
+            <para role="text">A flag indicating that more segments are available in the specified time range.</para>
+            <para role="param">Segment</para>
+            <para role="text">Contains a collection of segments with some basic metadata associated with the recording.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="access">READ_MEDIA</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
       <title>ExportRecordedSegments</title>
       <para>Exports the selected recorded segments (from existing recorded data) to the storage attached to the given recording job.</para>
       <para>The StoragePath shall be the path as defined in the Object Storage annex appended to the StorageUri from the StorageConfiguration.</para>
@@ -2362,6 +2402,108 @@ secfrac = "." 1*6DIGIT</programlisting>
         The key of a span end object for a metadata span consisting of 1020 segments and ending on 2022-11-08 at 16:34:11.871 (UTC) is:
       </para>
       <programlisting>site-2/2022-11-08/camera-5/16/34-11.871Z.1020.m4m_end</programlisting>
+    </section>
+  </appendix>
+  <appendix xml:id="_refSegmentExport">
+    <title>Segment export (Normative)</title>
+    <section xml:id="_refSegmentExportOverview">
+      <title>Overview</title>
+      <para>
+        This annex describes the requirements for recording and exporting media streams in a cloud-friendly format.
+        Device will need to record on their local storage when a <literal>RecordingTargetConfiguration</literal> has its strategy set to "Local" or "Both".
+        While the device can record locally using any format, segments can be queried at any time and the resulting list of segments MUST be stable.
+        "Stable" here is defined in the sense that each frame will always be part of the same segment and the available segments are immutable.
+      </para>
+      <para>
+        Specific recorded segments can then be exported to the cloud on request and each exported segment MUST yield the same result (a CMAF or MP4 file 
+        containing all its frames) on a successful export operation.
+      </para>
+      <para>
+        The deterministic properties of the segments (when queried or exported) facilitate features like HLS or MPEG-DASH playback from the device,
+        and also a simple way to implement on-demand video trickling from the local storage for a device to the cloud.
+      </para>
+    </section>
+    <section xml:id="_refSegmentExportRecording">
+      <title>Recording segments</title>
+      <para>
+        There are three possible recording strategies as defined for <literal>RecordingTargetConfiguration</literal>:
+        <variablelist>
+          <varlistentry>
+            <term>Cloud (default)</term>
+            <listitem>
+              <para>
+                The device will automatically upload each recorded segment to the Cloud location as soon as possible. After completion or on error the data won't be kept locally on the device. 
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Local</term>
+            <listitem>
+              <para>
+                The device will record the segments on its local storage and respect the MaximumRetentionTime of the RecordingConfiguration.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>Both</term>
+            <listitem>
+              <para>
+                The device will record the segments on its local storage and respect the MaximumRetentionTime of the RecordingConfiguration. It will also attempt to automatically upload each segment to the Cloud location as they become available.
+              </para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </para>
+      <para>
+        When recording on its local storage, the device may need to delete the oldest recording segments if storage space is insufficient.
+      </para>
+      <para>
+        When uploading to the configured Cloud location, if an error occurs the device can retry but should abandon if the operation took too long and the next segment is ready to be uploaded.
+        Only whole segments should be uploaded and committed to the cloud storage (no incomplete segment should be made available on failure).
+      </para>
+    </section>
+    <section xml:id="_refSegmentExportCommands">
+      <title>Segment export commands</title>
+      <para>
+        The <literal>ListRecordedSegments</literal> command lists the segments currently available for export from the device local storage.
+        For a given time range, this command should always return the same segments with two exceptions: the newly recorded segments are added as they become
+        available, and the deleted segments are removed from it (for example if the device had to delete them to make room for the new ones).
+      </para>
+      <para>
+        The <literal>ExportRecordedSegments</literal> command starts an export operation for all segment (partially or entirely) contained in the 
+        specified time range. Multiple operations at the same time can be queued and processed sequentially. While the operation is being executed 
+        the segments must not be deleted until they are uploaded (but the following ones can be). Segments should be uploaded in chronological order.
+        Progression can be tracked with <literal>GetExportRecordedSegmentState</literal>. Operations can be cancelled at any time with <literal>StopExportRecordedSegments</literal>.
+        The segment names used shall follow <xref linkend="_refCloudRecordingSegmentObjects">Cloud Recording Segment Objects format</xref>, with <literal>counter</literal> starting 
+        at zero for the first segment of each export operation, unless the OmitSequenceNumber is set to True.
+      </para>
+      <para>
+        Note: it is possible that the segments listed with <literal>ListRecordedSegments</literal> are not exactly the ones exported with <literal>ExportRecordedSegments</literal>
+        as some segments could be deleted/added in-between the two commands being executed.
+      </para>
+    </section>
+    <section xml:id="_refSegmentExportStability">
+      <title>Segment stability</title>
+      <para>
+        Segment stability is essential for this feature: each frame must be part of exactly one segment and each segment must always be immutable in time.
+        Additionnally, each segment must start with a keyframe to make it independent from the previous one. Some devices may record frames in a proprietary 
+        format, so the segments won't exist until exported to the cloud storage. Since the device must be able to list them beforehand, we suggest a simple
+        algorithm to determin how many segments will be in each time range and which frames will be part of them.
+      </para>
+      <para>
+        The figure <xref linkend="_refSegmentExportStabilityExample" /> illustrate how a global real time clock timestamp (that doesn't reset on device reboot 
+        or resync on NTP) could be segmented in time ranges for the target segment duration with a modulus operation. Then each boundary of these ranges is 
+        adjusted to match the time of the next keyframe. The result is the list of segment boundaries that overlap with the original time range of the query. 
+        Care should be taken not to return the most recent segment if it is incomplete (when more frames may be appended to it later, i.e.: it overlaps with the current time).
+      </para>
+      <figure xml:id="_refSegmentExportStabilityExample">
+        <title>Example of possible algorithm to ensure segment stability</title>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="media/RecordingControl/segmentExportStabilityExample 1.svg" contentwidth="120mm" />
+          </imageobject>
+        </mediaobject>
+      </figure>
     </section>
   </appendix>
   <appendix role="revhistory">
