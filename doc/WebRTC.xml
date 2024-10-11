@@ -707,10 +707,11 @@ Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate"
               to exchange a list of allowed data channel subprotocols in the invite method. Only 
               subprotocols provided by both the device and client during the invite method shall be 
               allowed to be enabled during the WebRTC session.</para>
-            <para>At any time after obtaining a WebRTC connection, a client may start using a data 
-              channel subprotocol by creating a new data channel with the specified subprotocol 
-              identifier. When a new data channel event is triggered on a device, the device should 
-              enable the relevant data channel subprotocol.
+            <para>At any time after obtaining a WebRTC connection, a client may request enabling a 
+              pre-negotiated data channel subprotocol by creating a new data channel with the specified 
+              subprotocol identifier. This triggers a new data channel event on the device, which shall 
+              enable the requested data channel subprotocol only after ensuring it was negotiated during 
+              the SDP exchange. Events for non-pre-negotiated subprotocols shall be ignored.
             </para>
         </section>
         <section xml:id="section_data_channels_metadata">
@@ -718,7 +719,7 @@ Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate"
           <para><emphasis role="bold">Subprotocol identifier</emphasis>: vnd.onvif.metadata+gzip</para>
             <para>The Metadata data channel subprotocol enables streaming XML Metadata over WebRTC data 
               channels. Only GZIP compression is supported; uncompressed XML Metadata is not supported.</para>
-            <para>A device should use the Metadata configuration from the media streaming profile selected 
+            <para>A device shall use the MetadataConfiguration from the media streaming profile selected 
               for the WebRTC session and ignore the CompressionType setting.</para>
             <para>The data channel Metadata payload is a binary data channel message starting with a GZIP 
               header according to RFC 1952, followed by the compressed data. Messages may be fragmented as 
