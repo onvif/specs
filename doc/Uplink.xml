@@ -91,6 +91,8 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/core/ONVIF-Core-Specification.pdf"></link>&gt;</para>
     <para>ONVIF Media2 Service Specification</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/srv/media/ONVIF-Media2-Service-Spec.pdf"></link>&gt;</para>
+    <para>ONVIF Advanced Security Service Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/srv/security/ONVIF-Security-Service-Spec.pdf"></link>&gt;</para>    
     <para>ONVIF Streaming Specification</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/stream/ONVIF-Streaming-Spec.pdf"></link>&gt;</para>
     <para>Apple Computer Inc. RTSP over HTTP, Tunneling QuickTime RTSP and RTP over HTTP</para>
@@ -255,8 +257,9 @@
       <title>Connection Management</title>
       <para>A local service that is offered to a remote client for utilization is responsible for maintaining an operational communication channel. Since the connection needs to be established from the service to the remote client this connection is called uplink. The uplink shall be secured via TLS. </para>
       <para>The local service shall monitor whether the remote client is able to communicate via the
-        uplink. It may use the HTTP/2 ping mechanism to check whether a link is still operational if
-        no packets have been received for a longer period of time.</para>
+        uplink. Depending on the reverse tunnel transport chosen, local service may use the
+        Websocket ping mechanism OR HTTP/2 ping mechanism to check whether a link is still
+        operational if no packets have been received for a longer period of time.</para>
       <para>The local service shall close and reconnect the uplink whenever no packets have been
         received from the remote client for more than 30 seconds. Each camera shall use an
         individual ascending interval strategy to avoid that all cameras connect at the same
@@ -348,8 +351,9 @@
         </listitem>
          <listitem>
           <para>CertPathValidationPolicyID : ID of Certificate Validation policy to validate the
-            remote uplink server certficate. If not configured, server certificate shall not be
-            validated. </para>
+            remote uplink server certficate. If not configured or configured with an empty string,
+            server certificate validation behavior is device dependent, for e.g. server certificate
+            is either validated using default validation policy OR not validated. </para>
         </listitem>
         <listitem>
           <para>AuthorizationServer :  JWTConfiguration token referring to an Authorization server
