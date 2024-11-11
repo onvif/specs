@@ -1814,58 +1814,26 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:complexContent>
 	</xs:complexType>
 
-	<xs:simpleType name="FrequencyRange">
-    <xs:restriction base="xs:string">
-        <xs:enumeration value="20Hz-60Hz">
-            <xs:annotation>
-                <xs:documentation>Sub-bass frequencies.</xs:documentation>
-            </xs:annotation>
-        </xs:enumeration>
-        <xs:enumeration value="60Hz-250Hz">
-            <xs:annotation>
-                <xs:documentation>Bass frequencies.</xs:documentation>
-            </xs:annotation>
-        </xs:enumeration>
-        <xs:enumeration value="250Hz-500Hz">
-            <xs:annotation>
-                <xs:documentation>Low midrange frequencies.</xs:documentation>
-            </xs:annotation>
-        </xs:enumeration>
-        <xs:enumeration value="500Hz-2kHz">
-            <xs:annotation>
-                <xs:documentation>Midrange frequencies.</xs:documentation>
-            </xs:annotation>
-        </xs:enumeration>
-        <xs:enumeration value="2kHz-4kHz">
-            <xs:annotation>
-                <xs:documentation>Upper midrange frequencies.</xs:documentation>
-            </xs:annotation>
-        </xs:enumeration>
-        <xs:enumeration value="4kHz-20kHz">
-            <xs:annotation>
-                <xs:documentation>High frequencies.</xs:documentation>
-            </xs:annotation>
-        </xs:enumeration>
-    </xs:restriction>
-</xs:simpleType>
 
 	<!--===============================-->
 	<!--          FrequencyDecibelPair            -->
 	<!--===============================-->
+
 	<xs:complexType name="FrequencyDecibelPair">
-    	<xs:sequence>
-        <xs:element name="FrequencyRange" type="xs:string">
-            <xs:annotation>
-                <xs:documentation>Defined in tt:FrequencyRange, e.g., 20Hz-60Hz, 2kHz-4kHz.(Readonly)</xs:documentation>
-            </xs:annotation>
-        </xs:element>
-        <xs:element name="Decibel" type="xs:float">
-            <xs:annotation>
-                <xs:documentation>Decibel value associated with the frequency.</xs:documentation>
-            </xs:annotation>
-        </xs:element>
-		<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
-    	</xs:sequence>
+	<xs:sequence>
+		<xs:element name="CenterFrequency" type="xs:int">
+			<xs:annotation>
+				<xs:documentation>The center frequency of the band in hertz (Readonly). For example, value of 1000 refers to 1kHz and 2000 refers to 2kHz.</xs:documentation>
+			</xs:annotation>
+		</xs:element>
+		<xs:element name="Decibel" type="xs:float">
+			<xs:annotation>
+				<xs:documentation>Decibel value associated with the center frequency.</xs:documentation>
+			</xs:annotation>
+		</xs:element>
+		<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		<!-- first Vendor then ONVIF -->
+	</xs:sequence>
 	</xs:complexType>
 
 	<!--===============================-->
@@ -1900,7 +1868,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>
 			<xs:element name="FrequencyDecibelPair" type="tt:FrequencyDecibelPair" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation>List of frequency decibel pairs, each defined by a frequency range and its corresponding decibel value.</xs:documentation>
+					<xs:documentation>List of frequency decibel pairs, each defined by a center frequency and its corresponding decibel value.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
