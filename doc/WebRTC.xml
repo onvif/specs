@@ -455,7 +455,7 @@
             <para role="text">The ID assigned by the signaling server to the session. </para>
             <para role="param">offer [SDP]</para>
             <para role="text">The SDP offer provided by the device. </para>
-            <para role="param">dataChannelSubprotocols optional unbounded [DataChannelSubprotocol]</para>
+            <para role="param">subprotocols optional unbounded [DataChannelSubprotocol]</para>
             <para role="text">List of data channel subprotocols to be allowed</para>
           </listitem>
         </varlistentry>
@@ -464,7 +464,7 @@
           <listitem>
             <para role="param">answer [SDP]</para>
             <para role="text">The SDP answer provided by the client. </para>
-            <para role="param">dataChannelSubprotocols optional unbounded [DataChannelSubprotocol]</para>
+            <para role="param">subprotocols optional unbounded [DataChannelSubprotocol]</para>
             <para role="text">List of data channel subprotocols to be allowed</para>
           </listitem>
         </varlistentry>
@@ -628,13 +628,11 @@ Server -> Client: { "result": {"session": "s1",
                 "iceServers": [{"urls": ["stun:1.2.3.4"]}]}, "id": 2}
 
 Device -> Server: { "method": "invite", "params": {"session": "s1", "offer": "SDP...", 
-                "dataChannelSubprotocols": ["proto1"]}, "id":3}
+                "subprotocols": ["proto1"]}, "id":3}
 Server -> Client: { "method": "invite", "params": {"session": "s1", "offer": "SDP...", 
-                "dataChannelSubprotocols": ["proto1"]}, "id":3}
-Client -> Server: { "result": {"answer": "SDP...", "dataChannelSubprotocols": ["proto1"]}, 
-                "id": 3}
-Server -> Device: { "result": {"answer": "SDP...", "dataChannelSubprotocols": ["proto1"]}, 
-                "id": 3}
+                "subprotocols": ["proto1"]}, "id":3}
+Client -> Server: { "result": {"answer": "SDP...", "subprotocols": ["proto1"]}, "id": 3}
+Server -> Device: { "result": {"answer": "SDP...", "subprotocols": ["proto1"]}, "id": 3}
 
 Device -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
 Server -> Client: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
@@ -708,7 +706,7 @@ Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate"
             <para>At any time after obtaining a WebRTC connection, a client may request enabling a 
               pre-negotiated data channel subprotocol by creating a new data channel with the specified 
               subprotocol identifier. Device shall enable the requested data channel subprotocol only 
-              after ensuring it was negotiated during the SDP exchange. Events for non-pre-negotiated 
+              after ensuring it was negotiated during the SDP exchange. Requests for non-pre-negotiated 
               subprotocols shall be ignored.
             </para>
         </section>
