@@ -36,6 +36,10 @@ components:
         Scope:
           description: The requested access scope
           type: string
+        AuthorizationServerTrustAnchor:
+          items:
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+          description: The list of certificates with the public keys needed to build the validation policy to validate the TLS certificate of the authorization server.
       required:
         - ServerURI
         - ClientID
@@ -53,7 +57,7 @@ components:
         UplinkTrustAnchor:
           items:
             $ref: '#/components/schemas/Base64DERencodedASN1Value'
-          description: The certificate with the public key used to validate the TLS certificate of the uplink server.
+          description: The list of certificates with the public keys needed to build the validation policy to validate the TLS certificate of the uplink server.
       required:
         - RemoteAddress
         - UserLevel
@@ -95,7 +99,7 @@ components:
         - ShareToken
         - DevicePublicKey
 
-    startDeviceSharing:
+    StartDeviceSharing:
       type: object
       properties:
         DeviceConfigurations:
@@ -105,7 +109,7 @@ components:
       required:
         - DeviceConfigurations
 
-    deviceSharingCompleted:
+    DeviceSharingCompleted:
       type: object
       properties:
         DevicesInformation:
@@ -113,6 +117,13 @@ components:
           description: For each shared device, the share token and the public key will be provided.
       required:
         - DevicesInformation
+
+    DeviceSharingError:
+      type: object
+      properties:
+        error:
+          type: string
+          enum: [ "Invalid configuration", "Invalid JWT" ]
 
 paths:
   /startDeviceSharing:
@@ -124,12 +135,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/startDeviceSharing'
+              $ref: '#/components/schemas/StartDeviceSharing'
       responses:
         '200':
           description: Success
         '400':
           description: Invalid Argument Value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceSharingError'
 
   /deviceSharingCompleted:
     post:
@@ -140,7 +155,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/deviceSharingCompleted'
+              $ref: '#/components/schemas/DeviceSharingCompleted'
       responses:
         '200':
           description: Success
