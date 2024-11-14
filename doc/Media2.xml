@@ -9,7 +9,7 @@
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>Feb 2024 Draft</pubdate>
+    <pubdate>June 2024</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -916,7 +916,7 @@
             <para>AudioDecoderConfiguration depends on AudioOutputConfiguration </para>
           </listitem>
           <listitem>
-            <para>MetadataConfiguration depends on VideoSourceConfiguration</para>
+            <para>MetadataConfiguration depends on VideoSourceConfiguration and/or AudioSourceConfiguration</para>
           </listitem>
           <listitem>
             <para>AnalyticsConfiguration depends on VideoSourceConfiguration and/or AudioSourceConfiguration</para>
@@ -982,6 +982,7 @@
             <para>Dewarp – Dewarped view mode for device supporting fisheye lens.</para>
           </listitem>
         </itemizedlist>
+        <para>When Fisheye View Mode is present in the VideoSourceConfiguration, the device should also include the LensDescription (see <xref linkend="_Ref425846456" />).</para>
       </section>
       <section>
         <title>Video encoder configuration</title>
@@ -2075,6 +2076,9 @@
             <para>SignalingServer [xs:anyURI] – The signaling server URI.</para>
           </listitem>
           <listitem>
+            <para>CertPathValidationPolicyID [xs:string] - The policy for validating the signaling server certificate.</para>
+          </listitem>
+          <listitem>
             <para>AuthorizationServer [tt:ReferenceToken] – The Authorization Server to use for
               getting access tokens. This refers to an entity in the list of configured
               Authorization Servers in the [ONVIF Security Service Specification].</para>
@@ -2082,6 +2086,9 @@
           <listitem>
             <para>DefaultProfile [tt:ReferenceToken] – The default media profile to use for
               streaming if no specific profile is specified when initializing a session.</para>
+          </listitem>
+          <listitem>
+            <para>Error [xs:string] - Optional user readable error information (readonly).</para>
           </listitem>
         </itemizedlist>
       </section>
@@ -2130,7 +2137,7 @@
               <para role="param">Configuration - optional, unbounded
                 [tr2:WebRTCConfiguration]</para>
               <para role="text">This message contains the WebRTC configurations to use for the
-                device. If empty, WebRTC is disabled,</para>
+                device. If empty, existing WebRTC configurations are deleted.</para>
             </listitem>
           </varlistentry>
           <varlistentry>

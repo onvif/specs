@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="../../../ver20/util/onvif-wsdl-viewer.xsl"?>
 <!--
-	Copyright (c) 2013 - 2023 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+	Copyright (c) 2013 - 2024 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 	
 	Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 	
@@ -10,7 +10,7 @@
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tas="http://www.onvif.org/ver10/advancedsecurity/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl">
 	<wsdl:types>
-		<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tt="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl" version="23.12">
+		<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tt="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl" version="24.06">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../schema/onvif.xsd"/>
 			<!--===================================================-->
 			<!-- Data types used by the security configuration features -->
@@ -887,6 +887,11 @@
 							<xs:documentation>OAuth2 client credentials grant flow per RFC 6749</xs:documentation>
 						</xs:annotation>
 					</xs:enumeration>
+					<xs:enumeration value="OIDC2AuthorizationCode">
+						<xs:annotation>
+							<xs:documentation>OpenID Connect authorization code flow per Open ID Connect Core</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
 				</xs:restriction>
 			</xs:simpleType>
 			<!--===============================-->
@@ -958,6 +963,11 @@
 					<xs:element name="CertificateID" type="tas:CertificateID" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>Certificate identifier for the self_signed_tls_client_auth authentication method</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="CertPathValidationPolicyID" type="tas:CertPathValidationPolicyID" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The unique identifier of the certification path validation policy to be used for validating the server certificate.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
@@ -1060,7 +1070,7 @@
 				<xs:sequence>
 					<xs:element name="Audiences" type="tt:StringList">
 						<xs:annotation>
-							<xs:documentation>The list of all the aud claims, which the recipient identifies with.</xs:documentation>
+							<xs:documentation>List of supported aud claims. A JWT must contain at least one of these.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:element name="TrustedIssuers" type="xs:anyURI" minOccurs="0" maxOccurs="unbounded">
@@ -1073,9 +1083,9 @@
 							<xs:documentation>If present, this is the list of keys provided out of band to verify the origin and integrity of the JWT.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element name="ValidationPolicy" type="tas:CertPathValidationPolicyID" minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="ValidationPolicy" type="tas:CertPathValidationPolicyID" minOccurs="0">
 						<xs:annotation>
-							<xs:documentation>If present, the device will validate the certification path of the Open ID Connect servers. The OIDC server iso considered to be valid if its certificate is validated by one of the provided certification path validation policies.</xs:documentation>
+							<xs:documentation>If present, the device will validate the certification path of the Open ID Connect servers. The OIDC server iso considered to be valid if its certificate is validated by the provided certification path validation policy.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	   <!-- first ONVIF then Vendor -->
@@ -1148,7 +1158,7 @@
 					<xs:sequence>
 						<xs:element name="EllipticCurve" type="xs:string">
 							<xs:annotation>
-								<xs:documentation>The name of the elliptic curve to be used for generating the ECC keypair.</xs:documentation>
+								<xs:documentation>The name of the elliptic curve to be used for generating the ECC keypair. Supported curve names can be found in the IANA TLS Supported Groups section, under the Description field.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 						<xs:element name="Alias" type="xs:string" minOccurs="0">
@@ -1619,6 +1629,29 @@
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:element name="SetCertificationPath">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID">
+							<xs:annotation>
+								<xs:documentation>The ID of the certification path to be modidfied.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="CertificationPath" type="tas:CertificationPath">
+							<xs:annotation>
+								<xs:documentation>The updated certification path to be stored in the keystore.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetCertificationPathResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
 			<xs:element name="DeleteCertificationPath">
 				<xs:complexType>
 					<xs:sequence>
@@ -1990,6 +2023,33 @@
                 </xs:documentation>
 							</xs:annotation>
 						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetCertPathValidationPolicy">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertPathValidationPolicyID" type="tas:CertPathValidationPolicyID">
+							<xs:annotation>
+								<xs:documentation>
+									The ID of the certification path validation policy to be modified.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="CertPathValidationPolicy" type="tas:CertPathValidationPolicy">
+							<xs:annotation>
+								<xs:documentation>
+									The updated certification path validation policy to be stored.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetCertPathValidationPolicyResponse">
+				<xs:complexType>
+					<xs:sequence>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
@@ -2488,6 +2548,12 @@
 	<wsdl:message name="GetAllCertificationPathsResponse">
 		<wsdl:part name="parameters" element="tas:GetAllCertificationPathsResponse"/>
 	</wsdl:message>
+	<wsdl:message name="SetCertificationPathRequest">
+		<wsdl:part name="parameters" element="tas:SetCertificationPath"/>
+	</wsdl:message>
+	<wsdl:message name="SetCertificationPathResponse">
+		<wsdl:part name="parameters" element="tas:SetCertificationPathResponse"/>
+	</wsdl:message>
 	<wsdl:message name="DeleteCertificationPathRequest">
 		<wsdl:part name="parameters" element="tas:DeleteCertificationPath"/>
 	</wsdl:message>
@@ -2589,6 +2655,12 @@
 	</wsdl:message>
 	<wsdl:message name="GetAllCertPathValidationPoliciesResponse">
 		<wsdl:part name="parameters" element="tas:GetAllCertPathValidationPoliciesResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetCertPathValidationPolicyRequest">
+		<wsdl:part name="parameters" element="tas:SetCertPathValidationPolicy"/>
+	</wsdl:message>
+	<wsdl:message name="SetCertPathValidationPolicyResponse">
+		<wsdl:part name="parameters" element="tas:SetCertPathValidationPolicyResponse"/>
 	</wsdl:message>
 	<wsdl:message name="DeleteCertPathValidationPolicyRequest">
 		<wsdl:part name="parameters" element="tas:DeleteCertPathValidationPolicy"/>
@@ -2755,7 +2827,7 @@
 		</wsdl:operation>
 		<wsdl:operation name="CreateECCKeyPair">
 			<wsdl:documentation>
-				This operation triggers the asynchronous generation of an ECC key pair using a particular elliptic curve as specified in [RFC 4492], with a suitable key generation mechanism on the device.
+				This operation triggers the asynchronous generation of an ECC key pair using a particular elliptic curve as specified in [RFC 8422], with a suitable key generation mechanism on the device.
 				Keys, especially ECC key pairs, are uniquely identified using key IDs.<br/>
 				If the device does not have not enough storage capacity for storing the key pair to be created, the maximum number of keys reached fault shall be produced and no key pair shall be generated.
 				Otherwise, the operation generates a keyID for the new key and associates the generating status to it.<br/>
@@ -2977,6 +3049,13 @@
 			<wsdl:input message="tas:GetAllCertificationPathsRequest"/>
 			<wsdl:output message="tas:GetAllCertificationPathsResponse"/>
 		</wsdl:operation>
+		<wsdl:operation name="SetCertificationPath">
+			<wsdl:documentation>
+				This operation allows to modify a certification path.<br/>
+			</wsdl:documentation>
+			<wsdl:input message="tas:SetCertificationPathRequest"/>
+			<wsdl:output message="tas:SetCertificationPathResponse"/>
+		</wsdl:operation>
 		<wsdl:operation name="DeleteCertificationPath">
 			<wsdl:documentation>
 				This operation deletes a certification path from the device’s keystore.<br/>
@@ -3080,6 +3159,13 @@
       </wsdl:documentation>
 			<wsdl:input message="tas:GetAllCertPathValidationPoliciesRequest"/>
 			<wsdl:output message="tas:GetAllCertPathValidationPoliciesResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetCertPathValidationPolicy">
+			<wsdl:documentation>
+				This operation allows to modify an existing certification path validation policy.
+			</wsdl:documentation>
+			<wsdl:input message="tas:SetCertPathValidationPolicyRequest"/>
+			<wsdl:output message="tas:SetCertPathValidationPolicyResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="DeleteCertPathValidationPolicy">
 			<wsdl:documentation>
@@ -3519,6 +3605,15 @@
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
+		<wsdl:operation name="SetCertificationPath">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/SetCertificationPath"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
 		<wsdl:operation name="DeleteCertificationPath">
 			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/DeleteCertificationPath"/>
 			<wsdl:input>
@@ -3614,6 +3709,15 @@
 		</wsdl:operation>
 		<wsdl:operation name="GetAllCertPathValidationPolicies">
 			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetAllCertPathValidationPolicies"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetCertPathValidationPolicy">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/SetCertPathValidationPolicy"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>

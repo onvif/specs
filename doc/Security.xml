@@ -2,21 +2,21 @@
 <?xml-stylesheet href="docbook.xsl" type="text/xsl" ?>
 <book xmlns="http://docbook.org/ns/docbook" version="5.0">
   <info>
-    <title>Advanced Security Service Specification</title>
+    <title>Security Service Specification</title>
     <titleabbrev>Security Configuration</titleabbrev>
-    <releaseinfo>23.12</releaseinfo>
+    <releaseinfo>24.06</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>December 2023</pubdate>
+    <pubdate>June 2024</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
       </imageobject>
     </mediaobject>
     <copyright>
-      <year>2008-2023</year>
+      <year>2008-2024</year>
       <holder>ONVIF™ All rights reserved.</holder>
     </copyright>
     <legalnotice>
@@ -148,6 +148,14 @@
         </author>
         <revremark>Added support for ECC cryptography, JSON Web Tokens, Authorization Servers using OAuth2 and OpenID Connect.</revremark>
       </revision>
+      <revision>
+        <revnumber>24.06</revnumber>
+        <date>June-2024</date>
+        <author>
+          <personname>Sriram Bhetanabottla, Hans Busch</personname>
+        </author>
+        <revremark>Improve readability of section on authorization server. Move JWT example to annex.</revremark>
+      </revision>
     </revhistory>
   </info>
   <chapter>
@@ -183,6 +191,8 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc5208.txt">http://www.ietf.org/rfc/rfc5208.txt</link>&gt;</para>
     <para>IETF RFC 5246 The Transport Layer Security (TLS) Protocol Version 1.2</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc5246.txt">http://www.ietf.org/rfc/rfc5246.txt</link>&gt;</para>
+    <para>IETF RFC 8422 Elliptic Curve Cryptography (ECC) Cipher Suites for Transport Layer Security (TLS) Versions 1.2 and Earlier</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.ietf.org/rfc/rfc8422.txt">https://www.ietf.org/rfc/rfc8422.txt</link>&gt;</para>
     <para>IETF RFC 5280 Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc5280.txt">http://www.ietf.org/rfc/rfc5280.txt</link>&gt;</para>
     <para>IETF RFC 5958 Asymmetric Key Packages</para>
@@ -471,7 +481,7 @@
                 <para>tas</para>
               </entry>
               <entry>
-                  <para>http://www.onvif.org/ver10/advancedsecurity/wsdl</para>
+                <para>http://www.onvif.org/ver10/advancedsecurity/wsdl</para>
               </entry>
             </row>
             <row>
@@ -519,242 +529,29 @@
           <para>IEEE 802.1X</para>
         </listitem>
       </itemizedlist>
-      <para>Basic security features such as user authentication based on WS UsernameToken and HTTP Authentication as well as a default access policy are specified in the ONVIF Core Specification as part of the device management service.</para>
-      <para>WSDL for the Security Configuration Service is specified in &lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/advancedsecurity/wsdl/security.wsdl">http://www.onvif.org/ver10/advancedsecurity/wsdl/security.wsdl</link>&gt;.</para>
-      <para>All sections in this specification are normative unless explicitly marked as informative.</para>
+      <para>Basic security features such as user authentication based on WS UsernameToken and HTTP
+        Authentication as well as a default access policy are specified in the ONVIF Core
+        Specification as part of the device management service.</para>
+      <para>WSDL for the Security Configuration Service is specified in &lt;<link
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xlink:href="http://www.onvif.org/ver10/advancedsecurity/wsdl/security.wsdl"
+          >http://www.onvif.org/ver10/advancedsecurity/wsdl/security.wsdl</link>&gt;.</para>
+      <para>All sections in this specification are normative unless explicitly marked as
+        informative.</para>
     </section>
     <section>
       <title>Certificate-based Client Authentication</title>
-      <section>
-        <title>Overview</title>
-        <para>A client may be authenticated based on a certification path that it presents to the server, e.g., a TLS client is authenticated by a TLS server.</para>
-        <para>The certificate-based authentication is performed according to a certification path validation algorithm that enforces a certification path validation policy. A certification path validation policy contains at least one trust anchor (in the form of a certificate) that the device shall assume to be correct. Furthermore, a certification path validation policy contains sources of revocation information to be considered when determining whether a certificate in question has been revoked. This specification uses CRLs as sources of revocation information, while future versions may include additional sources.</para>
-        <para>A certificate revocation list (CRL) contains certificates that have been revoked by the issuing CA. Therefore, the private key corresponding to the public key in a revoked certificate shall be considered compromised.</para>
-      </section>
-      <section xml:id="_Ref395181338">
-        <title>Certification path validation</title>
-        <para>This section defines an algorithm to validate a certification path that is, e.g., supplied by an ONVIF client to an ONVIF device.</para>
-        <para>Algorithm input:</para>
-        <orderedlist>
-          <listitem>
-            <para>Certification path c<subscript>1</subscript>,…,c<subscript>m</subscript></para>
-          </listitem>
-          <listitem>
-            <para>Current date and time</para>
-          </listitem>
-          <listitem>
-            <para>Certification path validation policy</para>
-          </listitem>
-        </orderedlist>
-        <para>Algorithm output:</para>
-        <itemizedlist>
-          <listitem>
-            <para>
-              <emphasis>valid</emphasis> if the certification path is considered valid, <emphasis>invalid</emphasis> otherwise.</para>
-          </listitem>
-        </itemizedlist>
-        <para>Algorithm steps:</para>
-        <orderedlist>
-          <listitem>
-            <para>Construct all prospective certification paths c<subscript>1</subscript>,…,c<subscript>n</subscript> from the input certification path c<subscript>1</subscript>,…,c<subscript>m</subscript> as specified in Sect. <xref linkend="_Ref392600159"/>. If no prospective certification path can be constructed from the input certification path, return <emphasis>invalid</emphasis>.</para>
-          </listitem>
-          <listitem>
-            <para>For all prospective certification paths c<subscript>1</subscript>,…,c<subscript>n</subscript></para>
-            <orderedlist numeration="loweralpha">
-              <listitem>
-                <para>Determine whether c<subscript>1</subscript>,…,c<subscript>n</subscript> is valid by applying the algorithm defined in Sect. <xref linkend="_Ref392600142"/> with inputs</para>
-                <itemizedlist>
-                  <listitem>
-                    <para>Prospective certification path c<subscript>1</subscript>,…,c<subscript>n</subscript></para>
-                  </listitem>
-                  <listitem>
-                    <para>Current date and time</para>
-                  </listitem>
-                  <listitem>
-                    <para>Certification path validation policy</para>
-                  </listitem>
-                </itemizedlist>
-              </listitem>
-              <listitem>
-                <para>If c<subscript>1</subscript>,…,c<subscript>n</subscript> is valid, output <emphasis>valid.</emphasis></para>
-              </listitem>
-            </orderedlist>
-          </listitem>
-          <listitem>
-            <para>Output <emphasis>invalid</emphasis>.</para>
-          </listitem>
-        </orderedlist>
-        <para>A device that supports certification path validation as defined in this specification shall implement this algorithm.</para>
-      </section>
-      <section xml:id="_Ref392600159">
-        <title>Construct Prospective Certification Paths</title>
-        <para>This section defines an algorithm to construct prospective certification paths from an input certification path as indicated by the certification path validation policy.</para>
-        <para>Algorithm input:</para>
-        <orderedlist>
-          <listitem>
-            <para>Certification path c<subscript>1</subscript>,…,c<subscript>m</subscript></para>
-          </listitem>
-          <listitem>
-            <para>Certification path validation policy</para>
-          </listitem>
-        </orderedlist>
-        <para>Algorithm output:</para>
-        <orderedlist>
-          <listitem>
-            <para>Prospective certification paths c<subscript>1</subscript>,…,c<subscript>n </subscript>if at least one prospective certification path exists.</para>
-          </listitem>
-          <listitem>
-            <para>NULL if no prospective certification path exists.</para>
-          </listitem>
-        </orderedlist>
-        <para>Algorithm steps:</para>
-        <orderedlist>
-          <listitem>
-            <para>For all i in {1,…,m} such that c<subscript>i</subscript> is considered a trust anchor according to the certification path validation policy, add c<subscript>1</subscript>,…,c<subscript>i </subscript>to the set of prospective certification paths.</para>
-          </listitem>
-          <listitem>
-            <para>Determine all certification path extensions c<subscript>m+1</subscript>,…,c<subscript>n</subscript> such that</para>
-            <itemizedlist>
-              <listitem>
-                <para>for all c<subscript>i</subscript> with i in {m+1,…n-1}, the issuer of c<subscript>i</subscript> is the subject of c<subscript>i+1</subscript></para>
-              </listitem>
-              <listitem>
-                <para>c<subscript>n</subscript> is considered a trust anchor according to the certification path validation policy</para>
-              </listitem>
-            </itemizedlist>
-          </listitem>
-          <listitem>
-            <para>Add all extended certification paths c<subscript>1</subscript>,…,c<subscript>m</subscript>,c<subscript>m+1</subscript>,…,c<subscript>n </subscript>to the set of prospective certification paths.</para>
-          </listitem>
-          <listitem>
-            <para>Return the set of prospective certification paths.</para>
-          </listitem>
-        </orderedlist>
-      </section>
-      <section xml:id="_Ref392600142">
-        <title>Validate Prospective Certification Path</title>
-        <para>This section defines an algorithm to validate a prospective certification path.</para>
-        <para>Algorithm input:</para>
-        <orderedlist>
-          <listitem>
-            <para>Prospective certification path c<subscript>1</subscript>,…,c<subscript>n</subscript></para>
-          </listitem>
-          <listitem>
-            <para>Current date and time <emphasis>t</emphasis></para>
-          </listitem>
-          <listitem>
-            <para>Certification path validation policy</para>
-          </listitem>
-        </orderedlist>
-        <para>Algorithm output:</para>
-        <itemizedlist>
-          <listitem>
-            <para>
-              <emphasis>True</emphasis> if certification path is considered valid under the certification path validation policy, <emphasis>false</emphasis> otherwise.</para>
-          </listitem>
-        </itemizedlist>
-        <para>Algorithm steps:</para>
-        <orderedlist>
-          <listitem>
-            <para>Execute the algorithm specified in RFC 5280, Sect. 6.1, with inputs</para>
-            <orderedlist numeration="loweralpha">
-              <listitem>
-                <para>Prospective certification path c<subscript>n</subscript>,…,c<subscript>1</subscript></para>
-              </listitem>
-              <listitem>
-                <para>Current date and time <emphasis>t</emphasis></para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>User-initial-policy-set</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>Initial-policy-mapping-inhibit</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>Initial-explicit-policy</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>Initial-any-policy-inhibit</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>Initial-permitted-subtrees</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>Initial-excluded-subtrees</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-            </orderedlist>
-          </listitem>
-          <listitem>
-            <para>If the output of step (1) contains a success indication, return <emphasis>true</emphasis>. Otherwise, return <emphasis>false</emphasis>.</para>
-          </listitem>
-        </orderedlist>
-        <para>For determining the revocation status of a given certificate <emphasis>cert</emphasis> (Step (3) in RFC 5280, Sect. 6.1.3) in Step (1), the device shall use the algorithm defined in Sect. <xref linkend="_Ref392600406"/> with inputs</para>
-        <orderedlist numeration="loweralpha">
-          <listitem>
-            <para>Certificate := <emphasis>cert</emphasis></para>
-          </listitem>
-          <listitem>
-            <para>Certification path validation policy</para>
-          </listitem>
-        </orderedlist>
-        <para>In order to determine whether an X.509 version 1 or version 2 certificate is a CA certificate as required in RFC 5280, Sect. 6.1.4, step (k), the device shall use the source specified in the cA-information-source-for-v1-and-v2 information of the certification path validation policy.</para>
-      </section>
-      <section xml:id="_Ref392600406">
-        <title>Determine Certificate Revocation Status</title>
-        <para>Algorithm input:</para>
-        <orderedlist>
-          <listitem>
-            <para>Certificate <emphasis>cert</emphasis></para>
-          </listitem>
-          <listitem>
-            <para>Certification path validation policy</para>
-          </listitem>
-        </orderedlist>
-        <para>Algorithm output:</para>
-        <itemizedlist>
-          <listitem>
-            <para>REVOKED if certificate is considered revoked.</para>
-          </listitem>
-          <listitem>
-            <para>UNREVOKED if certificate is considered to have been released from hold.</para>
-          </listitem>
-          <listitem>
-            <para>UNDERTERMINED if the certificate is considered neither revoked nor released from hold.</para>
-          </listitem>
-        </itemizedlist>
-        <para>Algorithm steps:</para>
-        <orderedlist>
-          <listitem>
-            <para>For all CRLs <emphasis>l</emphasis> that shall be considered according to the certification path validation policy, execute the CRL validation algorithm defined in RFC 5280, Sect. 6.3 with inputs</para>
-            <orderedlist numeration="loweralpha">
-              <listitem>
-                <para>Certificate := the certificate <emphasis>cert</emphasis></para>
-              </listitem>
-              <listitem>
-                <para>
-                  <emphasis>use-deltas</emphasis> as defined in the certification path validation policy</para>
-              </listitem>
-            </orderedlist>
-          </listitem>
-          <listitem>
-            <para>For all other sources of revocation information to be considered according to the certification path validation policy, determine the revocation status of the certificate <emphasis>cert</emphasis> based on the certification path validation policy.</para>
-          </listitem>
-          <listitem xml:id="_Ref392600111">
-            <para>Combine the outputs of steps (1) and (2) as specified by the certification path validation policy and output the result.</para>
-          </listitem>
-        </orderedlist>
-      </section>
-      <section>
-        <title>Certification Path Validation Policy</title>
+      <para>Devices can request the connecting client to include a so called client certificate by
+        providing a list of accepted certificate issuers. During the initial TLS handshake the
+        client proves with a signature that it posesses the private key of the certificate. The TLS
+        server needs to verify the authenticity of the certificate by using certification path
+        validation according to RFC 5280 as detailed out in the next sections.</para>
+    </section>
+    <section>
+      <title>Certificate Path Verification</title>
         <section>
           <title>Certification Path Validation Algorithm Parameters</title>
-          <para>By default, a device shall use the values defined in <xref linkend="_Ref395170314"/> for the algorithm parameters defined in RFC 5280, Sect. 6.1.1 for the certification path validation algorithm defined in Sect. <xref linkend="_Ref392600142"/>.</para>
+          <para>By default, a device shall use the values defined in <xref linkend="_Ref395170314"/> for the algorithm parameters defined in RFC 5280, Sect. 6.1.1.</para>
           <table xml:id="_Ref395170314">
             <title>Default parameter values for the certification path validation algorithm</title>
             <tgroup cols="3">
@@ -858,7 +655,9 @@
         </section>
         <section>
           <title> Revocation Status Checking </title>
-          <para>By default, a device shall use the parameter values defined in <xref linkend="_Ref395170420"/> for the parameters defined in RFC 5280, Sect. 6.1.1 for the CRL-based certificate revocation status checking algorithm defined in Sect. <xref linkend="_Ref392600406"/>.</para>
+          <para>By default, a device shall use the parameter values defined in <xref
+            linkend="_Ref395170420"/> for the parameters specified in RFC 5280, section 6.3.1. For
+          CRL processing see section 6.3.3 of RFC 5280.</para>
           <table xml:id="_Ref395170420">
             <title>Default parameter values for the revocation status checking algorithm</title>
             <tgroup cols="3">
@@ -910,11 +709,12 @@
         </section>
         <section>
           <title>Trust Anchors</title>
-          <para>The trust anchors assigned to the certification path validation policy shall be used as trust anchor input to the certification path validation algorithm specified in Sect. <xref linkend="_Ref392600142"/>.</para>
+          <para>The trust anchors assigned to the certification path validation policy shall be used as trust anchor input to the certification path validation algorithm specified in RFC 5280.</para>
         </section>
         <section>
           <title>Certificate Repository for constructing Certification Paths</title>
-          <para>By default, the certification path validation algorithm specified in Sect. <xref linkend="_Ref395181338"/> shall consider all certificates in the keystore on the device when constructing prospective certification paths.</para>
+          <para>By default, the certification path validation shall consider all certificates in the
+          keystore on the device when constructing prospective certification paths.</para>
         </section>
         <section>
           <title>Specific certification path validation parameters</title>
@@ -956,58 +756,11 @@
           </table>
         </section>
       </section>
-      <section>
-        <title>Validate CRLs</title>
-        <para>By default, the device shall use the following algorithm to obtain and validate the certification path for a CRL issuer in Step (f) of the CRL processing algorithm defined in RFC 5280, Sect. 6.3.3.</para>
-        <para>Algorithm input:</para>
-        <orderedlist>
-          <listitem>
-            <para>CRL</para>
-          </listitem>
-          <listitem>
-            <para>Certification path validation policy</para>
-          </listitem>
-        </orderedlist>
-        <para>Algorithm output: <emphasis>valid</emphasis> if the CRL is considered valid, <emphasis>invalid</emphasis> otherwise</para>
-        <para>Algorithm steps:</para>
-        <orderedlist>
-          <listitem>
-            <para>Let c<subscript>1</subscript>,…,c<subscript>m</subscript> denote the certificates in the certificate repository for constructing certification paths as defined by the certification path validation policy that contain the issuer of <emphasis>l</emphasis> as subject.</para>
-          </listitem>
-          <listitem>
-            <para>For each certificate c<subscript>i</subscript></para>
-            <orderedlist numeration="loweralpha">
-              <listitem>
-                <para>Execute the certification path validation algorithm defined in Sect. <xref linkend="_Ref395181338"/> with input</para>
-                <itemizedlist>
-                  <listitem>
-                    <para>The certification path with c<subscript>i</subscript> as the only certificate in the path</para>
-                  </listitem>
-                  <listitem>
-                    <para>Current time and date</para>
-                  </listitem>
-                  <listitem>
-                    <para>Certification path validation policy</para>
-                  </listitem>
-                </itemizedlist>
-              </listitem>
-              <listitem>
-                <para>If c<subscript>i</subscript> is valid, verify the signature of the CRL with the subject public key in c<subscript>i</subscript>.</para>
-              </listitem>
-              <listitem>
-                <para>If the signature verification was successful, return <emphasis>valid</emphasis>.</para>
-              </listitem>
-            </orderedlist>
-          </listitem>
-          <listitem>
-            <para>Return <emphasis>invalid.</emphasis></para>
-          </listitem>
-        </orderedlist>
-      </section>
-    </section>
     <section xml:id="_Ref395181339">
       <title>JWT-based client authorization</title>
-      <para>Unlike with HTTP Digest and WS-UsernameToken authentication, this specification defines how to associate clients with the different User Levels as defined in the ONVIF Core Specification. Devices are not expected to have the user credentials stored in their memory, instead they will verify that the user has been correctly authenticated by a trusted service based on OpenID Connect and authorize accessing different functions, based on the claims presented in the supplied JWT. JWTs can be presented has headers in case of HTTPS or RTSP, or they can be embedded in SOAP messages, in the form of binary security tokens. In case JWTs are embedded in binary security tokens, their content is base64-encoded according to RFC 7519.</para>
+      <section>
+        <title>General</title>
+      <para>Unlike with HTTP Digest and WS-UsernameToken authentication, this specification defines how to associate clients with the different User Levels as defined in the ONVIF Core Specification. Devices are not expected to have the user credentials stored in their memory, instead they will verify that the user has been correctly authenticated by a trusted service based on OpenID Connect and authorize accessing different functions, based on the claims presented in the supplied JWT. JWTs can be presented as headers in case of HTTPS or RTSP, or they can be embedded in SOAP messages, in the form of binary security tokens. In case JWTs are embedded in binary security tokens, their content is base64url-encoded according to RFC 7519.</para>
       <para>JWTs consists of three elements:</para>
       <para>
         <itemizedlist>
@@ -1040,7 +793,7 @@
           </listitem>
         </itemizedlist>
       </para>
-      <para>For the <emphasis>exp</emphasis>, <emphasis>nbf</emphasis> claims, a device shall reject a token when the current time is not within the range of claims nbf and exp . It shall reject a token when at least one of the claims is missing.</para>
+      <para>For the <emphasis>exp</emphasis>, <emphasis>nbf</emphasis> claims, a device shall reject a token when the current time is not within the range of claims nbf and exp. It shall reject a token when at least one of the claims is missing.</para>
       <para>The JWT payload shall include the <emphasis>roles</emphasis> claim, as defined within RFC 7643:</para>
       <para>
         <itemizedlist>
@@ -1049,12 +802,40 @@
           </listitem>
         </itemizedlist>
       </para>
-      <para>The signature is evaluated by applying ECDSA using secp256r1 and SHA-256 hashing to the base64-encoded header and payload, concatenated by a '.'</para>
+      <para>The signature is evaluated by applying ECDSA using secp256r1 and SHA-256 hashing to the base64url-encoded header and payload, concatenated by a '.'</para>
       <programlisting>ECDSA-SHA256 (base64UrlEncode(header) + "." +
               base64UrlEncode(payload),
               secp256r1))</programlisting>
       <para>The evaluated signature is further appended to the encoded header and payload with a '.' separator, to get the final JWT. Appendix <xref linkend="_Ref460769599"/> demonstrates the construction or a JWT.</para>
       <para>The signature is used to protect the JWT data integrity and JWT source authenticity.</para>
+      </section>
+      <section>
+        <title>Configuration</title>
+        <para>The folowing parameters are defined:</para>
+        <variablelist>
+          <varlistentry>
+            <term>Audiences</term>
+            <listitem><para>One or more audience strings. A device shall reject a token if none of the provided strings matches.</para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>TrustedIssuer</term>
+            <listitem><para>Optional list of trusted issuer metadata URIs. A device shall reject a token if the list is
+                non-empty and the token does not match the information provided via one of the
+                issuer metadata URIs.</para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>KeyID</term>
+            <listitem><para>Optional list of  keys. A device shall reject a token if this list is non-empty and none of
+                the provided keys can verify the signature.</para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>ValidationPolicy</term>
+            <listitem><para>Optional cert path validation policies to verify trusted issuers. If this list is non-empty a
+                device shall only accept trusted issuers with matching TLS server
+                certificates.</para></listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
       <section>
         <title>Usage of JWT-based client authentication over HTTP</title>
         <para>Since authentication tokens contain sensitive information that could be easily used to perform replay attacks, JWT-based client authentication shall not be used over unencrypted HTTP connections.</para>
@@ -1090,45 +871,61 @@
     </section>
     <section xml:id="section_b4m_rs4_rwb">
       <title>Authorization Servers</title>
-      <para>This section describes use of external authorization servers that can be used for
-        providing authentication of users and authorizing access to both device services and
-        external services, like cloud storage.</para>
-      <para>OAuth 2.0 is a specification that describes how to issue access tokens. It is defined in RFC6749. OpenID Connect has been developed as an extension of OAuth 2.0.</para>
-      <para>OAuth 2.0 includes the definition of a web API called "authorization endpoint". Requests to this API must include a parameter called <emphasis>response_type</emphasis> which can be either <emphasis>code</emphasis> or <emphasis>token</emphasis>. OpenID Connect extends the OAuth 2.0 specification, by adding the values <emphasis>id_token</emphasis> and <emphasis>none</emphasis> for <emphasis>response_type</emphasis> and allowing any combination of <emphasis>code</emphasis>, <emphasis>token</emphasis> and <emphasis>id_token</emphasis>.</para>
-      <para>Any request for ID tokens must include <emphasis>openid</emphasis> in the <emphasis>scope</emphasis> request parameter.</para>
-      <para>For example OAuth 2.0 client registration, as specified by RFC6749 requires
-        configuration of ClientId, ClientSecret, an authentication method according to <xref
-          xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_smg_rzq_swb"/>plus server
-        dependent supplemental parameters before the client can use the OAuth2.0 and OpenID Connect
-        flow.</para>
-      <section xml:id="section_acl_4zq_swb">
-        <title>User authentication and authorization</title>
-        <para>Users can retrieve JWTs from an OpenID Connect server by authenticating and authorizing access to resources by following the OAuth2 Authorization Code Flow.</para>
-        <para>The Authorization Code Flow is summarized in <xref linkend="_Ref350769588"/>.</para>
-        <figure xml:id="_Ref350769588">
-          <title>OpenID Connect authorization code flow for users</title>
-          <mediaobject>
-            <imageobject>
-              <imagedata fileref="media/Security/image6.svg" contentwidth="159.97mm"/>
-            </imageobject>
-          </mediaobject>
-        </figure>
-        <para>A device can be setup to use JWTs obtained with this flow to allow access to its internal web interface for externally authenticated users. In that case an authorization server configuration with type OAuthAuthorizationCode or OIDC2AuthorizationCode should be created.</para>
-        <para>Access to the camera can be granted to users bearing either an ID Token or an Access Token, as long as the claims specified in <xref linkend="_Ref395181339"/> are present.</para>
-      </section>
+      <para>This section describes use of external authorization servers for authenticating users
+        and controlling access to resources. It can be used for granting access to both the device
+        itself and to external services, like cloud storage.</para>
+      <para>Different approaches are explained for granting access to human users and for machine to
+        machine authorization. Both approaches base on OAuth 2.0 as defined in RFC6749. OpenID
+        Connect has been developed as an extension of OAuth 2.0 especially for granting access to
+        human users.</para>
+      <para>OAuth 2.0 defines a web API called "authorization endpoint" to retrieve tokens. Clients
+        control the purpose via <emphasis>scope</emphasis> parameters.</para>
       <section xml:id="section_bcl_4zq_swb">
         <title>Device authentication and authorization</title>
-        <para>Devices will typically use the Oauth2 Client Credentials Grant Flow to gain access to resources. There are a number of different ways for a device (called a client in the OAuth2 Spec) to authenticate with the server using this flow, listed in <xref xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_smg_rzq_swb"/></para>
+        <para>Devices typically use the Oauth2 Client Credentials Grant Flow as specified by RFC6749
+          to gain access to resources. The device (called a client in the OAuth2 Spec) authenticates
+          itself at the authorization server according to one of the methods listed in <xref
+            xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_smg_rzq_swb"/>. In case of
+          success the authorization server responds to the request with an access token that
+          authorizes access to the actual resource.</para>
         <para>The Client Credentials Flow is summarized in <xref linkend="_Ref350769589"/>.</para>
         <figure xml:id="_Ref350769589">
           <title>OpenID Connect client credentials flow for devices</title>
           <mediaobject>
             <imageobject>
-              <imagedata fileref="media/Security/image7.svg" contentwidth="159.97mm"/>
+              <imagedata fileref="media/Security/image7.svg" contentwidth="130mm"/>
             </imageobject>
           </mediaobject>
         </figure>
-        <para>Since in the case of a camera accessing a remote resource there is no user involved and no identity to be checked, cameras are expected to use Access Tokens to perform this operation.</para>
+        <para>OAuth 2.0 client registration requires configuration of ClientId, ClientSecret, an
+          authentication method according to <xref xmlns:xlink="http://www.w3.org/1999/xlink"
+            linkend="table_smg_rzq_swb"/>plus server dependent supplemental parameters before the
+          client can use the OAuth2.0 and OpenID Connect flow.</para>
+      </section>
+      <section xml:id="section_acl_4zq_swb">
+        <title>User authentication and authorization</title>
+        <para>This flow separates retrieval of access token in two steps to allow separation of
+          authentication and authorization. Users can retrieve JWTs from an OpenID Connect server by
+          authenticating and authorizing access to resources by following the OAuth2 Authorization
+          Code Flow.</para>
+        <para>The Authorization Code Flow is summarized in <xref linkend="_Ref350769588"/>.</para>
+        <figure xml:id="_Ref350769588">
+          <title>OpenID Connect authorization code flow for users</title>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="media/Security/image6.svg" contentwidth="130mm"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+        <para>A device can be setup to use JWTs obtained with this flow to allow access to its web
+          interface for externally authenticated users. In that case an authorization server
+          configuration with type OAuthAuthorizationCode or OIDC2AuthorizationCode should be
+          created.</para>
+        <para>Access to the device can be granted to users bearing either an ID Token or an Access
+          Token, as long as the claims specified in <xref linkend="_Ref395181339"/> are
+          present.</para>
+        <para>Any request for ID tokens must include <emphasis>openid</emphasis> in the
+            <emphasis>scope</emphasis> request parameter.</para>
       </section>
       <section xml:id="section_ccl_4zq_swb">
         <title>Authorization server configuration</title>
@@ -1181,19 +978,22 @@
                 </entry>
               </row>
               <row>
-                <entry>KeyID</entry>
-                <entry>Key identifier for the <emphasis>private_key_jwt</emphasis> authentication method</entry>
+                <entry><para>KeyID</para></entry>
+                <entry><para>Key identifier for the <emphasis>private_key_jwt</emphasis> authentication
+                  method</para></entry>
               </row>
               <row>
-                <entry>CertificateID</entry>
-                <entry>Certificate identifier for the <emphasis>self_signed_tls_client_auth</emphasis> authentication method</entry>
+                <entry><para>CertificateID</para></entry>
+                <entry><para>Certificate identifier for the
+                  <emphasis>self_signed_tls_client_auth</emphasis> and <emphasis>tls_client_auth</emphasis> authentication methods.</para></entry>
               </row>
               <row>
                 <entry>
                   <para>Type</para>
                 </entry>
                 <entry>
-                  <para>The type of configuration, see <xref xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_ry3_fbr_swb"/> for
+                  <para>The type of configuration, see <xref
+                      xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_ry3_fbr_swb"/> for
                     possible values.</para>
                 </entry>
               </row>
@@ -1202,8 +1002,18 @@
                   <para>ClientAuth</para>
                 </entry>
                 <entry>
-                  <para>The type of client authentication method to use, see <xref xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_smg_rzq_swb"/> for
+                  <para>The type of client authentication method to use, see <xref
+                      xmlns:xlink="http://www.w3.org/1999/xlink" linkend="table_smg_rzq_swb"/> for
                     possible values.</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>CertPathValidationPolicyID</para>
+                </entry>
+                <entry>
+                  <para>The unique identifier of the certification path validation policy to be
+                    used for validating the server certificate</para>
                 </entry>
               </row>
             </tbody>
@@ -1374,8 +1184,6 @@
       <section>
         <title>Uniqueness of Objects in the Keystore</title>
         <para>A device shall allow multiple copies of the same passphrase to be present in the keystore under different IDs simultaneously.</para>
-        <para>A device shall allow multiple copies of the same certificate to be present in the
-          keystore under different IDs, respectively.</para>
         <para>A device shall allow multiple copies of the same certificate revocation list to be present in the keystore under different IDs, respectively.</para>
         <para>A device shall allow multiple copies of the same certification path validation policy to be present in the keystore under different IDs, respectively.</para>
         <para>A device shall allow multiple copies of the same IEEE 802.1X configuration to be present in the keystore under different IDs simultaneously.</para>
@@ -1644,7 +1452,7 @@
           </section>
           <section>
             <title>CreateECCKeyPair</title>
-            <para>This operation triggers the asynchronous generation of an ECC key pair using a particular elliptic curve as specified in RFC 4492, with a suitable key generation mechanism on the device. Keys, especially ECC key pairs, are uniquely identified using key IDs. </para>
+            <para>This operation triggers the asynchronous generation of an ECC key pair using a particular elliptic curve as specified in RFC 8422, with a suitable key generation mechanism on the device. Keys, especially ECC key pairs, are uniquely identified using key IDs. </para>
             <para>If the device does not have enough storage capacity for storing the key pair to be created, the maximum number of keys reached fault shall be produced and no key pair shall be generated. Otherwise, the operation generates a keyID for the new key and associates the <emphasis>generating</emphasis> status to it. Immediately after key generation has started, the device shall return the keyID to the client and continue to generate the key pair. The client may query the device with the GetKeyStatus operation (see Sect. <xref linkend="_Ref361388129"/>) whether the generation has finished. The client may also subscribe to Key Status events (see Sect. <xref linkend="_Ref353780603"/>) to be notified about key status changes.</para>
             <para>The device also returns a best-effort estimate of how much time it requires to create the key pair.<footnote xml:id="__FN3__"><para>Implementors may estimate the key generation time for a fixed key length as the average elapsed time of a number of key generation operations for this key length.</para></footnote> A client may use this information as an indication how long to wait before querying the device whether key generation is completed.</para>
             <para>After the key has been successfully created, the device shall assign it the <emphasis>ok</emphasis> status. If the key generation fails, the device shall assign the key the <emphasis>corrupt</emphasis> status.</para>
@@ -1653,7 +1461,7 @@
                 <term>request</term>
                 <listitem>
                   <para role="param">EllipticCurve - [xs:string]</para>
-                  <para role="text"> The name of the elliptic curve to be used for genereting the ECC keypair. For definitions see IANA TLS Supported Groups.</para>
+                  <para role="text"> The name of the elliptic curve to be used for generating the ECC keypair. Supported curve names can be found in the IANA TLS Supported Groups section, under the <emphasis>Description</emphasis> field.</para>
                   <para role="param">Alias - optional [xs:string] </para>
                   <para role="text">The client-defined alias of the key.</para>
                 </listitem>
@@ -2103,6 +1911,8 @@
                   <para role="text"> The specified signature algorithm is not supported by the device.</para>
                   <para role="param">ter:Sender - ter:InvalidArgVal - ter:InvalidKeyStatus</para>
                   <para role="text"> The key pair has an inappropriate status.</para>
+                  <para role="param">ter:Sender - ter:InvalidArgVal - ter:Duplicate</para>
+                  <para role="text"> The certificate already exists.</para>
                 </listitem>
               </varlistentry>
               <varlistentry>
@@ -2452,6 +2262,47 @@
             </variablelist>
           </section>
           <section>
+            <title>SetCertificationPath</title>
+            <para>This operation allows to modify a certification path. A device shall support this
+              method if support for SetCertPath is signaled via its capabilities.</para>
+            <variablelist role="op">
+              <varlistentry>
+                <term>request</term>
+                <listitem>
+                  <para role="param">CertificationPathID - [tas:CertificationPathID] </para>
+                  <para role="text">The ID of the certification path to modify.</para>
+                  <para role="param">CertificateIDs - [tas:CertificateIDs] </para>
+                  <para role="text">The IDs of the certificates to include in the certification path, where each certificate signature except for the last one in the path must be verifiable with the public key certified by the next certificate in the path.</para>
+                  <para role="param">Alias - optional [xs:string] </para>
+                  <para role="text">The client-defined alias of the certification path.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>response</term>
+                <listitem>
+                  <para role="text">This message is empty.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>faults</term>
+                <listitem>
+                  <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificationPathID </para>
+                  <para role="text">No certification path is stored under the requested certification path ID.</para>
+                  <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificateID </para>
+                  <para role="text">No certificate is stored under the requested CertificateID.</para>
+                  <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidCertificationPath </para>
+                  <para role="text">At least one certificate in the certification path is not correctly signed with the public key in the next certificate in the path.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>access class</term>
+                <listitem>
+                  <para role="access">READ_SYSTEM_SECRET</para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </section>
+          <section>
             <title>DeleteCertificationPath</title>
             <para>This operation deletes a certification path from the device’s keystore.</para>
             <para>This operation shall not delete the certificates that are referenced by the certification path.</para>
@@ -2653,7 +2504,6 @@
             <title>CreateCertPathValidationPolicy</title>
             <para>This operation creates a certification path validation policy.</para>
             <para>Certification path validation policies are uniquely identified using certification path validation policy IDs. The device shall generate a new certification path validation policy ID for the created certification path validation policy.</para>
-            <para>For the certification path validation parameters that are not represented in the certPathValidationParameters data type, the device shall use the default values specified in Sect. <xref linkend="_Ref392600111"/>.</para>
             <para>If the device does not have enough storage capacity for storing the certification path validation policy to be created, the device shall produce a maximum number of certification path validation policies reached fault and shall not create a certification path validation policy.</para>
             <para>If there is at least one trust anchor certificate ID in the request for which there exists no certificate in the device’s keystore, the device shall produce a CertificateID fault and shall not create a certification path validation policy.</para>
             <para>If the device cannot process the supplied certification path validation parameters, the device shall produce a CertPathValidationParameters fault and shall not create a certification path validation policy.</para>
@@ -2760,6 +2610,53 @@
                 <term>access class</term>
                 <listitem>
                   <para role="access">READ_SYSTEM_SECRET</para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </section>
+          <section>
+            <title>SetCertPathValidationPolicy</title>
+            <para>This operation allows to modify a certification path validation policy in the
+              keystore on the device. A device shall support this method if support for SetCertPath
+              is signaled via its capabilities.</para>
+            <variablelist role="op">
+              <varlistentry>
+                <term>request</term>
+                <listitem>
+                  <para role="param">CertPathValidationPolicyID - [tas:CertPathValidationPolicyID] </para>
+                  <para role="text">The ID of the certification path validation policy to be modified.</para>
+                  <para role="param">Parameters - [tas:CertPathValidationParameters] </para>
+                  <para role="text">The parameters of the certification path validation
+                    policy.</para>
+                  <para role="param">TrustAnchor - unbounded [tas:TrustAnchor] </para>
+                  <para role="text">The trust anchors of the certification path validation
+                    policy.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>response</term>
+                <listitem>
+                  <para role="text">This message is empty.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>faults</term>
+                <listitem>
+                  <para role="param">env:Sender - ter:InvalidArgVal - ter:CertPathValidationPolicyID </para>
+                  <para role="text">No certification path validation policy is stored under the requested certification path validation policy ID.</para>
+                  <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificateID </para>
+                  <para role="text">No certificate is stored under the requested
+                    CertificateID.</para>
+                  <para role="param">env:Sender - ter:InvalidArgVal -
+                    ter:CertPathValidationParameters </para>
+                  <para role="text">The specified certification path validation parameters are
+                    invalid.</para>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term>access class</term>
+                <listitem>
+                  <para role="access">WRITE_SYSTEM</para>
                 </listitem>
               </varlistentry>
             </variablelist>
@@ -3116,7 +3013,7 @@
         </section>
         <section>
           <title>AddCertPathValidationPolicyAssignment</title>
-          <para>This operation assigns a certification path validation policy to the TLS server on the device. The TLS server shall enforce the policy when authenticating TLS clients and consider a client authentic if and only if the algorithm defined in Sect. <xref linkend="_Ref395181338"/> returns <emphasis>valid</emphasis>.</para>
+          <para>This operation assigns a certification path validation policy to the TLS server on the device. The TLS server shall enforce the policy when authenticating TLS clients and consider a client authentic if Certificaton Path Validation according to section 6 of RFC 5280 succeeds.</para>
           <para>If no certification path validation policy is stored under the requested CertPathValidationPolicyID, the device shall produce a CertPathValidationPolicyID fault.</para>
           <para>A TLS server may use different certification path validation policies to authenticate clients. Therefore more than one certification path validation policy may be assigned to the TLS server. If the maximum number of certification path validation policies that may be assigned to the TLS server simultaneously is reached, the device shall produce a MaximumNumberOfTLSCertPathValidationPoliciesReached fault and shall not assign the requested certification path validation policy to the TLS server.</para>
           <variablelist role="op">
@@ -3602,7 +3499,9 @@
       <para>This chapter describes configuration of external authorization servers. For an overview of this see <xref xmlns:xlink="http://www.w3.org/1999/xlink" linkend="section_b4m_rs4_rwb"/>.</para>
       <section xml:id="section_c22_5r4_rwb">
         <title>GetAuthorizationServerConfigurations</title>
-        <para>This operation retrieves an existing authorization server configuration, or all existing authorization server configurations if Token is not specified.</para>
+        <para>This operation retrieves an existing authorization server configuration, or all
+          existing authorization server configurations if Token is not specified. The device shall
+          support this command if MaxConfigurations capability is greater than zero.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -3635,7 +3534,10 @@
       </section>
       <section xml:id="section_d22_5r4_rwb">
         <title>CreateAuthorizationServerConfiguration</title>
-        <para>This operation creates a new authorization server configuration. The configuration data shall be created in the device and shall be persistent (remain after reboot).</para>
+        <para>This operation creates a new authorization server configuration. The configuration
+          data shall be created in the device and shall be persistent (remain after reboot). The
+          device shall support this command if MaxConfigurations capability is greater than
+          zero.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -3670,7 +3572,8 @@
       </section>
       <section xml:id="section_e22_5r4_rwb">
         <title>SetAuthorizationServerConfiguration</title>
-        <para>This operation modifies an existing authorization server configuration.</para>
+        <para>This operation modifies an existing authorization server configuration. The device
+          shall support this command if MaxConfigurations capability is greater than zero.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -3705,7 +3608,8 @@
       <section xml:id="section_f22_5r4_rwb">
         <title>DeleteAuthorizationServerConfiguration</title>
         <para>This operation deletes the given authorization server configuration and configuration
-          change shall always be persistent.</para>
+          change shall always be persistent. The device shall support this command if
+          MaxConfigurations capability is greater than zero.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -4064,6 +3968,11 @@
                   <para>Indicates the device requires that each certificate with private key has its own unique key.</para>
                 </entry>
               </row>
+              <row>
+                <entry><para>SetCertPath</para></entry>
+                <entry><para>The device supports modification of certificate path and certificate
+                  validation path.</para></entry>
+              </row>
             </tbody>
           </tgroup>
         </table>
@@ -4191,7 +4100,7 @@
             <tbody valign="top">
               <row>
                 <entry>
-                  <para>MaxAuthorizationServerConfigurations</para>
+                  <para>MaxConfigurations</para>
                 </entry>
                 <entry>
                   <para>Indicates the maximum number of  authorization server configurations that
@@ -4200,7 +4109,7 @@
               </row>
               <row>
                 <entry>
-                  <para>AuthorizationServerConfigurationTypesSupported</para>
+                  <para>ConfigurationTypesSupported</para>
                 </entry>
                 <entry>
                   <para>A list of authorization server configuration types that is supported by the
@@ -4764,7 +4673,13 @@
         <para>Faults and their types shall not disclose sensitive information to an attacker that he could not obtain otherwise.</para>
       </listitem>
       <listitem>
-        <para>For interoperability reasons, sha1WithRSAEncryption as specified in RFC 3279 is mandated as default signature algorithm. However, since the security of the SHA-1 algorithm is under question, this specification mandates that a signature algorithm based on SHA-256, particularly sha256WithRSAEncryption as specified in RFC 4055, be supported in addition.</para>
+        <para>Secure up to date signature algorithm should be implemented by devices and clients.
+          Devices signal the supported algorithm via their capabilities and clients should select
+          the algorithm with highest security strength supported by both parties. As common baseline
+          this specification requires device side support for SHA-2, particularly
+          sha256WithRSAEncryption as specified in RFC 4055. Note that for backward compatibility of
+          some usages this specification currently mandates device side support for
+          sha1WithRSAEncryption as specified in RFC 3279. </para>
       </listitem>
       <listitem>
         <para>Operations with arguments that need protection against eavesdropping or manipulation shall only be executed over sufficiently protected communication channels. </para>
@@ -4794,7 +4709,7 @@
         <para>Devices may be required to use different trust anchors for different security features. Therefore, trust in a certificate is indicated as part of a certification path validation policy rather than globally, e.g., with an attribute of the X509Certificate data type. </para>
       </listitem>
       <listitem>
-        <para>RFC 5280, Sect. 6.1.4 (k) mandates that every certificate in a certification path except for the end entity certificate must be verified to be a CA certificate. For X.509 version 3 certificates, this is verified through the CA attribute in the basic constraints extension. For X.509 version 1 and 2 certificates, this information must be supplied by out-of-band mechanisms. Within the scope of this specification, the only means to obtain this information is the trust anchor information contained in the certification path validation algorithm. Therefore, the default certification path validation policy mandates that the certification path validation algorithm defined in Sect. <xref linkend="_Ref392600142"/> consider all certificates that are not marked as trust anchor as non-CA certificates.</para>
+        <para>RFC 5280, Sect. 6.1.4 (k) mandates that every certificate in a certification path except for the end entity certificate must be verified to be a CA certificate. For X.509 version 3 certificates, this is verified through the CA attribute in the basic constraints extension. For X.509 version 1 and 2 certificates, this information must be supplied by out-of-band mechanisms. Within the scope of this specification, the only means to obtain this information is the trust anchor information contained in the certification path validation algorithm. </para>
       </listitem>
       <listitem>
         <para>When configuring IEEE 802.1X, it is usually necessary to upload a password to the device’s keystore.  This should be done either on a private network (e.g., using a direct network connection between a laptop and a device) or using TLS (SSL) on the device to encrypt client / device traffic.</para>
@@ -4827,9 +4742,9 @@
       <para>All other configuration of the TLS server on a device is outside the scope of this specification revision and may be addressed by later revisions of this document.</para>
     </section>
   </chapter>
-  <appendix xml:id="_Ref460769599">
-    <title>JWT over SCTP example</title>
-    <para>The JWT will have the following content</para>
+  <appendix xml:id= "q5l_q5m_51c">
+    <title>JWT Content example</title>
+    <para>Here is an example of JWT components to be encoded into a JWT Token</para>
     <programlisting><![CDATA[{
     "typ":"JWT",
     "alg":"ES256",
@@ -4841,16 +4756,22 @@
     "roles":["onvif:Operator"]
 }
 ]]></programlisting>
-    <para>which is base64-encoded as</para>
+    <para>which is base64url-encoded in three parts according to RFC 7519 as</para>
     <programlisting>eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJzZXJ2ZXIucGF0aC5jb20iLCJuYmYiOjE2NzA0ODI4MDAsImV
-4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmNlIiwicm9sZXMiOlsib252aWY6T3BlcmF0b3IiXX0=.SflKxw
+4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmNlIiwicm9sZXMiOlsib252aWY6T3BlcmF0b3IiXX0.SflKxw
 RJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</programlisting>
-    <para>While the individual components of the JWT are already base64-encoded, the whole structure is not technically base64-encoded. Therefore it is necessary to base64-encode it again, leading to</para>
-    <programlisting>ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOaUo5LmV5SnBjM01pT2lKelpYSjJaWEl1Y0dGMGFDNW
+  </appendix>
+  <appendix xml:id="_Ref460769599">
+    <title>JWT over SCTP example</title>
+    <para>A JWT, whose content example is shown in <xref xmlns:xlink="http://www.w3.org/1999/xlink"
+        linkend="q5l_q5m_51c"/>, can be used in the WS-Security header of the SOAP request. To conform
+        to the BinarySecurityToken format, the JWT itself must be base64-encoded before being embedded
+        in the request:</para>
+    <programlisting><![CDATA[ZZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOaUo5LmV5SnBjM01pT2lKelpYSjJaWEl1Y0dGMGFDNW
 piMjBpTENKdVltWWlPakUyTnpBME9ESTRNREFzSW1WNGNDSTZNVFkzTURVM01qZ3dNQ3dpWVhWa0lqb2lkR0Z5
-WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9pSnZiblpwWmpwUGNHVnlZWFJ2Y2lKOS5TZmxLeHdSSlNNZU
-tLRjJRVDRmd3BNZUpmMzZQT2s2eUpWX2FkUXNzdzVj</programlisting>
-    <para>At this point, the JWT can be used in the WS-Security header of the SOAP request:</para>
+WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9sc2liMjUyYVdZNlQzQmxjbUYwYjNJaVhYMC5TZmxLeHdSSl
+NNZUtLRjJRVDRmd3BNZUpmMzZQT2s2eUpWX2FkUXNzdzVj]]></programlisting>
+    <para>This encoded token can then be added to the SOAP request in a BinarySecurityToken element.</para>
     <programlisting><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"
               xmlns:enc="http://www.w3.org/2003/05/soap-encoding"
@@ -4876,7 +4797,7 @@ pTTWVLS0YyUVQ0ZndwTWVKZjM2UE9rNnlKVl9hZFFzc3c1Yw==
   <env:Body>
 </env:Envelope>]]></programlisting>
   </appendix>
-  <appendix>
+  <appendix xml:id= "hq4_s5m_51c">
     <title>JWT over HTTPS example</title>
     <para>The following exchange between client and device over HTTPS demonstrates a device supporting MD5 and SHA-256 for digest authentication as well as JWT-based client authentication.</para>
     <para>Unauthenticated request from the client:</para>
@@ -4899,13 +4820,14 @@ nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
 WWW-Authenticate: Digest algorithm=SHA-256, realm="Silvan_http_digest", qop="auth",
 nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
 X-Frame-Options: SAMEORIGIN]]></programlisting>
-    <para>Authenticated request from the client, by using JWT-based client authentication</para>
+    <para>Authenticated request from the client, by using JWT-based client authentication whose JWT
+      content looks like the example is shown in <xref xmlns:xlink="http://www.w3.org/1999/xlink"
+        linkend="q5l_q5m_51c"/></para>
     <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
 Host: 10.XX.XX.XX
-Authorization: Bearer ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOaUo5LmV5SnBjM01pT2lK
-elpYSjJaWEl1Y0dGMGFDNWpiMjBpTENKdVltWWlPakUyTnpBME9ESTRNREFzSW1WNGNDSTZNVFkzTURVM01qZ3
-dNQ3dpWVhWa0lqb2lkR0Z5WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9sc2liMjUyYVdZNlQzQmxjbUYw
-YjNJaVhYMD0uU2ZsS3h3UkpTTWVLS0YyUVQ0ZndwTWVKZjM2UE9rNnlKVl9hZFFzc3c1Yw==
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJzZXJ2ZXIucGF0aC5
+jb20iLCJuYmYiOjE2NzA0ODI4MDAsImV4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmNlIiwic
+m9sZXMiOlsib252aWY6T3BlcmF0b3IiXX0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
 Content-Type: application/soap+xml; charset=utf-8
 Content-Length: 299
 
@@ -4925,8 +4847,8 @@ WWW-Authenticate: Digest algorithm=SHA-256, realm="Silvan_http_digest", qop="aut
 nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
 X-Frame-Options: SAMEORIGIN]]></programlisting>
   </appendix>
-  <appendix role="revhistory">
-    <title>JWT over RTSPS</title>
+  <appendix xml:id= "b14_55m_51c">
+    <title>JWT over RTSPS example</title>
     <para>The following exchange between client and device over RTSPS demonstrates a device supporting MD5 and SHA-256 for digest authentication as well as JWT-based client authentication.</para>
     <para>Unauthenticated request from the client:</para>
     <programlisting><![CDATA[DESCRIBE rtsp://10.XX.XX.XX/stream RTSP/1.0
@@ -4941,12 +4863,13 @@ WWW-Authenticate: Digest algorithm=MD5, realm="Silvan_rtsp_digest", qop="auth",
 nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
 WWW-Authenticate: Digest algorithm=SHA-256, realm="Silvan_rtsp_digest", qop="auth",
 nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"]]></programlisting>
-    <para>Authenticated request from the client, by using JWT-based client authentication</para>
+    <para>Authenticated request from the client, by using JWT-based client authentication whose JWT
+      content looks like the example is shown in <xref xmlns:xlink="http://www.w3.org/1999/xlink"
+        linkend="q5l_q5m_51c"/></para>
     <programlisting><![CDATA[DESCRIBE rtsp://10.XX.XX.XX/stream RTSP/1.0
-Authorization: Bearer ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOaUo5LmV5SnBjM01pT2lK
-elpYSjJaWEl1Y0dGMGFDNWpiMjBpTENKdVltWWlPakUyTnpBME9ESTRNREFzSW1WNGNDSTZNVFkzTURVM01qZ3
-dNQ3dpWVhWa0lqb2lkR0Z5WjJWMExtRjFaR2xsYm1ObElpd2ljbTlzWlhNaU9sc2liMjUyYVdZNlQzQmxjbUYw
-YjNJaVhYMD0uU2ZsS3h3UkpTTWVLS0YyUVQ0ZndwTWVKZjM2UE9rNnlKVl9hZFFzc3c1Yw==
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJzZXJ2ZXIucGF0aC5
+jb20iLCJuYmYiOjE2NzA0ODI4MDAsImV4cCI6MTY3MDU3MjgwMCwiYXVkIjoidGFyZ2V0LmF1ZGllbmNlIiwic
+m9sZXMiOlsib252aWY6T3BlcmF0b3IiXX0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
 CSeq: 2
 User-Agent: ./onvifClient
 Accept: application/sdp]]></programlisting>
