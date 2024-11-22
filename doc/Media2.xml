@@ -2056,6 +2056,112 @@
         </variablelist>
       </section>
     </section>
+    <section xml:id="section_km_madec">
+      <title>Multicast Audio Decoder</title>
+      <para>
+      The multicast audio decoder configuration pertains to scenarios involving audio broadcasts. Devices that support this feature indicate their capability by including "MulticastAudioDecoder" in the GetServiceCapabilities response.
+      A device can support multiple multicast audio decoder configurations. When enabled, the device listens on the specified multicast address and port for audio RTP data and plays back the audio on the configured audio output.
+      Optionally, a device can signal its capability to receive SRTP packets (according to RFC 3771 and RFC 7714) in the MulticastAudioDecoderConfigurationOptions response. When SRTPPSK (Pre-Shared Key) is configured, the device expects encrypted RTP packets. If multiple audio multicast configurations are supported and the device receives audio data on multiple addresses, it can prioritize one configuration over another based on the Priority setting.
+      </para>
+      <section xml:id="section_get_multicast_audio_decoder_configurations">
+        <title>GetMulticastAudioDecoderConfigurations</title>
+        <para>This operation gets the list of multicast audio decoder configurations.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ConfigurationToken - optional; [ReferenceToken]</para>
+              <para role="text">Unique token of the multicast audio decoder configuration. If not passed, device shall respond with all configurations.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Configurations - optional, unbounded; [MulticastAudioDecoderConfiguration]</para>
+              <para role="text">This message contains the list of multicast audio decoder configurations.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="section_get_multicast_audio_decoder_configuration_options">
+    <title>GetMulticastAudioDecoderConfigurationOptions</title>
+    <para>This operation gets the available options for the MulticastAudioDecoder configuration.</para>
+    <variablelist role="op">
+      <varlistentry>
+        <term>request</term>
+        <listitem>
+          <para role="param">ConfigurationToken - optional; [ReferenceToken]</para>
+          <para role="text">This response contains the available MulticastAudioDecoderConfigurationOptions. If a multicast audio decoder configuration is specified, the options shall concern that particular configuration.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>response</term>
+        <listitem>
+          <para role="param">Options - unbounded; [MulticastAudioDecoderConfigurationOptions]</para>
+          <para role="text">This message contains the available options for the multicast audio decoder configuration.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>faults</term>
+        <listitem>
+          <para role="text">No command specific faults defined.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>access class</term>
+        <listitem>
+          <para role="access">READ_SYSTEM</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </section>
+   <section xml:id="section_set_multicast_audio_decoder_configuration">
+        <title>SetMulticastAudioDecoderConfiguration</title>
+        <para>This operation sets the MulticastAudioDecoderConfiguration.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Configuration [MulticastAudioDecoderConfiguration]</para>
+              <para role="text">Modified MulticastAudioDecoderConfiguration,the configuration shall exist in the device. </para>
+            </listitem>
+          </varlistentry>
+           <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+              <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoConfig</para>
+              <para role="text">The provided MulticastAudioDecoderConfiguration does not exist.</para>
+              <para role="param">env:Receiver - ter:InvalidArgVal - ter:<phrase>ConfigModify</phrase></para>
+              <para role="text">The configuration parameters are not possible to set.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
     <section xml:id="section_k4m_bbc_yyb">
       <title>WebRTC</title>
       <section>
@@ -2280,6 +2386,10 @@
         <varlistentry>
           <term>AutoStartMulticast</term>
           <listitem><para>Indicates support for non-RTSP controlled multicast streaming.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>MulticastAudioDecoder</term>
+          <listitem><para>Indicates support for multicast audio decoder. </para></listitem>
         </varlistentry>
         <varlistentry>
           <term>MultiTrackStreaming</term>
