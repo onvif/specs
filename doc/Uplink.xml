@@ -291,7 +291,6 @@
           specifications.</para>
         <para>To uniquely identify a local service on remote client, it is recommended to have a unique client certificate installed on each local service. For example, CN field or Serial number of installed certificate could be used to uniquely identify the local service.</para>
         <para>The device shall assign any tunneled HTTP or RTSP request the UserLevel that is configured for the configuration without the need of further authentication request headers. </para>
-        <para>If the <literal>CertificateID</literal> is present in the <literal>UplinkConfiguration</literal> the device shall use this authentication mechanism.</para>
       </section>
       <section>
         <title>JWT authentication</title>
@@ -299,7 +298,6 @@
         <para>The remote client shall validate the JWT token provided following the JWT specification as defined in the Core specification.</para>
         <para>The device shall assign any tunneled HTTP or RTSP request the UserLevel that is configured for the configuration without the need of further authentication request headers.</para>
         <para>When a device indicates JsonWebToken is supported through its Capabilities, then it shall support JWT authentication in this specification.</para>
-        <para>If the <literal>AuthorizationServer</literal> token is present in the <literal>UplinkConfiguration</literal> the device shall use this authentication mechanism.</para>
       </section>
     </section>
     <section>
@@ -333,39 +331,77 @@
     <title>Configuration Interface</title>
     <section>
       <title>Configuration parameters</title>
-      <itemizedlist>
-        <listitem>
-          <para>RemoteAddress : Uniform resource locator by which the remote client can be
-            reached.</para>
-        </listitem>
-        <listitem>
-          <para>CertificateID : ID of the certificate to be used for client authentication.</para>
-        </listitem>
-        <listitem>
-          <para>UserLevel : Authorization level that will be assigned to the uplink
-            connection</para>
-        </listitem>
-        <listitem>
-          <para>Status :  Current connection status</para>
-        </listitem>
-         <listitem>
-          <para>CertPathValidationPolicyID : ID of Certificate Validation policy to validate the
-            remote uplink server certificate. If not configured, server certificate validation
-            behavior is undefined and the device may either apply a vendor specific default
-            validation policy or skip validation at all. </para>
-        </listitem>
-        <listitem>
-          <para>AuthorizationServer :  JWTConfiguration token referring to an Authorization server
-            that provides JWT token to authorize with the uplink server.</para>
-        </listitem>
-        <listitem>
-          <para>Error : Optional user readable error information (readonly).</para>
-        </listitem>
-      </itemizedlist>
+      <table xml:id="table_uplink-config-parameters">
+        <title>Parameters description</title>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="30*"/>
+          <colspec colname="c2" colwidth="70*"/>
+          <thead>
+            <row>
+              <entry>
+                <para>Parameter</para>
+              </entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody valign="top">
+            <row>
+              <entry>RemoteAddress</entry>
+              <entry>
+                <para>Uniform resource locator by which the remote client can be reached.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>CertificateID</entry>
+              <entry>
+                <para>ID of the certificate to be used for client authentication.</para>
+                <para>If the <literal>CertificateID</literal> is present in the
+                    <literal>UplinkConfiguration</literal> the device shall use mTLS authentication
+                  mechanism.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>UserLevel</entry>
+              <entry>
+                <para>Authorization level that will be assigned to the uplink connection.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>Status</entry>
+              <entry>
+                <para>Current connection status</para>
+              </entry>
+            </row>
+            <row>
+              <entry>CertPathValidationPolicyID</entry>
+              <entry>
+                <para>CertPathValidationPolicyID used to validate the uplink server certificate. If
+                  not configured, server certificate validation behavior is undefined and the device
+                  may either apply a vendor specific default validation policy or skip validation at
+                  all. </para>
+              </entry>
+            </row>
+            <row>
+              <entry>AuthorizationServer</entry>
+              <entry>
+                <para>AuthorizationServerConfiguration token referring to an authorization server
+                  that provides JWT token to authorize with the uplink server.</para>
+                <para>If the <literal>AuthorizationServer</literal> token is present in the
+                    <literal>UplinkConfiguration</literal> the device shall use JWT authentication
+                  mechanism.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>Error</entry>
+              <entry>
+                <para>Optional user readable error information (readonly).</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
       <para>The device shall interpret the field RemoteAddress as key to a specific uplink
         configuration.</para>
-      <para>A device shall reject a configuration containing both CertificateID and
-        AuthorizationServer. </para>
     </section>
     <section>
       <title>GetUplinks</title>
@@ -394,7 +430,8 @@
     </section>
     <section>
       <title>SetUplink</title>
-      <para>A device supporting uplinks shall support this command to add or modify an uplink configuration. The Status property of the UplinkConfiguration shall be ignored by the device. A device shall use the field RemoteAddress to decide whether to update an existing entry or create a new entry.</para>
+      <para>A device supporting uplinks shall support this command to add or modify an uplink configuration. The Status property of the UplinkConfiguration shall be ignored by the device. 
+            A device shall use the field RemoteAddress to decide whether to update an existing entry or create a new entry. A device shall reject a configuration containing both CertificateID and AuthorizationServer.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
