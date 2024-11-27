@@ -580,7 +580,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-
 			<xs:element name="StopExportRecordedData">
 				<xs:complexType>
 					<xs:sequence>
@@ -609,7 +608,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-
 			<xs:element name="GetExportRecordedDataState">
 				<xs:complexType>
 					<xs:sequence>
@@ -638,6 +636,194 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
+
+			<!--===============================-->
+			<xs:element name="ListRecordedSegments">
+				<xs:annotation>
+					<xs:documentation>Gets segments available within a time range.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Time" type="tt:DateTimeRange">
+							<xs:annotation>
+								<xs:documentation>The start to end time of the query.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="RecordingToken" type="tt:RecordingReference">
+							<xs:annotation>
+								<xs:documentation>The recording configuration token.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="MaxResults" type="xs:int" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The maximum number of results to return in one response.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="ListRecordedSegmentsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Segment" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Information about an exportable segment.</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="StartTime" type="xs:dateTime">
+										<xs:annotation>
+											<xs:documentation>Same precision as defined in the Recording Control specification for segment objects.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="EndTime" type="xs:dateTime">
+										<xs:annotation>
+											<xs:documentation>Same precision as defined in the Recording Control specification for segment objects.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="MediaType" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>As defined in RFC 6381 including section 3 Codecs.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="HasMoreResults" type="xs:boolean" minOccurs="1">
+							<xs:annotation>
+								<xs:documentation>A value indicating that the search has reached the maximum count and a new request must be sent to continue the search.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="ExportRecordedSegments">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Time" type="tt:DateTimeRange">
+							<xs:annotation>
+								<xs:documentation>The start to end time of the query.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="RecordingToken" type="tt:RecordingReference">
+							<xs:annotation>
+								<xs:documentation>The recording configuration token.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="StorageToken" type="tt:ReferenceToken" minOccurs="0" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>If provided, overrides the Target's storage configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Track" type="tt:TrackType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>An optional track filter for segments to export when in CMAF.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="ExportRecordedSegmentsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="OperationToken" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Unique operation token for client to query the status of the export.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:complexType name="UploadSegmentResult">
+				<xs:sequence>
+					<xs:element name="StartTime" type="xs:dateTime">
+						<xs:annotation>
+							<xs:documentation>Same precision as defined in the Recording Control specification for segment objects.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="EndTime" type="xs:dateTime">
+						<xs:annotation>
+							<xs:documentation>Same precision as defined in the Recording Control specification for segment objects.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MediaType" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>As defined in RFC 6381 including section 3 Codecs.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="StoragePath" type="xs:string" >
+						<xs:annotation>
+							<xs:documentation>
+								The URI which combines the storage configuration StoragePath and the segment object path.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Status" type="trc:UploadStatus">
+						<xs:annotation>
+							<xs:documentation>See trc:UploadStatus for allowed values.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first Vendor then ONVIF -->
+				</xs:sequence>
+			</xs:complexType>
+			<xs:element name="StopExportRecordedSegments">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="OperationToken" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Unique ExportRecordedSegments operation token</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="StopExportRecordedSegmentsResponse" />
+
+			<xs:complexType name="ExportRecordedSegmentStatus">
+				<xs:sequence>
+					<xs:element name="Segment" type="trc:UploadSegmentResult" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Information about the segment(s) to be exported.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="HasMoreSegments" type="xs:boolean" minOccurs="1">
+						<xs:annotation>
+							<xs:documentation>A value indicating that the export has reached the maximum count and a new request must be sent to query the export state of further segments.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:complexType>
+			<xs:simpleType name="UploadStatus">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="Pending"/>
+					<xs:enumeration value="Completed"/>
+					<xs:enumeration value="Failed"/>
+					<xs:enumeration value="Exporting"/>
+				</xs:restriction>
+			</xs:simpleType>
+
+			<xs:element name="GetExportRecordedSegmentState">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="OperationToken" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Unique ExportRecordedSegment operation token</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="StartTime" type="xs:dateTime">
+							<xs:annotation>
+								<xs:documentation>The start index for the segment results.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="MaxCount" type="xs:int">
+							<xs:annotation>
+								<xs:documentation>The maximum number of segment results to be provided in the response.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetExportRecordedSegmentStateResponse" type="trc:ExportRecordedSegmentStatus" />
 
 			<!--===============================-->
 			<xs:complexType name="RecordingOptions">
@@ -793,18 +979,41 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="GetRecordingJobStateResponse">
 		<wsdl:part name="parameters" element="trc:GetRecordingJobStateResponse"/>
 	</wsdl:message>
-
+	<wsdl:message name="ListRecordedSegments">
+		<wsdl:part name="parameters" element="trc:ListRecordedSegments"/>
+	</wsdl:message>
+	<wsdl:message name="ListRecordedSegmentsResponse">
+		<wsdl:part name="parameters" element="trc:ListRecordedSegmentsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="ExportRecordedSegments">
+		<wsdl:part name="parameters" element="trc:ExportRecordedSegments"/>
+	</wsdl:message>
+	<wsdl:message name="ExportRecordedSegmentsResponse">
+		<wsdl:part name="parameters" element="trc:ExportRecordedSegmentsResponse"/>
+	</wsdl:message>
 	<wsdl:message name="ExportRecordedDataRequest">
 		<wsdl:part name="parameters" element="trc:ExportRecordedData"/>
 	</wsdl:message>
 	<wsdl:message name="ExportRecordedDataResponse">
 		<wsdl:part name="parameters" element="trc:ExportRecordedDataResponse"/>
 	</wsdl:message>
+	<wsdl:message name="StopExportRecordedSegments">
+		<wsdl:part name="parameters" element="trc:StopExportRecordedSegments"/>
+	</wsdl:message>
+	<wsdl:message name="StopExportRecordedSegmentsResponse">
+		<wsdl:part name="parameters" element="trc:StopExportRecordedSegmentsResponse"/>
+	</wsdl:message>
 	<wsdl:message name="StopExportRecordedDataRequest">
 		<wsdl:part name="parameters" element="trc:StopExportRecordedData"/>
 	</wsdl:message>
 	<wsdl:message name="StopExportRecordedDataResponse">
 		<wsdl:part name="parameters" element="trc:StopExportRecordedDataResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetExportRecordedSegmentState">
+		<wsdl:part name="parameters" element="trc:GetExportRecordedSegmentState"/>
+	</wsdl:message>
+	<wsdl:message name="GetExportRecordedSegmentStateResponse">
+		<wsdl:part name="parameters" element="trc:GetExportRecordedSegmentStateResponse"/>
 	</wsdl:message>
 	<wsdl:message name="GetExportRecordedDataStateRequest">
 		<wsdl:part name="parameters" element="trc:GetExportRecordedDataState"/>
@@ -948,6 +1157,33 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<wsdl:output message="trc:GetRecordingJobStateResponse"/>
 		</wsdl:operation>
 
+		<!--===============================-->
+		<wsdl:operation name="ListRecordedSegments">
+			<wsdl:documentation>Lists available recorded segments related to the specified RecordingToken.</wsdl:documentation>
+			<wsdl:input message="trc:ListRecordedSegments"/>
+			<wsdl:output message="trc:ListRecordedSegmentsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="ExportRecordedSegments">
+			<wsdl:documentation>
+			Exports the selected recorded segments (from existing recorded data) to the storage attached to the given recording configuration.
+			</wsdl:documentation>
+			<wsdl:input message="trc:ExportRecordedSegments"/>
+			<wsdl:output message="trc:ExportRecordedSegmentsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="StopExportRecordedSegments">
+			<wsdl:documentation>
+			Stops the selected ExportRecordedSegments operation.
+			</wsdl:documentation>
+			<wsdl:input message="trc:StopExportRecordedSegments"/>
+			<wsdl:output message="trc:StopExportRecordedSegmentsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetExportRecordedSegmentState">
+			<wsdl:documentation>
+			Retrieves the status of selected ExportRecordedSegments operation. 
+			</wsdl:documentation>
+			<wsdl:input message="trc:GetExportRecordedSegmentState"/>
+			<wsdl:output message="trc:GetExportRecordedSegmentStateResponse"/>
+		</wsdl:operation>
 		<wsdl:operation name="ExportRecordedData">
 			<wsdl:documentation>
 			Exports the selected recordings (from existing recorded data) to the given storage target based on the requested file format. 
