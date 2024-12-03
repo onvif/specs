@@ -4874,6 +4874,55 @@ CSeq: 2
 User-Agent: ./onvifClient
 Accept: application/sdp]]></programlisting>
   </appendix>
+  <appendix>
+    <title>Asymmetric Encryption</title>
+    <section>
+      <title>RSA</title>
+      <para>
+        Asymmetric encryption of data using RSA keys shall use the RSA OAEP encryption scheme as defined in RFC 8017 Section 7.1 with the SHA-256 hash unless otherwise specified.
+      </para>
+    </section>
+    <section>
+      <title>ECC</title>
+      <para>
+        Asymmetric encryption of data using ECC keys shall use the ECIES encryption scheme as defined in IEEE 1363-2000 unless otherwise specified. The ECIES scheme shall use the following algorithms:
+      </para>
+      <itemizedlist>
+        <listitem>
+          <para>The ECDH key agreement scheme using a new ephemeral key for the each encryption operation;</para>
+        </listitem>
+        <listitem>
+          <para>The key agreement material shall be derived using the SHA-256 hash algorithm;</para>
+        </listitem>
+        <listitem>
+          <para>
+            The encryption shall use AEAD-AES-256-GCM as defined in RFC 5116 Section 5.2 with a tag length of 16 bytes.
+            The nonce shall be set to zero, as the encryption key is never reused.
+          </para>
+        </listitem>
+      </itemizedlist>
+      <para>
+        The resulting ciphertext shall be encoded in the following way:
+      </para>
+      <itemizedlist>
+        <listitem>
+          <para>One byte set to the value <literal>0x01</literal> as a the format's version</para>
+        </listitem>
+        <listitem>
+          <para>The ECDH ephemeral key point X</para>
+        </listitem>
+        <listitem>
+          <para>The ECDH ephemeral key point Y</para>
+        </listitem>
+        <listitem>
+          <para>The AES-GCM encryption tag</para>
+        </listitem>
+        <listitem>
+          <para>The ciphertext</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+  </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
     <para/>
