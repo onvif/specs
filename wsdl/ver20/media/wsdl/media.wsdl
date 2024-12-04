@@ -1398,18 +1398,44 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:annotation>
 							<xs:documentation>Configuration of the audio clip.</xs:documentation>
 						</xs:annotation>
-					</xs:element>
-					<xs:element name="PlayStatus" type="xs:boolean" minOccurs="0">
-						<xs:annotation>
-							<xs:documentation>Optional PlayStatus to indicate whether the audio clip is currently playing or not. PlayStatus should be false during the RepeatInterval when the audio clip is repeated.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
+					</xs:element>					
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 				</xs:sequence>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
-			<!--===============================-->
-			
+			<!--===============================-->			
+			<xs:complexType name="PlayingAudioClips">
+				<xs:sequence>					
+					<xs:element name="Token" type="tt:ReferenceToken">
+						<xs:annotation>
+							<xs:documentation>Unique token associated with the audio clip.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Name" type="xs:string">
+					<xs:annotation>
+						<xs:documentation> Name of the audio clip.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioOutputToken" type="tt:ReferenceToken" minOccurs="1" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Token list of physical audio outputs.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioOutputLevel" type="xs:int">
+					<xs:annotation>
+						<xs:documentation> Output level to control the volume of the audio clip when it is played.</xs:documentation>
+					</xs:annotation>
+					</xs:element>					
+					<xs:element name="RepeatsLeft" type="xs:int">
+					<xs:annotation>
+						<xs:documentation>Number of repeat cycles left while playing the audio clip.</xs:documentation>
+					</xs:annotation>
+					</xs:element>										
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--======================================================================-->
 			<xs:element name="GetAudioClips">
 				<xs:complexType>
 					<xs:sequence>
@@ -1543,7 +1569,25 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:sequence>
 					</xs:sequence>
 				</xs:complexType>
+			</xs:element>
+			
+			<xs:element name="GetPlayingAudioClips">
+				<xs:complexType>
+					<xs:sequence>						
+					</xs:sequence>
+				</xs:complexType>
 			</xs:element>			
+			<xs:element name="GetPlayingAudioClipsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="PlayingAudioClips" type="tr2:PlayingAudioClips"  minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>List of audio clips currently playing in the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
 			<!--===============================-->
 			<!--============ Schema End================-->
 		</xs:schema>
@@ -1869,6 +1913,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</wsdl:message>
 	<wsdl:message name="PlayAudioClipResponse">
 		<wsdl:part name="parameters" element="tr2:PlayAudioClipResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetPlayingAudioClipsRequest">
+		<wsdl:part name="parameters" element="tr2:GetPlayingAudioClips"/>
+	</wsdl:message>
+	<wsdl:message name="GetPlayingAudioClipsResponse">
+		<wsdl:part name="parameters" element="tr2:GetPlayingAudioClipsResponse"/>
 	</wsdl:message>
 	<wsdl:portType name="Media2">
 		<!--===============================-->
@@ -2231,6 +2281,11 @@ image will be updated automatically and independent from calls to GetSnapshotUri
 			<wsdl:documentation>This operation plays or stops the ongoing audio clip on the device.</wsdl:documentation>
 			<wsdl:input message="tr2:PlayAudioClipRequest"/>
 			<wsdl:output message="tr2:PlayAudioClipResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetPlayingAudioClips">
+			<wsdl:documentation>This operation retrieves audio clips information which are playing currently in the device.</wsdl:documentation>
+			<wsdl:input message="tr2:GetPlayingAudioClipsRequest"/>
+			<wsdl:output message="tr2:GetPlayingAudioClipsResponse"/>
 		</wsdl:operation>
 		<!--==============AudioClipManagement Operation End=================-->
 	</wsdl:portType>
@@ -2734,6 +2789,15 @@ image will be updated automatically and independent from calls to GetSnapshotUri
 		</wsdl:operation>
 		<wsdl:operation name="PlayAudioClip">
 			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/PlayAudioClip"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetPlayingAudioClips">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/GetPlayingAudioClips"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
