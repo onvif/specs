@@ -1483,6 +1483,66 @@ Change Request 2061, 2063, 2065, 2109</revremark>
       <para>The requested operation does not exist.</para>
     </section>
     <section>
+      <title>OverrideSegmentDuration</title>
+      <para>OverrideSegmentDuration dynamically updates a RecordingConfiguration to produce smaller
+        recording segments for a limited time. This allows for a client to request faster access to recorded data while
+        reducing the overall storage costs during normal operation.
+      </para>
+      <para>
+        When the temporary override is active, the device should attempt to close its currently recording segment and then
+        shall record further segments with the new duration provided in this command. The override shall be active for the
+        duration specified in the command, once the command expires the device shall resume recording with the original segment
+        duration on its next segment. The override duration shall not exceed 1 hour.
+      </para>
+      <para>
+        When a new override request is sent before the previous override has expired, the new override shall replace the 
+        previous override and the new expiration shall apply.
+      </para>
+      <para>
+        The active override value, if any exists, shall be shown in the corresponding <literal>RecordingConfiguration</literal> and may not persist after a device restart.
+        If the recording configuration is modified while an override is active, the override shall be removed.
+      </para>
+      <para>
+        A device that indicates support for OverrideSegmentDuration shall support this command.
+      </para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">TargetSegmentDuration [xs:duration]</para>
+            <para role="text">The new segment duration to be used for the duration of the override request.</para>
+            <para role="param">Expiration [xs:duration]</para>
+            <para role="text">The duration for which the override request shall be active.</para>
+            <para role="param">RecordingConfiguration [tt:RecordingReference]</para>
+            <para role="text">The recording configuration that needs to use the new segment duration.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="text">This is an empty message.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:NoRecording</para>
+            <para role="text">The RecordingConfiguration does not reference an existing recording.</para>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:BadDuration</para>
+            <para role="text">The value of the duration parameter is invalid.</para>
+            <para role="param">env:Receiver - ter:ActionNotSupported - ter:NotImplemented</para>
+            <para role="text">This optional method is not implemented.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="access">ACTUATE</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section>
       <title>GetServiceCapabilities</title>
       <para>The capabilities reflect optional functions and functionality of a service. The information is static and does not change during device operation. </para>
       <variablelist role="op">
@@ -1603,6 +1663,12 @@ Change Request 2061, 2063, 2065, 2109</revremark>
               Supported encryption modes.
               See tt:EncryptionMode for a list of definitions.
             </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>OverrideSegmentDurationSupported</term>
+          <listitem>
+            <para>Indicates that the device supports the OverrideSegmentDuration command.</para>
           </listitem>
         </varlistentry>
       </variablelist>
