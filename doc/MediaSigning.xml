@@ -356,10 +356,15 @@
           </imageobject>
         </mediaobject>
       </figure>
-      <para><xref linkend="linkedhashesfig2"/> illustrates the linking procedure where a
-        frame is encaptured in multiple NAL Units. The hash of the primary slice of the I-frame is
-        stored and used to generate a second hash together with any other hash in the GOP. Note that
-        the other NAL Units of the I-frame are hashed in this linked manner.</para>
+      <para><xref linkend="linkedhashesfig2"/> illustrates the linking procedure where each frame is
+        encaptured in multiple NAL Units. The hash of the primary slice (dark red) of the I-frame is
+        stored as an anchor hash and used to generate a second hash together with any other hash in
+        the GOP. Note that the other NAL Units (non-primary slices) of the I-frame are hashed in
+        this linked manner. In the example in <xref linkend="linkedhashesfig2"/>, there is one primary slice (dark red) and
+        one non-primary slice NAL Unit (light red) illustrating the linking procedure where a frame
+        is encaptured in multiple NAL Units. The hash of the primary slice of the I-frame is stored
+        and used to generate a second hash together with any other hash in the GOP. Note that the
+        other NAL Units of the I-frame are also hashed in this linked manner.</para>
       <figure xml:id="linkedhashesfig2">
         <title>Linked hashes, multiple NAL Units per frame</title>
         <mediaobject>
@@ -411,10 +416,17 @@
       </figure>
       <section>
         <title>Example</title>
-        <para>The following example figures show a typical example where each GOP is signed. Each I-frame marks the start of a GOP and triggers a signing procedure. 
-          All information from the previous GOP is put in a SEI, which is added to the stream after signing.</para>
+        <para>The following figures show a typical example where each GOP is signed. In this example
+          the GOP is 8 frames long where each I-frame (grey box with letter 'I') marks the start of
+          a GOP, followed by 7 P-frames (white box with letter 'P'). Each I-frame triggers a signing
+          procedure by generating a SEI (Supplemant Enhancement Information) frame of type "user
+          data unregistered". Information, such as hashes from the frames, of the previous GOP is
+          put in this SEI. The SEIs are colored yellow before being signed and green afterwards.
+          SEIs (yellow) are hashed and sent to the signing hardware and added to the stream after
+          signing (now green). The solid lines mark the frames that are signed/secured and the
+          dashed line which frame the GOP is linked with to secure the order of GOPs. </para>
         <figure>
-          <title>A generated SEI is hashed and sent to the signing hardware for signature generation.</title>
+          <title>A generated SEI is hashed and sent to the signing hardware.</title>
           <mediaobject>
             <imageobject>
               <imagedata fileref="media/MediaSigning/SigningGops01.svg" contentwidth="150mm"/>
