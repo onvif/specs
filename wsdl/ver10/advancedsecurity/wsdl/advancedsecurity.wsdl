@@ -10,7 +10,7 @@
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tas="http://www.onvif.org/ver10/advancedsecurity/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl">
 	<wsdl:types>
-		<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tt="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl" version="24.06">
+		<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tt="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl" version="24.12">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../schema/onvif.xsd"/>
 			<!--===================================================-->
 			<!-- Data types used by the security configuration features -->
@@ -970,7 +970,7 @@
 							<xs:documentation>The unique identifier of the certification path validation policy to be used for validating the server certificate.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first ONVIF then Vendor -->
 				</xs:sequence>
 				<xs:attribute name="Type" type="xs:string" use="required">
 					<xs:annotation>
@@ -1015,6 +1015,22 @@
 				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
+			<xs:complexType name="MediaSigningCapabilities">
+				<xs:annotation>
+					<xs:documentation>The capabilities for signing media on a device.</xs:documentation>
+				</xs:annotation>
+				<xs:attribute name="MediaSigningSupported" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates whether the device supports signing of media according to the Media Signing Specification.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="UserMediaSigningKeySupported" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates whether the device supports signing of media using another key than the factory provisioned one.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
 			<!--===============================-->
 			<xs:complexType name="Capabilities">
 				<xs:annotation>
@@ -1039,6 +1055,11 @@
 					<xs:element name="AuthorizationServer" type="tas:AuthorizationServerConfigurationCapabilities" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>The capabilities for external authorization server capabilities.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MediaSigning" type="tas:MediaSigningCapabilities" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The capabilities of the media signing implementation.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="lax"/>   <!-- first ONVIF then Vendor -->
@@ -1083,9 +1104,9 @@
 							<xs:documentation>If present, this is the list of keys provided out of band to verify the origin and integrity of the JWT.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element name="ValidationPolicy" type="tas:CertPathValidationPolicyID" minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="ValidationPolicy" type="tas:CertPathValidationPolicyID" minOccurs="0">
 						<xs:annotation>
-							<xs:documentation>If present, the device will validate the certification path of the Open ID Connect servers. The OIDC server iso considered to be valid if its certificate is validated by one of the provided certification path validation policies.</xs:documentation>
+							<xs:documentation>If present, the device will validate the certification path of the Open ID Connect servers. The OIDC server iso considered to be valid if its certificate is validated by the provided certification path validation policy.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	   <!-- first ONVIF then Vendor -->
@@ -1629,6 +1650,29 @@
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:element name="SetCertificationPath">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID">
+							<xs:annotation>
+								<xs:documentation>The ID of the certification path to be modidfied.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="CertificationPath" type="tas:CertificationPath">
+							<xs:annotation>
+								<xs:documentation>The updated certification path to be stored in the keystore.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetCertificationPathResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
 			<xs:element name="DeleteCertificationPath">
 				<xs:complexType>
 					<xs:sequence>
@@ -2004,6 +2048,33 @@
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:element name="SetCertPathValidationPolicy">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertPathValidationPolicyID" type="tas:CertPathValidationPolicyID">
+							<xs:annotation>
+								<xs:documentation>
+									The ID of the certification path validation policy to be modified.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="CertPathValidationPolicy" type="tas:CertPathValidationPolicy">
+							<xs:annotation>
+								<xs:documentation>
+									The updated certification path validation policy to be stored.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetCertPathValidationPolicyResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
 			<xs:element name="DeleteCertPathValidationPolicy">
 				<xs:complexType>
 					<xs:sequence>
@@ -2319,6 +2390,49 @@
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:element name="AddMediaSigningCertificateAssignment">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="AddMediaSigningCertificateAssignmentResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="RemoveMediaSigningCertificateAssignment">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="RemoveMediaSigningCertificateAssignmentResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetAssignedMediaSigningCertificates">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetAssignedMediaSigningCertificatesResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID" minOccurs="0" maxOccurs="2">
+							<xs:annotation>
+								<xs:documentation>The IDs of all certification paths that are assigned for media signing.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
 			<xs:element name="GetAuthorizationServerConfigurations">
 				<xs:complexType>
 					<xs:sequence>
@@ -2498,6 +2612,12 @@
 	<wsdl:message name="GetAllCertificationPathsResponse">
 		<wsdl:part name="parameters" element="tas:GetAllCertificationPathsResponse"/>
 	</wsdl:message>
+	<wsdl:message name="SetCertificationPathRequest">
+		<wsdl:part name="parameters" element="tas:SetCertificationPath"/>
+	</wsdl:message>
+	<wsdl:message name="SetCertificationPathResponse">
+		<wsdl:part name="parameters" element="tas:SetCertificationPathResponse"/>
+	</wsdl:message>
 	<wsdl:message name="DeleteCertificationPathRequest">
 		<wsdl:part name="parameters" element="tas:DeleteCertificationPath"/>
 	</wsdl:message>
@@ -2600,6 +2720,12 @@
 	<wsdl:message name="GetAllCertPathValidationPoliciesResponse">
 		<wsdl:part name="parameters" element="tas:GetAllCertPathValidationPoliciesResponse"/>
 	</wsdl:message>
+	<wsdl:message name="SetCertPathValidationPolicyRequest">
+		<wsdl:part name="parameters" element="tas:SetCertPathValidationPolicy"/>
+	</wsdl:message>
+	<wsdl:message name="SetCertPathValidationPolicyResponse">
+		<wsdl:part name="parameters" element="tas:SetCertPathValidationPolicyResponse"/>
+	</wsdl:message>
 	<wsdl:message name="DeleteCertPathValidationPolicyRequest">
 		<wsdl:part name="parameters" element="tas:DeleteCertPathValidationPolicy"/>
 	</wsdl:message>
@@ -2695,6 +2821,24 @@
 	</wsdl:message>
 	<wsdl:message name="DeleteNetworkInterfaceDot1XConfigurationResponse">
 		<wsdl:part name="parameters" element="tas:DeleteNetworkInterfaceDot1XConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="AddMediaSigningCertificateAssignmentRequest">
+		<wsdl:part name="parameters" element="tas:AddMediaSigningCertificateAssignment"/>
+	</wsdl:message>
+	<wsdl:message name="AddMediaSigningCertificateAssignmentResponse">
+		<wsdl:part name="parameters" element="tas:AddMediaSigningCertificateAssignmentResponse"/>
+	</wsdl:message>
+	<wsdl:message name="RemoveMediaSigningCertificateAssignmentRequest">
+		<wsdl:part name="parameters" element="tas:RemoveMediaSigningCertificateAssignment"/>
+	</wsdl:message>
+	<wsdl:message name="RemoveMediaSigningCertificateAssignmentResponse">
+		<wsdl:part name="parameters" element="tas:RemoveMediaSigningCertificateAssignmentResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetAssignedMediaSigningCertificatesRequest">
+		<wsdl:part name="parameters" element="tas:GetAssignedMediaSigningCertificates"/>
+	</wsdl:message>
+	<wsdl:message name="GetAssignedMediaSigningCertificatesResponse">
+		<wsdl:part name="parameters" element="tas:GetAssignedMediaSigningCertificatesResponse"/>
 	</wsdl:message>
 	<wsdl:message name="GetAuthorizationServerConfigurationsRequest">
 		<wsdl:part name="parameters" element="tas:GetAuthorizationServerConfigurations"/>
@@ -2987,6 +3131,13 @@
 			<wsdl:input message="tas:GetAllCertificationPathsRequest"/>
 			<wsdl:output message="tas:GetAllCertificationPathsResponse"/>
 		</wsdl:operation>
+		<wsdl:operation name="SetCertificationPath">
+			<wsdl:documentation>
+				This operation allows to modify a certification path.<br/>
+			</wsdl:documentation>
+			<wsdl:input message="tas:SetCertificationPathRequest"/>
+			<wsdl:output message="tas:SetCertificationPathResponse"/>
+		</wsdl:operation>
 		<wsdl:operation name="DeleteCertificationPath">
 			<wsdl:documentation>
 				This operation deletes a certification path from the device’s keystore.<br/>
@@ -3090,6 +3241,13 @@
       </wsdl:documentation>
 			<wsdl:input message="tas:GetAllCertPathValidationPoliciesRequest"/>
 			<wsdl:output message="tas:GetAllCertPathValidationPoliciesResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetCertPathValidationPolicy">
+			<wsdl:documentation>
+				This operation allows to modify an existing certification path validation policy.
+			</wsdl:documentation>
+			<wsdl:input message="tas:SetCertPathValidationPolicyRequest"/>
+			<wsdl:output message="tas:SetCertPathValidationPolicyResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="DeleteCertPathValidationPolicy">
 			<wsdl:documentation>
@@ -3309,6 +3467,35 @@
 			<wsdl:output message="tas:DeleteNetworkInterfaceDot1XConfigurationResponse"/>
 		</wsdl:operation>
 	</wsdl:portType>
+	<wsdl:portType name="MediaSigning">
+		<wsdl:documentation>Media Signing operations.</wsdl:documentation>
+		<wsdl:operation name="AddMediaSigningCertificateAssignment">
+			<wsdl:documentation>
+				This operation assigns certification path (certificate chain) to use for media signing, replacing the one that is provisioned during factory production. The leaf certificate in the chain and its associated private key shall be used for signing media as described in the [Media Signing Specification]. This key and certificate is referred to as user provisioned key and certificate in that specification.<br/>
+				If this operation is called when there is already a user provisioned certification path configured, the existing certification path shall be replaced with the new certification path.<br/>
+				A device shall support this command if the UserMediaSigningKeySupported capability is true.
+			</wsdl:documentation>
+			<wsdl:input message="tas:AddMediaSigningCertificateAssignmentRequest"/>
+			<wsdl:output message="tas:AddMediaSigningCertificateAssignmentResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="RemoveMediaSigningCertificateAssignment">
+			<wsdl:documentation>
+				This operation removes a certificate assignment (including certification path) on the device that has been added by AddMediaSigningCertificateAssignment. The factory provisioned certification path cannot be removed.<br/>
+				If media signing on the device is enabled, the device shall produce a ReferenceExists fault and shall not remove the certificate assignment.<br/>
+				A device shall support this command if the UserMediaSigningKeySupported capability is true.
+			</wsdl:documentation>
+			<wsdl:input message="tas:RemoveMediaSigningCertificateAssignmentRequest"/>
+			<wsdl:output message="tas:RemoveMediaSigningCertificateAssignmentResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetAssignedMediaSigningCertificates">
+			<wsdl:documentation>
+				This operation returns the IDs of the certification paths that are assigned for media signing on the device. This operation will always return the factory provisioned certification path and can additionally return a certification path that has been added by AddMediaSigningCertificateAssignment.<br/>
+				A device shall support this command if the MediaSigningSupported capability is true.
+			</wsdl:documentation>
+			<wsdl:input message="tas:GetAssignedMediaSigningCertificatesRequest"/>
+			<wsdl:output message="tas:GetAssignedMediaSigningCertificatesResponse"/>
+		</wsdl:operation>
+  </wsdl:portType>
 	<wsdl:portType name="AuthorizationServer">
 		<wsdl:documentation>Configuration of external authorization servers.</wsdl:documentation>
 		<wsdl:operation name="GetAuthorizationServerConfigurations">
@@ -3529,6 +3716,15 @@
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
+		<wsdl:operation name="SetCertificationPath">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/SetCertificationPath"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
 		<wsdl:operation name="DeleteCertificationPath">
 			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/DeleteCertificationPath"/>
 			<wsdl:input>
@@ -3624,6 +3820,15 @@
 		</wsdl:operation>
 		<wsdl:operation name="GetAllCertPathValidationPolicies">
 			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetAllCertPathValidationPolicies"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetCertPathValidationPolicy">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/SetCertPathValidationPolicy"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
@@ -3885,6 +4090,35 @@
 		</wsdl:operation>
 	</wsdl:binding>
 	<!--==========================================-->
+	<wsdl:binding name="MediaSigningBinding" type="tas:MediaSigning">
+		<wsdl:operation name="AddMediaSigningCertificateAssignment">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/AddMediaSigningCertificateAssignment"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="RemoveMediaSigningCertificateAssignment">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/RemoveMediaSigningCertificateAssignment"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetAssignedMediaSigningCertificates">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetAssignedMediaSigningCertificates"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
 	<!-- Begin Cert-based client auth messages    -->
 	<!--==========================================-->
 	<!--==========================================-->

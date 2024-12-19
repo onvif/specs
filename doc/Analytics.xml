@@ -4,12 +4,12 @@
   <info>
     <title>Analytics Service Specification</title>
     <titleabbrev>Analytics</titleabbrev>
-    <releaseinfo>24.06</releaseinfo>
+    <releaseinfo>24.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June, 2024</pubdate>
+    <pubdate>December, 2024</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -275,6 +275,14 @@
         </author>
         <revremark>Addition of accessory subtypes. Remove requirement on maxInstances for fixed items.</revremark>
       </revision>
+      <revision>
+        <revnumber>24.12</revnumber>
+        <date>Dec-2024</date>
+        <author>
+          <personname>Hans Busch, Sriram Bhetanabottla</personname>
+        </author>
+        <revremark>Add Object UUID as well as sign and label info. Extend LPR data fields for speed and direction.</revremark>
+      </revision>
     </revhistory>
   </info>
   <chapter>
@@ -291,12 +299,21 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/srv/media/ONVIF-Media-Service-Spec.pdf"></link>&gt;</para>
     <para>ONVIF Streaming  Specification</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/stream/ONVIF-Streaming-Spec.pdf"></link>&gt;</para>
+    <para>ISO 3864-1:2011 - Safety colours and safety signs</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/51021.html"></link>&gt;</para>
+    <para>ISO 7010-1:2019 - Graphical symbols — Safety colours and safety signs — Registered safety signs</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/51021.html"></link>&gt;</para>
     <para>ISO 12639:2004. Graphic Technology -- Prepress digital data exchange -- Tag image file format for image technology (TIFF/IT).  TIFF Revision 6.0</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.iso.org/iso/iso_catalogue/catalogue_ics/catalogue_detail_ics.htm?csnumber=34342"></link>&gt;</para>
     <para>ISO 3166-1:2013 Codes for the representation of names of countries and their subdivisions -- Part 1: Country codes</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.iso.org/standard/63545.html"></link>&gt;</para>
     <para>RFC 7159 The JavaScript Object Notation (JSON) Data Interchange Format</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.rfc-editor.org/rfc/rfc7159.txt"></link>&gt;</para>
+    <para>UNECE Globally Harmonized System of Classification and Labelling of Chemicals (GHS)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://unece.org/DAM/trans/danger/publi/ghs/ghs_rev07/English/ST_SG_AC10_30_Rev7e.pdf"></link>&gt;</para>
+    <para>UNECE Agreement Concerning the International Carriage of Dangerous Goods by Road Volume II, 2021</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://unece.org/sites/default/files/2021-01/ADR2021_Vol2e.pdf"></link>&gt;</para>
+    
   </chapter>
   <chapter>
     <title>Terms and Definitions</title>
@@ -2385,6 +2402,91 @@
           <tt:Type Likelihood="0.9">Code-128</tt:Type>
           <tt:PPM>1.4</tt:PPM>
         </tt:BarcodeInfo>
+	  </tt:Appearance>
+    </tt:Object>
+  </tt:Frame>
+</tt:VideoAnalytics>
+]]></programlisting>
+        </section>
+        <section>
+          <title>Label information descriptor</title>
+          <para>A label descriptor is defined as an optional element of the objects appearance node.
+          It allows to provide information regarding graphical signs. Instead of defining its own
+          classification scheme ONVIF refers to external authorities. Hence each entry consists of
+          an authority identifier and an ID defined by that authority. For well defined authorities
+          see <xref linkend="labelAuthorities"/></para>
+          <table xml:id="labelAuthorities">
+            <title>Label Authorities</title>
+            <tgroup cols="2">
+              <colspec colname="c1" colwidth="26*" />
+              <colspec colname="c2" colwidth="74*" />
+              <thead>
+                <row>
+                  <entry>
+                    <para> Authority Identifier </para>
+                  </entry>
+                  <entry>
+                    <para> Description </para>
+                  </entry>
+                </row>
+              </thead>
+              <tbody valign="top">
+                <row>
+                  <entry>
+                    <para>ISO_3864</para>
+                  </entry>
+                  <entry>
+                    <para>ISO Graphical Symbols - safety colors and safety design</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>ISO_7010</para>
+                  </entry>
+                  <entry>
+                    <para>ISO Registered safety signs</para>
+                  </entry>
+                </row>                
+                <row>
+                  <entry>
+                    <para>UNECE_ADR</para>
+                  </entry>
+                  <entry>
+                    <para>UNECE ADR Volume II, page 238ff</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>UNECE_GHS</para>
+                  </entry>
+                  <entry>
+                    <para>United Nations Globally Harmonized System of Classification and Labelling
+                    of Chemicals, Annex 1 </para>
+                  </entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </table>
+        <para>For the ID definition refer to the authorities external specifications.</para>
+          <figure xml:id="iso7010-example">
+            <title>ISO 7010 sign for slippery floor.</title>
+            <mediaobject>
+              <imageobject>
+                <imagedata fileref="media/Analytics/iso7010-w011.png" contentwidth="10mm" />
+              </imageobject>
+            </mediaobject>
+          </figure>
+          
+          <para>An example metadata describing slippery floor according ISO 7010 is given
+          below</para>
+          <programlisting><![CDATA[<tt:VideoAnalytics>
+  <tt:Frame UtcTime="2022-12-21T12:25:51.211">
+    <tt:Object ObjectId="12">
+      <tt:Appearance>
+        <tt:Label Likelihood="0.7">
+          <tt:Authority>ISO_7010</tt:Authority>
+          <tt:ID>W011</tt:ID>
+        </tt:Label>
       </tt:Appearance>
     </tt:Object>
   </tt:Frame>
