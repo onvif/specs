@@ -4,12 +4,12 @@
   <info>
     <title>Media2 Service Specification</title>
     <titleabbrev>Media2</titleabbrev>
-    <releaseinfo>24.06</releaseinfo>
+    <releaseinfo>24.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June 2024</pubdate>
+    <pubdate>December 2024</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -178,7 +178,8 @@
         <author>
           <personname>Hans Busch, Rick Boer</personname>
         </author>
-        <revremark>Add optional Receiver configuration to Media2. Fix inconsistency in Media2 NoProfile fault message.</revremark>
+        <revremark>Add optional Receiver configuration to Media2. Fix inconsistency in Media2
+          NoProfile fault message.</revremark>
       </revision>
       <revision>
         <revnumber>22.12</revnumber>
@@ -204,6 +205,14 @@
         </author>
         <revremark>Add WebRTC configuration.</revremark>
       </revision>
+      <revision>
+        <revnumber>24.12</revnumber>
+        <date>Dec-2024</date>
+        <author>
+          <personname>Fredrik Svensson, Björn Volker, Jean-François Lévesque</personname>
+        </author>
+        <revremark>Add media signing. Add recommendation to have LensDescription present when Fisheye view mode is present. </revremark>
+      </revision>
     </revhistory>
   </info>
   <chapter xml:id="_Toc241999828">
@@ -222,6 +231,10 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/srv/ptz/ONVIF-PTZ-Service-Spec.pdf"></link>&gt;</para>
     <para>ONVIF Streaming Specification</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/stream/ONVIF-Streaming-Spec.pdf"></link>&gt;</para>
+    <para>ONVIF Media Signing Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"
+        >http://www.onvif.org/specs/stream/ONVIF-MediaSigning-Specification.pdf</link>&gt;</para>
     <para>ONVIF WebRTC Specification</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/specs/stream/ONVIF-WebRTC-Spec.pdf"></link>&gt;</para>
     <para>ONVIF Security Service Specification</para>
@@ -1003,6 +1016,10 @@
           <listitem>
             <para>Encoding profile and GOV length [frame].</para>
           </listitem>
+          <listitem>
+            <para>Signed – Indicates if the stream will be signed according to the Media Signing
+              Specification.</para>
+          </listitem>
         </itemizedlist>
         <para>TheVideoEncoderConfiguration structure also contains multicast parameters. </para>
         <para>If the whole RateControl parameter structure is missing the current state of rate control is undefined and vendor specific. A device that supports disabling of the rate control mechanisms shall reflect that by omitting the RateControl element when disabled; otherwise it shall return the current values used for RateControl. If RateControl is missing, the respective options define whether a RateControl element can be (re-)added.</para>
@@ -1498,6 +1515,7 @@
         <para>Similarly, a synchronization point is used to get an update on full PTZ or event status through the metadata stream.</para>
         <para>If a video stream is associated with the profile, an I-frame shall be added to this video stream. If an event stream is associated to the profile, the synchronization point request shall be handled as described in the section Synchronization Point of the ONVIF Core Specification. If the profile is configured for PTZ metadata, the PTZ position shall be repeated within the metadata stream. </para>
         <para>A device shall support the request for an I-frame through the SetSynchronizationPoint command if the RTSPStreaming capability is set.</para>
+        <para>If a signed video stream is associated with the profile, the video authenticity data shall be added to the stream. For details see the Media Signing Specification.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -2291,6 +2309,14 @@
           <listitem>
             <para>Indicates the supported number of WebRTC configurations.</para>
           </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>The following media signing capabilites are available:</para>
+      <variablelist>
+        <varlistentry>
+          <term>MediaSigningSupported</term>
+          <listitem><para>Indicates whether the device supports signing of media according to the Media Signing
+              Specification.</para></listitem>
         </varlistentry>
       </variablelist>
     </section>
