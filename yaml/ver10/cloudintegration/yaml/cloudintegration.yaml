@@ -1,0 +1,163 @@
+openapi: 3.1.1
+info:
+  title: Cloud Integration Specification
+  contact:
+    name: ONVIF Technical Specification
+    url: https://github.com/onvif/specs
+    email: help@onvif.org
+  license:
+    name: ONVIF Contributor License Agreement
+    url: https://github.com/onvif/specs/blob/development/LICENSE.md
+  version: "25.06"
+
+components:
+  schemas:
+    Base64DERencodedASN1Value:
+      description: This schema is the equivalent of tas:Base64DERencodedASN1Value in the Security Service specification.
+      type: string
+      format: byte
+      examples: [ Base64DERencodedASN1Value ]
+
+    EndpointReferenceType:
+      description: This schema is the equivalent of wsa:EndpointReferenceType in the WA-Addressing 1.0 specification.
+      type: string
+      format: uri
+
+    AuthorizationServerConfiguration:
+      type: object
+      description: This schema is the equivalent of tas:AuthorizationServerConfigurationData
+      properties:
+        ServerURI:
+          description: Authorization server address
+          type: string
+        ClientID:
+          description: Client identifier issued by the authorization server
+          type: string
+        Scope:
+          description: The requested access scope
+          type: string
+        AuthorizationServerTrustAnchor:
+          items:
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+          description: The list of certificates with the public keys needed to build the validation policy to validate the TLS certificate of the authorization server.
+      required:
+        - ServerURI
+        - ClientID
+
+    UplinkConfiguration:
+      type: object
+      properties:
+        RemoteAddress:
+          description: Uniform resource locator by which the remote client can be reached.
+          $ref: '#/components/schemas/EndpointReferenceType'
+        UserLevel:
+          description: Authorization level that will be assigned to the uplink connection.
+          type: string
+          enum: [Administrator, Operator, User]
+        UplinkTrustAnchor:
+          items:
+            $ref: '#/components/schemas/Base64DERencodedASN1Value'
+          description: The list of certificates with the public keys needed to build the validation policy to validate the TLS certificate of the uplink server.
+      required:
+        - RemoteAddress
+        - UserLevel
+
+    DeviceConfiguration:
+      type: object
+      properties:
+        ShareToken:
+          description: The share token, to prove permission to share the device.
+          type: string
+          format: byte
+        EndpointReferences:
+          description: The endpoint to be notified to inform that the operation was completed. It may be more then one if the requesting cloud has redundant URIs to receive the notification.
+          items:
+            $ref: '#/components/schemas/EndpointReferenceType'
+        UplinkConfiguration:
+          description: Per-device uplink configuration
+          items:
+            $ref: '#/components/schemas/UplinkConfiguration'
+        AuthorizationServerConfiguration:
+          items:
+            $ref: '#/components/schemas/AuthorizationServerConfiguration'
+      required:
+        - ShareToken
+        - EndpointReferences
+        - UplinkConfiguration
+        - AuthorizationServerConfiguration
+
+    DeviceInformation:
+      type: object
+      properties:
+        ShareToken:
+          description: The share token, to know what device the public key is associated to.
+          $ref: '#/components/schemas/Base64DERencodedASN1Value'
+        DevicePublicKey:
+          description: The public key of the device.
+          $ref: '#/components/schemas/Base64DERencodedASN1Value'
+      required:
+        - ShareToken
+        - DevicePublicKey
+
+    StartDeviceSharing:
+      type: object
+      properties:
+        DeviceConfigurations:
+          items:
+            $ref: '#/components/schemas/DeviceConfiguration'
+          description: For each camera requested to be shared, it is necessary to pass both the shared token and the endpoint reference.
+      required:
+        - DeviceConfigurations
+
+    DeviceSharingCompleted:
+      type: object
+      properties:
+        DevicesInformation:
+          $ref: '#/components/schemas/DeviceInformation'
+          description: For each shared device, the share token and the public key will be provided.
+      required:
+        - DevicesInformation
+
+    DeviceSharingError:
+      type: object
+      properties:
+        error:
+          type: string
+          enum: [ "Invalid configuration", "Invalid JWT" ]
+      required:
+        - error
+
+paths:
+  /startDeviceSharing:
+    post:
+      summary: Start device sharing.
+      description: This operation triggers sharing a device with a new Operational Cloud Service.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartDeviceSharing'
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Invalid Argument Value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceSharingError'
+
+  /deviceSharingCompleted:
+    post:
+      summary: Device sharing completed notification.
+      description: This operation notifies the new Operational Cloud Service that the camera was successfully configured.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceSharingCompleted'
+      responses:
+        '200':
+          description: Success
