@@ -1818,6 +1818,68 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
+
+
+	<!--===============================-->
+	<!--          FrequencyDecibelPair            -->
+	<!--===============================-->
+
+	<xs:complexType name="FrequencyDecibelPair">
+	<xs:sequence>
+		<xs:element name="CenterFrequency" type="xs:int">
+			<xs:annotation>
+				<xs:documentation>The center frequency of the band in hertz (Readonly). For example, value of 1000 refers to 1kHz and 2000 refers to 2kHz.</xs:documentation>
+			</xs:annotation>
+		</xs:element>
+		<xs:element name="Decibel" type="xs:float">
+			<xs:annotation>
+				<xs:documentation>Decibel value associated with the center frequency.</xs:documentation>
+			</xs:annotation>
+		</xs:element>
+		<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		<!-- first Vendor then ONVIF -->
+	</xs:sequence>
+	</xs:complexType>
+
+	<!--===============================-->
+	<!--          EQPreset            -->
+	<!--===============================-->
+	<xs:complexType name="EQPreset">
+		<xs:sequence>
+			<xs:element name="Token" type="tt:ReferenceToken">
+				<xs:annotation>
+					<xs:documentation>Unique identifier for the preset.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Name" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Preset name. (Readonly)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="isDefault" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation>This shows if the EQ preset is set as the default. When the scheduler isn't active, this preset will be in use. Only one preset can be marked as default among the eqpresets linked to an audio output.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="ScheduleToken" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional schedule token (if supported).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="isFrequencyDecibelEditable" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation>Indicates whether the device allows changing the decibel level for frequencies. (Readonly)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="FrequencyDecibelPair" type="tt:FrequencyDecibelPair" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>List of frequency decibel pairs, each defined by a center frequency and its corresponding decibel value.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+		</xs:sequence>
+	</xs:complexType>
+
 	<!--===============================-->
 	<!--          AudioOutputConfigurationOptions            -->
 	<!--===============================-->
@@ -1854,6 +1916,16 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:annotation>
 					<xs:documentation>Minimum and maximum level range supported for this Output.</xs:documentation>
 				</xs:annotation>
+			</xs:element>
+			<xs:element name="EQPresetScheduleSupport" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Indicates whether EQPreset scheduling is supported.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="EQPresets" type="tt:EQPreset" minOccurs="0" maxOccurs="unbounded">
+			<xs:annotation>
+					<xs:documentation>List of supported EQPresets.</xs:documentation>
+			</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 		</xs:sequence>
