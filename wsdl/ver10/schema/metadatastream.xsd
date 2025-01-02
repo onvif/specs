@@ -11,7 +11,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	xmlns:tt="http://www.onvif.org/ver10/schema"
 	xmlns:fc="http://www.onvif.org/ver20/analytics/humanface" 
 	xmlns:bd="http://www.onvif.org/ver20/analytics/humanbody" 
-	xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="24.06">
+	xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="24.12">
 	<xs:include schemaLocation="common.xsd"/>
 	<xs:import namespace="http://docs.oasis-open.org/wsn/b-2" schemaLocation="http://docs.oasis-open.org/wsn/b-2.xsd"/>
 	<xs:import namespace="http://www.onvif.org/ver20/analytics/humanface" schemaLocation="../../ver20/analytics/humanface.xsd"/>
@@ -35,6 +35,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:element name="Image" type="xs:base64Binary" minOccurs="0"/>
 			<xs:element name="BarcodeInfo" type="tt:BarcodeInfo" minOccurs="0"/>
 			<xs:element name="SphericalCoordinate" type="tt:SphericalCoordinate" minOccurs="0"/>
+			<xs:element name="Label" type="tt:LabelInfo" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
@@ -113,6 +114,24 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>       <!-- first ONVIF then vendor --> 
 		</xs:sequence> 
 		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
+	<xs:simpleType name="LabelAuthority">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="ISO_3864"/>
+			<xs:enumeration value="ISO_7010"/>
+			<xs:enumeration value="UNECE_ADR"/>
+			<xs:enumeration value="UNECE_GHS"/>
+		</xs:restriction>
+	</xs:simpleType>
+		
+	<xs:complexType name="LabelInfo">
+		<xs:sequence>
+			<xs:element name="Authority" type="xs:string"/>  <!-- See tt:LabelAuthority for defined values -->
+			<xs:element name="ID"/>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>      <!-- first ONVIF then vendor --> 
+		</xs:sequence>
+		<xs:attribute name="Likelihood" type="xs:float"/>
+		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<xs:complexType name="VehicleInfo">
 		<xs:sequence>
@@ -319,6 +338,9 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</xs:complexType>
 	<xs:complexType name="ObjectId">
 		<xs:attribute name="ObjectId" type="xs:integer"/>
+		<xs:attribute name="UUID" type="xs:string">
+			<xs:annotation><xs:documentation>Optional unique identifier.</xs:documentation></xs:annotation>
+		</xs:attribute>
 	</xs:complexType>
 	<xs:complexType name="Behaviour">
 		<xs:sequence>

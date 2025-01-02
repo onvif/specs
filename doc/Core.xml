@@ -4,19 +4,19 @@
   <info>
     <title>ONVIF Core Specification</title>
     <titleabbrev>ONVIF Core Spec</titleabbrev>
-    <releaseinfo>23.12</releaseinfo>
+    <releaseinfo>24.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>December, 2023</pubdate>
+    <pubdate>December, 2024</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
       </imageobject>
     </mediaobject>
     <copyright>
-      <year>2008-2023</year>
+      <year>2008-2024</year>
       <holder>ONVIF™ All rights reserved.</holder>
     </copyright>
     <legalnotice>
@@ -294,6 +294,14 @@
           <personname>Ottavio Campana, Fredrik Svensson</personname>
         </author>
         <revremark>Add support for JSON Web Tokens</revremark>
+      </revision>
+      <revision>
+        <revnumber>24.12</revnumber>
+        <date>Dec-2024</date>
+        <author>
+          <personname>Sriram Bhetanabottla</personname>
+        </author>
+        <revremark>Improve description of certificate verification policy and correct specification references.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -1289,7 +1297,7 @@
             <para>Handle user credentials and settings.</para>
           </listitem>
         </itemizedlist>
-        <para>For further security related aspects refer to the ONVIF Advanced Security Service Specification.</para>
+        <para>For further security related aspects refer to the ONVIF Security Service Specification.</para>
       </section>
       <section>
         <title>Storage configuration</title>
@@ -1352,9 +1360,12 @@
       <section>
         <title>General</title>
         <para>An ONVIF compliant device shall support a number of Web Services which are defined in this and related specifications. </para>
-        <para>The device management service is the entry point for all other services of the device and therefore also the target service for the ONVIF defined WS-Discovery behaviour, see chapter <xref linkend="_Ref199745942" />.</para>
+        <para>The device management service is the entry point for all other services of the device
+          and therefore also the target service for the ONVIF defined WS-Discovery behaviour, see
+          chapter <xref linkend="_Ref199745942"/> or the target for accessing device over Uplink
+          connection.</para>
         <para>The entry point for the device management service is fixed to:</para>
-        <programlisting><![CDATA[http://onvif_host/onvif/device_service
+        <programlisting><![CDATA[/onvif/device_service
 ]]></programlisting>
       </section>
       <section>
@@ -2251,7 +2262,7 @@ DATE: when response was generated
             </imageobject>
           </mediaobject>
         </figure>
-        <para>WS-Security BinarySecurityToken does not provide security. It is recommended to always configure the device for TLS-based access (see Advanced Security Service). A protected transport level of security will provide an acceptable level of security in many systems. WS-Security BinarySecurityToken should never be used without TLS.</para>
+        <para>WS-Security BinarySecurityToken does not provide security. It is recommended to always configure the device for TLS-based access (see Security Service). A protected transport level of security will provide an acceptable level of security in many systems. WS-Security BinarySecurityToken should never be used without TLS.</para>
       </section>
 	  <section>
         <title>SHA-256 Support in HTTP and RTSP digest authentication</title>
@@ -2333,8 +2344,8 @@ DATE: when response was generated
 	  <section>
 	  <title>Get Device Hashing Algorithm</title>               
           <para>Follow the below workflow to get the latest device Hashing Algorithm:</para>
-		  <para>1. The ONVIF client should send a HTTP or RTSP requests without an Authorization header.</para>
-		  <para>2. The device responds with a HTTP or RTSP 401 message, that includes a challenge for each digest algorithm currently it was set, in its order of preference.</para>
+		  <para>1. The ONVIF client should send an HTTP or RTSP requests without an Authorization header.</para>
+		  <para>2. The device responds with an HTTP or RTSP 401 message, that includes a challenge for each digest algorithm currently it was set, in its order of preference.</para>
 		  <para>Note: There is no ONVIF API to get the current hashing algorithm of a device, ONVIF clients should depend on HTTP or RTSP digest challenge response.</para>
       <para>See differing example responses below for the given HTTP request:</para>
       <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
@@ -5559,7 +5570,7 @@ onvif://www.onvif.org/name/ARV-453
       </section>
       <section xml:id="_Toc251861725">
         <title>GetRemoteUser</title>
-        <para>This operation returns the configured remote user (if any). A device that signals support for remote user handling via the Security Capability RemoteUserHandling shall support this operation. The user is only valid for the WS-UserToken profile or as a HTTP / RTSP user.</para>
+        <para>This operation returns the configured remote user (if any). A device that signals support for remote user handling via the Security Capability RemoteUserHandling shall support this operation. The user is only valid for the WS-UserToken profile or as an HTTP / RTSP user.</para>
         <para>Password derivation is outside of the scope of this specification.</para>
         <variablelist role="op">
           <varlistentry>
@@ -6202,8 +6213,11 @@ onvif://www.onvif.org/name/ARV-453
                 <para>
                   The device shall use the contents of <literal>UserName</literal> as the access key ID for authenticating requests.
                 </para>
+                <para> 
+                  The device shall use the contents of <literal>Password</literal> as the
+                  secret access key for authenticating requests. </para>
                 <para>
-                  The device shall use the contents of <literal>Password</literal> as the secret access key for authenticating requests.
+                  If required by S3 service provider, the device shall use the contents of <literal>Token</literal> as the STS token for authorizing requests.
                 </para>
                 <para>
                   The device shall use the contents of <literal>Region</literal> as the region for authenticating requests.
@@ -7013,7 +7027,6 @@ Event description:
         <title>Requirements</title>
         <para>This section details those interfaces of the [WS-BaseNotification] that a device shall provide.</para>
         <para>An ONVIF compliant device shall support the NotificationProducer Interface of the [WS-BaseNotification] if the capability MaxNotificationProducers is non-zero. The device shall support TopicExpression filters with the dialects described in <xref linkend="_Ref210199558" />. The support for MessageContent filters is signalled via the GetEventProperties method. If the device does not accept the InitialTerminationTime of a subscription, it shall provide a valid InitialTerminationTime within the Fault Message. The device shall be able to provide notifications using the Notify wrapper of the [WS-BaseNotification] specification. The SubscriptionPolicy <literal>wsnt:UseRaw</literal> is optional for the device. Although the [WS-BaseNotification] has CurrentTime and TerminationTime as optional elements in a SubscribeResponse and RenewResponse, an ONVIF compliant device shall list them in both SubscribeResponses and RenewResponse. The device may respond to any GetCurrentMessage request with a Fault message indicating that no current message is available on the requested topic.</para>
-        <para>The implementation of the Pull-Point Interface of the [WS-BaseNotification] on a device is optional.</para>
         <para>An ONVIF compliant device shall implement the Base Subscription Manager Interface of the [WS-BaseNotification] specification consisting of the Renew and Unsubscribe operations. The Pausable Subscription Manager Interface is optional. The implementation of Subscriptions as WS-Resources is optional.</para>
         <para>An ONVIF compliant device shall support time values in request parameters that are given in utc with the 'Z' indicator and respond all time values as utc including the 'Z' indicator.</para>
       </section>
@@ -7467,10 +7480,6 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
           <listitem><para>Indication if the device supports the WS Subscription policy according to Section <xref linkend="_Toc214944387" /></para></listitem>
         </varlistentry>
         <varlistentry>
-          <term>WSPullPointSupport</term>
-          <listitem><para>Indication if the device supports the WS Pull Point according to Section <xref linkend="_Toc214944387"/></para></listitem>
-        </varlistentry>
-        <varlistentry>
           <term>WSPausableSubscriptionManagerInterfaceSupport</term>
           <listitem><para>Indication if the device supports the WS Pausable Subscription Manager Interface according to Section <xref linkend="_Toc214944387"/></para></listitem>
         </varlistentry>
@@ -7480,7 +7489,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
         </varlistentry>
         <varlistentry>
           <term>MaxPullPoints</term>
-          <listitem><para>Maximum supported number of notification pull points</para></listitem>
+          <listitem><para>Maximum supported number of notification pull points according to Section <xref linkend="_Toc214944387"/></para></listitem>
         </varlistentry>
         <varlistentry>
           <term>PersistenNotificationStorage</term>
@@ -8886,7 +8895,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
     <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/ver10/schema/onvif.xsd"/>]</para>
     <para>[ONVIF Topic Namespace] ONVIF Topic Namespace XML, ver 2.0, 2010.</para>
     <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/topics/topicns.xml"/>]</para>
-    <para>[ONVIF Security] ONVIF Advanced Security Specification</para>
+    <para>[ONVIF Security] ONVIF Security Specification</para>
     <para>[ONVIF Analytics] ONVIF Analytics Service Specification</para>
     <para>WS-I, Basic Profile Version 2.0 – Working Group Draft, C. Ferris (Ed), A. Karmarkar (Ed) and  P. Yendluri (Ed), October 2007.</para>
     <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ws-i.org/Profiles/BasicProfile-2_0(WGD).html"/></para>
@@ -9023,7 +9032,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
     </section>
     <section>
       <title>Security</title>
-      <para>The definition and interfaces for the Security have been deprecated with release 16.12. The following interfaces have been removed from the specification: The Security part was handed over to Advanced Security Service. </para>
+      <para>The definition and interfaces for the Security have been deprecated with release 16.12. The following interfaces have been removed from the specification: The Security part was handed over to Security Service. </para>
       <itemizedlist>
         <listitem>
           <para>Create IEEE 802.1X configuration</para>

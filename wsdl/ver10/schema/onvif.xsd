@@ -8,7 +8,7 @@ Recipients of this document may copy, distribute, publish, or display this docum
 THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
 IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.
 -->
-<xs:schema xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="24.06">
+<xs:schema xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="24.12">
 	<xs:include schemaLocation="common.xsd"/>
 	<xs:import namespace="http://www.w3.org/2005/05/xmlmime" schemaLocation="https://www.w3.org/2005/05/xmlmime"/>
 	<xs:import namespace="http://www.w3.org/2003/05/soap-envelope" schemaLocation="https://www.w3.org/2003/05/soap-envelope"/>
@@ -754,12 +754,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<xs:sequence>
 			<xs:element name="Width" type="xs:int">
 				<xs:annotation>
-					<xs:documentation>Number of the columns of the Video image.</xs:documentation>
+					<xs:documentation>Number of the columns of the Video image. If there is a 90-degree rotation, this represents the number of lines of the Video image.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Height" type="xs:int">
 				<xs:annotation>
-					<xs:documentation>Number of the lines of the Video image.</xs:documentation>
+					<xs:documentation>Number of the lines of the Video image. If there is a 90-degree rotation, this represents the number of columns of the Video image.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
@@ -1085,6 +1085,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="Signed" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates if this stream will be signed according to the Media Signing Specification.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:extension>
 		</xs:complexContent>
@@ -1094,12 +1099,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<xs:sequence>
 			<xs:element name="Width" type="xs:int">
 				<xs:annotation>
-					<xs:documentation>Number of the columns of the Video image.</xs:documentation>
+					<xs:documentation>Number of the columns of the Video image. If there is a 90-degree rotation, this represents the number of lines of the Video image.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Height" type="xs:int">
 				<xs:annotation>
-					<xs:documentation>Number of the lines of the Video image.</xs:documentation>
+					<xs:documentation>Number of the lines of the Video image. If there is a 90-degree rotation, this represents the number of columns of the Video image.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
@@ -1472,6 +1477,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:documentation>True if the metadata stream shall contain the PTZ position</xs:documentation>
 				</xs:annotation>
 			</xs:element>
+			<xs:element name="FieldOfView" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>True if the metadata stream shall contain the field-of-view information</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
@@ -1562,6 +1572,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Extension" type="tt:PTZStatusFilterOptionsExtension" minOccurs="0"/>
+			<xs:element name="FieldOfViewSupported" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>True if the device is able to stream the field-of-view information.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
@@ -3893,7 +3908,7 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			</xs:element>
 			<xs:element name="Status" type="xs:boolean">
 				<xs:annotation>
-					<xs:documentation>Indicates whether or not a certificate is used in a HTTPS configuration.</xs:documentation>
+					<xs:documentation>Indicates whether or not a certificate is used in an HTTPS configuration.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
@@ -6718,16 +6733,34 @@ If set to 0.0, infinity will be used.</xs:documentation>
 		<xs:sequence>
 			<xs:element name="Point" type="tt:Vector" minOccurs="2" maxOccurs="unbounded"/>
 		</xs:sequence>
+<!--		<xs:attribute name='dummy'/> uncomment for compilation with Visual Studio --> 
 	</xs:complexType>
 	<xs:element name="Polyline" type="tt:Polyline"/>
 	<!--===============================-->
+	
 	<xs:simpleType name="Direction">
+		<xs:union memberTypes="tt:ExtendedDirection"/>
+	</xs:simpleType>
+	
+	<xs:simpleType name="ExtendedDirection">
+		<xs:annotation>
+			<xs:documentation>Entering represents object coming into the polygon boundary.</xs:documentation>
+			<xs:documentation>Exiting represents object going out of the polygon boundary.</xs:documentation>
+			<xs:documentation>Approaching represents distance of object to camera sensor decreasing over time.</xs:documentation>
+			<xs:documentation>Departing represents distance of object to camera sensor increasing over time.</xs:documentation>		
+		</xs:annotation>
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="Left"/>
 			<xs:enumeration value="Right"/>
 			<xs:enumeration value="Any"/>
+			<!-- Add new values -->
+			<xs:enumeration value="Entering"/>
+			<xs:enumeration value="Exiting"/>
+			<xs:enumeration value="Approaching"/>
+			<xs:enumeration value="Departing"/>
 		</xs:restriction>
 	</xs:simpleType>
+	
 	<!--    Analytics Configuration    -->
 	<!--===============================-->
 	<xs:complexType name="AnalyticsEngineConfiguration">
@@ -6893,36 +6926,6 @@ If set to 0.0, infinity will be used.</xs:documentation>
 		<xs:sequence>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 		</xs:sequence>
-	</xs:complexType>
-	<!--===============================-->
-	<xs:complexType name="PolylineArray">
-		<xs:sequence>
-			<xs:element name="Segment" type="tt:Polyline" maxOccurs="unbounded">
-				<xs:annotation>
-					<xs:documentation>Contains array of Polyline</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element name="Extension" type="tt:PolylineArrayExtension" minOccurs="0"/>
-		</xs:sequence>
-		<xs:anyAttribute processContents="lax"/>
-	</xs:complexType>
-	<!--===============================-->
-	<xs:complexType name="PolylineArrayExtension">
-		<xs:sequence>
-			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
-		</xs:sequence>
-	</xs:complexType>
-	<!--===============================-->
-	<xs:complexType name="PolylineArrayConfiguration">
-		<xs:sequence>
-			<xs:element name="PolylineArray" type="tt:PolylineArray">
-				<xs:annotation>
-					<xs:documentation>Contains PolylineArray configuration data</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
-		</xs:sequence>
-		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
 	<xs:complexType name="MotionExpression">

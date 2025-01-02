@@ -4,12 +4,12 @@
   <info>
     <title>WebRTC Specification</title>
     <titleabbrev>WebRTC</titleabbrev>
-    <releaseinfo>24.06</releaseinfo>
+    <releaseinfo>24.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June 2024</pubdate>
+    <pubdate>December 2024</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -48,6 +48,14 @@
         </author>
         <revremark>First release.</revremark>
       </revision>
+      <revision>
+        <revnumber>24.12</revnumber>
+        <date>Dec 2024</date>
+        <author>
+          <personname>Jean-Francois Levesque, Jose Melancon</personname>
+        </author>
+        <revremark>Add requirements for device supporting ICE candidates. Add RTCP &amp; I-Frame request requirements</revremark>
+      </revision>
     </revhistory>
   </info>
   <chapter xml:id="chapter_txt_v12_v5b">
@@ -64,10 +72,13 @@
     <title>Normative references</title>
     <para>W3C WebRTC Specification: Real-Time Communication in Browsers</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
-        xlink:href="https://www.w3.org/TR/webrtc/"/>&gt;</para>
+      xlink:href="https://www.w3.org/TR/webrtc/"/>&gt;</para>
     <para>IETF RFC 6455 - The WebSocket Protocol</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
       xlink:href="http://tools.ietf.org/html/rfc6455"/>&gt;</para>
+    <para>IETF RFC 6544 - TCP Candidates with Interactive Connectivity Establishment (ICE)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="http://tools.ietf.org/html/rfc6544"/>&gt;</para>
     <para>IETF RFC 8829 - JavaScript Session Establishment Protocol (JSEP)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://tools.ietf.org/html/rfc8829"/>&gt;</para>
@@ -77,6 +88,9 @@
     <para>IETF RFC 8866 - SDP: Session Description Protocol</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://tools.ietf.org/html/rfc8866"/>&gt;</para>
+    <para>IETF RFC 8834 - Media Transport and Use of RTP in WebRTC</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="http://tools.ietf.org/html/rfc8834"/>&gt;</para>
     <para>IETF RFC 8839 - Session Description Protocol (SDP) Offer/Answer Procedures for
       Interactive Connectivity Establishment (ICE)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -85,6 +99,9 @@
       of Candidates for the Interactive Connectivity Establishment (Trickle ICE)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
       xlink:href="http://tools.ietf.org/html/rfc8840"/>&gt;</para>
+    <para>IETF RFC 8445 - Interactive Connectivity Establishment (ICE)</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://tools.ietf.org/html/rfc8445"/>&gt;</para>
     <para>IETF RFC 8489 - Session Traversal Utilities for NAT (STUN)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://tools.ietf.org/html/rfc8489"/>&gt;</para>
@@ -106,6 +123,12 @@
     <para>IETF RFC 7065 - Traversal Using Relays around NAT (TURN) Uniform Resource Identifiers</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
       xlink:href="https://datatracker.ietf.org/doc/html/rfc7065"/>&gt;</para>
+    <para>IETF RFC 4585 - Extended RTP Profile for Real-Time Transport Control Protocol (RTCP)-Based Feedback</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="https://datatracker.ietf.org/doc/html/rfc4585"/>&gt;</para>
+    <para>IETF RFC 5104 - Codec Control Messages in the RTP Audio-Visual Profile with Feedback (AVPF) Profile</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="https://datatracker.ietf.org/doc/html/rfc5104"/>&gt;</para>
     <para>JSON-RPC 2.0</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
       xlink:href="https://www.jsonrpc.org/specification"/>&gt;</para>
@@ -331,7 +354,7 @@
           </tgroup>
         </table>
       </para>
-      <para>The following sections specify the parameters of the indivdual commands.</para>
+      <para>The following sections specify the parameters of the individual commands.</para>
       <section xml:id="section_register">
         <title>register</title>
         <para> A signaling server shall expect this command to be sent once before any other command
@@ -589,7 +612,7 @@ Device -> Server: { "method": "register", "params": {"authorization": "JWT..."},
 Server -> Device: { "result": { "id": "device-b1" }, "id": 1}
 
 Client -> Server: { "method": "connect", 
-              "params": {"authorization": "JWT...", "DeviceID": "device-b1"}, "id":2}
+              "params": {"authorization": "JWT...", "peer": "device-b1"}, "id":2}
 Server -> Device: { "method": "connect", 
                 "params": {"session": "s1", "iceServers": [{"urls": ["stun:1.2.3.4"]}], "id":2}
   Device -> Server: { "result": {}, "id": 2}
@@ -630,6 +653,19 @@ Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate"
        is enough available bandwidth, devices should aim to switch back to the initially selected
        profile.</para>
     </section>
+    <section xml:id="section_xyt_v12_v5b">
+      <title>Feedback mechanisms</title>
+      <para>Devices shall be able to exchange RTCP feedback with their peer as defined in RFC 8834.
+        In particular, devices shall handle FIR messages, as defined in RFC 5104, and PLI messages,
+        as defined in RFC 4585, and attempt to provide a synchronization point according to the
+        semantics of these requests.</para>
+      <para></para>
+    </section>
+	  <section>
+		  <title>ICE candidates</title>
+	    <para>A device shall support generating and receiving host, server reflexive and relay ICE candidates as defined in [RFC 8445].</para>
+    	<para>A device shall handle passive ICE TCP candidates as defined in [RFC 6544]. On reception, it shall generate an active ICE TCP candidate to match and establish a TCP connection to the endpoint announced by the candidate. A device is not required to listen on a TCP endpoint and generate a passive ICE TCP candidate.</para>
+	  </section>
     <section xml:id="section_vyt_v12_v5b">
       <title>Video</title>
       <para>When using WebRTC with a web browser only certain codecs will work. Because of this

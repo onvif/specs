@@ -10,7 +10,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tr2="http://www.onvif.org/ver20/media/wsdl" targetNamespace="http://www.onvif.org/ver20/media/wsdl">
 	<wsdl:types>
-		<xs:schema targetNamespace="http://www.onvif.org/ver20/media/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="24.06">
+		<xs:schema targetNamespace="http://www.onvif.org/ver20/media/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="24.12">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../../ver10/schema/onvif.xsd"/>
 			<!--  Message Request/Responses elements  -->
 			<!--===============================-->
@@ -41,6 +41,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:element name="StreamingCapabilities" type="tr2:StreamingCapabilities">
 						<xs:annotation>
 							<xs:documentation>Streaming capabilities.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MediaSigningCapabilities" type="tr2:MediaSigningCapabilities">
+						<xs:annotation>
+							<xs:documentation>Media signing capabilities.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
@@ -145,6 +150,18 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:attribute name="SecureRTSPStreaming" type="xs:boolean">
 					<xs:annotation>
 						<xs:documentation>Indicates support for live media streaming via RTSPS and SRTP.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:complexType name="MediaSigningCapabilities">
+				<xs:sequence>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:attribute name="MediaSigningSupported" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates whether the device supports signing of media according to the Media Signing Specification.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
@@ -1233,6 +1250,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:element name="CertPathValidationPolicyID" type="xs:string" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>The CertPathValidationPolicyID for validating the signaling server certificate.</xs:documentation>
+							<xs:documentation>If not configured, server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:element name="AuthorizationServer" type="tt:ReferenceToken">
@@ -1287,7 +1305,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:sequence>
 						<xs:element name="WebRTCConfiguration" type="tr2:WebRTCConfiguration" minOccurs="0" maxOccurs="unbounded">
 							<xs:annotation>
-								<xs:documentation>Video Source Configuration Token that specifies an existing video source configuration that the options shall be compatible with.</xs:documentation>
+								<xs:documentation>This message contains the WebRTC configurations to use for the device. If empty, existing WebRTC configurations are deleted.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -1838,7 +1856,7 @@ the PTZ position shall be repeated within the metadata stream.</wsdl:documentati
 		<wsdl:operation name="GetSnapshotUri">
 			<wsdl:documentation>A client uses the GetSnapshotUri command to obtain a JPEG snapshot from the
 device. The returned URI shall remain valid indefinitely even if the profile is changed. The URI can be used for
-acquiring a JPEG image through a HTTP GET operation. The image encoding will always be
+acquiring a JPEG image through an HTTP GET operation. The image encoding will always be
 JPEG regardless of the encoding setting in the media profile. The Jpeg settings
 (like resolution or quality) may be taken from the profile if suitable. The provided
 image will be updated automatically and independent from calls to GetSnapshotUri.</wsdl:documentation>
