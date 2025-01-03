@@ -1957,6 +1957,221 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 		</xs:sequence>
 	</xs:complexType>
+
+	<!--===============================-->
+	<!--     MulticastAudioDecoder     -->
+	<!--===============================-->
+
+	<xs:complexType name="MulticastAudioDecoderConfiguration">
+		<xs:annotation>
+			<xs:documentation>
+				Configuration for the Multicast Audio Decoder.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="tt:ConfigurationEntity">
+				<xs:sequence>
+					<xs:element name="Enable" type="xs:boolean">
+						<xs:annotation>
+							<xs:documentation>
+								Indicates whether the Multicast Audio Decoder is enabled or disabled.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioOutputConfigurationToken" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>
+								Reference token for the audio output configuration. This element is optional and can occur multiple times.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Encoding" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>
+								Specifies the encoding type according to IANA media types.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Bitrate" type="xs:int">
+						<xs:annotation>
+							<xs:documentation>
+								The bitrate of the audio stream in bits per second.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="SamplingRate" type="xs:int">
+						<xs:annotation>
+							<xs:documentation>
+								The sampling rate of the audio stream in kHz.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Multicast" type="tt:MulticastConfigurationAudioDecoder">
+						<xs:annotation>
+							<xs:documentation>
+								Contains configuration details for multicast settings.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="RTPPayloadType" type="xs:int">
+						<xs:annotation>
+							<xs:documentation>
+								Specifies the RTP payload type for the audio stream.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Priority" type="xs:int">
+						<xs:annotation>
+							<xs:documentation>
+								Indicates the priority level when multiple configurations are active. 
+								A higher value signifies a higher priority.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MediaFormatParameters" type="xs:string" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>
+								Optional media format parameters as specified in SDP, such as:
+								a=fmtp:101 stereo=1; sprop-stereo=1.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="SRTPPSK" type="xs:string" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>
+								An optional SRTP key represented as a hex string. When specified, RTP packets shall be encrypted.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="SRTPCryptoPolicy" type="xs:string" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>
+								Specifies the SRTPCryptoPolicy, which can be one of the values defined in 
+								<a href="https://www.iana.org/assignments/sdp-security-descriptions/sdp-security-descriptions.xhtml#sdp-security-descriptions-3">
+									SDP Security Descriptions
+								</a>. 
+								If not specified, the default value is <code>AES_CM_128_HMAC_SHA1_80</code>.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/> <!-- first Vendor then ONVIF -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	
+
+	<xs:complexType name="MulticastConfigurationAudioDecoder">
+		<xs:sequence>
+			<xs:element name="Address" type="tt:IPAddress">
+				<xs:annotation>
+					<xs:documentation>The multicast address (if this address is set to 0 no multicast streaming is enabled)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Port" type="xs:int">
+				<xs:annotation>
+					<xs:documentation>The RTP multicast destination port. A device may support RTCP. In this case the port value shall be even to allow the corresponding RTCP stream to be mapped to the next higher (odd) destination port number as defined in the RTSP specification.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="TTL" type="xs:int">
+				<xs:annotation>
+					<xs:documentation>In case of IPv6 the TTL value is assumed as the hop limit. Note that for IPV6 and administratively scoped IPv4 multicast the primary use for hop limit / TTL is to prevent packets from (endlessly) circulating and not limiting scope. In these cases the address contains the scope.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="InterfaceToken" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Unique identifier of the network interface on the device. If not specified, all available interfaces will be used for listening. </xs:documentation>
+					</xs:annotation>
+			</xs:element>
+			<xs:element name="StreamingSourceAddress" type="tt:IPAddress" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>When the source address is configured, device should receive data only from this address.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+
+
+
+	<xs:complexType name="MulticastAudioDecoderConfigurationOptions">
+		<xs:sequence>
+			<xs:element name="EncodingOptions" type="tt:AudioDecoder2Options">
+				<xs:annotation>
+					<xs:documentation>Supported encoding options for the multicast audio decoder.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="PriorityRange" type="tt:IntRange">
+				<xs:annotation>
+					<xs:documentation>
+						Specifies the priority range as an integer. This indicates the priority level for audio configuration.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="SRTPSupported" type="xs:boolean">
+						<xs:annotation>
+							<xs:documentation>
+								Indicates whether the SRTP is supported or not.
+							</xs:documentation>
+						</xs:annotation>
+			</xs:element>
+			<xs:element name="SRTPCryptoPolicies" type="tt:StringList" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>
+								 Optional parameter to specify the list of supported SRTPCryptoPolicies. 
+								For more information, visit: 
+								<a href="https://www.iana.org/assignments/sdp-security-descriptions/sdp-security-descriptions.xhtml#sdp-security-descriptions-3">
+									SDP Security Descriptions
+								</a>.
+								If not specified, the default policy used is AES_CM_128_HMAC_SHA1_80.
+							</xs:documentation>
+						</xs:annotation>
+			</xs:element>
+			<xs:element name="AudioOutputConfigurationTokens" type="tt:StringList" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>
+						Optional list of audio output configuration tokens. This element is used when only certain audio outputs can be configured for this token.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+
+
+	<xs:complexType name="AudioDecoder2Options">
+		<xs:sequence>
+			<xs:element name="Encoding" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Audio Media Subtype for the audio format. For definitions see tt:AudioEncodingMimeNames and <a href="https://www.iana.org/assignments/media-types/media-types.xhtml#audio"> IANA Media Types</a>.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="BitrateList" type="tt:IntItems">
+				<xs:annotation>
+					<xs:documentation>List of supported bitrates in kbps for the specified Encoding</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="SampleRateList" type="tt:IntItems">
+				<xs:annotation>
+					<xs:documentation>List of supported Sample Rates in kHz for the specified Encoding</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="RTPPayloadType" type="xs:int" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>
+						Optional element for specifying the RTP payload type, 
+						particularly when it is fixed for a specific audio encoding.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+
 	<!--===============================-->
 	<!--          Streaming            -->
 	<!--===============================-->

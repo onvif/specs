@@ -152,6 +152,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>Indicates support for live media streaming via RTSPS and SRTP.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="MulticastAudioDecoder" type="xs:boolean">
+        		<xs:annotation>
+            		<xs:documentation>Indicates support for multicast audio decoder.</xs:documentation>
+        		</xs:annotation>
+    			</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
@@ -1318,6 +1323,62 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+
+			<xs:element name="GetMulticastAudioDecoderConfigurations">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ConfigurationToken" type="tt:ReferenceToken"  minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Unique token of the multicast audio decoder configuration. If not passed, device shall respond with all configurations.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>	
+			<xs:element name="GetMulticastAudioDecoderConfigurationsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configurations" type="tt:MulticastAudioDecoderConfiguration" minOccurs="0" maxOccurs="unbounded" >
+							<xs:annotation>
+								<xs:documentation>This message contains the list of multicast audio decoder configurations.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			
+			<xs:element name="GetMulticastAudioDecoderConfigurationOptions">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ConfigurationToken" type="tt:ReferenceToken"  minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>This response contains the available MulticastAudioDecoderConfigurationOptions. If a multicast audio decoder configuration is specified, the options shall concern that particular configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetMulticastAudioDecoderConfigurationOptionsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Options" type="tt:MulticastAudioDecoderConfigurationOptions" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<xs:element name="SetMulticastAudioDecoderConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configuration" type="tt:MulticastAudioDecoderConfiguration">
+							<xs:annotation>
+								<xs:documentation>Contains the modified multicast audio decoder configuration. The configuration shall exist in the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetMulticastAudioDecoderConfigurationResponse" type="tr2:SetConfigurationResponse"/>
+
 			<!--============ Schema End================-->
 		</xs:schema>
 	</wsdl:types>
@@ -1613,6 +1674,25 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="SetWebRTCConfigurationsResponse">
 		<wsdl:part name="parameters" element="tr2:SetWebRTCConfigurationsResponse"/>
 	</wsdl:message>
+	<wsdl:message name="GetMulticastAudioDecoderConfigurationsRequest">
+		<wsdl:part name="parameters" element="tr2:GetMulticastAudioDecoderConfigurations"/>
+	</wsdl:message>
+	<wsdl:message name="GetMulticastAudioDecoderConfigurationsResponse">
+		<wsdl:part name="parameters" element="tr2:GetMulticastAudioDecoderConfigurationsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetMulticastAudioDecoderConfigurationOptionsRequest">
+		<wsdl:part name="parameters" element="tr2:GetMulticastAudioDecoderConfigurationOptions"/>
+	</wsdl:message>
+	<wsdl:message name="GetMulticastAudioDecoderConfigurationOptionsResponse">
+		<wsdl:part name="parameters" element="tr2:GetMulticastAudioDecoderConfigurationOptionsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetMulticastAudioDecoderConfigurationRequest">
+		<wsdl:part name="parameters" element="tr2:SetMulticastAudioDecoderConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetMulticastAudioDecoderConfigurationResponse">
+		<wsdl:part name="parameters" element="tr2:SetMulticastAudioDecoderConfigurationResponse"/>
+	</wsdl:message>
+
 	<wsdl:portType name="Media2">
 		<!--===============================-->
 		<!--===============================-->
@@ -1949,6 +2029,23 @@ image will be updated automatically and independent from calls to GetSnapshotUri
 			<wsdl:output message="tr2:SetWebRTCConfigurationsResponse"/>
 		</wsdl:operation>
 		<!--==============Mask Operation End=================-->
+		<!--==============MulticastAudioDecoder Operation=================-->
+		<wsdl:operation name="GetMulticastAudioDecoderConfigurations">
+			<wsdl:documentation>This operation gets the list of multicast audio decoder configurations.</wsdl:documentation>
+			<wsdl:input message="tr2:GetMulticastAudioDecoderConfigurationsRequest"/>
+			<wsdl:output message="tr2:GetMulticastAudioDecoderConfigurationsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetMulticastAudioDecoderConfigurationOptions">
+			<wsdl:documentation>This operation gets the available options for the MulticastAudioDecoder configuration.</wsdl:documentation>
+			<wsdl:input message="tr2:GetMulticastAudioDecoderConfigurationOptionsRequest"/>
+			<wsdl:output message="tr2:GetMulticastAudioDecoderConfigurationOptionsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetMulticastAudioDecoderConfiguration">
+			<wsdl:documentation>This operation sets the MulticastAudioDecoderConfiguration.</wsdl:documentation>
+			<wsdl:input message="tr2:SetMulticastAudioDecoderConfigurationRequest"/>
+			<wsdl:output message="tr2:SetMulticastAudioDecoderConfigurationResponse"/>
+		</wsdl:operation>
+		<!--===========MulticastAudioDecoder Operation End ===============-->
 	</wsdl:portType>
 	<wsdl:binding name="Media2Binding" type="tr2:Media2">
 		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
@@ -2411,5 +2508,34 @@ image will be updated automatically and independent from calls to GetSnapshotUri
 			</wsdl:output>
 		</wsdl:operation>
 		<!--==============WebRTC End=================-->
+		<!--==============Multicast Audio Decoder Configuration =================-->
+		<wsdl:operation name="GetMulticastAudioDecoderConfigurations">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/GetMulticastAudioDecoderConfigurations"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetMulticastAudioDecoderConfigurationOptions">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/GetMulticastAudioDecoderConfigurationOptions"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetMulticastAudioDecoderConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/SetMulticastAudioDecoderConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<!--==============Multicast Audio Decoder Configuration End =================-->
 	</wsdl:binding>
 </wsdl:definitions>
