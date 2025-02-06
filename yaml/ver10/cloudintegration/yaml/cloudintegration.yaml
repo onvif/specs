@@ -35,13 +35,13 @@ components:
         scope:
           description: The requested access scope
           type: string
-        authorizationServerTrustAnchors:
-          items:
-            $ref: '#/components/schemas/base64DerEncodedAsn1Value'
-          description: The list of certificates with the public keys needed to build the validation policy to validate the TLS certificate of the authorization server.
+        certPathValidationPolicyAlias:
+          description: The alias of the certPathValidationPolicy to be used with this configuration
+          type: string
       required:
         - serverUri
         - clientId
+        - certPathValidationPolicyAlias
 
     uplinkConfiguration:
       type: object
@@ -53,13 +53,13 @@ components:
           description: Authorization level that will be assigned to the uplink connection.
           type: string
           enum: [Administrator, Operator, User]
-        uplinkTrustAnchors:
-          items:
-            $ref: '#/components/schemas/base64DerEncodedAsn1Value'
-          description: The list of certificates with the public keys needed to build the validation policy to validate the TLS certificate of the uplink server.
+        certPathValidationPolicyAlias:
+          description: The alias of the certPathValidationPolicy to be used with this configuration
+          type: string
       required:
         - remoteAddress
         - userLevel
+        - certPathValidationPolicyAlias
 
     deviceConfiguration:
       type: object
@@ -79,11 +79,16 @@ components:
         authorizationServerConfigurations:
           items:
             $ref: '#/components/schemas/authorizationServerConfiguration'
+        certPathValidationPolicies:
+          description: List of certificate validation policies that can be referenced by alias
+          items:
+            $ref: '#/components/schemas/certPathValidationPolicy'
       required:
         - shareToken
         - endpointReferences
         - uplinkConfigurations
         - authorizationServerConfigurations
+        - certPathValidationPolicies
 
     startDeviceSharing:
       type: object
@@ -116,6 +121,20 @@ components:
           enum: [ "Invalid configuration", "Invalid JWT" ]
       required:
         - error
+
+    certPathValidationPolicy:
+      type: object
+      properties:
+        alias:
+          description: The alias to be used for the CertPathValidationPolicy
+          type: string
+        trustAnchors:
+          description: List of trust anchors in base64DerEncodedAsn1Value
+          items:
+            $ref: '#/components/schemas/base64DerEncodedAsn1Value'
+      required:
+        - alias
+        - trustAnchors
 
 paths:
   /startDeviceSharing:
