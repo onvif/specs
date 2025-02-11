@@ -235,8 +235,7 @@
     <para>IETF RFC 2435, RFC2435 - RTP Payload Format for JPEG-compressed Video</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc2435.txt"></link>&gt;</para>
     <para>IETF RFC 3016, RTP Payload Format for MPEG-4 Audio/Visual Streams</para>
-    <programlisting><![CDATA[http://www.ietf.org/rfc/rfc3016.txt
-]]></programlisting>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc3016"></link>&gt;</para>
     <para>IETF RFC 3550, RTP: A Transport Protocol for Real-Time Applications</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc3550.txt"></link>&gt;</para>
     <para>IETF RFC 3551, RTP Profile for Audio and Video Conferences  with Minimal Control</para>
@@ -381,6 +380,22 @@
               </entry>
             </row>
             <row>
+              <entry valign="middle">
+                  <para>MIKEY</para>
+              </entry>
+              <entry valign="middle">
+                  <para>Multimedia Internet KEYing</para>
+              </entry>
+          </row>
+          <row>
+              <entry valign="middle">
+                  <para>MKI</para>
+              </entry>
+              <entry valign="middle">
+                  <para>Master Key Identifier</para>
+              </entry>
+          </row>
+          <row>
               <entry valign="middle">
                 <para>MPEG-4</para>
               </entry>
@@ -590,7 +605,62 @@
         </section>
         <section>
           <title>SRTP data transfer via UDP</title>
-          <para>This mode allows secure transmission of RTP packets via UDP unicast and multicast. See RFC 3711 for transmission and RFC 4567 for key exchange.</para>
+            <para>This mode allows secure transmission of RTP packets via UDP unicast and multicast. See RFC 3711 and RFC 7714 for transmission and RFC 4567 for key exchange. For RFC 3711, it is expected that the SRTP authentication tag be present. For RFC 7714, it is expected that the SRTP authentication tag is not present. The optional MKI is expected to be present in SRTP packets regardless of the algorithm used.</para>
+            <para>
+                The client may set a different key management protocol in the keymgmt attribute of the SETUP.
+                If the keymgmt header is present in the SETUP, the device shall use the key management protocol and key specified in the keymgmt header.
+            </para>
+            <para>
+                Example RTSP session:
+            </para>
+            <programlisting>
+                <![CDATA[
+client->server:   DESCRIBE rtsp://example.com/onvif_camera RTSP/1.0
+                  Cseq: 1
+                 
+server->client:   RTSP/1.0 200 OK
+                  Cseq: 1
+                  Content-Type: application/sdp
+                  Content-Length: XXX
+                  v=0
+                  o=- 2890844256 2890842807 IN IP4 172.16.2.93
+                  s=RTSP Session
+                  m=audio 0 RTP/SAVP 0
+                  a=key-mgmt: mikey AQAFgM0XflABAAAAAAAAAAAAAAsAy...
+                  a=control:rtsp://example.com/onvif_camera/audio
+                  m=video 0 RTP/SAVP 26
+                  a=key-mgmt: mikey CQCGiO2ZhnCDCCCCCCCCCCCCCCCuC0...
+                  a=control:rtsp://example.com/onvif_camera/video
+                  m=application 0 RTP/SAVP 107
+                  a=key-mgmt: mikey EQCGiO2ZhnEDEEEEEEEEEEEEEuC0...
+                  a=control:rtsp://example.com/onvif_camera/metadata
+                  a=recvonly
+                  a=rtpmap:107 vnd.onvif.metadata/90000
+
+client->server:   SETUP rtsp://example.com/onvif_camera/audio RTSP/1.0
+                  Cseq: 2
+                  Transport: RTP/SAVP/TCP;unicast;interleaved=0-1
+                  keymgmt: prot=mikey; uri="rtsp://movie.example.com/action/audio";
+                           data="GQCGiO2ZhnGDGGGGGGGGGGGuC3..."
+
+server->client:   RTSP/1.0 200 OK
+                  Cseq: 2
+                  Transport: RTP/SAVP;unicast;client_port=8002-8003;
+                  server_port=9004-9005
+                  Session: 12345678; timeout=60
+]]>
+            </programlisting>
+        </section>
+        <section>
+                <title>Cryptographic algorithm negotiation</title>
+                <para>
+                    If a device supports encryption algorithms other than AES_CM_128_SHA1_80 as defined in RFC 3711, it must also support Media2, the SecureRTSPStreamingAlgorithms attribute of the GetServiceCapabilities response and the GetStreamUri2 action. 
+                    This mechanism allows the client to choose the encryption algorithm used by the device for SRTP.
+                </para>
+                <para>
+                    To configure which algorithm should be used by the streaming device, the client must get the list of supported SecureRTSPStreamingAlgorithms through the GetServiceCapabilities action.
+                    The client can then choose the algorithm to use and set it in the SecurityProtocolAlgorithm attribute of the GetStreamUri2 action.
+                </para>
         </section>
         <section xml:id="_Ref213038219">
           <title>RTP/RTSP/HTTP/TCP</title>
