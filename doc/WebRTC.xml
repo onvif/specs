@@ -293,7 +293,7 @@
         server</emphasis> called <emphasis>server</emphasis> from now on. Once a peer-to-peer
       connection has been established the connection with the server can be dropped without
       affecting the peer-to-peer connection.</para>
-    <para>In some instances, there may be a requirement to extend a session. The connection with the <emphasis>server</emphasis> must be maintained if the client<!--how about if the device needs to extend the session?--> has this requirement and the server supports the extendSession command.</para>
+    <para>In some instances, there may be a requirement to extend a session. The connection with the <emphasis>server</emphasis> must be maintained if the client has this requirement and the server supports the extendSession command.</para>
     <figure xml:id="_Ref493258797">
       <title>Signaling flow sequence diagram</title>
       <mediaobject>
@@ -356,11 +356,11 @@
         </table>
       </para>
       <section xml:id="Versioning">
-        <title>API Version</title>
-        <para>In version 1.1 and later, the response to the register command includes the API version<!--Is it an API version or a protocol version?-->. Use the API version to determine the signaling server's capabilities.</para>
+        <title>Protocol Version</title>
+        <para>In version 1.1 and later, the response to the register command includes the protocol version. Use the protocol version to determine the signaling server's capabilities.</para>
         <para>
           <table frame="all">
-            <title>API Versions<!--Is it an API version or a protocol version?--></title>
+            <title>Protocol Versions</title>
             <tgroup cols="2">
               <colspec colname="c1" colnum="1" colwidth="2.0*"/>
               <colspec colname="c2" colnum="2" colwidth="8.0*"/>
@@ -373,7 +373,7 @@
               <tbody>
                 <row>
                   <entry><para>1.0</para></entry>
-                  <entry><para>The first release of this<!--there are lots of ONVIF specs ;)--> ONVIF specification. </para></entry>
+                  <entry><para>The first release of this ONVIF specification. </para></entry>
                 </row>
                 <row>
                   <entry><para>1.1</para></entry>
@@ -406,8 +406,8 @@
           <listitem>
             <para role="param">id [string]</para>
             <para role="text">The ID assigned by the signaling server to the endpoint. </para>
-            <para role="param">apiVersion optional [string]</para>
-            <para role="text">The version of the signaling protocol<!--Is it an API version or a protocol version?--> supported by the signaling server. This is an optional parameter and if not returned, the supported version is 1.0. </para>
+            <para role="param">version optional [string]</para>
+            <para role="text">The version of the signaling protocol supported by the signaling server. This is an optional parameter and if not returned, the supported version is 1.0. </para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -446,7 +446,7 @@
             <para role="text">The ID assigned by the signaling server to the session. </para>
             <para role="param">iceServers optional unbounded [RTCIceServer]</para>
             <para role="text">List of STUN and TURN servers to be used. </para>
-            <para role="param">ExpiryTime [integer] <!--ExpiryTime or expiryTime?--></para>
+            <para role="param">expiryTime [integer]</para>
             <para role="text">Time in milliseconds before the session ends. </para>
           </listitem>
         </varlistentry>
@@ -545,11 +545,11 @@
       <para>If everything works as it should, a peer-to-peer WebRTC session can be set up between
         client and device. After the session has been established the client can terminate the
         WebSocket session to the signaling server and the peer-to-peer connection will not be
-        affected.<!--how about extendSession?--></para>
+        affected. Only reason to keep the connection to signaling server is if the client would need to extend the session.</para>
     </section>
     <section xml:id="section_extendSession">
       <title>extendSession</title>
-      <para>In API Version 1.1<!--Is it an API version or a protocol version?-->, the command extendSession has been added. This command updates a session if more time is required. In some configurations, a session times out when the JWT token expires. If extendSession is supported by the Signaling Server<!--lowercase signaling server is more prevalent-->, it is possible to request an extension by sending a new JWT token and an expiryTime.</para>
+      <para>In protocol version 1.1, the command extendSession has been added. This command updates a session if more time is required. In some configurations, a session times out when the JWT token expires. If extendSession is supported by the signaling server, it is possible to request an extension by sending a new JWT token and an expiryTime.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -558,14 +558,14 @@
             <para role="text">The ID assigned by the signaling server to the session. </para>
             <para role="param">authorization [JWT]</para>
             <para role="text">Access token that authorizes the device or client.</para>
-            <para role="param">ExpiryTime<!--ExpiryTime or expiryTime?--> [integer]</para>
+            <para role="param">expiryTime [integer]</para>
             <para role="text">Requested time in milliseconds to extend the session.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>response</term>
           <listitem>
-            <para role="param">ExpiryTime<!--ExpiryTime or expiryTime?--> [integer]</para>
+            <para role="param">expiryTime [integer]</para>
             <para role="text">The time in milliseconds the session has been extended.</para>
           </listitem>
         </varlistentry>
@@ -665,7 +665,7 @@
             </row>
             <row>
               <entry>
-                <para>API Version<!--Is it an API version or a protocol version?--> not supported</para>
+                <para>Protocol version not supported</para>
               </entry>
               <entry>
                 <para>1004</para>
@@ -684,7 +684,7 @@
           readability the mandatory JSON version string is not shown.</para>
       <programlisting><![CDATA[
 Client -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
-Server -> Client: { "result": { "id": "client-a1" }, "id": 1}
+Server -> Client: { "result": { "id": "client-a1", "version": "1.1" }, "id": 1 }
 Device -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
 Server -> Device: { "result": { "id": "device-b1" }, "id": 1}
 
