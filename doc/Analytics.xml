@@ -4456,6 +4456,16 @@ xmlns:acme="http://www.acme.com/schema"&gt;
     </section>
     <section>
       <title>Object Track Aggregation</title>
+      <para>This event is intended to describe an object throughout its visibility within a scene.
+        The description should include aggregated or summarized information along with contextual
+        data, such as images or bounding boxes, to assist clients in visualizing the object's track
+        or movement path. This event can complement per-frame, per-object scene descriptions by
+        providing a higher-level representation of the object’s trajectory, enhancing forensic
+        analysis while optimizing bandwidth consumption.</para>
+      <para>It is recommended to enable ObjectTrack data in sparsely crowded scenes to optimize data
+        produced from the device.</para>
+      <para>The process by which device aggregates object track data for a given object is out of
+        scope of this specification.</para>      
       <para>The Object Track Aggregation rule generates an object track aggregation event for below
         listed scenarios </para>
       <itemizedlist>
@@ -4469,7 +4479,8 @@ xmlns:acme="http://www.acme.com/schema"&gt;
       </itemizedlist>
       <para>Optionally, device may include additional object track data for e.g. snapshot image as
         configured in ObjectTrackDataFilter parameter.</para>
-      <para>It is recommended to enable ObjectTrack data in sparsely crowded scenes to optimize data produced from the device.</para>
+      <para>Final aggregation event shall be sent even if final classification does not meet class
+        or threshold filters in rule configuration.</para>
       <variablelist role="op">
         <varlistentry>
           <term>Parameters</term>
@@ -4480,8 +4491,8 @@ xmlns:acme="http://www.acme.com/schema"&gt;
             <para role="text">Minimum confidence level of object classification for generating
               aggregation event. </para>
             <para role="param">ReportTimeInterval - optional [xs:duration]</para>
-            <para role="text">Optional time interval to control update frequency. If omitted only
-              final aggregation shall be provided.</para>
+            <para role="text">Optional time interval to control update frequency. If omitted the
+              final aggregation shall be provided, intermediates optionally provided.</para>
             <para role="param">ObjectTrackDataFilter - optional [tt:StringList]</para>
             <para role="text">Optional list of object tree elements expressed as xpath filter for
               e.g. "Object/Appearance/Image" to be included in Object track data. If omitted,
@@ -4508,7 +4519,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
               AggregationStart time. </para>        
             <para role="param">Object - mandatory [tt:Object]</para>
             <para role="text">Track aggregation data of an object.</para>
-            <para role="param">ObjectTrack - optional, unbounded [tt:ObjectTrackData]</para>
+            <para role="param">ObjectTrack - optional, unbounded [tt:ObjectTrack]</para>
             <para role="text">Optional additional description of an object to provide enriched context.</para>
             <para role="param">Final - optional [xs:boolean]</para>
             <para role="text">Signals TRUE for final aggregation event for the detected
@@ -4530,9 +4541,9 @@ xmlns:acme="http://www.acme.com/schema"&gt;
     </tt:Source>
     <tt:Data>
       <tt:SimpleItemDescription Name="AggregationStart" Type="xs:dateTime"/>
-      <tt:SimpleItemDescription Name="FinalAggregation" Type="xs:boolean"/>
+      <tt:SimpleItemDescription Name="Final" Type="xs:boolean"/>
       <tt:ElementItemDescription Name="Object" Type="tt:Object"/>
-      <tt:ElementItemDescription Name="ObjectTrackData" Type="tt:ObjectTrackData"/>
+      <tt:ElementItemDescription Name="ObjectTrack" Type="tt:ObjectTrack"/>
     </tt:Data>
     <tt:ParentTopic>tns1:RuleEngine/ObjectTrack/Aggregation</tt:ParentTopic>
   </tt:Messages>
