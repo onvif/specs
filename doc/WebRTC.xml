@@ -114,9 +114,6 @@
     <para>IETF RFC 8656 - Traversal Using Relays around NAT (TURN)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://tools.ietf.org/html/rfc8856"/>&gt;</para>
-    <para>IETF RFC 7519 - JSON Web Token (JWT)</para>
-    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
-      xlink:href="http://tools.ietf.org/html/rfc7519"/>&gt;</para>
     <para>IETF RFC 6749 - The OAuth 2.0 Authorization Framework</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
       xlink:href="http://tools.ietf.org/html/rfc6749"/>&gt;</para>
@@ -316,7 +313,7 @@
       <para>In case a connection is dropped the device shall reconnect automatically. Each client
         should use an individual ascending interval strategy to avoid that all clients reconnect at
         the same time.</para>
-      <para>Both a client and a device shall provide their JWT access token using the Authorization header
+      <para>Both a client and a device shall provide their access token using the Authorization header
         or via query parameter on the WebSocket URI as defined by [RFC6750] Section 2.3.</para>
       <para>Once the WebSocket is open, both device and client shall immediately send a register command
         as specified in section <xref linkend="section_register"/> when they receive the HTTP 101 switching
@@ -340,10 +337,6 @@
               </row>
             </thead>
             <tbody>
-              <row>
-                <entry><para>JWT</para></entry>
-                <entry><para>Encoded according to RFC 7519</para></entry>
-              </row>
               <row>
                 <entry><para>SDP</para></entry>
                 <entry><para>SDP according to RFC 8866 with \r\n escaping</para></entry>
@@ -374,7 +367,7 @@
         <varlistentry>
           <term>request</term>
           <listitem>
-            <para role="param">authorization [JWT]</para>
+            <para role="param">authorization [string]</para>
             <para role="text">Access token that authorizes the device or client.</para>
             <para role="param">id optional [string]</para>
             <para role="text">The unique ID of the device or client.</para>
@@ -393,7 +386,7 @@
             <term>faults</term>
             <listitem>
               <para role="param">401 Authorization failed</para>
-              <para role="text">The JWT token cannot be verified, does not include the required claims or has expired.</para>
+              <para role="text">The access token cannot be verified or has expired.</para>
             </listitem>
           </varlistentry>
       </variablelist>
@@ -408,7 +401,7 @@
           <listitem>
               <para role="param">peer optional [string]</para>
             <para role="text">The ID of the peer to connect to.</para>
-            <para role="param">authorization [JWT]</para>
+            <para role="param">authorization [string]</para>
             <para role="text">Access token that authorizes the device or client.</para>
             <para role="param">session optional [string]</para>
             <para role="text">The ID assigned by the signaling server to the session.</para>
@@ -431,7 +424,7 @@
           <term>faults</term>
           <listitem>
             <para role="param">401 Authorization failed</para>
-            <para role="text">The JWT token cannot be verified, does not include the required claims or has expired.</para>
+            <para role="text">The access token cannot be verified or has expired.</para>
               <para role="param">403 Forbidden</para>
               <para role="text">The client is not authorized to connect to the provided peer.</para>
             <para role="param">480 Temporary unavailable.</para>
@@ -621,13 +614,13 @@
       <para>The following example shows the flow using JSON-RPC 2.0. Note that for improved
           readability the mandatory JSON version string is not shown.</para>
       <programlisting><![CDATA[
-Client -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
+Client -> Server: { "method": "register", "params": {"authorization": "access token"}, "id":1}
 Server -> Client: { "result": { "id": "client-a1" }, "id": 1}
-Device -> Server: { "method": "register", "params": {"authorization": "JWT..."}, "id":1}
+Device -> Server: { "method": "register", "params": {"authorization": "access token"}, "id":1}
 Server -> Device: { "result": { "id": "device-b1" }, "id": 1}
 
 Client -> Server: { "method": "connect", 
-                "params": {"authorization": "JWT...", "peer": "device-b1"}, "id":2}
+                "params": {"authorization": "access token", "peer": "device-b1"}, "id":2}
 Server -> Device: { "method": "connect", 
                 "params": {"session": "s1", "iceServers": [{"urls": ["stun:1.2.3.4"]}], 
                 "id":2}

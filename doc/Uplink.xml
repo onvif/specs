@@ -292,20 +292,20 @@
       <para>Note that for the following discussion the roles of client and server are swapped.</para>
       <para>The remote client shall authenticate itself using a valid server certificate. The local
         service shall verify the validity of the remote certificate according to RFC 6125.</para>
+      <para>The device shall assign any tunneled HTTP or RTSP request the UserLevel that is configured for the configuration without the need of further authentication request headers. </para>
       <section>
         <title>mTLS authentication</title>
+        <para>To signal that a device supports this authentication mechanism, it shall include <literal>mTLS</literal> in the supported <literal>AuthorizationModes</literal> in the GetServiceCapabilities response.</para>
         <para>When using mTLS authentication, the local service shall authenticate itself at the
           remote client using TLS client authentication according to RFC 5246 or subsequent
           specifications.</para>
         <para>To uniquely identify a local service on remote client, it is recommended to have a unique client certificate installed on each local service. For example, CN field or Serial number of installed certificate could be used to uniquely identify the local service.</para>
-        <para>The device shall assign any tunneled HTTP or RTSP request the UserLevel that is configured for the configuration without the need of further authentication request headers. </para>
       </section>
       <section>
-        <title>JWT authentication</title>
-        <para>When using JWT authentication, the local service shall provide a JWT token when sending the upgrade request.</para>
-        <para>The remote client shall validate the JWT token provided following the JWT specification as defined in the Core specification.</para>
-        <para>The device shall assign any tunneled HTTP or RTSP request the UserLevel that is configured for the configuration without the need of further authentication request headers.</para>
-        <para>When a device indicates JsonWebToken is supported through its Capabilities, then it shall support JWT authentication in this specification.</para>
+        <title>Access token authentication</title>
+        <para>To signal that a device supports this authentication mechanism, it shall include <literal>JWT</literal> in the supported <literal>AuthorizationModes</literal> in the GetServiceCapabilities response. It shall also have a value greater than 0 in the <literal>MaxConfigurations</literal> under AuthorizationServer in the GetServiceCapabilities response from the Security service.</para>
+        <para>For the local service to authenticate with the remote service, it shall include the access token retrieved from the configured <literal>AuthorizationServer</literal> in the <literal>Authorization</literal> header when sending the upgrade request.</para> 
+        <para>The remote client shall validate the access token.</para>        
       </section>
     </section>
     <section>
@@ -403,9 +403,9 @@
               <entry>AuthorizationServer</entry>
               <entry>
                 <para>AuthorizationServerConfiguration token referring to an authorization server
-                  that provides JWT token to authorize with the uplink server.</para>
+                  that provides an access token to authorize with the uplink server.</para>
                 <para>If the <literal>AuthorizationServer</literal> token is present in the
-                    <literal>UplinkConfiguration</literal> the device shall use JWT authentication
+                    <literal>UplinkConfiguration</literal> the device shall use access token authentication
                   mechanism.</para>
               </entry>
             </row>
