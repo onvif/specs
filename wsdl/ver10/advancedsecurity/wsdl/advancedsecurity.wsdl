@@ -1072,6 +1072,23 @@
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:complexType name="CustomClaim">
+				<xs:sequence>
+					<xs:element name="Name" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>Custom claim name.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="SupportedValues" type="tt:StringList">
+						<xs:annotation>
+							<xs:documentation>List of supported custom claim values. A JWT must contain at least one of these.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>	
+			<!--===============================-->
 			<xs:complexType name="JWTConfiguration">
 				<xs:sequence>
 					<xs:element name="Audiences" type="tt:StringList">
@@ -1092,6 +1109,11 @@
 					<xs:element name="ValidationPolicy" type="tas:CertPathValidationPolicyID" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>If present, the device will validate the certification path of the Open ID Connect servers. The OIDC server iso considered to be valid if its certificate is validated by the provided certification path validation policy.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="CustomClaims" type="tas:CustomClaim" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>A list of optional custom claims to be used for JWT validation.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	   <!-- first ONVIF then Vendor -->
