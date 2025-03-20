@@ -1671,11 +1671,18 @@ Change Request 2061, 2063, 2065, 2109</revremark>
             <para>Indicates that the device supports the OverrideSegmentDuration command.</para>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>SegmentExport</term>
+          <listitem>
+            <para>Indicates support for exporting recorded segments.</para>
+          </listitem>
+        </varlistentry>
       </variablelist>
     </section>
     <section>
       <title>ListRecordedSegments</title>
-      <para>Lists available recorded segments related to the specified RecordingToken.</para>
+      <para>Lists available recorded segments related to the specified RecordingToken. A device
+        signaling support for </para>
       <para>
         The device shall provide results in StartTime ascending order.
         The device can decide to send less results if it needs to. 
@@ -1715,8 +1722,20 @@ Change Request 2061, 2063, 2065, 2109</revremark>
     </section>
     <section>
       <title>ExportRecordedSegments</title>
-      <para>Exports the selected recorded segments (from existing recorded data) to the storage attached to the given recording job.</para>
-      <para>The StoragePath shall be the path as defined in the Object Storage annex appended to the StorageUri from the StorageConfiguration.</para>
+      <para>Request an export of the selected time range from existing locally recorded data. As
+        such an operation may take time this method immediately returns an operation token. The
+        device shall emit events as defined in section 8.9.7 Asynchronous Operation Status of the
+        ONVIF Core specification. The Initialized event shall be emitted when returning the
+        operation token. Progress updates shall be sent to inform clients about the progress of the
+        export. Finally a Deleted event shall be emitted to signal completion or aborting of the
+        operation when e.g. StopExportRecordedSegments has been executed.</para>
+      <para>The StoragePath shall be the path as defined in the Object Storage annex appended to the
+        StorageUri from the StorageConfiguration. A device signaling support for SegmentExport shall
+        support this function. By default the segments are exported to the storage that is
+        configured for the recording. When the parameter StorageToken is provided this target will
+        be used.</para>
+      <para>Note that a device may subsribe to tns1:Monitoring/AsynchronousOperationStatus for
+        enumeration and monitoring of active and queued exports.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -1736,6 +1755,17 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           </listitem>
         </varlistentry>
         <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:NoRecording</para>
+            <para role="text">The referenced recording does not exist.</para>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidStorage</para>
+            <para role="text">The referenced storage configuration does not exist or cannot be used.</para>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:BadDuration</para>
+            <para role="text">The value of the time parameter is invalid.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
           <term>access class</term>
           <listitem>
             <para role="access">READ_MEDIA</para>
@@ -1745,7 +1775,9 @@ Change Request 2061, 2063, 2065, 2109</revremark>
     </section>
     <section>
       <title>GetExportRecordedSegmentState</title>
-      <para>Retrieves the status of selected ExportRecordedSegments operation.</para>
+      <para>Lists individual segments of an ongoing ExportRecordedSegments operation. A device
+        signaling support for SegmentExport shall support this function.</para>
+      <para>Note that this information can only be retrieved while the export is progressing.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -1766,6 +1798,17 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           </listitem>
         </varlistentry>
         <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:NoOperation</para>
+            <para role="text">The referenced operation does not exist.</para>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidStorage</para>
+            <para role="text">The referenced storage configuration does not exist or cannot be used.</para>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:BadDuration</para>
+            <para role="text">The value of the time parameter is invalid.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
           <term>access class</term>
           <listitem>
             <para role="access">READ_MEDIA</para>
@@ -1775,7 +1818,8 @@ Change Request 2061, 2063, 2065, 2109</revremark>
     </section>
     <section>
       <title>StopExportRecordedSegments</title>
-      <para>Stops the selected ExportRecordedSegments operation.</para>
+      <para>Stops the selected ExportRecordedSegments operation. A device signaling support for
+        SegmentExport shall support this function.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -1787,6 +1831,13 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           <term>response</term>
           <listitem>
             <para role="text">This is an empty message.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:NoOperation</para>
+            <para role="text">The referenced operation does not exist.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
