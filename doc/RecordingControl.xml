@@ -1682,7 +1682,7 @@ Change Request 2061, 2063, 2065, 2109</revremark>
     <section>
       <title>ListRecordedSegments</title>
       <para>Lists available recorded segments related to the specified RecordingToken. A device
-        signaling support for </para>
+        signaling support for SegmentExport shall support this function.</para>
       <para>
         The device shall provide results in StartTime ascending order.
         The device can decide to send less results if it needs to. 
@@ -1723,18 +1723,19 @@ Change Request 2061, 2063, 2065, 2109</revremark>
     <section>
       <title>ExportRecordedSegments</title>
       <para>Request an export of the selected time range from existing locally recorded data. As
-        such an operation may take time this method immediately returns an operation token. The
+        such an operation could take longer, this method immediately returns an operation token. The
         device shall emit events as defined in section 8.9.7 Asynchronous Operation Status of the
         ONVIF Core specification. The Initialized event shall be emitted when returning the
         operation token. Progress updates shall be sent to inform clients about the progress of the
         export. Finally a Deleted event shall be emitted to signal completion or aborting of the
-        operation when e.g. StopExportRecordedSegments has been executed.</para>
+        operation when e.g. StopExportRecordedSegments has been executed. A device signaling support 
+        for SegmentExport shall support this function.</para>
       <para>The StoragePath shall be the path as defined in the Object Storage annex appended to the
         StorageUri from the StorageConfiguration. A device signaling support for SegmentExport shall
         support this function. By default the segments are exported to the storage that is
         configured for the recording. When the parameter StorageToken is provided this target will
         be used.</para>
-      <para>Note that a device may subsribe to tns1:Monitoring/AsynchronousOperationStatus for
+      <para>Note that a client may subsribe to tns1:Monitoring/AsynchronousOperationStatus for
         enumeration and monitoring of active and queued exports.</para>
       <variablelist role="op">
         <varlistentry>
@@ -1802,8 +1803,6 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           <listitem>
             <para role="param">env:Sender - ter:InvalidArgVal - ter:NoOperation</para>
             <para role="text">The referenced operation does not exist.</para>
-            <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidStorage</para>
-            <para role="text">The referenced storage configuration does not exist or cannot be used.</para>
             <para role="param">env:Sender - ter:InvalidArgVal - ter:BadDuration</para>
             <para role="text">The value of the time parameter is invalid.</para>
           </listitem>
