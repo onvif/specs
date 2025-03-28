@@ -299,7 +299,7 @@
         server</emphasis> called <emphasis>server</emphasis> from now on. Once a peer-to-peer
       connection has been established the connection with the server can be dropped without
       affecting the peer-to-peer connection.</para>
-    <para>In some instances, there may be a requirement to extend a session. The connection with the <emphasis>server</emphasis> must be maintained if the client has this requirement and the server supports the extendSession command.</para>
+    <para>In some instances, there may be a requirement to extend a session. The connection with the <emphasis>server</emphasis> must be maintained if the client has this requirement and the server supports the extend command.</para>
     <figure xml:id="_Ref493258797">
       <title>Signaling flow sequence diagram</title>
       <mediaobject>
@@ -364,8 +364,37 @@
             </tbody>
           </tgroup>
         </table>
-        The following sections specify the parameters of the individual commands.
       </para>
+      <section xml:id="section_capabilities">
+        <title>Session Capabilities</title>
+        <para>When calling connect command, an optional parameter called capabilities may be returned. The capabilities parameter will inform the client of the functionality available in the session. Below we list the possible capabilities</para>
+        <table frame="all">
+          <title>Capabilities</title>
+          <tgroup cols="2">
+            <colspec colname="c1" colnum="1" colwidth="2.0*"/>
+            <colspec colname="c2" colnum="2" colwidth="8.0*"/>
+            <thead>
+              <row>
+                <entry><para>Capability</para></entry>
+                <entry><para>Functionality</para></entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry><para>SubProtocol</para></entry>
+                <entry><para>SubProtocols are supported, read section section <xref linkend="section_data_channels"/>. As
+                    SubProtocols was added before capabilities, some implementation may support
+                    this. Support for this can be seen by the invite command received.</para></entry>
+              </row>
+              <row>
+                <entry><para>Extend</para></entry>
+                <entry><para>Connect command will return an expiry time parameter. It is possible to call extend command
+                    before the expiry time ends to extend the session. </para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </section>
       <section xml:id="section_register">
         <title>register</title>
         <para> A signaling server shall expect this command to be sent once before any other command
@@ -428,7 +457,9 @@
             <para role="text">List of STUN and TURN servers to be used. </para>
             <para role="param">expiryTime optional [integer]</para>
             <para role="text">Time in milliseconds before the session ends. If this is returned, the
-                extendSession command is also supported.</para>
+                extend command is also supported.</para>
+            <para role="param">Capabilities optional [string[]]</para>
+            <para role="text">List of capabilities supported for this session.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -533,12 +564,12 @@
         WebSocket session to the signaling server and the peer-to-peer connection will not be
         affected. Only reason to keep the connection to signaling server is if the client would need to extend the session.</para>
     </section>
-    <section xml:id="section_extendSession">
-      <title>extendSession</title>
+    <section xml:id="section_extend">
+      <title>extend</title>
       <para>This command updates a session if more time is required. In some configurations, a
-          session times out when the JWT token expires. If extendSession is supported by the
-          signaling server and the device, it is possible to request an extension by sending a new
-          JWT token and an expiryTime.</para>
+          session times out when the JWT token expires. If extend is supported by the signaling
+          server and the device, it is possible to request an extension by sending a new JWT token
+          and an expiryTime.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -650,17 +681,6 @@
               </entry>
               <entry>
                 <para>The trickle ICE candidate received is malformed.</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>Command not supported</para>
-              </entry>
-              <entry>
-                <para>1004</para>
-              </entry>
-              <entry>
-                <para>The command is not supported by the device</para>
               </entry>
             </row>
           </tbody>
