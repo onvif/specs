@@ -2035,7 +2035,14 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 					<xs:element name="SRTPPSK" type="xs:string" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>
-								An optional SRTP key represented as a hex string. When specified, RTP packets shall be encrypted.
+								An optional SRTP Pre-Shared Key (PSK) represented as a hexadecimal string. This includes both the SRTP master key, followed by the master salt. The sizes of the key and salt depend on the specified SRTPCryptoPolicy. When this element is specified, RTP packets shall be encrypted.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="ROC" type="xs:int" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>
+								The Roll-Over Counter (ROC) used in SRTP. It is an optional parameter that helps maintain synchronization in encrypted streams. During runtime, if a sequence number overflow is observed, the device internally increments this value to ensure proper decryption and packet integrity.
 							</xs:documentation>
 						</xs:annotation>
 					</xs:element>
@@ -2080,9 +2087,9 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 						<xs:documentation>Unique identifier of the network interface on the device. If not specified, all available interfaces will be used for listening. </xs:documentation>
 					</xs:annotation>
 			</xs:element>
-			<xs:element name="StreamingSourceAddress" type="tt:IPAddress" minOccurs="0">
+			<xs:element name="SourceSpecificMulticast" type="tt:IPAddress" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation>When the source address is configured, device should receive data only from this address.</xs:documentation>
+					<xs:documentation>When a source-specific multicast address is configured, the device will process multicast data only from the specified source, in accordance with SSM principles defined in RFC 4607.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
