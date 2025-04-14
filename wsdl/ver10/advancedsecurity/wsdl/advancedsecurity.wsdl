@@ -746,19 +746,9 @@
 						<xs:documentation>Indicates which elliptic curves are supported by the device.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
-				<xs:attribute name="PKCS10ExternalCertificationWithRSA" type="xs:boolean">
-					<xs:annotation>
-						<xs:documentation>Indicates support for creating PKCS#10 requests for RSA keys and uploading the certificate obtained from a CA..</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
 				<xs:attribute name="PKCS10" type="xs:boolean">
 					<xs:annotation>
 						<xs:documentation>Indicates support for creating PKCS#10 requests for keypairs and uploading the certificate obtained from a CA.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute name="SelfSignedCertificateCreationWithRSA" type="xs:boolean">
-					<xs:annotation>
-						<xs:documentation>Indicates support for creating self-signed certificates for RSA keys.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="SelfSignedCertificateCreation" type="xs:boolean">
@@ -776,19 +766,9 @@
 						<xs:documentation>Indicates the maximum number of passphrases that the device is able to store simultaneously.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
-				<xs:attribute name="PKCS8RSAKeyPairUpload" type="xs:boolean">
-					<xs:annotation>
-						<xs:documentation>Indicates support for uploading an RSA key pair in a PKCS#8 data structure.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
 				<xs:attribute name="PKCS8" type="xs:boolean">
 					<xs:annotation>
 						<xs:documentation>Indicates support for uploading a key pair in a PKCS#8 data structure.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute name="PKCS12CertificateWithRSAPrivateKeyUpload" type="xs:boolean">
-					<xs:annotation>
-						<xs:documentation>Indicates support for uploading a certificate along with an RSA private key in a PKCS#12 data structure.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="PKCS12" type="xs:boolean">
@@ -1092,6 +1072,23 @@
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:complexType name="CustomClaim">
+				<xs:sequence>
+					<xs:element name="Name" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>Custom claim name.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="SupportedValues" type="tt:StringList">
+						<xs:annotation>
+							<xs:documentation>List of supported custom claim values. A JWT must contain at least one of these.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>	
+			<!--===============================-->
 			<xs:complexType name="JWTConfiguration">
 				<xs:sequence>
 					<xs:element name="Audiences" type="tt:StringList">
@@ -1112,6 +1109,11 @@
 					<xs:element name="ValidationPolicy" type="tas:CertPathValidationPolicyID" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>If present, the device will validate the certification path of the Open ID Connect servers. The OIDC server iso considered to be valid if its certificate is validated by the provided certification path validation policy.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="CustomClaims" type="tas:CustomClaim" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>A list of optional custom claims to be used for JWT validation.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	   <!-- first ONVIF then Vendor -->
@@ -4096,6 +4098,7 @@
 	</wsdl:binding>
 	<!--==========================================-->
 	<wsdl:binding name="MediaSigningBinding" type="tas:MediaSigning">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
 		<wsdl:operation name="AddMediaSigningCertificateAssignment">
 			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/AddMediaSigningCertificateAssignment"/>
 			<wsdl:input>
