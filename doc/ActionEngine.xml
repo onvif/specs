@@ -733,8 +733,8 @@
     <tt:SimpleItemDescription  Name="Sender"    Type="xs:string"/>
     <tt:SimpleItemDescription  Name="Subject"   Type="xs:string"/>
     <tt:ElementItemDescription Name="Body"      Type="tae:EMailBodyTextConfiguration"/>
-    <tt:ElementItemDescription Name="Attachment" Type="tae:EMailAttachmentConfiguration” />
-    <tt:ElementItemDescription Name="MediaReference" Type="tt:MediaSource”/>
+    <tt:ElementItemDescription Name="Attachment" Type="tae:EMailAttachmentConfiguration" />
+    <tt:ElementItemDescription Name="MediaReference" Type="tt:MediaSource"/>
   </tt:ParameterDescription>
 </tt:ActionDescription>
 ]]></programlisting>
@@ -952,8 +952,8 @@
         <programlisting><![CDATA[<tt:ActionDescription Name="tt:FtpAction">
   <tt:ParameterDescription>
     <tt:ElementItemDescription Name="Destinations" Type="tae:FtpHostConfigurations"/>
-    <tt:ElementItemDescription Name="FtpContent" Type="tae:FtpContentConfiguration”/>
-    <tt:ElementItemDescription Name="MediaReference" Type="tt:MediaSource”/>
+    <tt:ElementItemDescription Name="FtpContent" Type="tae:FtpContentConfiguration"/>
+    <tt:ElementItemDescription Name="MediaReference" Type="tt:MediaSource"/>
   </tt:ParameterDescription>
 </tt:ActionDescription>
 ]]></programlisting>
@@ -1225,12 +1225,12 @@
       <title>Command Action configuration</title>
       <para>Starting and stopping of recording job on Recording Control Service by using CommandAction definition is illustrated in the following. </para>
       <para>Start a recording on the same device when a relay is switched on.</para>
-      <programlisting>&lt;tae:Action Token=”453638”&gt;
- &lt;tae:Configuration Name=”StartRecording” Type=”tae:CommandAction”&gt;
+      <programlisting>&lt;tae:Action Token="453638"&gt;
+ &lt;tae:Configuration Name="StartRecording" Type="tae:CommandAction"&gt;
      &lt;tt:Parameters&gt;
-      &lt;tt:SimpleItem Name=”XAddr” Value=”http://127.0.0.1/onvif/device_service”/&gt;
-      &lt;tt:SimpleItem Name=”Operation” Value=”tt:SetRecordingJobMode”/&gt;
-      &lt;tt:ElementItem Name=”Parameters”&gt;
+      &lt;tt:SimpleItem Name="XAddr" Value="http://127.0.0.1/onvif/device_service"/&gt;
+      &lt;tt:SimpleItem Name="Operation" Value="tt:SetRecordingJobMode"/&gt;
+      &lt;tt:ElementItem Name="Parameters"&gt;
       	&lt;tt:JobToken&gt;123&lt;/tt:JobToken&gt;
       	&lt;tt:Mode&gt;Active&lt;/tt:Mode&gt;
       &lt;/tt:ElementItem&gt;
@@ -1240,14 +1240,28 @@
 </programlisting>
 <para>Stop the recording one minute after the relay is switched off.</para>
 <programlisting>      
-&lt;tae:Action Token=”5674749”&gt;
- &lt;tae:Configuration Name=”StopRecording” Type=”tae:CommandAction”&gt;
+&lt;tae:Action Token="5674749"&gt;
+ &lt;tae:Configuration Name="StopRecording" Type="tae:CommandAction"&gt;
      &lt;tt:Parameters&gt;
-      &lt;tt:SimpleItem Name=”XAddr” Value=”http://127.0.0.1/onvif/device_service”/&gt;
-      &lt;tt:SimpleItem Name=”Operation” Value=”tt:SetRecordingJobMode”/&gt;
-      &lt;tt:ElementItem Name=”Parameters”&gt;
+      &lt;tt:SimpleItem Name="XAddr" Value="http://127.0.0.1/onvif/device_service"/&gt;
+      &lt;tt:SimpleItem Name="Operation" Value="tt:SetRecordingJobMode"/&gt;
+      &lt;tt:ElementItem Name="Parameters"&gt;
       	&lt;tt:JobToken&gt;123&lt;/tt:JobToken&gt;
       	&lt;tt:Mode&gt;Idle&lt;/tt:Mode&gt;
+      &lt;/tt:ElementItem&gt;
+    &lt;/tt:Parameters&gt;
+ &lt;/tae:Configuration&gt;
+&lt;/tae:Action&gt;</programlisting>
+<para>Play the audio clip when line crossing event is triggered</para>
+<programlisting>&lt;tae:Action Token="5674751"&gt;
+ &lt;tae:Configuration Name="AudioClip_Play" Type="tae:CommandAction"&gt;
+     &lt;tt:Parameters&gt;
+      &lt;tt:SimpleItem Name="XAddr" Value="http://127.0.0.1/Onvif/media2_service"/&gt;
+      &lt;tt:SimpleItem Name="Operation" Value="tr2:PlayAudioClip"/&gt;
+      &lt;tt:ElementItem Name="Parameters"&gt;
+      	&lt;tt:Token&gt;Audio_Clip_1&lt;/tt:Token&gt;
+		&lt;tt:AudioOutputToken&gt;AudioOutput1&lt;/tt:AudioOutputToken&gt;
+      	&lt;tt:Play&gt;true&lt;/tt:Play&gt;
       &lt;/tt:ElementItem&gt;
     &lt;/tt:Parameters&gt;
  &lt;/tae:Configuration&gt;
@@ -1256,33 +1270,33 @@
     <section>
       <title>E-Mail Action configuration </title>
       <para>The following demonstrates the E-Mail action configuration information. </para>
-      <programlisting><![CDATA[<tt:Action Token=”576858”>
-  <tt:Configuration Name=”Notify_SGrp_1” Type=”tt:EMailAction”>
+      <programlisting><![CDATA[<tt:Action Token="576858">
+  <tt:Configuration Name="Notify_SGrp_1" Type="tt:EMailAction">
     <tt:Parameters>
       <!-- Server configurations -->
-        <tt:ElementItem Name=”Destinations”>
+        <tt:ElementItem Name="Destinations">
           <tt:SMTPConfig>
-            <tt:HostAddress formatType=”ipv4”>172.34.123.65</tt:HostAddress>
+            <tt:HostAddress formatType="ipv4">172.34.123.65</tt:HostAddress>
           </tt:SMTPConfig>
           <tt:POPConfig>
-            <tt:HostAddress formatType=”ipv4”>162.34.123.56</tt:HostAddress>
+            <tt:HostAddress formatType="ipv4">162.34.123.56</tt:HostAddress>
           </tt:POPConfig>
-          <tt:AuthenticationConfig mode=”none”/>
+          <tt:AuthenticationConfig mode="none"/>
         </tt:ElementItem>
         <!-- Email receiver configurations -->
-          <tt:ElementItem Name=”Receivers”>
+          <tt:ElementItem Name="Receivers">
             <tt:TO>sg1@hq.co</tt:TO>
             <tt:TO>sg2@hq.co</tt:TO>
             <tt:CC>sgm@hq.co</tt:CC>
           </tt:ElementItem>
-          <tt:ElementItem Name=”Sender”>NVT@123.23.23.22</tt:ElementItem>
+          <tt:ElementItem Name="Sender">NVT@123.23.23.22</tt:ElementItem>
           <!-- Attached File Name configurations -->
-            <tt:ElementItem Name=”Attachment”>
+            <tt:ElementItem Name="Attachment">
               <tt:FileName>EVT_</tt:FileName>
               <tt:doSuffix>dateTime</tt:doSuffix>
             </tt:ElementItem>
             <!-- Media Profile configuration -->
-              <tt:ElementItem Name=”MediaReference”>
+              <tt:ElementItem Name="MediaReference">
                 <tt:ProfileToken>4757585</tt:ProfileToken>
               </tt:ElementItem>
             </tt:Parameters>
@@ -1293,21 +1307,21 @@
     <section>
       <title>HTTP POST Action configuration </title>
       <para>The following demonstrates the configuration for HTTP POST action.  The configuration utilizes the Media Profile Reference to indicate the media source.</para>
-      <programlisting><![CDATA[<tt:Action Token=”343234”>
-  <tt:Configuration Name=”POST2_VMS1” Type=”tt:HttpPOSTAction”>
+      <programlisting><![CDATA[<tt:Action Token="343234">
+  <tt:Configuration Name="POST2_VMS1" Type="tt:HttpPOSTAction">
     <tt:Parameters>
       <!-- HTTP Server Address configuration -->
-        <tt:ElementItem Name=”Destinations”>
-          <tt:HttpDestination uri=”/post_event”>
-            <tt:HostAddress formatType=”ipv4”>192.134.123.214</tt:HostAddress>
+        <tt:ElementItem Name="Destinations">
+          <tt:HttpDestination uri="/post_event">
+            <tt:HostAddress formatType="ipv4">192.134.123.214</tt:HostAddress>
           </tt:HttpDestination>
         </tt:ElementItem>
         <!-- HTTP POST Request Body configuration and Media Profile Token -->
-          <tt:ElementItem Name=”POSTContent”>
+          <tt:ElementItem Name="POSTContent">
             <tt:MediaReference>
               <tt:ProfileToken>6565746</tt:ProfileToken>
             </tt:MediaReference>
-            <tt:PostBody includeMedia=”true” includeEvent=”true”/>
+            <tt:PostBody includeMedia="true" includeEvent="true"/>
           </tt:ElementItem>
         </tt:Parameters>
       </tt:Configuration>
@@ -1317,12 +1331,12 @@
     <section>
       <title>FTP Action configuration </title>
       <para>An example configuration for sending images (from Media Profile) into a directory (Destinations/UploadPath) in FTP server (Destinations) for 15 minutes (FtpContent/HowLong) with 10 seconds snapshots (FtpContent/SampleInterval) with the configured file names (FtpContent/FileName). </para>
-      <programlisting><![CDATA[<tt:Action Token=”45345” >
-  <tt:Configuration Name=”FTP_STORE_BRNCH1” Type=”tt:FtpAction”>
+      <programlisting><![CDATA[<tt:Action Token="45345" >
+  <tt:Configuration Name="FTP_STORE_BRNCH1" Type="tt:FtpAction">
     <tt:Parameters>
-      <tt:ElementItem Name=”Destinations”>
+      <tt:ElementItem Name="Destinations">
         <tt:FtpDestination>
-          <tt:HostAddress formatType=”ipv4”>132.34.13.64</tt:HostAddress>
+          <tt:HostAddress formatType="ipv4">132.34.13.64</tt:HostAddress>
           <tt:UploadPath>/home/cam2</tt:UploadPath>
           <tt:FtpAuthentication>
             <tt:username> </tt:username>
@@ -1330,16 +1344,16 @@
           </tt:FtpAuthentication>
         </tt:FtpDestination>
       </tt:ElementItem>
-      <tt:ElementItem Name=”FtpContent”>
-        <tt:FtpContentConfig Type=”image_upload”>
+      <tt:ElementItem Name="FtpContent">
+        <tt:FtpContentConfig Type="image_upload">
           <tt:UploadImages>
             <tt:HowLong>P0Y0M0DT0H15M</tt:HowLong>
             <tt:SampleInterval>P0Y0M0DT0H0M10S</tt:SampleInterval>
-            <tt:FileName file_name=”ALM_” suffix=”sequence”/>
+            <tt:FileName file_name="ALM_" suffix="sequence"/>
           </tt:UploadImages>
         </tt:FtpContentConfig>
       </tt:ElementItem>
-      <tt:ElementItem Name=”MediaReference”>
+      <tt:ElementItem Name="MediaReference">
         <tt:ProfileToken>5657959</tt:ProfileToken>
       </tt:ElementItem>
     </tt:Parameters>
@@ -1351,19 +1365,19 @@
       <title>GetActions Response</title>
       <para>For example, GetActionsResponse message contains installed Action information as;</para>
       <para>..</para>
-      <programlisting><![CDATA[<tt:Action Token=”191918”>
-  <tt:Configuration Name=”HQMail” Type=”tt:EMailAction”>
+      <programlisting><![CDATA[<tt:Action Token="191918">
+  <tt:Configuration Name="HQMail" Type="tt:EMailAction">
     <tt:Parameters>
-      <tt:ElementItem Name=”Destinations”>
+      <tt:ElementItem Name="Destinations">
         ….
       </tt:ElementItem>
     </tt:Parameters>
   </tt:Configuration>
 </tt:Action>
-<tt:Action Token=”1913338”>
-  <tt:Configuration Name=”HQMail_2” Type=”tt:EMailAction”>
+<tt:Action Token="1913338">
+  <tt:Configuration Name="HQMail_2" Type="tt:EMailAction">
     <tt:Parameters>
-      <tt:ElementItem Name=”Destinations”>
+      <tt:ElementItem Name="Destinations">
         ….
       </tt:ElementItem>
     </tt:Parameters>
