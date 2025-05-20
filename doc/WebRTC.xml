@@ -71,7 +71,7 @@
     <para>This document defines how WebRTC and related protocols are to be used for ONVIF clients
       and devices to establish a peer-to-peer connection between a client and a device using a
       signaling server.</para>
-    <para>Sending PTZ and other commands via WebRTC datachannels is outside of the scope of this
+    <para>Sending PTZ and other commands via WebRTC datachannels is outside of the scope of this 
       version of the specification.</para>
   </chapter>
   <chapter xml:id="chapter_uxt_v12_v5b">
@@ -280,7 +280,7 @@
   <chapter xml:id="chapter_zxt_v12_v5b">
     <title>Signaling Protocol</title>
     <para>The <emphasis role="italic">Signaling Protocol</emphasis> defines the messages between a
-      <emphasis role="italic">client</emphasis> and a <emphasis role="italic">device</emphasis>
+      <emphasis role="italic">client</emphasis> and a <emphasis role="italic">device</emphasis> 
       with the intention of establishing a WebRTC peer-to-peer connection between the
       client and a device. The messages are always sent via the <emphasis>signaling
         server</emphasis> called <emphasis>server</emphasis> from now on. Once a peer-to-peer
@@ -390,24 +390,24 @@
           <term>request</term>
           <listitem>
             <para role="param">peer optional [string]</para>
-            <para role="text">The ID of the peer to connect to. This Id is defined outside of this specification and must be negotiated out-of-band.</para>
-            <para role="param">authorization [string]</para>
-            <para role="text">Access token that authorizes the device or client.</para>
+            <para role="text">The ID of the peer the Client wants to connect to. This Id is defined outside of this specification and must be negotiated out-of-band.</para>
+            <para role="param">authorization optional [string]</para>
+            <para role="text">Access token of the Client to be authorized by the signaling server.</para>
             <para role="param">session optional [string]</para>
             <para role="text">The ID assigned by the signaling server to the session.</para>
             <para role="param">profile optional [string]</para>
             <para role="text">Token of the media streaming profile to use.</para>
             <para role="param">iceServers optional unbounded [RTCIceServer]</para>
-            <para role="text">List of STUN and TURN servers to be used. </para>
+            <para role="text">List of STUN and TURN servers provided by the signaling server to be used for this session.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>response</term>
           <listitem>
             <para role="param">session optional [string]</para>
-            <para role="text">The ID assigned by the signaling server to the session. </para>
+            <para role="text">The ID assigned by the signaling server to the session.</para>
             <para role="param">iceServers optional unbounded [RTCIceServer]</para>
-            <para role="text">List of STUN and TURN servers to be used. </para>
+            <para role="text">List of STUN and TURN servers provided by the signaling server to be used for this session.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -501,7 +501,7 @@
         </varlistentry>
       </variablelist>
       <para>Both client and device produce ICE candidates and send them to each other, via the
-          server. Once all ICE candidates have been sent by a peer, it shall send a last trickle
+          server. Once all ICE candidates have been sent by a peer, it shall send a last trickle 
           notification with an empty ICE candidate content to indicate that all candidates have
           been sent according to RFC 8838.</para>
       <para><emphasis role="bold">NOTE</emphasis>: Note that ICE candidates can arrive <emphasis
@@ -609,18 +609,18 @@ Server -> Client: { "result": { "id": "client-a1" }, "id": 1}
 Device -> Server: { "method": "register", "params": {"authorization": "access token"}, "id":1}
 Server -> Device: { "result": { "id": "device-b1" }, "id": 1}
 
-Client -> Server: { "method": "connect",
+Client -> Server: { "method": "connect", 
                 "params": {"authorization": "access token", "peer": "device-b1"}, "id":2}
-Server -> Device: { "method": "connect",
-                "params": {"session": "s1", "iceServers": [{"urls": ["stun:1.2.3.4"]}],
+Server -> Device: { "method": "connect", 
+                "params": {"session": "s1", "iceServers": [{"urls": ["stun:1.2.3.4"]}], 
                 "id":2}
 Device -> Server: { "result": {}, "id": 2}
-Server -> Client: { "result": {"session": "s1",
+Server -> Client: { "result": {"session": "s1", 
                 "iceServers": [{"urls": ["stun:1.2.3.4"]}]}, "id": 2}
 
-Device -> Server: { "method": "invite", "params": {"session": "s1", "offer": "SDP...",
+Device -> Server: { "method": "invite", "params": {"session": "s1", "offer": "SDP...", 
                 "subprotocols": ["proto1"]}, "id":3}
-Server -> Client: { "method": "invite", "params": {"session": "s1", "offer": "SDP...",
+Server -> Client: { "method": "invite", "params": {"session": "s1", "offer": "SDP...", 
                 "subprotocols": ["proto1"]}, "id":3}
 Client -> Server: { "result": {"answer": "SDP...", "subprotocols": ["proto1"]}, "id": 3}
 Server -> Device: { "result": {"answer": "SDP...", "subprotocols": ["proto1"]}, "id": 3}
@@ -685,34 +685,34 @@ Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate"
       <title>Data channels</title>
         <section xml:id="section_data_channels_enable">
           <title>Enabling data channels</title>
-            <para>If the device supports WebRTC data channels, it shall signal this in the SDP offer
-              of the invite method. If the client supports data channels and intends to use them during
+            <para>If the device supports WebRTC data channels, it shall signal this in the SDP offer 
+              of the invite method. If the client supports data channels and intends to use them during 
               the WebRTC session, it shall signal this in the SDP answer.</para>
-            <para>ONVIF-defined data channel subprotocol names shall have “vnd.onvif” prefix.
+            <para>ONVIF-defined data channel subprotocol names shall have “vnd.onvif” prefix.  
               Usage of this prefix is restricted to ONVIF-defined subprotocols only.</para>
-            <para>Before creating and using any data channel subprotocol, the device and client shall
-              exchange a list of allowed data channel subprotocols in the invite method. Only
-              subprotocols provided by both the device and client during the invite method shall be
+            <para>Before creating and using any data channel subprotocol, the device and client shall 
+              exchange a list of allowed data channel subprotocols in the invite method. Only 
+              subprotocols provided by both the device and client during the invite method shall be 
               allowed to be enabled during the WebRTC session.</para>
-            <para>At any time after obtaining a WebRTC connection, a client may request enabling a
-              pre-negotiated data channel subprotocol by creating a new data channel with the specified
-              subprotocol identifier. Device shall enable the requested data channel subprotocol only
-              after ensuring it was negotiated during the SDP exchange; otherwise, it shall close the
+            <para>At any time after obtaining a WebRTC connection, a client may request enabling a 
+              pre-negotiated data channel subprotocol by creating a new data channel with the specified 
+              subprotocol identifier. Device shall enable the requested data channel subprotocol only 
+              after ensuring it was negotiated during the SDP exchange; otherwise, it shall close the 
               data channel.
             </para>
         </section>
         <section xml:id="section_data_channels_metadata">
           <title>Metadata over data channels</title>
           <para><emphasis role="bold">Subprotocol identifier</emphasis>: vnd.onvif.metadata+gzip</para>
-            <para>The Metadata data channel subprotocol enables streaming XML Metadata over WebRTC data
-              channels. An ONVIF compliant device supporting streaming of metadata shall support gzip
+            <para>The Metadata data channel subprotocol enables streaming XML Metadata over WebRTC data 
+              channels. An ONVIF compliant device supporting streaming of metadata shall support gzip 
               compressed metadata as signaled via the subprotocol vnd.onvif.metadata+gzip.
             </para>
-            <para>A device shall use the MetadataConfiguration from the media streaming profile selected
+            <para>A device shall use the MetadataConfiguration from the media streaming profile selected 
               for the WebRTC session and ignore the CompressionType setting.</para>
-            <para>The data channel Metadata payload is a binary data channel message starting with a GZIP
-              header according to RFC 1952, followed by the compressed data. Messages may be fragmented as
-              needed, and the client shall determine the beginning of a new GZIP payload based on the
+            <para>The data channel Metadata payload is a binary data channel message starting with a GZIP 
+              header according to RFC 1952, followed by the compressed data. Messages may be fragmented as 
+              needed, and the client shall determine the beginning of a new GZIP payload based on the 
               existence of the GZIP header.</para>
         </section>
     </section>
