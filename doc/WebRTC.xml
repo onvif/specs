@@ -276,6 +276,7 @@
       data exchange between client and device via the signaling server.</para>
     <para>Once a peer-to-peer connection has been established, how WebRTC is used is described in the
       WebRTC usage chapter.</para>
+    <para>In some instances, there may be a requirement to extend a session. The connection with the <emphasis>server</emphasis> must be maintained if the client has this requirement and the server supports the extend command.</para>
   </chapter>
   <chapter xml:id="chapter_zxt_v12_v5b">
     <title>Signaling Protocol</title>
@@ -283,7 +284,7 @@
       <emphasis role="italic">client</emphasis> and a <emphasis role="italic">device</emphasis> 
       with the intention of establishing a WebRTC peer-to-peer connection between the
       client and a device. The messages are always sent via the <emphasis>signaling
-        server</emphasis> called <emphasis>server</emphasis> from now on. Once a peer-to-peer
+        server</emphasis>, called <emphasis>server</emphasis> from now on. Once a peer-to-peer
       connection has been established the connection with the server can be dropped without
       affecting the peer-to-peer connection.</para>
     <figure xml:id="_Ref493258797">
@@ -347,7 +348,36 @@
           </tgroup>
         </table>
       </para>
-      <para>The following sections specify the parameters of the individual commands.</para>
+      <section xml:id="section_capabilities">
+        <title>Session Capabilities</title>
+        <para>When calling connect command, an optional parameter called capabilities may be returned. The capabilities parameter will inform the client of the functionality available in the session. Below we list the possible capabilities</para>
+        <table frame="all">
+          <title>Capabilities</title>
+          <tgroup cols="2">
+            <colspec colname="c1" colnum="1" colwidth="2.0*"/>
+            <colspec colname="c2" colnum="2" colwidth="8.0*"/>
+            <thead>
+              <row>
+                <entry><para>Capability</para></entry>
+                <entry><para>Functionality</para></entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry><para>SubProtocol</para></entry>
+                <entry><para>SubProtocols are supported, read section section <xref linkend="section_data_channels"/>. As
+                    SubProtocols was added before capabilities, some implementation may support
+                    this. Support for this can be seen by the invite command received.</para></entry>
+              </row>
+              <row>
+                <entry><para>Extend</para></entry>
+                <entry><para>Connect command will return an expiry time parameter. It is possible to call extend command
+                    before the expiry time ends to extend the session. </para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </section>
       <section xml:id="section_register">
         <title>register</title>
         <para> A signaling server shall expect this command to be sent once before any other command
@@ -408,6 +438,11 @@
             <para role="text">The ID assigned by the signaling server to the session. </para>
             <para role="param">iceServers optional unbounded [RTCIceServer]</para>
             <para role="text">List of STUN and TURN servers to be used. </para>
+            <para role="param">expiryTime optional [integer]</para>
+            <para role="text">Time in seconds before the session ends. If this is returned, the
+              extend command is also supported.</para>
+            <para role="param">Capabilities optional [string[]]</para>
+            <para role="text">List of capabilities supported for this session.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -510,8 +545,44 @@
       <para>If everything works as it should, a peer-to-peer WebRTC session can be set up between
         client and device. After the session has been established the client can terminate the
         WebSocket session to the signaling server and the peer-to-peer connection will not be
-          affected.</para>
+        affected. The only reason to keep the connection to the server is if the client needs to extend the session.</para>
     </section>
+    <section xml:id="section_extend">
+      <title>extend</title>
+      <para>This command updates a session if more time is required. In some configurations, a
+        session times out when the authorization token expires. If extend is supported by the signaling
+        server and the device, it is possible to request an extension by sending a new authorization token
+        and an expiryTime.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">session [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session. </para>
+            <para role="param">authorization optional [string]</para>
+            <para role="text">Access token that authorizes the device or client.</para>
+            <para role="param">expiryTimeSeconds [integer]</para>
+            <para role="text">Requested time in seconds to extend the session.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">expiryTimeSeconds [integer]</para>
+            <para role="text">The time in seconds the session has been extended.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">401 Authorization failed</para>
+            <para role="text">The authorization token cannot be verified, does not include the required claims, or has expired.</para>
+            <para role="param">403 Forbidden</para>
+            <para role="text">The client is not authorized to connect to the provided peer.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>  
     <section xml:id="section_error_notification">
       <title>error</title>
       <para>An ONVIF compliant signaling server, device and client shall support sending or receiving notifications signaling that an error has occurred.</para>
