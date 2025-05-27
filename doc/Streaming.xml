@@ -605,62 +605,195 @@
         </section>
         <section>
           <title>SRTP data transfer via UDP</title>
-            <para>This mode allows secure transmission of RTP packets via UDP unicast and multicast. See RFC 3711 and RFC 7714 for transmission and RFC 4567 for key exchange. For RFC 3711, it is expected that the SRTP authentication tag be present. For RFC 7714, it is expected that the SRTP authentication tag is not present. The optional MKI is expected to be present in SRTP packets regardless of the algorithm used.</para>
+            <para>This mode allows secure transmission of RTP packets via UDP unicast and multicast. Related documents are RFC 3711, RFC 7714 for transmission and RFC 3830, RFC 4567 for key exchange.</para>
             <para>
-              The client may set a different key management protocol in the keymgmt attribute of the SETUP.
-              If the keymgmt header is present in the SETUP, the device shall use the key management protocol and key specified in the keymgmt header.
-            </para>
+            The device must list whether or not it supports SRTP streaming through the GetServiceCapabilities action's response. If the device supports SRTP streaming, the device must indicate it through the SecureRTSPStreaming parameter in the StreamingCapabilities.
+          </para>
+          <section>
+            <title>Cryptographic algorithm negotiation</title>
+          
             <para>
-              Example RTSP session:
-            </para>
-            <programlisting>
-                <![CDATA[
-client->server:   DESCRIBE rtsp://example.com/onvif_camera RTSP/1.0
-                  Cseq: 1
-                 
-server->client:   RTSP/1.0 200 OK
-                  Cseq: 1
-                  Content-Type: application/sdp
-                  Content-Length: XXX
-                  v=0
-                  o=- 2890844256 2890842807 IN IP4 172.16.2.93
-                  s=RTSP Session
-                  m=audio 0 RTP/SAVP 0
-                  a=key-mgmt: mikey AQAFgM0XflABAAAAAAAAAAAAAAsAy...
-                  a=control:rtsp://example.com/onvif_camera/audio
-                  m=video 0 RTP/SAVP 26
-                  a=key-mgmt: mikey CQCGiO2ZhnCDCCCCCCCCCCCCCCCuC0...
-                  a=control:rtsp://example.com/onvif_camera/video
-                  m=application 0 RTP/SAVP 107
-                  a=key-mgmt: mikey EQCGiO2ZhnEDEEEEEEEEEEEEEuC0...
-                  a=control:rtsp://example.com/onvif_camera/metadata
-                  a=recvonly
-                  a=rtpmap:107 vnd.onvif.metadata/90000
+              The device may list which SRTP cryptographic algorithms it supports through the Media1 and Media2 wsdls.
+              Each encoder can list the algorithms it supports through the SecureStreamingProtocolAlgorithms element present in:
+              <itemizedlist>
+                <listitem>
+                  <para>AudioEncoderConfigurationOptions</para>
+                </listitem>
+                <listitem>
+                  <para>MetadataConfigurationOptions</para>
+                </listitem>
+                <listitem>
+                  <para>VideoEncoderConfigurationOptions</para>
+                </listitem>
+                <listitem>
+                  <para>AudioEncoder2ConfigurationOptions</para>
+                </listitem>
+                <listitem>
+                  <para>VideoEncoder2ConfigurationOptions</para>
+                </listitem>
+              </itemizedlist>
 
-client->server:   SETUP rtsp://example.com/onvif_camera/audio RTSP/1.0
-                  Cseq: 2
-                  Transport: RTP/SAVP/TCP;unicast;interleaved=0-1
-                  keymgmt: prot=mikey; uri="rtsp://movie.example.com/action/audio";
-                           data="GQCGiO2ZhnGDGGGGGGGGGGGuC3..."
+              If the SecureStreamingProtocolAlgorithms parameter is present, the device must support a least one of the following algorithms:
+              <itemizedlist>
+                <listitem>
+                  <para>NONE</para>
+                  <para>NONE is a special case, where the media is listed as RTP/AVP instead of RTP/SAVP and where MIKEY is unused altogether.</para>
+                  <para>This it to allow the use of RTSPS to authenticate with the camera without using encrypted media streams.</para>
+                </listitem>
+                <listitem>
+                  <para>AES_CM_128_HMAC_SHA1_80</para>
+                </listitem>
+                <listitem>
+                  <para>AEAD_AES_128_GCM</para>
+                </listitem>
+                <listitem>
+                  <para>AEAD_AES_256_GCM</para>
+                </listitem>
+              </itemizedlist>
+              If the device supports SRTP streaming through the SecureRTSPStreaming parameter, but does not list any supported SRTP cryptographic algorithms through the SecureStreamingProtocolAlgorithms parameter, the device shall support the AES_CM_128_SHA1_80 algorithm as defined in RFC 3711.
+            </para>
 
-server->client:   RTSP/1.0 200 OK
-                  Cseq: 2
-                  Transport: RTP/SAVP;unicast;client_port=8002-8003;
-                  server_port=9004-9005
-                  Session: 12345678; timeout=60
-]]>
-          </programlisting>
-        </section>
-        <section>
-          <title>Cryptographic algorithm negotiation</title>
             <para>
-              If a device supports encryption algorithms other than AES_CM_128_SHA1_80 as defined in RFC 3711, it must also support Media2, the SecureRTSPStreamingAlgorithms attribute of the GetServiceCapabilities response and the GetStreamUri2 action. 
+              The client may choose to configure a device to use a specific algorithm. To do so, it must set the SecureStreamingProtocolAlgorithm attribute through the following actions:
+              <itemizedlist>
+                <listitem>
+                  <para>SetAudioEncoderConfiguration</para>
+                </listitem>
+                <listitem>
+                  <para>SetMetadataConfiguration</para>
+                </listitem>
+                <listitem>
+                  <para>SetVideoEncoderConfiguration</para>
+                </listitem>
+              </itemizedlist>
+            </para>
+
+            <para>
+              If a device supports encryption algorithms other than AES_CM_128_SHA1_80 as defined in RFC 3711, it must also support the ConfigurationOptions and the actions listed above. 
               This mechanism allows the client to choose the encryption algorithm used by the device for SRTP.
             </para>
+
             <para>
-              To configure which algorithm should be used by the streaming device, the client must get the list of supported SecureRTSPStreamingAlgorithms through the GetServiceCapabilities action.
-              The client can then choose the algorithm to use and set it in the SecurityProtocolAlgorithm attribute of the GetStreamUri2 action.
-          </para>
+              MIKEY is used for key management for SRTP. The device shall support MIKEY as defined in RFC 3830 for key management.
+              One exception is that in RFC 3830, support for MIKEY-PSK and MIKEY-PK are listed mandatory. For ONVIF SRTP, only MIKEY-PSK support is defined and mandatory.
+              MIKEY-PK should not be used for ONVIF SRTP.
+            </para>
+            <para>
+              The MIKEY message must contain the following payloads:
+              <itemizedlist>
+                <listitem>
+                  <para>Common Header Payload</para>
+                </listitem>
+                <listitem>
+                  <para>KEMAC Payload</para>
+                  <para>The KEMAC payload should not be encrypted since TLS already encrypts the RTSPS channel.</para>
+                  <para>If the key type is TEK without salt and a salt must be provided, the key and the salt must be concatenated and sent in the Key data section of the payload.</para>
+                  <para>(To verify, some cameras return RTP packets when this is done?)If the key type is TEK+SALT and a salt must be provided, the SALT must be in the Salt data section.</para>
+                  <para>The device and client must support TEK for AES_CM_128_SHA1_80 and TEK+SALT for other encryption algorithms.</para>
+                  <para>To keep track of key validity, The SPI/MKI must be set in the KV data. The SRTP packets must also include the MKI.</para>
+                </listitem>
+                <listitem>
+                  <para>Security Policy Payload</para>
+                  <para>
+                  Specifies the encryption parameters to be used by the streams.
+                  <itemizedlist>
+                    <listitem>
+                      <para>AES_CM_128_HMAC_SHA1_80</para>
+                      <para>Encryption Algorithm: AES-CM</para>
+                      <para>Session Encryption Key Length: 128 bits</para>
+                      <para>Authentication Algorithm: HMAC-SHA-1</para>
+                      <para>Session Auth Key Length: 160 bits</para>
+                      <para>Session Salt Key Length: 112 bits</para>
+                      <para>SRTP Encryption: On</para>
+                      <para>SRTCP Encryption: On</para>
+                      <para>Authnetication Tag Length: 80 bits</para>
+                      <para>SRTP PRF: AES-CM</para>
+                    </listitem>
+                    <listitem>
+                      <para>AEAD_AES_128_GCM</para>
+                      <para>Encryption Algorithm: AES-GCM</para>
+                      <para>Session Encryption Key Length: 128 bits</para>
+                      <para>Authentication Algorithm: NULL</para>
+                      <para>Session Auth Key Length: N/A</para>
+                      <para>Session Salt Key Length: 96 bits</para>
+                      <para>SRTP Encryption: On</para>
+                      <para>SRTCP Encryption: On</para>
+                      <para>AEAD Authnetication Tag Length: 16 octets</para>
+                      <para>SRTP PRF: AES-CM</para>
+                    </listitem>
+                    <listitem>
+                      <para>AEAD_AES_256_GCM</para>
+                      <para>Encryption Algorithm: AES-GCM</para>
+                      <para>Session Encryption Key Length: 256 bits</para>
+                      <para>Authentication Algorithm: NULL</para>
+                      <para>Session Auth Key Length: N/A</para>
+                      <para>Session Salt Key Length: 96 bits</para>
+                      <para>SRTP Encryption: On</para>
+                      <para>SRTCP Encryption: On</para>
+                      <para>AEAD Authnetication Tag Length: 16 octets</para>
+                      <para>SRTP PRF: AES-CM</para>
+                    </listitem>
+                  </itemizedlist>
+                  </para>
+                </listitem>
+              </itemizedlist>
+            </para>
+            <para>
+              The key management extensions for SDP and RTSP (RFC 4567) allow for key management through RTSP.
+              <section>
+                <title>Key management through RTSP</title>
+                <section>
+                  <title>Stream Initialization</title>
+                  <para>
+                    Key management extensions for SDP and RTSP (RFC 4567) defines stream initialization.
+                  </para>
+                  <para>
+                    When the device is providing the key, the SDP is required to have a media of type RTP/SAVP and a MIKEY message.
+                    It's permitted to have two media fields, one with RTP/AVP and one with RTP/SAVP. The RTP/AVP track is used for unencrypted streaming.
+                    <programlisting><![CDATA[v=0
+o=actionmovie 2891092738 2891092738 IN IP4 movie.example.com
+s=Action Movie
+e=action@movie.example.com
+t=0 0
+c=IN IP4 movie.example.com
+a=control:rtsp://movie.example.com/action
+m=video 0 RTP/SAVP 98
+a=rtpmap:98 H264/8000
+a=key-mgmt:mikey AQAFgM0XflABAAAAAAAAAAAAA...
+a=control:rtsp://movie.example.com/action/srtp_video
+m=video 0 RTP/AVP 99
+a=rtpmap:99 H264/90000
+a=control:rtsp://movie.example.com/action/rtp_video
+]]></programlisting>
+                  </para>
+                  <para>
+                    When the client is providing the key, it will add a KeyMgmt header containing the MIKEY with transport type RTP/SAVP in the SETUP.
+                    The client may use a different encryption algorithm than what is configured with SetAudioEncoderConfiguration, SetMetadataConfiguration and SetVideoEncoderConfiguration.
+                    The GetAudioEncoderConfiguration, GetMetadataConfiguration and GetVideoEncoderConfiguration responses shall not be affected by the encryption algorithm configured through RTSP with MIKEY.
+                    SetAudioEncoderConfiguration, SetMetadataConfiguration and SetVideoEncoderConfiguration shall only be used to configure the device for the default encryption algorithm sent in the DESCRIBE.
+                    <programlisting><![CDATA[SETUP rtsp://<RTSP_URI> RTSP/1.0
+CSeq: 2
+User-Agent: OmnicastRTSPClient/1.0
+Transport: RTP/SAVP/UDP;unicast
+KeyMgmt: prot=mikey;uri="";data="AQAFAP1td9ABAADCD1UcAAAAAAoAAdOOGc75XD0BAAAAGAABAQEBE
+AIBAQMBFAcBAQgBAQoBAQsBCgAAACcAIQAe30C59UrClE0e27UP5h/Wty9UL8+dfzg+2ttmmo3kBAAAAC8A"
+]]></programlisting>
+                  </para>
+                </section>
+                <section>
+                  <title>Client Re-Keying with MIKEY</title>
+                  <para>
+                    The client may request the use of new keys for stream encryption.
+                    The SET_PARAMETER method shall be used with a mikey parameter to set the new encryption keys.
+                    The client may use a different encryption algorithm than what is configured with the SetAudioEncoderConfiguration, SetMetadataConfiguration and SetVideoEncoderConfiguration actions.
+                  </para>
+                </section>
+                <section>
+                  <title>Multicast considerations</title>
+                </section>
+              </section>
+            </para>
+          </section>
         </section>
         <section xml:id="_Ref213038219">
           <title>RTP/RTSP/HTTP/TCP</title>
