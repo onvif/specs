@@ -18,7 +18,7 @@
     </style>
   </head>
   <body>
-    <redoc spec-url='<?= $_GET['yaml'] ?>'></redoc>
+    <redoc spec-url='../yaml/<?= $_GET['yaml'] ?>'></redoc>
     <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"> </script>
   </body>
 </html>
