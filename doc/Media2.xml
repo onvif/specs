@@ -2257,8 +2257,8 @@
       <section xml:id="section_wvd_dzg_ryd">
         <title>AddAudioClip</title>
         <para>This operation adds audio clip configuration to the device and provides the audio clip upload 
-		URI to the client. The response to the command includes an HTTP URL to which the audio clip may 
-		be uploaded	with in the expiry time. If the client is unable to upload the audio clip within the URL's expiry time, the associated audio clip configuration will be permanently removed from the device.</para>
+		URI to the client. The response to the command includes an HTTP URL to which the audio clip may be uploaded	with in the expiry time. If the client is unable to upload the audio clip within the URL's expiry time, the associated audio clip configuration will be permanently removed from the device.
+    The device shall return the audio clip configuration in the GetAudioClips API response only after the physical audio clip has been uploaded to the device.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -2386,7 +2386,7 @@
       </section>
 	  <section xml:id="section_wvd_dzg_ryg">
         <title>PlayAudioClip</title>
-        <para>This operation plays or stops the ongoing audio clip on the device.</para>
+        <para>This operation plays or stops the ongoing audio clip on the device. If a new audio clip play request is received from the client while another clip is already playing, the device shall stop the current audio clip and start the new audio clip.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -2729,7 +2729,7 @@ Topics: tns1:Monitoring/ActiveSessions/VideoEncoder
       </section>
 	    <section>
         <title>Audio Clip State</title>
-        <para>A device that supports AudioClipCapabilities in the GetServiceCapabilities response should generate an audio clip start event when an audio clip starts playing on the device and generate an audio clip stop event when the audio clip stops playing.</para>
+        <para>A device that supports AudioClipCapabilities in the GetServiceCapabilities response should generate an audio clip start event when an audio clip starts playing on the device and generate an audio clip stop event when the audio clip stops playing.Token and ClipName parameters can be empty if no audio clip has been started or stopped since the device was last booted.</para>
         <programlisting><![CDATA[Topic: tns1:Media/AudioClip/State
 <tt:MessageDescription  IsProperty="true">
   <tt:Source>	
