@@ -1439,8 +1439,6 @@
           to be present in the keystore under different IDs, respectively.</para>
         <para>A device shall allow multiple copies of the same IEEE 802.1X configuration to be
           present in the keystore under different IDs simultaneously.</para>
-        <para>A device shall not allow multiple copies of the same key to be present in the keystore
-          simultaneously.</para>
       </section>
       <section>
         <title>Referential Integrity</title>
@@ -2079,14 +2077,15 @@
             <title>DeleteKey</title>
             <para>This operation deletes a key from the device’s keystore. An ONVIF conformant
               device shall support this command.</para>
-            <para>Keys are uniquely identified using key IDs. If no key is stored under the
-              requested key ID in the keystore, a device shall produce an InvalidArgVal fault. If a
-              reference exists for the specified key, a device shall produce the corresponding fault
-              and shall not delete the key. If there is a key under the requested key ID stored in
-              the keystore and the key could not be deleted, a device shall produce a KeyDeletion
-              fault. If the key has the status <emphasis>generating</emphasis>, a device shall abort
-              the generation of the key and delete from the keystore all data generated for this
-              key.</para>
+            <para>If no key is stored under the requested key ID in the keystore and AutoDeleteKey
+              is signaled a device shall signal no fault. Otherwise it may produce an InvalidArgVal
+              fault. </para>
+            <para>If a reference exists for the specified key, a device shall produce the
+              corresponding fault and shall not delete the key. If there is a key under the
+              requested key ID stored in the keystore and the key could not be deleted, a device
+              shall produce a KeyDeletion fault. If the key has the status
+                <emphasis>generating</emphasis>, a device shall abort the generation of the key and
+              delete from the keystore all data generated for this key.</para>
             <para>After a key is successfully deleted, the device may assign its former ID to other
               keys.</para>
             <variablelist role="op">
@@ -2797,8 +2796,9 @@
             <title>DeleteCertificate</title>
             <para>This operation deletes a certificate from the device’s keystore. An ONVIF
               compliant device shall support this command.</para>
-            <para>The operation shall not delete the public key that is contained in the certificate
-              from the keystore.</para>
+            <para>If the device signals AutoDeleteKey the associated key shall be deleted when no
+              more references to it exist. Otherwise the operation shall not delete the associated
+              key.</para>
             <para>Certificates are uniquely identified using certificate IDs. If no certificate is
               stored under the requested certificate ID in the keystore, an InvalidArgVal fault is
               produced. If there is a certificate under the requested certificate ID stored in the
@@ -5140,6 +5140,11 @@
                   <para>The device supports modification of certificate path and certificate
                     validation path.</para>
                 </entry>
+              </row>
+              <row>
+                <entry>AutoDeleteKey</entry>
+                <entry>DeleteCertificate automatically deletes the referenced key when there are no
+                  more references.</entry>
               </row>
             </tbody>
           </tgroup>
