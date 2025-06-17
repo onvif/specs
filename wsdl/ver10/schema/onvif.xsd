@@ -390,7 +390,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:documentation>Optional element to configure rotation of captured image.
 						What resolutions a device supports shall be unaffected by the Rotate parameters.<br/>
 						If a device is configured with Rotate=AUTO, the device shall take control over the Degree parameter and automatically update it so that a client can query current rotation.<br/>
-						The device shall automatically apply the same rotation to its pan/tilt control direction depending on the following condition: 
+						The device shall automatically apply the same rotation to its pan/tilt control direction depending on the following condition:
 						if Reverse=AUTO in PTControlDirection or if the device doesn’t support Reverse in PTControlDirection
 					</xs:documentation>
 				</xs:annotation>
@@ -421,6 +421,14 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:element name="Degree" type="xs:int" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>Optional parameter to configure how much degree of clockwise rotation of image  for On mode. Omitting this parameter for On mode means 180 degree rotation.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Mirror" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional element to configure mirror of captured image. Rotation is applied first when mirrors and rotations are enabled simultaneously. Mirrors are applied later.<br/>
+						The device shall automatically apply the same mirror to its pan control direction depending on the following condition:
+						if Reverse=AUTO in PTControlDirection or if the device doesn’t support Reverse in PTControlDirection
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Extension" type="tt:RotateExtension" minOccurs="0"/>
@@ -560,8 +568,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:sequence>
 		<xs:attribute name="Reboot" type="xs:boolean">
 			<xs:annotation>
-				<xs:documentation>Signals if a device requires a reboot after changing the rotation.
-				If a device can handle rotation changes without rebooting this value shall be set to false.</xs:documentation>
+				<xs:documentation>Signals if a device requires a reboot after changing the rotation or mirror.
+				If a device can handle rotation changes or mirror changes without rebooting this value shall be set to false.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="Mirror" type="xs:boolean">
+			<xs:annotation>
+				<xs:documentation>Options of parameters for Mirror feature.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
