@@ -606,15 +606,15 @@
         <section>
           <title>SRTP data transfer via UDP</title>
             <para>This mode allows secure transmission of RTP packets via UDP unicast and multicast. Related documents are RFC 3711, RFC 7714 for transmission and RFC 3830, RFC 4567 for key exchange.</para>
-            <para>
-            The device shall list whether or not it supports SRTP streaming through the GetServiceCapabilities action's response. If the device supports SRTP streaming, the device shall indicate it through the SecureRTSPStreaming parameter in the StreamingCapabilities.
-          </para>
+            <para>The device shall list whether or not it supports SRTP streaming through the
+            GetServiceCapabilities action's response. If the device supports SRTP streaming, the
+            device shall indicate it through the SecureRTSPStreaming parameter in the
+            StreamingCapabilities. </para>
           <section>
             <title>Cryptographic algorithm negotiation</title>
-            <para>
-              The device may list which SRTP cryptographic algorithms it supports through the Media2 wsdl.
-              Each encoder can list the algorithms it supports through the SecureStreamingProtocolAlgorithms element present in:
-              <itemizedlist>
+            <para>The device may list which SRTP cryptographic algorithms it supports through the
+              Media2 wsdl. Each encoder can list the algorithms it supports through the
+              SecureStreamingProtocolAlgorithms element present in: <itemizedlist>
                 <listitem>
                   <para>AudioEncoder2ConfigurationOptions</para>
                 </listitem>
@@ -624,17 +624,15 @@
                 <listitem>
                   <para>MetadataConfigurationOptions</para>
                 </listitem>
-              </itemizedlist>
-
-              If the SecureStreamingProtocolAlgorithms parameter is present, the device shall support at least one of the following algorithms:
-              <itemizedlist>
+              </itemizedlist> If the SecureStreamingProtocolAlgorithms parameter is present, the
+              device shall support at least one of the following algorithms: <itemizedlist>
                 <listitem>
                   <para>NONE</para>
-                  <para>NONE is a special case, where the media is listed as RTP/AVP instead of RTP/SAVP and where MIKEY is unused altogether.</para>
-                  <para>
-                    This it to allow the use of RTSPS without using an SRTP encrypted media stream.
-                    It can also be used for RTSPS interleaved where media is sent over the same TLS protected channel as the RTSP control messages.
-                  </para>
+                  <para>NONE is a special case, where the media is listed as RTP/AVP instead of
+                    RTP/SAVP and where MIKEY is unused altogether.</para>
+                  <para> This it to allow the use of RTSPS without using an SRTP encrypted media
+                    stream. It can also be used for RTSPS interleaved where media is sent over the
+                    same TLS protected channel as the RTSP control messages. </para>
                 </listitem>
                 <listitem>
                   <para>AES_CM_128_HMAC_SHA1_80</para>
@@ -645,13 +643,14 @@
                 <listitem>
                   <para>AEAD_AES_256_GCM</para>
                 </listitem>
-              </itemizedlist>
-              If the device supports SRTP streaming through the SecureRTSPStreaming parameter, but does not list any supported SRTP cryptographic algorithms through the SecureStreamingProtocolAlgorithms parameter, the device shall support the AES_CM_128_SHA1_80 algorithm as defined in RFC 3711.
-            </para>
+              </itemizedlist> If the device supports SRTP streaming through the SecureRTSPStreaming
+              parameter, but does not list any supported SRTP cryptographic algorithms through the
+              SecureStreamingProtocolAlgorithms parameter, the device shall support the
+              AES_CM_128_SHA1_80 algorithm as defined in RFC 3711. </para>
 
-            <para>
-              The client may choose to configure a device to use a specific algorithm. To do so, it shall set the SecureStreamingProtocolAlgorithm attribute through the following methods:
-              <itemizedlist>
+            <para> The client may choose to configure a device to use a specific algorithm. To do
+              so, it shall set the SecureStreamingProtocolAlgorithm attribute through the following
+              methods: <itemizedlist>
                 <listitem>
                   <para>SetAudioEncoder2Configuration</para>
                 </listitem>
@@ -661,8 +660,7 @@
                 <listitem>
                   <para>SetMetadataConfiguration</para>
                 </listitem>
-              </itemizedlist>
-            </para>
+              </itemizedlist></para>
 
             <para>
               If a device supports encryption algorithms other than AES_CM_128_SHA1_80 as defined in RFC 3711, it shall also support the ConfigurationOptions and the methods listed above. 
@@ -736,20 +734,19 @@
               </itemizedlist></para>
               <section>
                 <title>Key management through RTSP</title>
-                  <para>
-                    The key management extensions for SDP and RTSP (RFC 4567) allow for key management through RTSP.
-                    Note: All MIKEY messages must not contain line breaks. The examples below are formatted for readability.
-                  </para>
+                  <para>The key management extensions for SDP and RTSP (RFC 4567) allow for key
+                management through RTSP. Note: All MIKEY messages must not contain line breaks. The
+                examples below are formatted for readability. </para>
                   <section>
                   <title>Stream Initialization</title>
-                  <para>
-                    Key management extensions for SDP and RTSP (RFC 4567) defines stream initialization.
-                  </para>
-                  <para>
-                    When the device is providing the key, the SDP is required to have a media of type RTP/SAVP and a MIKEY message.
-                    It's permitted to have two media fields, one with RTP/AVP and one with RTP/SAVP. The RTP/AVP track is used for an unencrypted stream.
-                    The device may advertise that it supports the key management defined in this specification by adding the <emphasis>onvif-keymgmt</emphasis> attribute to the SDP.
-                    <programlisting><![CDATA[v=0
+                  <para>Key management extensions for SDP and RTSP (RFC 4567) defines stream
+                  initialization. </para>
+                  <para>When the device is providing the key, the SDP is required to have a media of
+                  type RTP/SAVP and a MIKEY message. It's permitted to have two media fields, one
+                  with RTP/AVP and one with RTP/SAVP. The RTP/AVP track is used for an unencrypted
+                  stream. The device may advertise that it supports the key management defined in
+                  this specification by adding the <emphasis>onvif-keymgmt</emphasis> attribute to
+                  the SDP. <programlisting><![CDATA[v=0
 o=actionmovie 2891092738 2891092738 IN IP4 movie.example.com
 s=Action Movie
 e=action@movie.example.com
@@ -765,33 +762,31 @@ m=video 0 RTP/AVP 99
 a=rtpmap:99 H264/90000
 a=control:rtsp://movie.example.com/action/rtp_video
 ]]></programlisting>
-                  </para>
-                  <para>
-                    When the client is providing the key, it will add a KeyMgmt header containing the MIKEY with transport type RTP/SAVP in the SETUP.
-                    The client may request a different encryption algorithm than what is configured with SetAudioEncoderConfiguration, SetMetadataConfiguration and SetVideoEncoderConfiguration for legacy reasons.
-                    Newer clients should respect the encryption algorithm set in the configuration and avoid overriding it in the SETUP request.
-                    The client may not change the encryption algorithm after the stream has been started.
-                    <programlisting><![CDATA[SETUP rtsp://<RTSP_URI> RTSP/1.0
+                </para>
+                  <para> When the client is providing the key, it will add a KeyMgmt header
+                  containing the MIKEY with transport type RTP/SAVP in the SETUP. The client may
+                  request a different encryption algorithm than what is configured with
+                  SetAudioEncoderConfiguration, SetMetadataConfiguration and
+                  SetVideoEncoderConfiguration for legacy reasons. Newer clients should respect the
+                  encryption algorithm set in the configuration and avoid overriding it in the SETUP
+                  request. The client may not change the encryption algorithm after the stream has
+                  been started. <programlisting><![CDATA[SETUP rtsp://<RTSP_URI> RTSP/1.0
 CSeq: 2
 User-Agent: OmnicastRTSPClient/1.0
 Transport: RTP/SAVP/UDP;unicast
 KeyMgmt: prot=mikey;uri="";data="AQAFAP1td9ABAADCD1UcAAAAAAoAAdOOGc75XD0BAAAAGAABAQEBE
 AIBAQMBFAcBAQgBAQoBAQsBCgAAACcAIQAe30C59UrClE0e27UP5h/Wty9UL8+dfzg+2ttmmo3kBAAAAC8A"
-]]></programlisting>
-                  </para>
-                  <para>
-                    The SSRC is a required component for SRTP encryption and shall be specified during the RTSP session setup.
-                    The SSRC shall be provided in the transport header of the RTSP SETUP response as described in RFC 2326 Section 12.39.
-                  </para>
+]]></programlisting> The SSRC is a required component for SRTP encryption and shall be specified
+                  during the RTSP session setup. The SSRC shall be provided in the transport header
+                  of the RTSP SETUP response as described in RFC 2326 Section 12.39. </para>
                 </section>
                 <section>
                   <title>Client Re-Keying with MIKEY</title>
-                  <para>
-                    The client may request the use of new keys for stream encryption.
-                    The SET_PARAMETER method shall be used with a MIKEY parameter to set the new encryption keys.
-                    The device shall not reset the ROC when changing keys.
-                    When rekeying, the RAND value and the SP (Security Policy) payload may be omitted by the client as defined in RFC 3830 section 4.5.
-                    <programlisting><![CDATA[SET_PARAMETER rtsp://<RTSP_URI> RTSP/1.0
+                  <para>The client may request the use of new keys for stream encryption. The
+                  SET_PARAMETER method shall be used with a MIKEY parameter to set the new
+                  encryption keys. The device shall not reset the ROC when changing keys. When
+                  rekeying, the RAND value and the SP (Security Policy) payload may be omitted by
+                  the client as defined in RFC 3830 section 4.5. <programlisting><![CDATA[SET_PARAMETER rtsp://<RTSP_URI> RTSP/1.0
 CSeq: 6
 Session: 15405670
 User-Agent: OmnicastRTSPClient/1.0
@@ -800,9 +795,7 @@ Content-Length: 145
 
 mikey: AQAFAGgCr8EBAADSvxgkAAAAAAoAAdOOK7UihqIBAAAAGAABAQEBEAIBAQMBFAcBAQgBAQoBAQsBCgA
 AACcAIQAepekjs88g+Q7AU6LAvRsoVyn18ZW1JuXI9qht4g6+BAAAAAIA
-]]>
-                    </programlisting>
-                  </para>
+]]>       </programlisting></para>
                 </section>
                 <section>
                   <title>Multicast considerations</title>
@@ -811,9 +804,7 @@ AACcAIQAepekjs88g+Q7AU6LAvRsoVyn18ZW1JuXI9qht4g6+BAAAAAIA
                     A new GET_PARAMETER request has been added to retrieve the MIKEY.
                     This MIKEY message shall contain the <emphasis>current</emphasis> ROC, meaning the server cannot send a cached MIKEY message.
                   </para>
-                  <para>
-                    Request:
-                    <programlisting><![CDATA[GET_PARAMETER rtsp://<RTSP_URI> RTSP/1.0
+                  <para> Request: <programlisting><![CDATA[GET_PARAMETER rtsp://<RTSP_URI> RTSP/1.0
 CSeq: 4
 Session: 15405670
 User-Agent: OmnicastRTSPClient/1.0
@@ -821,18 +812,12 @@ Content-Type: text/parameters
 Content-Length: 9
 
 mikey
-]]>
-                    </programlisting>
-
-                    Response:
-                    <programlisting><![CDATA[RTSP/1.0 200 OK
+]]></programlisting> Response: <programlisting><![CDATA[RTSP/1.0 200 OK
 CSeq: 4
 
 mikey: AQAFAGrVolgBAADdBcAoAAAAAAsA2/K83QArhBIKEGrVolg1GZvp7DPyFCdYmXABAAAAGwABAQEBEAIBAQM
 BFAQBDgcBAQgBAQoBAQsBCgAAACcAIQAe7OzS5umZMXHqaegZC3UkDwbC5NNpj4b8+fB6MROeBAAAAA0A
-]]>
-                    </programlisting>
-                  </para>
+]]> </programlisting></para>
                 </section>
                 <section>
                   <title>Error management</title>
