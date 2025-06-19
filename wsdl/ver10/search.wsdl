@@ -37,6 +37,8 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:sequence>
 				<xs:attribute name="MetadataSearch" type="xs:boolean"/>
 				<xs:attribute name="GeneralStartEvents" type="xs:boolean"><xs:annotation><xs:documentation> Indicates support for general virtual property events in the FindEvents method.</xs:documentation></xs:annotation></xs:attribute>
+				<xs:attribute name="NLSearch" type="xs:boolean"><xs:annotation><xs:documentation>Indicates support for natural language based search.</xs:documentation></xs:annotation></xs:attribute>
+				<xs:attribute name="ImageSearch" type="xs:boolean"><xs:annotation><xs:documentation>Indicates support for image based search.</xs:documentation></xs:annotation></xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<xs:element name="Capabilities" type="tse:Capabilities"/>
@@ -444,7 +446,143 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-			<!--===============================-->
+			
+			<!-- Define FindImagebyNL -->
+			<xs:element name="FindImagebyNLRequest">
+				<xs:annotation>
+					<xs:documentation>Starts a search session and specifies the search parameters.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="StartPoint" type="xs:dateTime">
+							<xs:annotation><xs:documentation>Start time for the search.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="EndPoint" type="xs:dateTime">
+							<xs:annotation><xs:documentation>End time for the search.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="RecordingToken" type="tt:RecordingReference" minOccurs="0">
+							<xs:annotation><xs:documentation>Token for the recording to search.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="Text" type="xs:string">
+							<xs:annotation><xs:documentation>Natural language description for the search (e.g., "person with red hat").</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="Likelihood" type="xs:float" minOccurs="0">
+							<xs:annotation><xs:documentation>Likelihood threshold for the search between 0~1.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="MaxMatches" type="xs:int" minOccurs="0">
+							<xs:annotation><xs:documentation>Maximum number of matches to return in the response.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="KeepAliveTime" type="xs:duration">
+							<xs:annotation><xs:documentation>The time the search session will be kept alive after responding to this and subsequent requests.</xs:documentation></xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="FindImagebyNLResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="SearchToken" type="tt:JobToken">
+							<xs:annotation><xs:documentation>A unique reference to the search session created by this request.</xs:documentation></xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>	
+
+			<!-- Define GetNLSearchResults -->
+			<xs:element name="GetNLSearchResultsRequest">
+				<xs:annotation>
+					<xs:documentation>Gets results from a particular search session.</xs:documentation>
+				</xs:annotation>			
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="SearchToken" type="tt:JobToken">
+							<xs:annotation><xs:documentation>The search session to get results from.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="MinResults" type="xs:int" minOccurs="0">
+							<xs:annotation><xs:documentation>The minimum number of results to return in one response.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="MaxResults" type="xs:int" minOccurs="0">
+							<xs:annotation><xs:documentation>The maximum number of results to return in one response.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="WaitTime" type="xs:duration" minOccurs="0">
+							<xs:annotation><xs:documentation>The maximum time before responding to the request, even if the MinResults parameter is not fulfilled.</xs:documentation></xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetNLSearchResultsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ResultList" type="tt:FindImageResultList" />
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<!-- Define FindImagebyImage -->
+			<xs:element name="FindImagebyImageRequest">
+				<xs:annotation>
+					<xs:documentation>Starts a search session and specifies the search parameters.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="StartPoint" type="xs:dateTime">
+							<xs:annotation><xs:documentation>Start time for the search.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="EndPoint" type="xs:dateTime">
+							<xs:annotation><xs:documentation>End time for the search.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="RecordingToken" type="tt:RecordingReference" minOccurs="0">
+							<xs:annotation><xs:documentation>Token for the recording to search.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="TargetImageURI" type="xs:anyURI">
+						<xs:annotation><xs:documentation>The target image to be searched in LocalStorage URI format.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="MaxMatches" type="xs:int" minOccurs="0">
+							<xs:annotation><xs:documentation>Maximum number of matches to return in the response.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="KeepAliveTime" type="xs:duration">
+							<xs:annotation><xs:documentation>The time the search session will be kept alive after responding to this and subsequent requests.</xs:documentation></xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="FindImagebyImageResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="SearchToken" type="tt:JobToken">
+							<xs:annotation><xs:documentation>A unique reference to the search session created by this request.</xs:documentation></xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<!-- Define GetImageSearchResults -->
+			<xs:element name="GetImageSearchResultsRequest">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="SearchToken" type="tt:JobToken">
+							<xs:annotation><xs:documentation>The search session to get results from.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="MinResults" type="xs:int" minOccurs="0">
+							<xs:annotation><xs:documentation>The minimum number of results to return in one response.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="MaxResults" type="xs:int" minOccurs="0">
+							<xs:annotation><xs:documentation>The maximum number of results to return in one response.</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="WaitTime" type="xs:duration" minOccurs="0">
+							<xs:annotation><xs:documentation>The maximum time before responding to the request, even if the MinResults parameter is not fulfilled.</xs:documentation></xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<xs:element name="GetImageSearchResultsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ResultList" type="tt:FindImageResultList" />
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>	
 			<!--===============================-->
 		</xs:schema>
 	</wsdl:types>
@@ -531,6 +669,30 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</wsdl:message>
 	<wsdl:message name="GetMetadataSearchResultsResponse">
 		<wsdl:part name="parameters" element="tse:GetMetadataSearchResultsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="FindImagebyNLRequest">
+		<wsdl:part name="parameters" element="tse:FindImagebyNLRequest"/>
+	</wsdl:message>
+	<wsdl:message name="FindImagebyNLResponse">
+		<wsdl:part name="parameters" element="tse:FindImagebyNLResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetNLSearchResultsRequest">
+		<wsdl:part name="parameters" element="tse:GetNLSearchResultsRequest"/>
+	</wsdl:message>
+	<wsdl:message name="GetNLSearchResultsResponse">
+		<wsdl:part name="parameters" element="tse:GetNLSearchResultsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="FindImagebyImageRequest">
+		<wsdl:part name="parameters" element="tse:FindImagebyImageRequest"/>
+	</wsdl:message>
+	<wsdl:message name="FindImagebyImageResponse">
+		<wsdl:part name="parameters" element="tse:FindImagebyImageResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetImageSearchResultsRequest">
+		<wsdl:part name="parameters" element="tse:GetImageSearchResultsRequest"/>
+	</wsdl:message>
+	<wsdl:message name="GetImageSearchResultsResponse">
+		<wsdl:part name="parameters" element="tse:GetImageSearchResultsResponse"/>
 	</wsdl:message>
 	<wsdl:portType name="SearchPort">
 		<!--===============================-->
@@ -732,6 +894,31 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<wsdl:input message="tse:GetMetadataSearchResultsRequest"/>
 			<wsdl:output message="tse:GetMetadataSearchResultsResponse"/>
 		</wsdl:operation>
+		<!-- FindImagebyNL operation -->
+		<wsdl:operation name="FindImagebyNL">
+			<wsdl:documentation>Starts a natural language search session and specifies the search parameters.</wsdl:documentation>
+			<wsdl:input message="tse:FindImagebyNLRequest"/>
+			<wsdl:output message="tse:FindImagebyNLResponse"/>
+		</wsdl:operation>
+		<!-- GetNLSearchResults operation -->
+		<wsdl:operation name="GetNLSearchResults">
+			<wsdl:documentation>Gets results from a natural language search session.</wsdl:documentation>
+			<wsdl:input message="tse:GetNLSearchResultsRequest"/>
+			<wsdl:output message="tse:GetNLSearchResultsResponse"/>
+		</wsdl:operation>	
+		<!-- FindImagebyImage operation -->
+		<wsdl:operation name="FindImagebyImage">
+			<wsdl:documentation>Starts an image-based search session and specifies the search parameters.</wsdl:documentation>
+			<wsdl:input message="tse:FindImagebyImageRequest"/>
+			<wsdl:output message="tse:FindImagebyImageResponse"/>
+		</wsdl:operation>
+
+		<!-- GetImageSearchResults operation -->
+		<wsdl:operation name="GetImageSearchResults">
+			<wsdl:documentation>Gets results from an image-based search session.</wsdl:documentation>
+			<wsdl:input message="tse:GetImageSearchResultsRequest"/>
+			<wsdl:output message="tse:GetImageSearchResultsResponse"/>
+		</wsdl:operation>
 	</wsdl:portType>
 	<wsdl:binding name="SearchBinding" type="tse:SearchPort">
 		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
@@ -878,5 +1065,47 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<!--===============================-->
 		<!--===============================-->
+
+		<!-- FindImagebyNL operation -->
+		<wsdl:operation name="FindImagebyNL">
+			<soap:operation soapAction="http://www.onvif.org/ver10/search/wsdl/FindImagebyNL"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	    <!-- GetNLSearchResults operation -->
+		<wsdl:operation name="GetNLSearchResults">
+			<soap:operation soapAction="http://www.onvif.org/ver10/search/wsdl/GetNLSearchResults"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>	
+		<!-- FindImagebyImage operation -->
+		<wsdl:operation name="FindImagebyImage">
+			<soap:operation soapAction="http://www.onvif.org/ver10/search/wsdl/FindImagebyImage"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+
+		<!-- GetImageSearchResults operation -->
+		<wsdl:operation name="GetImageSearchResults">
+			<soap:operation soapAction="http://www.onvif.org/ver10/search/wsdl/GetImageSearchResults"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
 	</wsdl:binding>
 </wsdl:definitions>

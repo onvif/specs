@@ -3565,6 +3565,12 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 		<xs:sequence>
 			<xs:element name="XAddr" type="xs:anyURI"/>
 			<xs:element name="MetadataSearch" type="xs:boolean"/>
+			<xs:element name="NLSearch" type="xs:boolean" minOccurs="0">
+				<xs:annotation><xs:documentation>Indicates support for natural language based search.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="ImageSearch" type="xs:boolean" minOccurs="0">
+				<xs:annotation><xs:documentation>Indicates support for image based search.</xs:documentation></xs:annotation>
+			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
@@ -7621,6 +7627,37 @@ and sample rate. </xs:documentation>
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
+	<!-- FindImageResultList -->
+	<xs:complexType name="FindImageResultList">
+		<xs:sequence>
+			<xs:element name="SearchState" type="tt:SearchState">
+				<xs:annotation>
+					<xs:documentation>The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Result" type="tt:FindImageResult" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation><xs:documentation>A FindImageResult structure for each found set of image matching the search.</xs:documentation></xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+
+	<!-- FindImageResult -->
+	<xs:complexType name="FindImageResult">
+		<xs:sequence>
+			<xs:element name="TargetImageURI" type="xs:anyURI">
+				<xs:annotation><xs:documentation>The detected target image URI in LocalStorage format.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="Time" type="xs:dateTime">
+				<xs:annotation><xs:documentation>The time when the target was found. Users can use this as a reference point to search records that occurred before and after this specific time point.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="Likelihood" type="xs:float">
+				<xs:annotation><xs:documentation>Likelihood score of the target between 0~1.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="RecordingToken" type="tt:RecordingReference">
+				<xs:annotation><xs:documentation>The recording where this result was found.</xs:documentation></xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>	
 	<!--===============================-->
 	<xs:simpleType name="SearchState">
 		<xs:restriction base="xs:string">
@@ -9192,6 +9229,8 @@ and sample rate. </xs:documentation>
 	<!--=========================================-->
 	<!--  End, StorageConfiguration              -->
 	<!--=========================================-->
+<xs:element name="FindImageResultList" type="tt:FindImageResultList"/>
+<xs:element name="FindImageResult" type="tt:FindImageResult"/>
 	
 <xs:element name="PolygonOptions" type="tt:PolygonOptions"/>
  

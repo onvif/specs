@@ -1321,6 +1321,195 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
       </variablelist>
     </section>
     <section>
+      <title>FindImagebyNL</title>
+      <para>FindImagebyNL starts a search session, looking for video records based on a natural language description of the content, such as "a person wearing a red hat" or "a blue car". Results from the search are acquired using the GetNLSearchResults request, specifying the search token returned from this request.</para>
+      <para>The device shall continue searching until one of the following occurs:</para>
+      <itemizedlist>
+        <listitem>
+          <para>The entire time range from <emphasis>StartPoint</emphasis> to <emphasis>EndPoint</emphasis> has been searched through.</para>
+        </listitem>
+        <listitem>
+          <para>The total number of matches has been found, defined by the <emphasis>MaxMatches</emphasis> parameter.</para>
+        </listitem>
+        <listitem>
+          <para>The session has been ended by a client EndSearch request.</para>
+        </listitem>
+        <listitem>
+          <para>The session has been ended because <emphasis>KeepAliveTime</emphasis> since the last request related to this session has expired.</para>
+        </listitem>
+      </itemizedlist>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">StartPoint [xs:dateTime]</para>
+            <para role="text">The point of time where the search will start.</para>
+            <para role="param">EndPoint [xs:dateTime]</para>
+            <para role="text">The point of time where the search will stop.</para>
+            <para role="param">RecordingToken - optional [tt:RecordingReference]</para>
+            <para role="text">Token for the recording to search.</para>
+            <para role="param">Text [xs:string]</para>
+            <para role="text">Natural language description for the search.</para>
+            <para role="param">Likelihood - optional [xs:float]</para>
+            <para role="text">Likelihood threshold for the search (0-1).</para>
+            <para role="param">MaxMatches - optional [xs:int]</para>
+            <para role="text">The search ends after MaxMatches.</para>
+            <para role="param">KeepAliveTime [xs:duration]</para>
+            <para role="text">The session timeout after each request concerning this session.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">SearchToken [tt:JobToken]</para>
+            <para role="text">Identifies the search session created by this request.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">env:Receiver - ter:Action - ter:ResourceProblem</para>
+            <para role="text">Device is unable to create a new search session.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="access">READ_MEDIA</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    
+    <section>
+      <title>GetNLSearchResults</title>
+      <para>GetNLSearchResults acquires the results from a natural language search session previously initiated by a FindImagebyNL operation. The response shall not include results already returned in previous requests for the same session.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">SearchToken [tt:JobToken]</para>
+            <para role="text">Specifies the search session.</para>
+            <para role="param">MinResults - optional [xs:int]</para>
+            <para role="text">Specifies the minimum number of results that should be returned.</para>
+            <para role="param">MaxResults – optional [xs:int]</para>
+            <para role="text">Specifies the maximum number of results to return.</para>
+            <para role="param">WaitTime – optional [xs:duration]</para>
+            <para role="text">Defines the maximum time to block, waiting for results.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">ResultList [tt:FindImageResultList]</para>
+            <para role="text">A structure containing the search results.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidToken</para>
+            <para role="text">The search token is invalid.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="access">READ_MEDIA</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    
+    <section>
+      <title>FindImagebyImage</title>
+      <para>FindImagebyImage starts a search session, looking for video records based on a provided image. Results from the search are acquired using the GetImageSearchResults request, specifying the search token returned from this request.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">StartPoint [xs:dateTime]</para>
+            <para role="text">The point of time where the search will start.</para>
+            <para role="param">EndPoint [xs:dateTime]</para>
+            <para role="text">The point of time where the search will stop.</para>
+            <para role="param">RecordingToken - optional [tt:RecordingReference]</para>
+            <para role="text">Token for the recording to search.</para>
+            <para role="param">TargetImageURI [xs:anyURI]</para>
+            <para role="text">URI of the image used for the search.</para>
+            <para role="param">Rect - optional [tt:Rectangle]</para>
+            <para role="text">Bounding box of the target in the image.</para>
+            <para role="param">MaxMatches - optional [xs:int]</para>
+            <para role="text">The search ends after MaxMatches.</para>
+            <para role="param">KeepAliveTime [xs:duration]</para>
+            <para role="text">The session timeout after each request concerning this session.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">SearchToken [tt:JobToken]</para>
+            <para role="text">Identifies the search session created by this request.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">env:Receiver - ter:Action - ter:ResourceProblem</para>
+            <para role="text">Device is unable to create a new search session.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="access">READ_MEDIA</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>    
+    <section>
+      <title>GetImageSearchResults</title>
+      <para>GetImageSearchResults acquires the results from an image-based search session previously initiated by a FindImagebyImage operation. The response shall not include results already returned in previous requests for the same session.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">SearchToken [tt:JobToken]</para>
+            <para role="text">Specifies the search session.</para>
+            <para role="param">MinResults - optional [xs:int]</para>
+            <para role="text">Specifies the minimum number of results that should be returned.</para>
+            <para role="param">MaxResults – optional [xs:int]</para>
+            <para role="text">Specifies the maximum number of results to return.</para>
+            <para role="param">WaitTime – optional [xs:duration]</para>
+            <para role="text">Defines the maximum time to block, waiting for results.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">ResultList [tt:FindImageResultList]</para>
+            <para role="text">A structure containing the search results.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidToken</para>
+            <para role="text">The search token is invalid.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="access">READ_MEDIA</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+
+
+
+    
+    <section>
       <title>EndSearch</title>
       <para>EndSearch stops an ongoing search session, causing any blocking result request to return and the <emphasis>SearchToken</emphasis> to become invalid. If the search was interrupted before completion, the point in time that the search had reached shall be returned. If the search had not yet begun, the <emphasis>StartPoint</emphasis> shall be returned. Note that an error message will occur if the search session has been already completed before this request. If the search was completed the original <emphasis>EndPoint</emphasis> supplied by the Find operation shall be returned. When issuing EndSearch on a FindRecordings request the <emphasis>EndPoint</emphasis> is undefined and shall not be used since the FindRecordings request doesn't have StartPoint/EndPoint. This operation is mandatory to support for a device implementing the recording search service.</para>
       <variablelist role="op">
@@ -1386,6 +1575,14 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
         <varlistentry>
           <term>GeneralStartEvents</term>
           <listitem><para>Indicates support for general virtual property events in the FindEvents method</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>NLSearch</term>
+          <listitem><para>Indicates if the device supports natural language based search for recorded video</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>ImageSearch</term>
+          <listitem><para>Indicates if the device supports image based search for recorded video</para></listitem>
         </varlistentry>
       </variablelist>
     </section>
