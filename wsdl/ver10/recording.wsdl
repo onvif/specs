@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="../ver20/util/onvif-wsdl-viewer.xsl"?>
 <!--
-Copyright (c) 2008-2023 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2025 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
@@ -10,7 +10,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:trc="http://www.onvif.org/ver10/recording/wsdl" targetNamespace="http://www.onvif.org/ver10/recording/wsdl">
 	<wsdl:types>
-		<xs:schema targetNamespace="http://www.onvif.org/ver10/recording/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="23.06">
+		<xs:schema targetNamespace="http://www.onvif.org/ver10/recording/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="25.06">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../ver10/schema/onvif.xsd"/>
 			<!--  Message Request/Responses elements  -->
 			<!--===============================-->
@@ -129,6 +129,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>
 							Indicates supported encryption modes.
 							See tt:EncryptionMode for a list of definitions.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="OverrideSegmentDuration" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>
+							Indicates if the device supports the OverrideSegmentDuration command.
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
@@ -683,6 +690,32 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
+			<xs:element name="OverrideSegmentDuration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="TargetSegmentDuration" type="xs:duration">
+							<xs:annotation>
+								<xs:documentation>The new target duration for recorded segments.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Expiration" type="xs:duration">
+							<xs:annotation>
+								<xs:documentation>The length of time during which the override request is to be in effect.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="RecordingConfiguration" type="tt:RecordingReference">
+							<xs:annotation>
+								<xs:documentation>The recording configuration for which the override is requested.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="OverrideSegmentDurationResponse">
+				<xs:complexType>
+					<xs:sequence></xs:sequence>
+				</xs:complexType>
+			</xs:element>
 		</xs:schema>
 	</wsdl:types>
 	<wsdl:message name="GetServiceCapabilitiesRequest">
@@ -811,6 +844,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</wsdl:message>
 	<wsdl:message name="GetExportRecordedDataStateResponse">
 		<wsdl:part name="parameters" element="trc:GetExportRecordedDataStateResponse"/>
+	</wsdl:message>
+	<wsdl:message name="OverrideSegmentDurationRequest">
+		<wsdl:part name="parameters" element="trc:OverrideSegmentDuration"/>
+	</wsdl:message>
+	<wsdl:message name="OverrideSegmentDurationResponse">
+		<wsdl:part name="parameters" element="trc:OverrideSegmentDurationResponse"/>
 	</wsdl:message>
 	
 	<wsdl:portType name="RecordingPort">
@@ -968,6 +1007,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</wsdl:documentation>
 			<wsdl:input message="trc:GetExportRecordedDataStateRequest"/>
 			<wsdl:output message="trc:GetExportRecordedDataStateResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="OverrideSegmentDuration">
+			<wsdl:documentation>
+			Requests a temporary override of the target segment duration for a recording configuration. 
+			</wsdl:documentation>
+			<wsdl:input message="trc:OverrideSegmentDurationRequest"/>
+			<wsdl:output message="trc:OverrideSegmentDurationResponse"/>
 		</wsdl:operation>
 		
 	</wsdl:portType>
@@ -1156,6 +1202,15 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="GetExportRecordedDataState">
 			<soap:operation soapAction="http://www.onvif.org/ver10/recording/wsdl/GetExportRecordedDataState"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="OverrideSegmentDuration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/recording/wsdl/OverrideSegmentDuration"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>

@@ -1,0 +1,175 @@
+openapi: 3.0.4
+info:
+  title: Cloud Integration Specification
+  contact:
+    name: ONVIF Technical Specification
+    url: https://www.onvif.org/profiles/specifications/
+  license:
+    name: ONVIF Contributor License Agreement
+    url: https://github.com/onvif/specs/blob/development/LICENSE.md
+  version: "25.06"
+  x-logo:
+    url: https://www.onvif.org/logo.gif
+    background: "#ffffff"
+    altText: "ONVIF logo"
+
+components:
+  schemas:
+    base64DerEncodedAsn1Value:
+      description: This schema is the equivalent of tas:Base64DERencodedASN1Value in the Security Service specification.
+      type: string
+      format: byte
+
+    endpointReferenceType:
+      description: This schema is the equivalent of wsa:EndpointReferenceType in the WA-Addressing 1.0 specification.
+      type: string
+      format: uri
+
+    authorizationServerConfiguration:
+      type: object
+      description: This schema is the equivalent of tas:AuthorizationServerConfigurationData
+      properties:
+        serverUri:
+          description: Authorization server address
+          type: string
+        clientId:
+          description: Client identifier issued by the authorization server
+          type: string
+        scope:
+          description: The requested access scope
+          type: string
+        certPathValidationPolicyAlias:
+          description: The alias of the certPathValidationPolicy to be used with this configuration
+          type: string
+      required:
+        - serverUri
+        - clientId
+        - certPathValidationPolicyAlias
+
+    uplinkConfiguration:
+      type: object
+      properties:
+        remoteAddress:
+          description: Uniform resource locator by which the remote client can be reached.
+          $ref: '#/components/schemas/endpointReferenceType'
+        userLevel:
+          description: Authorization level that will be assigned to the uplink connection.
+          type: string
+          enum: [Administrator, Operator, User]
+        certPathValidationPolicyAlias:
+          description: The alias of the certPathValidationPolicy to be used with this configuration
+          type: string
+      required:
+        - remoteAddress
+        - userLevel
+        - certPathValidationPolicyAlias
+
+    deviceConfiguration:
+      type: object
+      properties:
+        shareToken:
+          description: The share token, to prove permission to share the device.
+          type: string
+          format: byte
+        endpointReferences:
+          description: The full URI if the endpoint to be notified to inform that the operation was completed. It may be more then one if the requesting cloud has redundant URIs to receive the notification.
+          items:
+            $ref: '#/components/schemas/endpointReferenceType'
+        uplinkConfigurations:
+          description: Per-device uplink configuration
+          items:
+            $ref: '#/components/schemas/uplinkConfiguration'
+        authorizationServerConfigurations:
+          items:
+            $ref: '#/components/schemas/authorizationServerConfiguration'
+        certPathValidationPolicies:
+          description: List of certificate validation policies that can be referenced by alias
+          items:
+            $ref: '#/components/schemas/certPathValidationPolicy'
+      required:
+        - shareToken
+        - endpointReferences
+        - uplinkConfigurations
+        - authorizationServerConfigurations
+        - certPathValidationPolicies
+
+    startDeviceSharing:
+      type: object
+      properties:
+        deviceConfigurations:
+          items:
+            $ref: '#/components/schemas/deviceConfiguration'
+          description: For each camera requested to be shared, it is necessary to pass both the shared token and the endpoint reference.
+      required:
+        - deviceConfigurations
+
+    deviceSharingCompleted:
+      type: object
+      properties:
+        shareToken:
+          description: The share token, to know what device the public key is associated to.
+          type: string
+        devicePublicKey:
+          description: The public key of the device.
+          $ref: '#/components/schemas/base64DerEncodedAsn1Value'
+      required:
+        - shareToken
+        - devicePublicKey
+
+    deviceSharingError:
+      type: object
+      properties:
+        error:
+          type: string
+          enum: [ "Invalid configuration", "Invalid JWT" ]
+      required:
+        - error
+
+    certPathValidationPolicy:
+      type: object
+      properties:
+        alias:
+          description: The alias to be used for the CertPathValidationPolicy
+          type: string
+        trustAnchors:
+          description: List of trust anchors in base64DerEncodedAsn1Value
+          items:
+            $ref: '#/components/schemas/base64DerEncodedAsn1Value'
+      required:
+        - alias
+        - trustAnchors
+
+paths:
+  /startDeviceSharing:
+    post:
+      summary: Start device sharing.
+      description: This operation triggers sharing a device with a new Operational Cloud Service.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/startDeviceSharing'
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Invalid Argument Value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/deviceSharingError'
+
+  /deviceSharingCompleted:
+    post:
+      summary: Device sharing completed notification.
+      description: This operation notifies the new Operational Cloud Service that the camera was successfully configured.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/deviceSharingCompleted'
+      responses:
+        '200':
+          description: Success

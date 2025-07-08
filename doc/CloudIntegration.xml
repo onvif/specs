@@ -16,7 +16,7 @@
       </imageobject>
     </mediaobject>
     <copyright>
-      <year>2008-2024</year>
+      <year>2008-2025</year>
       <holder>ONVIF™ All rights reserved.</holder>
     </copyright>
     <legalnotice>
@@ -132,11 +132,31 @@
             <row>
               <entry align="left">
                 <para>
+                  <emphasis role="bold">Share Token</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>A Token passed between a "Provisioning Cloud Service" and an "Operational Cloud Service" to prove that the "Provisioning Cloud Service" has access rights to the device.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
                   <emphasis role="bold">Uplink</emphasis>
                 </para>
               </entry>
               <entry align="left">
                 <para>The connection established by the local service to the remote client.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para>
+                  <emphasis role="bold">Web Services</emphasis>
+                </para>
+              </entry>
+              <entry align="left">
+                <para>A web service is a software component or system that allows devices to communicate over the internet by exchanging data.</para>
               </entry>
             </row>
           </tbody>
@@ -150,6 +170,10 @@
           <colspec colname="c1" colwidth="24*" />
           <colspec colname="c2" colwidth="76*" />
           <tbody valign="top">
+            <row>
+              <entry valign="middle">JSON</entry>
+              <entry valign="middle">JavaScript Object Notation</entry>
+            </row>
             <row>
               <entry valign="middle">JWT</entry>
               <entry valign="middle">JSON Web Token</entry>
@@ -186,6 +210,10 @@
                 <para>Video Management System</para>
               </entry>
             </row>
+            <row>
+              <entry valign="middle">YAML</entry>
+              <entry valign="middle">Yet Another Markup Language.</entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -202,9 +230,11 @@
         <para>The user can transfer the device from a PCS to an Operational Cloud Service (OCS), i.e. the cloud native VMS the user expects to use for his surveillance system.</para>
       </listitem>
     </itemizedlist>
-    <para>N.B. that at any time, a OCS may act as a PCS.</para>
+    <para><emphasis role="bold">N.B.</emphasis> that at any time, a OCS may act as a PCS.</para>
     <para>The scope of this cloud service covers only the second step, i.e. device sharing or transferring between different cloud services. The procedure outlined in these specifications can be used to share or transfer a device from a MCS to an OCS during the initial setup, but also from an old PCS to a new OCS.</para>
-    <para>Figure <xref xmlns:xlink="http://www.w3.org/1999/xlink" linkend="_Ref752965479"/> demonstrates the two phases. N.B. the gray rectangle visually identifies the scope of these specifications.</para>
+    <para>Figure <xref xmlns:xlink="http://www.w3.org/1999/xlink" linkend="_Ref752965479"/>
+      demonstrates the two phases. <emphasis role="bold">N.B.</emphasis> the grey rectangle visually
+      identifies the scope of these specifications.</para>
     <figure xml:id="_Ref752965479">
       <title>Onboarding phases and ONVIF scope</title>
       <mediaobject>
@@ -229,11 +259,11 @@
     </figure>
     <section>
       <title>Web Services </title>
-      <para>Unlie for other services defined by ONVIF, in this document the term Web Services is the
-        name of a standardized method of integrating applications using open, platform independent
-        Web Services standards such as JSON, OpenAPI 3.1.0 and YAML over an IP network. JOSN is used
-        as the data description syntax, OpenAPI is used for message transfer and YAML is used for
-        describing the services.</para>
+      <para>Unlike for other services defined by ONVIF, in this document the term Web Services is
+        the name of a standardized method of integrating applications using open, platform
+        independent Web Services standards such as JSON, OpenAPI 3.1.0 and YAML over an IP network.
+        JSON is used as the data description syntax, OpenAPI is used for message transfer and YAML
+        is used for describing the services.</para>
       <figure xml:id="_Ref211940201">
         <title> OpenAPI based development principles</title>
         <mediaobject>
@@ -247,9 +277,9 @@
         <xref linkend="_Ref211940201"/> gives an overview of the basic principles for development
         based on Web Services and OpenAPI. The service provider (MCS) implements the ONVIF service.
         The service is described using the YAML-based file. Then, the YAML file is used as the basis
-        for the service requester (OCS) implementation/integration. Integration is simplified
-        through the use of code generating tools that generate platform specific code that can be
-        used by the developers to integrate the Web Service.</para>
+        for the service requester (OCS) implementation/integration. Integration is simplified using
+        code generating tools that generate platform specific code that can be used by the
+        developers to integrate the Web Service.</para>
       <para>The Web Service provider and requester communicate using the OpenAPI message exchange
         protocol. OpenAPI is a lightweight messaging protocol used to encode the information in a
         Web Service request and in a response message before sending them over a network. OpenAPI
@@ -264,28 +294,41 @@
         <title>Security</title>
         <section>
           <title>Authentication</title>
-          <para>The services defined in this standard, whenever consumed, shall be protected using
-          digest authentication according to [RFC 2617] over HTTP and HTTPS or JWT client
-          authorization based on [RFC 6750], only over HTTPS. Additional information about HTTP
-          digest  authenticationcan can be found the ONVIF Core specification, while the JWT client
-          authorization can be found in the ONVIF Security Service.</para>
-          <para>MCS and OCS may support the SHA-256 hashing algorithm in HTTP and HTTPS. An ONVIF
-          compliant service should follow [RFC 7616].</para>
+          <para>The functions defined within this document do not require authehtication, since presenting
+          a valid share token is a valid proof that the user was successfully authenticated by the
+          MCS.</para>
         </section>
         <section>
-          <title>User levels and access classes for the service</title>
-          <para>Since this service is only meant to enable sharing devices between different cloud
-          services, there is no need for defining different access classes to authorized access to
-          the functions defined in this specification.</para>
+          <title>Information protection</title>
+          <para>The services defined in this standard, whenever consumed, shall be protected by
+          using only HTTPS as transport, in order to protect the share token from interception and
+          unauthorized use.</para>
         </section>
       </section>
     <section xml:id="_Ref208379149">
       <title>Format of the share token</title>
       <para>To start the device sharing operation, the OCS must provide a share token to the PCS, to
-        prove it has the rights to access the camera. They way the OCS retrieves the share token is
+        prove it has the rights to access the camera. The way the OCS retrieves the share token is
         beyond the scope of this specification.</para>
-      <para>The share token must be a JWT and must include the <emphasis>xaddr</emphasis> claim that
-        will include the URI where the PCS will be accepting incoming requests from the OCS.</para>
+      <para>The share token must be a JWT and must include the following claims:</para>
+      <itemizedlist>
+        <listitem>
+          <para><emphasis>onvif:xaddr</emphasis>: The full URI where the PCS will be accepting the
+            incoming requests from the OCS</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>onvif:sn</emphasis>: The serial number of the device.</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>onvif:model</emphasis>: The device model.</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>onvif:manufacturer</emphasis>: The manufacturer of the device.</para>
+        </listitem>
+      </itemizedlist>
+      <para>The claims <emphasis>onvif:sn</emphasis>, <emphasis>onvif:model</emphasis> and
+          <emphasis>onvif:manufacturer</emphasis> shall match the values returned by GetDeviceInformation
+        of the Device service.</para>
       </section>
   </chapter>
   <chapter>
@@ -296,7 +339,7 @@
       <para>Once the information is sent to the camera, the camera will generate a public key
         associated to the assigned ClientID. The generated public key will be passed to the PCS, so
         that it will transfer it to the OCS with the deviceSharingCompleted function, so that it
-        will be able to authenticate the device and let it retrieve a JWT meant to be used to
+        will be able to authenticate the device and let it retrieve the JWT meant to be used to
         authenticate the Uplink Service.</para>
       <variablelist role="op">
         <varlistentry>
@@ -323,11 +366,12 @@
       <title>deviceSharingCompleted</title>
       <para>This operation notifies the new Operational Cloud Service that the camera was
         successfully configured.</para>
+      <para>The public key shall be a base64 encoded DER-encoded PKCS#10 certification request.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
           <listitem>
-            <para role="text">deviceSharigCompleted [deviceSharigCompleted]</para>
+            <para role="text">deviceSharingCompleted [deviceSharingCompleted]</para>
           </listitem>
         </varlistentry>
         <varlistentry>

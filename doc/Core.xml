@@ -296,8 +296,24 @@
         <revremark>Add support for JSON Web Tokens</revremark>
       </revision>
       <revision>
+        <revnumber>24.12</revnumber>
+        <date>Dec-2024</date>
+        <author>
+          <personname>Sriram Bhetanabottla</personname>
+        </author>
+        <revremark>Improve description of certificate verification policy and correct specification references.</revremark>
+      </revision>
+      <revision>
         <revnumber>25.06</revnumber>
         <date>Jun-2025</date>
+        <author>
+          <personname>Jean-François Lévesque, Sriram Bhetanabottla, Jose Melancon</personname>
+        </author>
+        <revremark>Add storage configuration renewal. Remove deprecated mirror url. Remove renew in pullpoint subscription.</revremark>
+      </revision>
+      <revision>
+        <revnumber>25.12</revnumber>
+        <date>Dec-2025</date>
         <author>
           <personname>Ottavio Campana</personname>
         </author>
@@ -560,8 +576,7 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://docs.oasis-open.org/wsn/wsn-ws_base_notification-1.3-spec-os.pdf"></link>&gt;</para>
     <para>XMLSOAP, Web Services Dynamic Discovery (WS-Discovery)”, J. Beatty et al., April 2005.</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://specs.xmlsoap.org/ws/2005/04/discovery/ws-discovery.pdf"></link>&gt;</para>
-    <para role="reference">Mirror: <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/external/ws-discovery/"></link></para>
-    <para>OASIS Web Services Security: SOAP Message Security 1.1 (WS-Security 2004)</para>
+        <para>OASIS Web Services Security: SOAP Message Security 1.1 (WS-Security 2004)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.oasis-open.org/committees/download.php/16790/wss-v1.1-spec-os-SOAPMessageSecurity.pdf"></link>&gt;</para>
     <para>OASIS Web Services Topics 1.3</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://docs.oasis-open.org/wsn/wsn-ws_topics-1.3-spec-os.pdf"></link>&gt;</para>
@@ -1314,7 +1329,7 @@
             <para>Handle user credentials and settings.</para>
           </listitem>
         </itemizedlist>
-        <para>For further security related aspects refer to the ONVIF Advanced Security Service Specification.</para>
+        <para>For further security related aspects refer to the ONVIF Security Service Specification.</para>
       </section>
       <section>
         <title>Storage configuration</title>
@@ -1377,9 +1392,12 @@
       <section>
         <title>General</title>
         <para>An ONVIF compliant device shall support a number of Web Services which are defined in this and related specifications. </para>
-        <para>The device management service is the entry point for all other services of the device and therefore also the target service for the ONVIF defined WS-Discovery behaviour, see chapter <xref linkend="_Ref199745942" />.</para>
+        <para>The device management service is the entry point for all other services of the device
+          and therefore also the target service for the ONVIF defined WS-Discovery behaviour, see
+          chapter <xref linkend="_Ref199745942"/> or the target for accessing device over Uplink
+          connection.</para>
         <para>The entry point for the device management service is fixed to:</para>
-        <programlisting><![CDATA[http://onvif_host/onvif/device_service
+        <programlisting><![CDATA[/onvif/device_service
 ]]></programlisting>
       </section>
       <section>
@@ -2276,7 +2294,7 @@ DATE: when response was generated
             </imageobject>
           </mediaobject>
         </figure>
-        <para>WS-Security BinarySecurityToken does not provide security. It is recommended to always configure the device for TLS-based access (see Advanced Security Service). A protected transport level of security will provide an acceptable level of security in many systems. WS-Security BinarySecurityToken should never be used without TLS.</para>
+        <para>WS-Security BinarySecurityToken does not provide security. It is recommended to always configure the device for TLS-based access (see Security Service). A protected transport level of security will provide an acceptable level of security in many systems. WS-Security BinarySecurityToken should never be used without TLS.</para>
       </section>
 	  <section>
         <title>SHA-256 Support in HTTP and RTSP digest authentication</title>
@@ -2358,8 +2376,8 @@ DATE: when response was generated
 	  <section>
 	  <title>Get Device Hashing Algorithm</title>               
           <para>Follow the below workflow to get the latest device Hashing Algorithm:</para>
-		  <para>1. The ONVIF client should send a HTTP or RTSP requests without an Authorization header.</para>
-		  <para>2. The device responds with a HTTP or RTSP 401 message, that includes a challenge for each digest algorithm currently it was set, in its order of preference.</para>
+		  <para>1. The ONVIF client should send an HTTP or RTSP requests without an Authorization header.</para>
+		  <para>2. The device responds with an HTTP or RTSP 401 message, that includes a challenge for each digest algorithm currently it was set, in its order of preference.</para>
 		  <para>Note: There is no ONVIF API to get the current hashing algorithm of a device, ONVIF clients should depend on HTTP or RTSP digest challenge response.</para>
       <para>See differing example responses below for the given HTTP request:</para>
       <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
@@ -5613,7 +5631,7 @@ onvif://www.onvif.org/name/ARV-453
       </section>
       <section xml:id="_Toc251861725">
         <title>GetRemoteUser</title>
-        <para>This operation returns the configured remote user (if any). A device that signals support for remote user handling via the Security Capability RemoteUserHandling shall support this operation. The user is only valid for the WS-UserToken profile or as a HTTP / RTSP user.</para>
+        <para>This operation returns the configured remote user (if any). A device that signals support for remote user handling via the Security Capability RemoteUserHandling shall support this operation. The user is only valid for the WS-UserToken profile or as an HTTP / RTSP user.</para>
         <para>Password derivation is outside of the scope of this specification.</para>
         <variablelist role="op">
           <varlistentry>
@@ -6287,6 +6305,38 @@ onvif://www.onvif.org/name/ARV-453
         </para>
       </section>
       <section>
+        <title>Configuration Renewal</title>
+        <para>
+          The configuration allows for a renewal endpoint to be set. If the device supports this feature, it shall automatically renew the credentials 
+          when they are about to expire.
+        </para>
+        <para>
+          The device shall do a GET request to the configured <literal>RenewalEndpoint</literal> with the access token retrieved from the configured 
+          <literal>AuthorizationServer</literal>. The endpoint shall respond with a JSON payload with the following structure:
+          <programlisting><![CDATA[{
+    "region": "string" | null,
+    "storageUri": "string" | null,
+    "user": {
+        "username": "string" | null,
+        "password": "string" | null,
+        "token": "string" | null
+    },
+    "expiresAt": "<ISO 8601 date-time>"
+}]]></programlisting>
+          Any null value in the response shall clear the corresponding optional parameter in the configuration used by the device.
+        </para>
+        <para>
+          When the device receives a configuration with the <literal>ConfigurationRenewal</literal> set, it shall immediately contact
+          the renewal endpoint to get up-to-date credentials. The device may use the credentials available in the configuration in the
+          meantime to avoid service disruption.
+        </para>
+        <para>
+          The device shall ensure to renew the configuration before the expiration provided by the <literal>expiresAt</literal> field.
+          If the renewal endpoint fails to provide a valid response, the device shall continue to use the existing configuration and retry
+          later using an exponential backoff strategy.
+        </para>
+      </section>
+      <section>
         <title>GetStorageConfigurations</title>
         <para>This operation lists all existing storage configurations. A device indicating storage configuration capability shall support the listing of existing storage configurations through the GetStorageConfigurations command.</para>
         <variablelist role="op">
@@ -6764,7 +6814,7 @@ Event description:
           <para>The device evaluates the subscription request and returns either a CreatePullPointSubscriptionResponse or one of the Fault codes. </para>
         </listitem>
         <listitem>
-          <para>If the subscription is accepted, the response contains a WS-EndpointReference to the instantiated pull point. This WS-Endpoint provides a PullMessages operation, which is used by the client to retrieve Notifications. Additionally it provides the Renew and Unsubscribe operations of the Base Subscription Manager Interface. The sequence diagram of the interaction is shown in <xref linkend="_Ref213223488" />. </para>
+          <para>If the subscription is accepted, the response contains a WS-EndpointReference to the instantiated pull point. This WS-Endpoint provides a PullMessages operation, which is used by the client to retrieve Notifications. Additionally it provides the Unsubscribe operation of the Base Subscription Manager Interface. The sequence diagram of the interaction is shown in <xref linkend="_Ref213223488" />. </para>
         </listitem>
       </orderedlist>
       <figure xml:id="_Ref213223488">
@@ -6971,8 +7021,7 @@ Event description:
             <term>ResourceUnknownFaultResponse</term>
             <listitem>
               <para role="param">Timestamp [xs:dateTime]</para>
-              <para role="text">The pull point reference is invalid
-</para>
+              <para role="text">The pull point reference is invalid</para>
               <para role="param">Originator - optional [wsa:EndpointReferenceType]</para>
               <para role="param">ErrorCode - optional [xs:any]</para>
             </listitem>
@@ -7007,8 +7056,7 @@ Event description:
             <term>request</term>
             <listitem>
               <para role="param">UtcTime [xs:datetime]</para>
-              <para role="text">This message shall be addressed to a PullPoint in order to readjust the pull position:
-</para>
+              <para role="text">This message shall be addressed to a PullPoint in order to readjust the pull position:</para>
               <para role="param">Reverse - optional [xs:bool]</para>
             </listitem>
           </varlistentry>
@@ -7090,7 +7138,6 @@ Event description:
         <title>Requirements</title>
         <para>This section details those interfaces of the [WS-BaseNotification] that a device shall provide.</para>
         <para>An ONVIF compliant device shall support the NotificationProducer Interface of the [WS-BaseNotification] if the capability MaxNotificationProducers is non-zero. The device shall support TopicExpression filters with the dialects described in <xref linkend="_Ref210199558" />. The support for MessageContent filters is signalled via the GetEventProperties method. If the device does not accept the InitialTerminationTime of a subscription, it shall provide a valid InitialTerminationTime within the Fault Message. The device shall be able to provide notifications using the Notify wrapper of the [WS-BaseNotification] specification. The SubscriptionPolicy <literal>wsnt:UseRaw</literal> is optional for the device. Although the [WS-BaseNotification] has CurrentTime and TerminationTime as optional elements in a SubscribeResponse and RenewResponse, an ONVIF compliant device shall list them in both SubscribeResponses and RenewResponse. The device may respond to any GetCurrentMessage request with a Fault message indicating that no current message is available on the requested topic.</para>
-        <para>The implementation of the Pull-Point Interface of the [WS-BaseNotification] on a device is optional.</para>
         <para>An ONVIF compliant device shall implement the Base Subscription Manager Interface of the [WS-BaseNotification] specification consisting of the Renew and Unsubscribe operations. The Pausable Subscription Manager Interface is optional. The implementation of Subscriptions as WS-Resources is optional.</para>
         <para>An ONVIF compliant device shall support time values in request parameters that are given in utc with the 'Z' indicator and respond all time values as utc including the 'Z' indicator.</para>
       </section>
@@ -8960,7 +9007,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
     <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/ver10/schema/onvif.xsd"/>]</para>
     <para>[ONVIF Topic Namespace] ONVIF Topic Namespace XML, ver 2.0, 2010.</para>
     <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver10/topics/topicns.xml"/>]</para>
-    <para>[ONVIF Security] ONVIF Advanced Security Specification</para>
+    <para>[ONVIF Security] ONVIF Security Specification</para>
     <para>[ONVIF Analytics] ONVIF Analytics Service Specification</para>
     <para>WS-I, Basic Profile Version 2.0 – Working Group Draft, C. Ferris (Ed), A. Karmarkar (Ed) and  P. Yendluri (Ed), October 2007.</para>
     <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ws-i.org/Profiles/BasicProfile-2_0(WGD).html"/></para>
@@ -9097,7 +9144,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
     </section>
     <section>
       <title>Security</title>
-      <para>The definition and interfaces for the Security have been deprecated with release 16.12. The following interfaces have been removed from the specification: The Security part was handed over to Advanced Security Service. </para>
+      <para>The definition and interfaces for the Security have been deprecated with release 16.12. The following interfaces have been removed from the specification: The Security part was handed over to Security Service. </para>
       <itemizedlist>
         <listitem>
           <para>Create IEEE 802.1X configuration</para>

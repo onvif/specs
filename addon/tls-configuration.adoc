@@ -1,0 +1,409 @@
+= TLS Configuration +
+Add-on Specification
+
+©2008-2023 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+
+Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
+
+THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+
+IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT. THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.
+
+Revision history
+
+[width="100%",cols="9%,16%,47%,28%",options="header",]
+|===
+|*Vers.* |*Date* |*Description* |*Contributors*
+|1.0 |May 2021 |Just a draft example of what a Feature Specification could look like to be used as discussion material. |Refer to Contributors table
+|1.1 |November 2021 |Edits based on review at the 2021 November ONVIF Meeting in Lisbon. |Attendees at the WG meeting
+|1.2 |June 2022 |Branding edits based on feedback from the Communication Committee. Changed November version to 1.1 to simplify versioning. |Michael Adam
+|1.3 |November 2022 a|
+Edits based on review at the 2022 November ONVIF Meeting in Casablanca.
+
+* AddServerCertificateAssignment made mandatory for clients.
+
+|Attendees at the WG meeting
+|1.4 |February 2023 a|
+Edits based on WG Meeting and CC Feedback:
+
+* AddServerCertificateAssignment made optional with footnote.
+* Add GetServices and GetServiceCapabilities to function lists per CTT/DTT review.
+* Update some language per Communication Committee.
+* Expanded Section 6 with more detailed use cases.
+
+|Michael Adam
+|1.5 |November 2023 |Editorial changes and changes to align more with other Profile specifications. a|
+Sriram Bhetanabottla
+
+Todd Johnson
+
+Venki Aravapalli
+
+Giri Guntipalli
+
+André Eichhorn
+
+|===
+
+Contributors
+
+[width="100%",cols="<44%,<56%",]
+|===
+|*Company* |*Contributors*
+|Axis Communications AB a|
+Baldvin Gislason Bern
+
+Johan Svensk
+
+|Genetec Inc. |Jean-Francois Levesque
+|Motorola Solutions a|
+Michael Adam
+
+Todd Johnson
+
+|Honeywell a|
+Venki Aravapalli
+
+Giri Guntipalli
+
+|Bosch Security Systems B.V. a|
+Hans Busch
+
+André Eichhorn
+
+|===
+
+*Table of Contents*
+
+link:#_heading=h.gjdgxs[ONVIF^TM^ link:#_heading=h.gjdgxs[1]]
+
+link:#_heading=h.30j0zll[TLS Configuration Add-on Specification link:#_heading=h.30j0zll[1]]
+
+link:#scope[1 Scope link:#scope[6]]
+
+link:#normative-references[2 Normative references link:#normative-references[6]]
+
+link:#normative-references-1[2.1 Normative references link:#normative-references-1[6]]
+
+link:#terms-and-definitions[3 Terms and definitions link:#terms-and-definitions[6]]
+
+link:#definitions[3.1 Definitions link:#definitions[6]]
+
+link:#technical-specification-version-requirement[4 Technical specification version requirement link:#technical-specification-version-requirement[7]]
+
+link:#requirement-levels[5 Requirement levels link:#requirement-levels[7]]
+
+link:#overview[6 Overview link:#overview[8]]
+
+link:#use-cases[6.1 Use cases link:#use-cases[8]]
+
+link:#initial-configuration[6.1.1 Initial configuration link:#initial-configuration[8]]
+
+link:#update-configuration[6.1.2 Update configuration link:#update-configuration[8]]
+
+link:#mandatory-features-normative[7 Mandatory features (normative) link:#mandatory-features-normative[9]]
+
+link:#discovery[7.1 Discovery link:#discovery[9]]
+
+link:#device-requirements[7.1.1 Device requirements link:#device-requirements[9]]
+
+link:#client-requirements[7.1.2 Client requirements link:#client-requirements[9]]
+
+link:#function-list-for-devices[7.1.3 Function list for devices link:#function-list-for-devices[9]]
+
+link:#function-list-for-clients[7.1.4 Function list for clients link:#function-list-for-clients[9]]
+
+link:#tls-configuration[7.2 TLS configuration link:#tls-configuration[9]]
+
+link:#device-requirements-1[7.2.1 Device requirements link:#device-requirements-1[9]]
+
+link:#client-requirements-1[7.2.2 Client requirements link:#client-requirements-1[10]]
+
+link:#tls-server-configuration-function-list-for-devices[7.2.3 TLS server configuration function list for devices link:#tls-server-configuration-function-list-for-devices[11]]
+
+link:#tls-server-configuration-function-list-for-clients[7.2.4 TLS server configuration function list for clients link:#tls-server-configuration-function-list-for-clients[12]]
+
+== Scope
+
+This document defines the mandatory and conditional features required by an ONVIF device and ONVIF client that support the Feature Set of the TLS Configuration Add-on.
+
+== Normative references
+
+This section defines the normative references applicable to this specification.
+
+=== Normative references
+
+* *ONVIF Profile Policy*
+
+++<++ http://www.onvif.org/profiles[[.underline]#http://www.onvif.org/profiles#]++>++
+
+* *ONVIF Network Interface Specifications*
+
+++<++ https://www.onvif.org/profiles/specifications/[[.underline]#https://www.onvif.org/profiles/specifications/#] ++>++
+
+== Terms and definitions
+
+This section provides common terms and definitions used in this specification.
+
+=== Definitions
+
+[width="100%",cols="<24%,<76%",]
+|===
+|*Add-on* |See ++[++ONVIF Profile Policy++]++
+|*Profile* |See ++[++ONVIF Profile Policy++]++
+|*ONVIF device* |Networked hardware appliance or software program that exposes one or multiple ONVIF Web Services
+|*ONVIF client* |Networked hardware appliance or software program that uses ONVIF Web Services
+|*TLS* |Transport Layer Security
+|*CSR* |Certificate Signing Request
+|===
+
+== Technical specification version requirement
+
+Implementation of ONVIF Network Interface Specifications, version 22.06 or later is required for conformance to TLS configuration add-on.
+
+== Requirement levels
+
+Each feature in this document has a requirement level for device and client that claims conformance to TLS configuration add-on and contains a function list that states the function’s requirement level for device and client that implement that feature.
+
+The requirement levels for features are:
+
+* *Mandatory = Feature that shall be implemented by an ONVIF device or ONVIF client.*
+
+The requirement levels for functions are:
+
+* *Mandatory = Function that shall be implemented by an ONVIF device or ONVIF client.*
+* *Optional = Function that may be implemented by an ONVIF device or ONVIF client.*
+
+Function lists use the following abbreviations:
+
+* *M = Mandatory*
+* *O = Optional*
+
+All functions shall be implemented as described in the corresponding ++[++ONVIF Network Interface Specifications++]++.
+
+== Overview
+
+This section explains the basic motivation for defining the TLS Add-on specification.
+
+Secure communication between ONVIF clients and ONVIF devices is a key market demand. One important aspect of secure communication is the possibility to encrypt the communication using Transport Layer Security, or TLS.
+
+An ONVIF device conformant to TLS configuration add-on is an ONVIF device that can be configured to use TLS.
+
+An ONVIF client conformant to TLS configuration add-on is an ONVIF client that can configure an ONVIF device to use TLS.
+
+=== Use cases
+
+This section defines the anticipated typical usage of the Add-on.
+
+==== Initial configuration
+
+An end user utilizes a client to configure TLS settings on a device to prepare for encrypted and trusted communication between clients and the configured device.
+
+The Add-on does not specify the exact workflow for this process, however an example Interface (or function) call sequence could be as follows:
+
+[arabic]
+. Query GetServices and GetServiceCapabilities to verify device support.
+. Use CreatePKCS10CSR to request a Certificate Signing Request from the device
+. Sign the CSR using a Certificate Authority.
+. Upload CA certificate and signed certificate to the camera using UploadCertificate
+. Use the Certificate ID(s) to create a certification path with CreateCertificationPath
+. Assign the certification path using Add/ReplaceServerCertificateAssignment
+. Enable the HTTPs port on the device (if not already enabled)
+
+Steps 2-4 can be replaced with CreateSelfSignedCertificate to create a self signed certificate for use on the camera.
+
+==== Update configuration
+
+An end user utilizes a client to update the TLS settings on a device, such as deploying a new certificate, to enable the device to continue to operate in an encrypted and trusted environment.
+
+Generally, this follows the workflow described in 6.1.1, however a client would leverage the Add/Update/Remove functions as necessary.
+
+== Mandatory features (normative)
+
+The mandatory features section lists all the features that are guaranteed to be supported by a device and client that are both conformant to the Add-on.
+
+=== Discovery
+
+This section describes the operations related to device discovery.
+
+==== Device requirements
+
+* *Device shall support listing capabilities via the GetServices and GetServiceCapabilities operation.*
+* *Device shall declare the Add-on support via GetServices and GetServiceCapabilties response“Addons” list using the following text string:*
+
+TLSServerConfiguration
+
+Potential subsequent versions will append major version information to this text string.
+
+==== Client requirements
+
+* *Client shall be able to list add-ons via GetServices or GetServiceCapabilities as specified in the* Core Specification**.**
+
+==== Function list for devices
+
+[width="100%",cols="<5%,<56%,<23%,<16%",]
+|===
+a|
+*Discovery*
+
+| a|
+*Device MANDATORY*
+
+|
+| a|
+*Function*
+
+a|
+*Service*
+
+a|
+*Requirement*
+
+| a|
+GetServices
+
+a|
+Device Management
+
+a|
+M
+
+| a|
+GetServiceCapabilities
+
+a|
+Device Management
+
+a|
+M
+
+|===
+
+==== Function list for clients
+
+[width="100%",cols="<5%,<56%,<23%,<16%",]
+|===
+a|
+*Discovery*
+
+| a|
+*Client MANDATORY*
+
+|
+| a|
+*Function*
+
+a|
+*Service*
+
+a|
+*Requirement*
+
+| a|
+GetServices
+
+a|
+Device Management
+
+a|
+O
+
+| a|
+GetServiceCapabilities
+
+a|
+Device Management
+
+a|
+O
+
+|===
+
+Note: GetServices and GetServiceCapabilites are optional for this add-on, but one or the other will be implicitly required as mandatory for a supported profile.
+
+=== TLS configuration
+
+The TLSConfiguration is a set of interfaces needed to configure functionality related to TLS server, managing certificates, certification paths and keys on the device.
+
+==== Device requirements
+
+Device shall support the following Security Configuration Service capabilities:
+
+* *Device shall support key configuration as defined by the “RSAKeyPairGeneration” capability.*
+* *Device shall support key generation status with both the “GetKeyStatus” function and with “tns1:Advancedsecurity/Keystore/KeyStatus” event notification.*
+* *Device shall support “MaximumNumberOfKeys” capability of at least 16 to allow flexibility in certificate configuration.*
+* *Device shall support certificate configuration as defined by each of the "SelfSignedCertificateCreationWithRSA" and the "PKCS10ExternalCertificationWithRSA" capabilities.*
+* *Device shall support “MaximumNumberOfCertificates” capability of at least 16 to allow flexibility in certification path configuration.*
+* *Device shall support certification path configuration as defined by the “TLSServerSupported” capabilities as described in the Security Service Specification Capability-Implied Requirements.*
+* *Device shall support TLS server certificate assignment as defined by the “TLSServerSupported” capability as described in the Security Service Specification Capability-Implied Requirements.*
+* *Device shall support the “SetNetworkProtocols” function to enable/disable TLS.*
+
+==== Client requirements
+
+* *Client shall be able to do key management using "CreateRSAKeyPair and DeleteKey " operations as described in the Security Service Specification.*
+* *Client shall be able to verify key status using "GetKeyStatus" service or subscribing to event tns1:Advancedsecurity/Keystore/KeyStatus as defined in the Security Service Specification.*
+* *Client shall be able to do certificate management using ", CreatePKCS10CSR, UploadCertificate, DeleteCertificate, CreateCertificationPath and DeleteCertificationPath " operations as described in the Security Service Specification.*
+* *Client shall be able to do* TLS Server Operations *using "ReplaceServerCertificateAssignment " operation as described in the Security Service Specification.*
+* *Client shall be able to enable/disable TLS using "SetNetworkProtocols"* operation *as described in the Security Service Specification.*
+
+==== TLS server configuration function list for devices
+
+[width="100%",cols="<5%,<59%,>20%,>16%",]
+|===
+|*TLS Server Configuration* | |*Device MANDATORY* |
+| |*Function* |*Service* |*Requirement*
+| |AddServerCertificateAssignment |Security |M
+| |CreateCertificationPath |Security |M
+| |CreatePKCS10CSR |Security |M
+| |CreateRSAKeyPair |Security |M
+| |CreateSelfSignedCertificate |Security |M
+| |DeleteCertificate |Security |M
+| |DeleteCertificationPath |Security |M
+| |DeleteKey |Security |M
+| |GetAllCertificates |Security |M
+| |GetAllCertificationPaths |Security |M
+| |GetAllKeys |Security |M
+| |GetAssignedServerCertificates |Security |M
+| |GetCertificate |Security |M
+| |GetCertificationPath |Security |M
+| |GetKeyStatus |Security |M
+| |GetServiceCapabilities |Security |M
+| |tns1:Advancedsecurity/Keystore/KeyStatus |Event |M
+| |RemoveServerCertificateAssignment |Security |M
+| |ReplaceServerCertificateAssignment |Security |M
+| |SetNetworkProtocols |Device |M
+| |UploadCertificate |Security |M
+|===
+
+==== TLS server configuration function list for clients
+
+[width="100%",cols="<5%,<59%,>20%,>16%",]
+|===
+|*TLS Server Configuration* | |*Client MANDATORY* |
+| |*Function* |*Service* |*Requirement*
+| |AddServerCertificateAssignment |Security |O++**++
+| |CreateCertificationPath |Security |M
+| |CreatePKCS10CSR |Security |M
+| |CreateRSAKeyPair |Security |M
+| |CreateSelfSignedCertificate |Security |O
+| |DeleteCertificate |Security |M
+| |DeleteCertificationPath |Security |M
+| |DeleteKey |Security |M
+| |GetAllCertificates |Security |O
+| |GetAllCertificationPaths |Security |O
+| |GetAllKeys |Security |O
+| |GetAssignedServerCertificates |Security |O
+| |GetCertificate |Security |O
+| |GetCertificationPath |Security |O
+| |GetServiceCapabilities |Security |O
+| |GetKeyStatus |Security |M++*++
+| |tns1:Advancedsecurity/Keystore/KeyStatus |Event |
+| |RemoveServerCertificateAssignment |Security |O
+| |ReplaceServerCertificateAssignment |Security |M
+| |SetNetworkProtocols |Device |M
+| |UploadCertificate |Security |M
+|===
+
+++*++ Client shall support at least one of the listed methodologies to obtain the status for the key generation.
+
+++**++ Clients are recommended to support this function for Devices that do not have a pre-installed certificate.
