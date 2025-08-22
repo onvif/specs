@@ -4489,12 +4489,15 @@ xmlns:acme="http://www.acme.com/schema"&gt;
         for that object shall be sent even if final classification does not meet class or threshold
         filters in rule configuration.</para>
       <para>Device should fill in aggregated tt:Object structure with data qualified as
-        classifications for e.g. Vehicle or License plate and should not fill in temporal data like
-        speed etc., as they are not meaningful in the aggregation context.</para>
+        classifications for e.g. Vehicle or License plate and should not fill in temporal data as
+        they are not meaningful in the aggregation context.</para>
       <para>In order to reinforce aggregation data, Device should use ObjectTrack tt:Object
         structure to provide interesting observations captured at various time instances within the
-        track duration like cropped object image etc., The data filled in ObjectTrack tt:Object can
-        be sparse and can vary based on the data filter.</para>
+        track duration like cropped object image etc., </para>
+      <para>Final aggregation event should include all the aggregated observations of the object,
+        irrespective if such data is included in optional intermediate aggregation events.</para>
+      <para>The data filled in ObjectTrack tt:Object can be sparse and can vary based on the data
+        filter.</para>
       <variablelist role="op">
         <varlistentry>
           <term>Parameters</term>
@@ -4508,9 +4511,9 @@ xmlns:acme="http://www.acme.com/schema"&gt;
             <para role="text">Optional time interval to control update frequency. If omitted the
               final aggregation shall be provided, intermediates optionally provided.</para>
             <para role="param">ObjectTrackDataFilter - optional [tt:StringList]</para>
-            <para role="text">Optional list of object tree elements expressed as xpath filter
-              relative to tt:Object for e.g. "Appearance/Image" to be included in Object track data.
-              If omitted, ObjectTrack shall not be provided.</para>
+            <para role="text">Optional subset of XPath 1.0 filter relative to tt:Object for e.g.
+              "Appearance/Image" so that device includes relevant elements in Object track data. If
+              omitted, ObjectTrack shall not be provided.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -4581,7 +4584,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
     </tt:DurationRange>
   </tan:RuleOptions>
   <tan:RuleOptions Name="ObjectTrackDataFilter" RuleType="tt:ObjectTrackAggregation">
-    <tt:StringList>Object/Appearance/Image Object/Appearance/Shape/BoundingBox</tt:StringList>
+    <tt:StringList>Appearance/Image Appearance/Shape/BoundingBox</tt:StringList>
   </tan:RuleOptions>
 </tan:GetRuleOptionsResponse>
 ]]></programlisting>
