@@ -262,36 +262,34 @@
     <title>Export Format</title>
     <section>
       <title>Requirements to Preserve Media Signing</title>
-      <para>
-        This checklist captures the essence for preserving the authenticity of ONVIF signed streaming media as specified in ONVIF Media Signing
-        (OMS) specification when exporting to MP4. Following these rules ensures that signature
-        verification remains intact and media evidence can be trusted as tamper-proof.
-      </para>
+      <para>In order to maintain the integrity and authenticity of ONVIF streaming media signed in
+        accordance with the ONVIF Media Signing (OMS) specification when exporting to an MP4
+        container, the following prerequisite steps shall be adhered to during the export process to
+        ensure signature verification remains intact and media evidence can be trusted as
+        tamper-proof.  </para>
       <section>
         <title>Core Rules and Bitstream Requirements</title>
-        <para>
-          <emphasis role="bold">No re-encoding</emphasis>
+        <para><emphasis role="bold">No re-encoding</emphasis>
         </para>
-        <para>Never transcode or recompress OMS. Use pure remuxing (<literal>-c copy</literal> in
-          ffmpeg) to change containers.</para>
-        <para>
-          <emphasis role="bold">Preserve NAL order and bytes</emphasis>
+        <para>ONVIF signed media stream captured from the device shall not be transcoded or
+          recompressed. Instead Use pure remuxing (<literal>-c copy</literal> in ffmpeg) to change
+          containers.</para>
+        <para><emphasis role="bold">Preserve NAL order and bytes</emphasis>
         </para>
-        <para>Do not filter, rewrite or normalise the bitstream. The raw order of NAL units is
-          critical.</para>
-        <para>
-          <emphasis role="bold">Keep OMS SEI NAL units</emphasis>
+        <para> ONVIF signed media bitstream captured from the device shall not be filtered, rewitten
+          or normalized, as the raw order of NAL units is critical.</para>
+        <para><emphasis role="bold">Keep OMS SEI NAL units</emphasis>
         </para>
-        <para>ONVIF Media Signing transmits signature information in SEI (Supplemental Enhancement
-          Information) frames of type <literal>user data unregistered</literal> within the codec
-          format (H.264 and H.265). These SEI frames do not affect the video frame decoding. The
-          standard ISO/IEC 14496-12 provides the user an option to remove these when creating an MP4
-          file. <emphasis role="bold">Never strip these.</emphasis></para>
-        <para>
-          <emphasis role="bold">Add OMS Certificate SEI NAL unit if present</emphasis>
+        <para> ONVIF signed media includes signature information in SEI (Supplemental Enhancement
+          Information) frames of type  <literal>user data unregistered</literal> within the codec
+          format (H.264 and H.265) and they shall not be stripped. </para>
+        <para>As SEI frames do not affect the video  frame decoding, ISO/IEC 14496-12 provides the
+          user an option to remove these when creating an MP4 file, but these are critical for ONVIF
+          signed media and hence <emphasis role="bold">Never strip these.</emphasis></para>
+        <para><emphasis role="bold">Add OMS Certificate SEI NAL unit if present</emphasis>
         </para>
-        <para>The device has the option to add a Certificate SEI at the beginning of a stream. This
-          SEI includes all necessary information to validate later SEIs. If the stream from the
+        <para> The device has an option to add a Certificate SEI at the beginning of a stream. This
+          SEI includes all necessary information to validate subsequent SEIs. If the stream from the
           device had a Certificate SEI, that SEI shall be added to the first access unit of the
           exported recording.</para>
         <para>
