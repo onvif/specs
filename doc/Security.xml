@@ -274,14 +274,6 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.ietf.org/rfc/rfc5280.txt"
       >http://www.ietf.org/rfc/rfc5280.txt</link>&gt;</para>
-    <para>IETF RFC 5958 Asymmetric Key Packages</para>
-    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
-        xlink:href="http://www.ietf.org/rfc/rfc5958.txt"
-      >http://www.ietf.org/rfc/rfc5958.txt</link>&gt;</para>
-    <para>IETF RFC 5959 Algorithms for Asymmetric Key Package Content Type</para>
-    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
-        xlink:href="http://www.ietf.org/rfc/rfc5959.txt"
-      >http://www.ietf.org/rfc/rfc5959.txt</link>&gt;</para>
     <para>IETF RFC 6749 The OAuth 2.0 Authorization Framework</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.ietf.org/rfc/rfc6749.txt"
@@ -1837,112 +1829,6 @@
                     ter:UnsupportedEllipticCurve</para>
                   <para role="text"> The specified elliptic curve is not supported by the
                     device.</para>
-                </listitem>
-              </varlistentry>
-              <varlistentry>
-                <term>access class</term>
-                <listitem>
-                  <para role="access">WRITE_SYSTEM</para>
-                </listitem>
-              </varlistentry>
-            </variablelist>
-          </section>
-          <section>
-            <title>UploadKeyPairInPKCS8</title>
-            <para>This operation uploads a key pair in a PKCS#8 data structure as specified in [RFC
-              5958, RFC 5959]. </para>
-            <para>If a passphrase is either directly provided or as ID reference to a previously
-              uploaded passphrase, the device shall assume that the KeyPair parameter contains an
-              EncryptedPrivateKeyInfo ASN.1 structure that is encrypted with the given passphrase.
-              In case neither a passphrase nor a passphrase ID is provided the device shall assume
-              that the KeyPair parameter contains a OneAsymmetricKey ASN.1 structure which contains
-              both the private key and the corresponding public key. </para>
-            <para>If the supplied key pair cannot be processed by the device, the device shall
-              produce an UnsupportedPublicKeyAlgorithm fault and shall not store the uploaded key
-              pair in the keystore.</para>
-            <para>Key pairs are uniquely identified using key IDs. If a key pair exists in the
-              keystore with the public key equal to the public key in the request and this key pair
-              does not contain a private key, the device shall add the supplied private key to the
-              existing key pair and return the ID of this key pair.</para>
-            <para>If a key pair exists in the keystore with the public key equal to the public key
-              in the request and this key pair contains a private key, the device shall leave the
-              key pair unchanged and return the ID of this key pair.</para>
-            <para>If the existing key pair does not have status <emphasis>ok</emphasis>, the device
-              shall produce an InvalidKeyStatus fault and shall not modify the existing key
-              pair.</para>
-            <para>If no key pair exists in the keystore with the public key equal to the public key
-              in the request, the device shall generate a new key pair with the supplied private key
-              and the supplied public key, status <emphasis>ok</emphasis> and the externally
-              generated attribute set to <emphasis>true</emphasis>. Furthermore, the device shall
-              return the ID of this key pair.</para>
-            <para>If a new key pair is created, the device shall assign the supplied alias to it.
-              Otherwise, the device shall ignore an eventually supplied alias.</para>
-            <para>If decryption of the EncryptedPrivateKeyInfo failed, the device shall produce a
-              DecryptionFailed fault and shall not store the uploaded key pair in the
-              keystore.</para>
-            <para>If the device does not have enough storage capacity for storing the key pair that
-              eventually has to be created, the device shall generate a maximum number of keys
-              reached fault. Furthermore the device shall not generate a key pair.</para>
-            <para>If no passphrase exists under the ID specified by EncryptionPassphraseID, the
-              device shall produce an invalid passphrase ID fault and shall not store the uploaded
-              key pair in the keystore.</para>
-            <para>If the supplied PKCS#8 data structure cannot be processed by the device, the
-              device shall produce a BadPKCS8File fault and shall not store the uploaded key pair in
-              the keystore.</para>
-            <para>If the public key in the uploaded key pair does not match the uploaded private
-              key, the device shall produce a PublicPrivateKeyMismatch fault and shall not store the
-              uploaded key pair in the keystore.</para>
-            <para>If the command was successful, the device shall return the ID of the key pair in
-              the keystore that contains the supplied public and private key.</para>
-            <variablelist role="op">
-              <varlistentry>
-                <term>request</term>
-                <listitem>
-                  <para role="param">KeyPair - [tas:Base64DERencodedASN1Value]</para>
-                  <para role="text"> The key pair to be uploaded in a PKCS#8 data structure.</para>
-                  <para role="param">Alias - optional [xs:string]</para>
-                  <para role="text"> The client-defined alias of the key pair.</para>
-                  <para role="param">EncryptionPassphraseID - optional [tas:PassphraseID]</para>
-                  <para role="text"> The ID of the passphrase to use for decrypting the uploaded key
-                    pair.</para>
-                  <para role="param">EncryptionPassphrase - optional [xs:string]</para>
-                  <para role="text"> The passphrase to use for decrypting the uploaded key
-                    pair.</para>
-                </listitem>
-              </varlistentry>
-              <varlistentry>
-                <term>response</term>
-                <listitem>
-                  <para role="param">KeyID - [tas:KeyID]</para>
-                  <para role="text"> The key ID of the uploaded key pair.</para>
-                </listitem>
-              </varlistentry>
-              <varlistentry>
-                <term>faults</term>
-                <listitem>
-                  <para role="param">env:Receiver - ter:Action -
-                    ter:MaximumNumberOfKeysReached</para>
-                  <para role="text"> The device does not have enough storage space to store the key
-                    pair to be uploaded.</para>
-                  <para role="param">env:Sender - ter:InvalidArgVal - ter:PassphraseID</para>
-                  <para role="text"> No passphrase is stored under the requested
-                    PassphraseID.</para>
-                  <para role="param">env:Sender - ter:InvalidArgVal - ter:DecryptionFailed</para>
-                  <para role="text"> The given date could not be decrypted.</para>
-                  <para role="param">env:Sender - ter:InvalidArgVal -
-                    ter:UnsupportedPublicKeyAlgorithm</para>
-                  <para role="text"> The public key algorithm of the supplied key pair is not
-                    supported by the device.</para>
-                  <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidKeyStatus</para>
-                  <para role="text"> The key with the requested KeyID has an inappropriate
-                    status.</para>
-                  <para role="param">env:Sender - ter:InvalidArgVal - ter:BadPKCS8File</para>
-                  <para role="text"> The PKCS#8 data structure cannot be processed by the
-                    device.</para>
-                  <para role="param">env:Sender - ter:InvalidArgVal -
-                    ter:PublicPrivateKeyMismatch</para>
-                  <para role="text"> The supplied private key does not match the supplied public
-                    key.</para>
                 </listitem>
               </varlistentry>
               <varlistentry>
@@ -5029,15 +4915,6 @@
               </row>
               <row>
                 <entry>
-                  <para>PKCS8</para>
-                </entry>
-                <entry>
-                  <para>Indicates support for uploading supported key pair in a PKCS#8 data
-                    structure.</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
                   <para>PKCS10</para>
                 </entry>
                 <entry>
@@ -5446,20 +5323,6 @@
               </row>
               <row>
                 <entry>
-                  <para>PKCS8</para>
-                </entry>
-                <entry><para>If true, the following commands shall be supported:</para><itemizedlist>
-                    <listitem>
-                      <para>UploadKeyPairInPKCS8</para>
-                    </listitem>
-                  </itemizedlist>If true, the list of supported password-based encryption algorithms
-                  as indicated by the PasswordBasedEncryptionAlgorithms capability shall include the
-                  baseline specified in the ONVIF Security Baseline.<para>If true, at least one
-                    capability between EllipticCurves and RSAKeyLenghts shall be
-                  specified.</para></entry>
-              </row>
-              <row>
-                <entry>
                   <para>PKCS10</para>
                 </entry>
                 <entry>
@@ -5522,7 +5385,7 @@
                   <itemizedlist>
                     <listitem>
                       <para>Key pair generation as signaled by the KeyPairGeneration or key pair
-                        upload as signaled by PKCS8 or PKCS12 capability.</para>
+                        upload as signaled by PKCS12 capability.</para>
                     </listitem>
                   </itemizedlist>
                 </entry>
@@ -5786,12 +5649,12 @@
       </listitem>
       <listitem>
         <para>Private keys must be protected against disclosure to unauthorized parties. If a
-          private key is uploaded in an encrypted PKCS#8 or PKCS#12 structure, the passphrase that
-          is used to encrypt the structure must be uploaded to the device over a communication
-          channel that is protected against eavesdropping in order to preserve the confidentiality
-          of the private key. Moreover, the confidentiality of the uploaded private key depends on
-          the strength of the encryption passphrase. It is therefore strongly recommended to use
-          random passwords with sufficient length.</para>
+          private key is uploaded in an encrypted PKCS#12 structure, the passphrase that is used to
+          encrypt the structure must be uploaded to the device over a communication channel that is
+          protected against eavesdropping in order to preserve the confidentiality of the private
+          key. Moreover, the confidentiality of the uploaded private key depends on the strength of
+          the encryption passphrase. It is therefore strongly recommended to use random passwords
+          with sufficient length.</para>
       </listitem>
       <listitem>
         <para>In general, externally generated keys must be regarded less trustworthy than keys that
@@ -5799,11 +5662,6 @@
           higher for an externally generated key than for an internally generated key. A client may
           determine whether a key was generated by the device from the
             <emphasis>externallyGenerated</emphasis> attribute of the key.</para>
-      </listitem>
-      <listitem>
-        <para>Although PKCS#8 RFC 5208 is widely used for exchanging cryptographic keys, this
-          specification is based on the successor standard RFC 5958, particularly in order to
-          incorporate both private key and public key in the same data structure.</para>
       </listitem>
       <listitem>
         <para>The default certification path validation policy is designed as a permissive
@@ -5863,10 +5721,10 @@
         operation for retrieving passphrases from a device is deliberately omitted. If client loses
         a previously uploaded passphrase, the client should create a new passphrase, upload the new
         passphrase to the device, and delete the old passphrase from the device.</para>
-      <para>This specification deliberately deviates from the terminology in PKCS#8 and PKCS#12 by
-        using the term ‘passphrase’ instead of ‘password’ in order to avoid confusion with the
-        password that is assigned to ONVIF device users and the corresponding API in the ONVIF
-        Device Management Service.</para>
+      <para>This specification deliberately deviates from the terminology in PKCS#12 by using the
+        term ‘passphrase’ instead of ‘password’ in order to avoid confusion with the password that
+        is assigned to ONVIF device users and the corresponding API in the ONVIF Device Management
+        Service.</para>
       <para>The keystore design is based on the rationale that an RSA key pair is a special type of
         key pair and a key pair is a special type of key. Therefore, key-related operations in the
         keystore deliberately refer to the most generic possible type in this hierarchy. For
@@ -6102,7 +5960,7 @@ Accept: application/sdp]]></programlisting>
                 <para>PKCS8RSAKeyPairUpload</para>
               </entry>
               <entry>
-                <para>PKCS8 and RSAKeyLengths</para>
+                <para>deprecated</para>
               </entry>
             </row>
             <row>
