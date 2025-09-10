@@ -2501,6 +2501,115 @@
         </variablelist>
       </section>
 	</section>
+	<section xml:id="section_km_madec">
+      <title>Multicast Audio Decoder</title>
+      <para>
+      The multicast audio decoder configuration pertains to scenarios involving audio broadcasts. Devices that support this feature indicate their capability by including "MulticastAudioDecoder" in the GetServiceCapabilities response.
+     A device can support multiple multicast audio decoder configurations. When enabled, the device listens on the specified multicast address and port for RTP audio data and plays it through the configured audio output.</para>
+      <para>
+      Optionally, the device can indicate its capability to receive SRTP packets—according to RFC 3711 and RFC 7714—in the GetServiceCapabilitiesResponse response. When SRTP with PSK (Pre-Shared Key) is configured, the device expects encrypted RTP packets. Since the RTP Roll Over Counter (ROC) is essential for decryption, ROC handling follows RFC 4771. As only GCM-based cryptographic policies are supported, the RCCm3 method is used. If multiple audio multicast configurations are supported and the device receives audio data on multiple addresses, it can prioritize one configuration over another based on the Priority setting.
+      Note, if several configurations have the same priority value the order between those configurations is undefined.
+      For the event associated with MulticastAudioDecoder, refer to section <xref linkend="_evtMAD" />.
+      </para>
+      <section xml:id="section_get_multicast_audio_decoder_configurations">
+        <title>GetMulticastAudioDecoderConfigurations</title>
+        <para>This operation gets the list of multicast audio decoder configurations.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ConfigurationToken - optional; [ReferenceToken]</para>
+              <para role="text">Unique token of the multicast audio decoder configuration. If not passed, device shall respond with all configurations.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Configurations - optional, unbounded; [MulticastAudioDecoderConfiguration]</para>
+              <para role="text">This message contains the list of multicast audio decoder configurations.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="section_get_multicast_audio_decoder_configuration_options">
+    <title>GetMulticastAudioDecoderConfigurationOptions</title>
+    <para>This operation gets the available options for the MulticastAudioDecoder configuration.</para>
+    <variablelist role="op">
+      <varlistentry>
+        <term>request</term>
+        <listitem>
+          <para role="param">ConfigurationToken - optional; [ReferenceToken]</para>
+          <para role="text">This response contains the available MulticastAudioDecoderConfigurationOptions. If a multicast audio decoder configuration is specified, the options shall concern that particular configuration.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>response</term>
+        <listitem>
+          <para role="param">Options - unbounded; [MulticastAudioDecoderConfigurationOptions]</para>
+          <para role="text">This message contains the available options for the multicast audio decoder configuration.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>faults</term>
+        <listitem>
+          <para role="text">No command specific faults defined.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>access class</term>
+        <listitem>
+          <para role="access">READ_SYSTEM</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </section>
+   <section xml:id="section_set_multicast_audio_decoder_configuration">
+        <title>SetMulticastAudioDecoderConfiguration</title>
+        <para>This operation sets the MulticastAudioDecoderConfiguration.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Configuration [MulticastAudioDecoderConfiguration]</para>
+              <para role="text">Modified MulticastAudioDecoderConfiguration,the configuration shall exist in the device. </para>
+            </listitem>
+          </varlistentry>
+           <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+              <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoConfig</para>
+              <para role="text">The provided MulticastAudioDecoderConfiguration does not exist.</para>
+              <para role="param">env:Receiver - ter:InvalidArgVal - ter:<phrase>ConfigModify</phrase></para>
+              <para role="text">The configuration parameters are not possible to set.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
     <section xml:id="_Ref484170228">
       <title>GetServiceCapabilities</title>
       <para>The capabilities reflect optional functions and functionality of a service. The information is static and does not change during device operation. </para>
@@ -2623,6 +2732,10 @@
           <listitem>
             <para>Indicates the supported number of WebRTC configurations.</para>
           </listitem>
+        </varlistentry>
+         <varlistentry>
+          <term>MulticastAudioDecoder</term>
+          <listitem><para>Indicates support for multicast audio decoder. </para></listitem>
         </varlistentry>
       </variablelist>
       <para>The following media signing capabilites are available:</para>
@@ -2786,6 +2899,24 @@ Topics: tns1:Monitoring/ActiveSessions/VideoEncoder
 </tt:MessageDescription>]]></programlisting>
 		<para>The "Playing" parameter value is set to true for the audio clip start event and set to false for the audio clip stop event.</para>
       </section>
+ <section xml:id="_evtMAD">
+  <title>MulticastAudioDecoder State</title>
+  <para>Whenever a multicast audio decoder starts or stops receiving an audio stream, the following event should be generated.</para>
+  <para>The <code>ConfigurationToken</code> refers to the multicast audio decoder configuration token. If none of the multicast audio decoder configurations are active at any point, the <code>ConfigurationToken</code> field can be left empty, and the <code>Active</code> field can be set to false.</para>
+  <programlisting><![CDATA[
+    Topic: tns1:Media/MulticastAudioDecoder/State
+
+    <tt:MessageDescription IsProperty="true">
+      <tt:Source>
+        <tt:SimpleItemDescription Name="AudioOutputToken" Type="tt:ReferenceToken"/>
+      </tt:Source>
+      <tt:Data>
+        <tt:SimpleItemDescription Name="Active" Type="xs:boolean"/>
+        <tt:SimpleItemDescription Name="ConfigurationToken" Type="tt:ReferenceToken"/>
+      </tt:Data>
+    </tt:MessageDescription>
+  ]]></programlisting>
+</section>
     </section>
   </chapter>
   <appendix xml:id="_Ref425842742">
