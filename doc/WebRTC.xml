@@ -401,7 +401,7 @@
           <term>request</term>
           <listitem>
             <para role="param">authorization [string]</para>
-            <para role="text">Access token that authorizes the device or client.</para>
+            <para role="text">Access token that authorizes the device or client. This shall be the same token that was provided in the Authorization header or URI.</para>
             <para role="param">id optional [string]</para>
             <para role="text">The unique ID of the device or client.</para>
             <para role="param">name optional [string]</para>
@@ -428,54 +428,85 @@
           </varlistentry>
       </variablelist>
       </section>
-    <section xml:id="section_init">
+    <section xml:id="section_connect">
       <title>connect</title>
       <para>An ONVIF compliant signaling server and device shall support this command to establish a
         streaming session between two peers. </para>
-      <variablelist role="op">
-        <varlistentry>
-          <term>request</term>
-          <listitem>
-            <para role="param">peer optional [string]</para>
-            <para role="text">The ID of the peer the client wants to connect to. This ID is defined outside of this specification and must be negotiated out-of-band.</para>
-            <para role="param">authorization optional [string]</para>
-            <para role="text">Access token of the client to be authorized by the signaling server.</para>
-            <para role="param">session optional [string]</para>
-            <para role="text">The ID assigned by the signaling server to the session.</para>
-            <para role="param">profile optional [string]</para>
-            <para role="text">Token of the media streaming profile to use.</para>
-            <para role="param">iceServers optional unbounded [RTCIceServer]</para>
-            <para role="text">List of STUN and TURN servers provided by the signaling server to be used for this session.</para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>response</term>
-          <listitem>
-            <para role="param">session optional [string]</para>
-            <para role="text">The ID assigned by the signaling server to the session.</para>
-            <para role="param">iceServers optional unbounded [RTCIceServer]</para>
-            <para role="text">List of STUN and TURN servers provided by the signaling server to be used for this session.</para>
-            <para role="param">expiryTimeSeconds optional [integer]</para>
-            <para role="text">The time represented in seconds before the session ends. If this is returned, the
-
-              extend command is also supported.</para>
-            <para role="param">capabilities optional [string[]]</para>
-            <para role="text">A list of capabilities supported for a session.</para>
-
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>faults</term>
-          <listitem>
-            <para role="param">401 Authorization failed</para>
-            <para role="text">The access token cannot be verified or has expired.</para>
+      <section xml:id="section_connect_client">
+        <title>Client to Signaling Server</title>
+        <para>When the client sends the <literal>connect</literal> command to the signaling server</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">peer [string]</para>
+              <para role="text">The ID of the peer the client wants to connect to. This ID is defined outside of this specification and must be negotiated out-of-band.</para>
+              <para role="param">authorization [string]</para>
+              <para role="text">Access token of the client to be authorized by the signaling server.</para>
+              <para role="param">profile optional [string]</para>
+              <para role="text">Token of the media streaming profile to use.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">session [string]</para>
+              <para role="text">The ID assigned by the signaling server to the session.</para>
+              <para role="param">iceServers optional unbounded [RTCIceServer]</para>
+              <para role="text">List of STUN and TURN servers provided by the signaling server to be used for this session.</para>
+              <para role="param">expiryTimeSeconds optional [integer]</para>
+              <para role="text">The time represented in seconds before the session ends.</para>
+              <para role="param">capabilities optional [string[]]</para>
+              <para role="text">A list of capabilities supported for a session.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">401 Authorization failed</para>
+              <para role="text">The access token cannot be verified or has expired.</para>
               <para role="param">403 Forbidden</para>
               <para role="text">The client is not authorized to connect to the provided peer.</para>
-            <para role="param">480 Temporary unavailable.</para>
-            <para role="text">The target device is currently unavailable.</para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
+              <para role="param">480 Temporary unavailable.</para>
+              <para role="text">The target device is currently unavailable.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="section_connect_device">
+        <title>Signaling Server to Device</title>
+        <para>When the signaling server forwards the <literal>connect</literal> command to the device</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">session [string]</para>
+              <para role="text">The ID assigned by the signaling server to the session.</para>
+              <para role="param">profile optional [string]</para>
+              <para role="text">Token of the media streaming profile to use.</para>
+              <para role="param">iceServers optional unbounded [RTCIceServer]</para>
+              <para role="text">List of STUN and TURN servers provided by the signaling server to be used for this session.</para>
+              <para role="param">expiryTimeSeconds optional [integer]</para>
+              <para role="text">The time represented in seconds before the session ends.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">capabilities optional [string[]]</para>
+              <para role="text">A list of capabilities supported for a session.
+                This list shall be the same as the list provided with the <literal>register</literal> command.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">480 Temporary unavailable.</para>
+              <para role="text">The target device is currently unavailable.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
       <para>An ONVIF compliant signaling server shall provide the session ID and a list of STUN and TURN servers in
           both request and response such that both device and client can use them.
         A compliant client and device shall support password based authentication of TURN server.
@@ -570,28 +601,24 @@
       <title>extend</title>
       <para>This command updates a session if more time is required. If an expiryTime is given
           during the connect command response, the session will timeout. It is possible to request
-          an extension by sending a new authorization token and an expiryTime to the signaling
-          server.</para>
+          an extension by sending a new authorization token to the signaling server.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
           <listitem>
             <para role="param">session [string]</para>
-            <para role="text">The ID assigned by the signaling server to the session. </para>
+            <para role="text">The ID assigned by the signaling server to the session.</para>
             <para role="param">authorization optional [string]</para>
             <para role="text">Access token that authorizes the client.</para>
             <para role="param">expiryTimeSeconds optional [integer]</para>
-            <para role="text">The requested time represented in seconds to extend the session. If not populated, the
-
-                signaling server will extend with its default value.</para>
+            <para role="text">The new expiry time requested by the signaling server represented in seconds.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>response</term>
           <listitem>
             <para role="param">expiryTimeSeconds [integer]</para>
-            <para role="text">The time represented in seconds a session has been extended by.</para>
-
+            <para role="text">The new number of seconds until the session expires.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -599,7 +626,6 @@
           <listitem>
             <para role="param">401 Authorization failed</para>
             <para role="text">The authorization token cannot be verified. The authorization token may not include the required claims, or has expired.</para>
-
             <para role="param">403 Forbidden</para>
             <para role="text">The client is not authorized to connect to the provided peer.</para>
           </listitem>
