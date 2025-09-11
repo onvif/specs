@@ -764,7 +764,7 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <varlistentry>
           <term>request</term>
           <listitem>
-            <para role="param">RecordingToken [RecordingToken ]</para>
+            <para role="param">RecordingToken [RecordingToken]</para>
             <para role="text">Identifies the recording that shall be changed.</para>
             <para role="param">RecordingConfiguration [RecordingConfiguration]</para>
             <para role="text">The new configuration for the recording.</para>
@@ -1966,11 +1966,16 @@ SetRecordingJobMode(JobToken, Active)
       <para> When a span is opened, the device shall also open a new segment for this span.
         Inversely, when a span is closed, the device shall close the open segment of this span. When
         a span is open and the duration of the open segment of this span reaches the
-          <literal>SegmentDuration</literal> configured for the recording, the device shall close
+        <literal>SegmentDuration</literal> configured for the recording, the device shall close
         the open segment of this span and open a new segment for this span. When closing the open
         segment of a span and opening a new segment for this span, there shall be no time gap
         between the two segments. Note that the actual segment duration may vary and can be plus or 
-		minus one GOP size from the configured duration because a segment must start with an I-Frame.</para>
+        minus one GOP size from the configured duration because a segment must start with an I-Frame.
+        Depending on internal constraints, the device might be forced to close a segment before the
+        configured <literal>SegmentDuration</literal> is reached if the length requested cannot be
+        achieved. This might happen for example if the device runs out of available memory to generate
+        the segment.
+      </para>
       <para>
         The device shall generate each segment as a fragmented MP4 file according to ISO/IEC 14496-12, the ISO base media file format.
         A segment shall contain recorded media for the time it was open.
