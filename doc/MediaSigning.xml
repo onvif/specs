@@ -293,6 +293,9 @@
               or complete GOP.</para>
             <para>This is necessary to secure the order of frames from tampering.</para>
           </listitem>
+          <listitem>
+            <para>The generated SEIs shall be added to the stream in sequence order.</para>
+          </listitem>
         </itemizedlist>
       </para>
     </section>
@@ -496,6 +499,9 @@
       <para>All, by this specification, generated SEI frames without a signature must be hashed and
         added to the list of NAL Unit hashes. Note that they have to be hashed in the same order as
         they appear in the stream.</para>
+      <para>The SEI frames shall be added in the exact order they are generated, regardless of their readiness.
+        For example, a SEI frame without a signature that is ready before the previous
+        signed SEI is, cannot be added until the signed SEI is completed.</para>
       <section>
         <title>Example</title>
         <para>The following example figures show how multiple short GOPs can be signed. The yellow
@@ -527,9 +533,9 @@
             </imageobject>
           </mediaobject>
         </figure>
-        <para>While the third SEI is being signed a SEI representing GOP 4 is generated and injected to the stream as shown in <xref linkend="smg04"/>.</para>
+        <para>While the third SEI is being signed, a SEI representing GOP 4 is generated and waiting to be injected to the stream as shown in <xref linkend="smg04"/>.</para>
         <figure xml:id="smg04">
-          <title>Injection of SEI representing GOP 4.</title>
+          <title>Pending injection of SEI representing GOP 4.</title>
           <mediaobject>
             <imageobject>
               <imagedata fileref="media/MediaSigning/SigningMultipleGops04.svg" contentwidth="150mm"/>
@@ -538,7 +544,7 @@
         </figure>
         <para>When the signature is ready it is added to the corresponding SEI and injected to the stream as shown in <xref linkend="smg05"/>.</para>
         <figure xml:id="smg05">
-          <title>Out of order injection of signed SEI.</title>
+          <title>In order injection of signed SEI.</title>
           <mediaobject>
             <imageobject>
               <imagedata fileref="media/MediaSigning/SigningMultipleGops05.svg" contentwidth="150mm"/>
