@@ -282,6 +282,8 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.ietf.org/rfc/rfc6750.txt"
       >http://www.ietf.org/rfc/rfc6750.txt</link>&gt;</para>
+    <para>RFC 7292 - PKCS #12: Personal Information Exchange Syntax v1.1</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc7292"/>&gt;</para>
     <para>IETF RFC 7517 JSON Web Key (JWK)</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.ietf.org/rfc/rfc7517.txt"
@@ -2379,48 +2381,23 @@
           <section>
             <title>UploadCertificateWithPrivateKeyInPKCS12</title>
             <para>This operation uploads a certification path consisting of X.509 certificates as
-              specified by RFC 5280 in DER encoding along with a private key to a device’s keystore.
-              Certificates and private key are supplied in the form of a PKCS#12 file as specified
-              in PKCS#12.</para>
-            <para>The device shall support PKCS#12 files that contain the following safe
-              bags:</para>
-            <itemizedlist>
-              <listitem>
-                <para>one or more instances of CertBag PKCS#12, Sect. 4.2.3</para>
-              </listitem>
-              <listitem>
-                <para>either exactly one instance of KeyBag PKCS#12, Sect. 4.3.1 or exactly one
-                  instance of PKCS8ShroudedKeyBag PKCS#12, Sect. 4.2.2.</para>
-              </listitem>
-            </itemizedlist>
+              specified by RFC 5280 in DER encoding along with a private key to a device’s keystore. </para>
+            <para>A device signaling support for PKCS12 shall support uploading of PKCS12 files
+              according to RFC 7292.</para>
             <para>If the IgnoreAdditionalCertificates parameter has the value
                 <emphasis>true</emphasis>, the device shall behave as if the client had supplied
               only the first CertBag in the sequence of CertBag instances.</para>
-            <para>The device shall support PKCS#12 passphrase integrity mode for integrity
-              protection of the PKCS#12 PFX as specified in PKCS#12, Sect. 4. The device shall
-              support PKCS8ShroudedKeyBags that are encrypted with the same passphrase as the
-              CertBag instances.</para>
             <para>If an integrity passphrase ID is supplied, the device shall use the corresponding
-              passphrase in the keystore to check the integrity of the supplied PKCS#12 PFX. If an
-              integrity passphrase ID is supplied, but the supplied PKCS#12 PFX has no integrity
-              protection, the device shall produce a BadPKCS12File fault and shall not store the
-              uploaded certificates nor the uploaded key pair in the keystore.</para>
+              passphrase in the keystore to decrypt check the integrity of the supplied PKCS#12 PFX.
+              If an integrity passphrase ID is supplied, but the supplied PKCS#12 PFX has no
+              integrity protection, the device shall produce a BadPKCS12File fault and shall not
+              store the uploaded certificates nor the uploaded key pair in the keystore.</para>
             <para>If an encryption passphrase ID is supplied, the device shall use the corresponding
-              passphrase in the keystore to decrypt the PKCS8ShroudedKeyBag and the CertBag
-              instances.</para>
-            <para>If an EncryptionPassphraseID is supplied, but a CertBag is not encrypted, the
-              device shall ignore the supplied EncryptionPassphraseID when processing this CertBag.
-              If an EncryptionPassphraseID is supplied, but a KeyBag is provided instead of a
-              PKCS8ShroudedKeyBag, the device shall ignore the supplied EncryptionPassphraseID when
-              processing the KeyBag.</para>
+              passphrase in the keystore to decrypt any encrypted content.</para>
             <para>If a passphrase is supplied, the device shall ignore an eventually supplied
               integrity passphrase ID and an eventually supplied encryption passphrase ID, and the
-              device shall use the supplied passphrase to check the integrity of the PKCS#12 PFX and
-              to decrypt the PKCS8ShroudedKeyBag and the CertBag instances. If a passphrase is
-              supplied, but a CertBag is not encrypted, the device shall ignore the supplied
-              passphrase when processing this CertBag. If a passphrase is supplied, but a KeyBag is
-              supplied instead of a PKCS8ShroudedKeyBag, the device shall ignore the supplied
-              passphrase when processing the KeyBag.</para>
+              device shall use the supplied passphrase to check the integrity and to decrypt the
+              encrypted content. </para>
             <para>If decryption of either the PKCS8ShroudedKeyBag or an encrypted CertBag failed,
               the device shall produce a DecryptionFailed fault and shall not store the uploaded
               certificates nor key pair in the keystore.</para>
