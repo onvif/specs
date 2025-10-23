@@ -4492,7 +4492,8 @@ xmlns:acme="http://www.acme.com/schema"&gt;
         </listitem>
       </itemizedlist>
       <para>Optionally, device may include additional object track data for e.g. snapshot image as
-        configured in ObjectTrackDataFilter parameter.</para>
+        configured in ObjectTrackDataFilter parameter. Devices may prune track information for 
+        objects with complex or long lasting motion patterns.</para>
       <para>If an initial or intermediate aggregation is sent for an object, Final aggregation event
         for that object shall be sent even if final classification does not meet class or threshold
         filters in rule configuration.</para>
@@ -4515,9 +4516,14 @@ xmlns:acme="http://www.acme.com/schema"&gt;
             <para role="param">ConfidenceLevel - optional [xs:float]</para>
             <para role="text">Minimum confidence level of object classification for generating
               aggregation event. </para>
+            <para role="param">EarlyReport - optional [xs:boolean]</para>
+            <para role="text">Signals that a device shall send an intermediate report as soon as it has sufficient information.</para>
             <para role="param">ReportTimeInterval - optional [xs:duration]</para>
-            <para role="text">Optional time interval to control update frequency. If omitted the
-              final aggregation shall be provided, intermediates optionally provided.</para>
+            <para role="text">Optional time interval to request intermediate updates at a recurring 
+              rate. Reports may be omitted if the information hasn’t significantly changed. 
+              Details are implementation dependent and outside of the scope of this specification.
+              The time interval is not intended as an exact clock and devices may adapt durations. 
+            </para>
             <para role="param">ObjectTrackDataFilter - optional [tt:StringList]</para>
             <para role="text">Optional subset of XPath 1.0 filter relative to tt:Object for e.g.
               "Appearance/Image" so that device includes relevant elements in Object track data. If
