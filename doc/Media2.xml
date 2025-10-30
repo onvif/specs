@@ -2783,10 +2783,49 @@ Topics: tns1:Monitoring/ActiveSessions/VideoEncoder
   <tt:Data>
     <tt:SimpleItemDescription Name="Token" Type="tt:ReferenceToken"/>
 	<tt:SimpleItemDescription Name="ClipName" Type="xs:string"/>
-	<tt:SimpleItemDescription Name="Playing" Type="xs:boolean"/>	
+	<tt:SimpleItemDescription Name="Playing" Type="xs:boolean"/>
+	<tt:SimpleItemDescription Name="Reason" Type="xs:string"/>	
   </tt:Data>
 </tt:MessageDescription>]]></programlisting>
 		<para>The "Playing" parameter value is set to true for the audio clip start event and set to false for the audio clip stop event.</para>
+		<para>The optional "Reason" parameter describes why the audio clip is playing or has stopped playing.
+		It takes the value "Started", "Waiting", "Repeating", "Scheduled", or "EventTriggered" when the Playing parameter is set to true.
+		It takes the value "Stopped", "Completed", "Interrupted", or "Error" when the Playing parameter is set to false.</para>
+		
+		<para>When the Playing parameter is set to true:</para>
+		<itemizedlist>
+		  <listitem>
+			<para>The value "Started" should be used when the audio clip is started by the PlayAudioClip API.</para>
+		  </listitem>
+		  <listitem>
+			<para>The value "Waiting" should be used when the audio clip is in a waiting state before repeating.</para>
+		  </listitem>
+		  <listitem>
+			<para>The value "Repeating" should be used when the audio clip is repeating due to the repeat cycle configuration.</para>
+		  </listitem>
+		   <listitem>
+			<para>The value "Scheduled" should be used when the audio clip is played due to a schedule trigger.</para>
+		  </listitem>
+		  <listitem>
+			<para>The value "EventTriggered" should be used when the audio clip is played due to an event action trigger.</para>
+		  </listitem>
+		</itemizedlist>
+		
+		<para>When the Playing parameter is set to false:</para>
+		<itemizedlist>
+		  <listitem>
+			<para>The value "Stopped" should be used when the audio clip is stopped by the PlayAudioClip API.</para>
+		  </listitem>
+		  <listitem>
+			<para>The value "Completed" should be used when the audio clip is stopped since all repeat cycles have been completed.</para>
+		  </listitem>
+		  <listitem>
+			<para>The value "Interrupted" should be used when the audio clip is interrupted due to audio back channel priority.</para>
+		  </listitem>
+		  <listitem>
+			<para>The value "Error" should be used when the audio clip is stopped due to device internal error.</para>
+		  </listitem>		   
+		</itemizedlist>			
       </section>
     </section>
   </chapter>
