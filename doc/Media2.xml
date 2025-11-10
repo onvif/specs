@@ -2510,12 +2510,12 @@
       Optionally, the device can indicate its capability to receive SRTP packets—according to RFC 3711 and RFC 7714 in the GetServiceCapabilitiesResponse response and supported cryptographic algorithms are provided in the GetMulticastAudioDecoderConfigurationOptions response. 
       </para>
       <para>
-      When SRTP with PSK (Pre-Shared Key) is configured, the device expects encrypted RTP packets. Since the RTP Roll-Over Counter (ROC) is essential for SRTP decryption, it is conveyed using an RTP header extension formatted according to the one-byte header extension mechanism defined in RFC 8285. This method is reliable because RTP header extensions are included in the SRTP authentication tag, ensuring integrity and protection against tampering. For details on the SRTP packet format and use of the extension header, refer to Chapter 8 of the Streaming Specification. The frequency of including this extension header with the ROC is determined by the streaming source; however, it is recommended to transmit the ROC at least once every few seconds to ensure synchronization and robustness.</para>
-      <para> 
-      If multiple audio multicast configurations are supported and the device receives audio data on multiple addresses, it can prioritize one configuration over another based on the Priority setting.
-      Note, if several configurations have the same priority value the order between those configurations is undefined.
-      For the event associated with MulticastAudioDecoder, refer to section <xref linkend="_evtMAD" />.
+      <para>
+      When SRTP is configured with a Pre-Shared Key (PSK), the device expects all incoming RTP packets to be encrypted. The required key and salt specifications are defined by the selected encryption algorithm, as described in RFC 3711 for AES-CM with HMAC-SHA1 and in RFC 7714 for AES-GCM modes. To support SRTP decryption, the RTP Roll-Over Counter (ROC) must be conveyed reliably. This is achieved using an RTP header extension formatted according to the one-byte header extension mechanism defined in RFC 8285. Because RTP header extensions are included in the SRTP authentication tag, this approach ensures integrity and guards against tampering. For detailed information on SRTP packet structure and the use of extension headers, refer to Chapter 8 of the Streaming Specification. The frequency of ROC transmission is determined by the streaming source, but it is recommended to include the ROC at least once every few seconds to maintain synchronization and enhance robustness.
       </para>
+     <para>
+    If the device supports multiple audio multicast configurations and receives audio streams on different multicast addresses, it may prioritize one configuration over another based on the configured Priority value and the associated audio output. If multiple configurations share the same priority level, the selection order among them is undefined. For details on the event related to the MulticastAudioDecoder, refer to section <xref linkend="_evtMAD" />.
+    </para>
       <section xml:id="section_get_multicast_audio_decoder_configurations">
         <title>GetMulticastAudioDecoderConfigurations</title>
         <para>This operation gets the list of multicast audio decoder configurations.</para>
