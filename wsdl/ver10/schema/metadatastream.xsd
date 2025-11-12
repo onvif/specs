@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Copyright (c) 2008-2024 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2025 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
@@ -11,7 +11,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	xmlns:tt="http://www.onvif.org/ver10/schema"
 	xmlns:fc="http://www.onvif.org/ver20/analytics/humanface" 
 	xmlns:bd="http://www.onvif.org/ver20/analytics/humanbody" 
-	xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="24.12">
+	xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="25.06">
 	<xs:include schemaLocation="common.xsd"/>
 	<xs:import namespace="http://docs.oasis-open.org/wsn/b-2" schemaLocation="http://docs.oasis-open.org/wsn/b-2.xsd"/>
 	<xs:import namespace="http://www.onvif.org/ver20/analytics/humanface" schemaLocation="../../ver20/analytics/humanface.xsd"/>
@@ -127,7 +127,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<xs:complexType name="LabelInfo">
 		<xs:sequence>
 			<xs:element name="Authority" type="xs:string"/>  <!-- See tt:LabelAuthority for defined values -->
-			<xs:element name="ID"/>
+			<xs:element name="ID" type="xs:string"/>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>      <!-- first ONVIF then vendor --> 
 		</xs:sequence>
 		<xs:attribute name="Likelihood" type="xs:float"/>
@@ -138,6 +138,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:element name="Type" type="tt:StringLikelihood"/>  <!-- tt:VehicleType lists the acceptable values" --> 
 			<xs:element name="Brand" type="tt:StringLikelihood" minOccurs="0" maxOccurs="1"/> 
 			<xs:element name="Model" type="tt:StringLikelihood" minOccurs="0" maxOccurs="1"/> 
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0"/> 
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>      <!-- first ONVIF then vendor --> 
 		</xs:sequence> 
 		<xs:anyAttribute processContents="lax"/> 
@@ -214,38 +215,30 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</xs:complexType>
 	<xs:complexType name="ClassDescriptor">
 		<xs:sequence>
-			<xs:element name="ClassCandidate" minOccurs="0" maxOccurs="unbounded">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="Type" type="tt:ClassType"/>
-						<xs:element name="Likelihood" type="xs:float"/>
-						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
-			<xs:element name="Extension" type="tt:ClassDescriptorExtension" minOccurs="0"/>
+			<xs:element name="ClassCandidate" type="tt:ClassCandidate" minOccurs="0" maxOccurs="unbounded"/> <!-- Deprecated -->
+			<xs:element name="Extension" type="tt:ClassDescriptorExtension" minOccurs="0"/>  <!-- Deprecated --> 
 			<xs:element name="Type" type="tt:StringLikelihood" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation>ONVIF recommends to use this 'Type' element instead of 'ClassCandidate' and 'Extension' above for new design. Acceptable values are defined in tt:ObjectType.</xs:documentation>
+					<xs:documentation>For well-defined values see tt:ObjectType. Other type definitions like tt:VehicleType may be applied as well.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
 		</xs:sequence>
 	</xs:complexType>
-	<xs:complexType name="ClassDescriptorExtension">
+	<xs:complexType name="ClassCandidate"> <!-- Deprecated -->
+		<xs:sequence>
+			<xs:element name="Type" type="tt:ClassType"/>
+			<xs:element name="Likelihood" type="xs:float"/>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- first Vendor then ONVIF -->
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ClassDescriptorExtension"> <!-- Deprecated -->
 		<xs:sequence>
 			<xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="OtherTypes" type="tt:OtherType" maxOccurs="unbounded"/>
-			<xs:element name="Extension" type="tt:ClassDescriptorExtension2" minOccurs="0"/>
 		</xs:sequence>
 	</xs:complexType>
-	<xs:complexType name="ClassDescriptorExtension2">
-		<xs:sequence>
-			<xs:any namespace="##targetNamespace" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-		</xs:sequence>
-		<xs:anyAttribute processContents="lax"/>
-	</xs:complexType>
-	<xs:complexType name="OtherType">
+	<xs:complexType name="OtherType"> <!-- Deprecated -->
 		<xs:sequence>
 			<xs:element name="Type" type="xs:string">
 				<xs:annotation>
@@ -415,6 +408,28 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:annotation>
 		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	
+	<xs:complexType name="ObjectTrack">
+		<xs:annotation>
+			<xs:documentation>An Object track includes a sequence of object states representing how an object's state changes over time.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="ObjectState" type="tt:ObjectState" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	
+	<xs:complexType name="ObjectState">
+		<xs:annotation>
+			<xs:documentation>An object state describes an object's condition, for e.g position, speed and appearance, at a certain time instance.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="tt:Object">
+				<xs:attribute name="CaptureTime" type="xs:dateTime" use="required"/>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 	<!--===============================-->
 	<!--   Metadata Streaming Types    -->

@@ -16,7 +16,7 @@
       </imageobject>
     </mediaobject>
     <copyright>
-      <year>2008-2024</year>
+      <year>2008-2025</year>
       <holder>ONVIF™ All rights reserved.</holder>
     </copyright>
     <legalnotice>
@@ -186,10 +186,15 @@
           <personname>Fredrik Svensson, Sriram Bhetanabottla, Hans Busch, Jose Melancon, Sujith
             Raman, Kieran McCartan</personname>
         </author>
-        <revremark>Add media signing capabilities and operations. Clarify JWT and OAuth sections.
-          Add CertPathValidationPolicyId to AuthorizationServer &amp; StorageConfiguration.
-          Recommend strong signature selection. Update CreateEccKeyPair and Curve name references.
-          Add annex on TLS ciphers.</revremark>
+        <revremark>Add media signing capabilities and operations. Clarify JWT and OAuth sections. Add CertPathValidationPolicyId to AuthorizationServer &amp; StorageConfiguration. Recommend strong signature selection. Update CreateEccKeyPair and Curve name references. Add annex on TLS ciphers.</revremark>
+      </revision>
+      <revision>
+        <revnumber>25.06</revnumber>
+        <date>Jun-2025</date>
+        <author>
+          <personname>Tomasz Zajac, Tomasz Chmiel</personname>
+        </author>
+        <revremark>Add custom claims to JWTConfiguration. Add validation policy to Dot1X configuration.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -1026,6 +1031,10 @@
                 certificates.</para>
             </listitem>
           </varlistentry>
+          <varlistentry>
+            <term>CustomClaims</term>
+            <listitem><para>Optional list of custom claims. A device shall reject a token if it does not contain a claim or if none of the provided claim values match.</para></listitem>
+          </varlistentry>
         </variablelist>
       </section>
       <section>
@@ -1162,7 +1171,7 @@
                   <para>ServerUri</para>
                 </entry>
                 <entry>
-                  <para>Authorization server address</para>
+                  <para>Authorization server metadata endpoint conforming to RFC8414, such as "https://your.domain/.well-known/openid-configuration", that is used to retrieve endpoint URIs for authorization, token or JWKS.</para>
                 </entry>
               </row>
               <row>
@@ -1234,7 +1243,9 @@
                 </entry>
                 <entry>
                   <para>The unique identifier of the certification path validation policy to be used
-                    for validating the server certificate</para>
+                    for validating the server certificate. If not configured, server certificate
+                    validation behavior is undefined and the device may either apply a vendor
+                    specific default validation policy or skip validation at all.</para>
                 </entry>
               </row>
             </tbody>
@@ -1277,8 +1288,6 @@
                 </entry>
                 <entry>
                   <para>OpenID Connect authorization code flow per Open ID Connect Core.</para>
-                  <para>The ServerUri is used as metadata URI, where you can retrieve the endpoint
-                    URIs for authorization, token and JWKS.</para>
                 </entry>
               </row>
             </tbody>
@@ -1356,6 +1365,11 @@
             </tbody>
           </tgroup>
         </table>
+        <para>A device signaling support for tls_client_auth shall signal support for PKCS10.</para>
+        <para>A device signaling support for self_signed_tls_client_auth shall signal support for
+          SelfSignedCertificateCreation.</para>
+        <para>A device signaling support for private_key_jwt shall signal support for
+          ECCKeyPairGeneration.</para>
       </section>
     </section>
   </chapter>
@@ -3279,14 +3293,9 @@
                 <term>request</term>
                 <listitem>
                   <para role="param">CertPathValidationPolicyID - [tas:CertPathValidationPolicyID] </para>
-                  <para role="text">The ID of the certification path validation policy to be
-                    modified.</para>
-                  <para role="param">Parameters - [tas:CertPathValidationParameters] </para>
-                  <para role="text">The parameters of the certification path validation
-                    policy.</para>
-                  <para role="param">TrustAnchor - unbounded [tas:TrustAnchor] </para>
-                  <para role="text">The trust anchors of the certification path validation
-                    policy.</para>
+                  <para role="text">This element is deprecated and ignored; the ID of the certification path validation policy being modified must be specified in the CertPathValidationPolicy structure.</para>
+                  <para role="param">CertPathValidationPolicy - [tas:CertPathValidationPolicy] </para>
+                  <para role="text">The updated certification path validation policy to be stored.</para>
                 </listitem>
               </varlistentry>
               <varlistentry>
@@ -4039,30 +4048,15 @@
       <section>
         <title>AddDot1XConfiguration</title>
         <para>This operation adds an IEEE 802.1X configuration to the device.</para>
-        <para>Configurations are uniquely identified using IEEE 802.1X configuration IDs. The device
-          shall ignore Dot1XID in the request, if present, and shall generate a unique configuration
-          ID for the added configuration.</para>
-        <para>If the command was successful, the device shall return the ID of the
-          configuration.</para>
-        <para>If the device does not have capacity for the configuration, the device shall produce a
-          MaximumNumberOfDot1XConfigurationsReached fault and shall not add the
-          configuration.</para>
-        <para>If Identity is used as an anonymous identity for the corresponding authentication
-          method, the device shall ignore an eventually supplied passphrase ID in the same
-          Dot1XStage. Otherwise, if the device cannot process a passphrase ID included in the
-          configuration to be added, the device shall produce a PassphraseID fault and shall not add
-          the configuration.</para>
-        <para>If the device cannot process a certification path ID included in the configuration to
-          be added, the device shall produce a CertificationPathID fault and shall not add the
-          configuration.</para>
-        <para>If the device cannot process an authentication method included in the configuration to
-          be added (e.g., unrecognized method or missing configuration parameter), the device shall
-          produce a Dot1XMethod fault and shall not add the configuration.</para>
-        <para>If the device cannot process the authentication method combination in the
-          configuration to be added, the device shall produce a Dot1XMethodCombination fault and
-          shall not add the configuration.</para>
-        <para>A device signalling support for IEEE 802.1X configuration with the
-          MaximumNumberOfDot1XConfigurations capability shall support this command.</para>
+        <para>Configurations are uniquely identified using IEEE 802.1X configuration IDs. The device shall ignore Dot1XID in the request, if present, and shall generate a unique configuration ID for the added configuration.</para>
+        <para>If the command was successful, the device shall return the ID of the configuration.</para>
+        <para>If the device does not have capacity for the configuration, the device shall produce a MaximumNumberOfDot1XConfigurationsReached fault and shall not add the configuration.</para>
+        <para>If Identity is used as an anonymous identity for the corresponding authentication method, the device shall ignore an eventually supplied passphrase ID in the same Dot1XStage. Otherwise, if the device cannot process a passphrase ID included in the configuration to be added, the device shall produce a PassphraseID fault and shall not add the configuration.</para>
+        <para>If the device cannot process a certification path ID included in the configuration to be added, the device shall produce a CertificationPathID fault and shall not add the configuration.</para>
+        <para>If no certification path validation policy is stored under the requested certification path validation policy ID, the device shall produce a CertPathValidationPolicyID fault.</para>
+        <para>If no certification path validation policy configured, authorization server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.</para>
+        <para>If the device cannot process an authentication method included in the configuration to be added (e.g., unrecognized method or missing configuration parameter), the device shall produce a Dot1XMethod fault and shall not add the configuration.</para>
+        <para>A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -4090,8 +4084,9 @@
               <para role="param">env:Sender - ter:InvalidArgVal - ter:PassphraseID </para>
               <para role="text">A supplied passphrase ID cannot be processed by the device.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificationPathID </para>
-              <para role="text">A supplied certification path ID cannot be processed by the
-                device.</para>
+              <para role="text">A supplied certification path ID cannot be processed by the device.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:CertPathValidationPolicyID </para>
+              <para role="text">No certification path validation policy is stored under the requested certification path validation policy ID.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:Dot1XMethod </para>
               <para role="text">A supplied IEEE 802.1X authentication method cannot be processed by
                 the device.</para>
@@ -4569,6 +4564,7 @@
             </listitem>
           </varlistentry>
         </variablelist>
+        <para>For security reasons a device shall not provide the parameter ClientSecret in the response.</para>
       </section>
       <section xml:id="section_d22_5r4_rwb">
         <title>CreateAuthorizationServerConfiguration</title>
@@ -4649,6 +4645,7 @@
         <para>This operation deletes the given authorization server configuration and configuration
           change shall always be persistent. The device shall support this command if
           MaxConfigurations capability is greater than zero.</para>
+        <para>If a reference exists for the specified configuration, the device shall produce a ReferenceExists fault and shall not delete it.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -4668,6 +4665,8 @@
             <listitem>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoConfig</para>
               <para role="text">The requested configuration does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:ReferenceExists</para>
+              <para role="text"> A reference exists for the configuration that is to be deleted.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -5569,6 +5568,10 @@
                   <para>The list of supported elliptic curves. </para>
                   <para>If the entry is non-empty it shall contain at least the baseline </para>
                 </entry>
+              </row>
+              <row>
+                <entry><para>AuthorizationServer.MaxConfigurations</para></entry>
+                <entry><para>If > 0, MaximumNumberOfCertificationPathValidationPolicies>=2</para></entry>
               </row>
             </tbody>
           </tgroup>
