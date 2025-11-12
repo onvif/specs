@@ -16,7 +16,7 @@
       </imageobject>
     </mediaobject>
     <copyright>
-      <year>2008-2024</year>
+      <year>2008-2025</year>
       <holder>ONVIF™ All rights reserved.</holder>
     </copyright>
     <legalnotice>
@@ -186,10 +186,15 @@
           <personname>Fredrik Svensson, Sriram Bhetanabottla, Hans Busch, Jose Melancon, Sujith
             Raman, Kieran McCartan</personname>
         </author>
-        <revremark>Add media signing capabilities and operations. Clarify JWT and OAuth sections.
-          Add CertPathValidationPolicyId to AuthorizationServer &amp; StorageConfiguration.
-          Recommend strong signature selection. Update CreateEccKeyPair and Curve name references.
-          Add annex on TLS ciphers.</revremark>
+        <revremark>Add media signing capabilities and operations. Clarify JWT and OAuth sections. Add CertPathValidationPolicyId to AuthorizationServer &amp; StorageConfiguration. Recommend strong signature selection. Update CreateEccKeyPair and Curve name references. Add annex on TLS ciphers.</revremark>
+      </revision>
+      <revision>
+        <revnumber>25.06</revnumber>
+        <date>Jun-2025</date>
+        <author>
+          <personname>Tomasz Zajac, Tomasz Chmiel</personname>
+        </author>
+        <revremark>Add custom claims to JWTConfiguration. Add validation policy to Dot1X configuration.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -274,14 +279,6 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.ietf.org/rfc/rfc5280.txt"
       >http://www.ietf.org/rfc/rfc5280.txt</link>&gt;</para>
-    <para>IETF RFC 5958 Asymmetric Key Packages</para>
-    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
-        xlink:href="http://www.ietf.org/rfc/rfc5958.txt"
-      >http://www.ietf.org/rfc/rfc5958.txt</link>&gt;</para>
-    <para>IETF RFC 5959 Algorithms for Asymmetric Key Package Content Type</para>
-    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
-        xlink:href="http://www.ietf.org/rfc/rfc5959.txt"
-      >http://www.ietf.org/rfc/rfc5959.txt</link>&gt;</para>
     <para>IETF RFC 6749 The OAuth 2.0 Authorization Framework</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.ietf.org/rfc/rfc6749.txt"
@@ -290,6 +287,8 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.ietf.org/rfc/rfc6750.txt"
       >http://www.ietf.org/rfc/rfc6750.txt</link>&gt;</para>
+    <para>RFC 7292 - PKCS #12: Personal Information Exchange Syntax v1.1</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc7292"/>&gt;</para>
     <para>IETF RFC 7517 JSON Web Key (JWK)</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.ietf.org/rfc/rfc7517.txt"
@@ -1032,6 +1031,10 @@
                 certificates.</para>
             </listitem>
           </varlistentry>
+          <varlistentry>
+            <term>CustomClaims</term>
+            <listitem><para>Optional list of custom claims. A device shall reject a token if it does not contain a claim or if none of the provided claim values match.</para></listitem>
+          </varlistentry>
         </variablelist>
       </section>
       <section>
@@ -1168,7 +1171,7 @@
                   <para>ServerUri</para>
                 </entry>
                 <entry>
-                  <para>Authorization server address</para>
+                  <para>Authorization server metadata endpoint conforming to RFC8414, such as "https://your.domain/.well-known/openid-configuration", that is used to retrieve endpoint URIs for authorization, token or JWKS.</para>
                 </entry>
               </row>
               <row>
@@ -1240,7 +1243,9 @@
                 </entry>
                 <entry>
                   <para>The unique identifier of the certification path validation policy to be used
-                    for validating the server certificate</para>
+                    for validating the server certificate. If not configured, server certificate
+                    validation behavior is undefined and the device may either apply a vendor
+                    specific default validation policy or skip validation at all.</para>
                 </entry>
               </row>
             </tbody>
@@ -1283,8 +1288,6 @@
                 </entry>
                 <entry>
                   <para>OpenID Connect authorization code flow per Open ID Connect Core.</para>
-                  <para>The ServerUri is used as metadata URI, where you can retrieve the endpoint
-                    URIs for authorization, token and JWKS.</para>
                 </entry>
               </row>
             </tbody>
@@ -1362,6 +1365,11 @@
             </tbody>
           </tgroup>
         </table>
+        <para>A device signaling support for tls_client_auth shall signal support for PKCS10.</para>
+        <para>A device signaling support for self_signed_tls_client_auth shall signal support for
+          SelfSignedCertificateCreation.</para>
+        <para>A device signaling support for private_key_jwt shall signal support for
+          ECCKeyPairGeneration.</para>
       </section>
     </section>
   </chapter>
@@ -1845,112 +1853,6 @@
               </varlistentry>
             </variablelist>
           </section>
-          <section>
-            <title>UploadKeyPairInPKCS8</title>
-            <para>This operation uploads a key pair in a PKCS#8 data structure as specified in [RFC
-              5958, RFC 5959]. </para>
-            <para>If a passphrase is either directly provided or as ID reference to a previously
-              uploaded passphrase, the device shall assume that the KeyPair parameter contains an
-              EncryptedPrivateKeyInfo ASN.1 structure that is encrypted with the given passphrase.
-              In case neither a passphrase nor a passphrase ID is provided the device shall assume
-              that the KeyPair parameter contains a OneAsymmetricKey ASN.1 structure which contains
-              both the private key and the corresponding public key. </para>
-            <para>If the supplied key pair cannot be processed by the device, the device shall
-              produce an UnsupportedPublicKeyAlgorithm fault and shall not store the uploaded key
-              pair in the keystore.</para>
-            <para>Key pairs are uniquely identified using key IDs. If a key pair exists in the
-              keystore with the public key equal to the public key in the request and this key pair
-              does not contain a private key, the device shall add the supplied private key to the
-              existing key pair and return the ID of this key pair.</para>
-            <para>If a key pair exists in the keystore with the public key equal to the public key
-              in the request and this key pair contains a private key, the device shall leave the
-              key pair unchanged and return the ID of this key pair.</para>
-            <para>If the existing key pair does not have status <emphasis>ok</emphasis>, the device
-              shall produce an InvalidKeyStatus fault and shall not modify the existing key
-              pair.</para>
-            <para>If no key pair exists in the keystore with the public key equal to the public key
-              in the request, the device shall generate a new key pair with the supplied private key
-              and the supplied public key, status <emphasis>ok</emphasis> and the externally
-              generated attribute set to <emphasis>true</emphasis>. Furthermore, the device shall
-              return the ID of this key pair.</para>
-            <para>If a new key pair is created, the device shall assign the supplied alias to it.
-              Otherwise, the device shall ignore an eventually supplied alias.</para>
-            <para>If decryption of the EncryptedPrivateKeyInfo failed, the device shall produce a
-              DecryptionFailed fault and shall not store the uploaded key pair in the
-              keystore.</para>
-            <para>If the device does not have enough storage capacity for storing the key pair that
-              eventually has to be created, the device shall generate a maximum number of keys
-              reached fault. Furthermore the device shall not generate a key pair.</para>
-            <para>If no passphrase exists under the ID specified by EncryptionPassphraseID, the
-              device shall produce an invalid passphrase ID fault and shall not store the uploaded
-              key pair in the keystore.</para>
-            <para>If the supplied PKCS#8 data structure cannot be processed by the device, the
-              device shall produce a BadPKCS8File fault and shall not store the uploaded key pair in
-              the keystore.</para>
-            <para>If the public key in the uploaded key pair does not match the uploaded private
-              key, the device shall produce a PublicPrivateKeyMismatch fault and shall not store the
-              uploaded key pair in the keystore.</para>
-            <para>If the command was successful, the device shall return the ID of the key pair in
-              the keystore that contains the supplied public and private key.</para>
-            <variablelist role="op">
-              <varlistentry>
-                <term>request</term>
-                <listitem>
-                  <para role="param">KeyPair - [tas:Base64DERencodedASN1Value]</para>
-                  <para role="text"> The key pair to be uploaded in a PKCS#8 data structure.</para>
-                  <para role="param">Alias - optional [xs:string]</para>
-                  <para role="text"> The client-defined alias of the key pair.</para>
-                  <para role="param">EncryptionPassphraseID - optional [tas:PassphraseID]</para>
-                  <para role="text"> The ID of the passphrase to use for decrypting the uploaded key
-                    pair.</para>
-                  <para role="param">EncryptionPassphrase - optional [xs:string]</para>
-                  <para role="text"> The passphrase to use for decrypting the uploaded key
-                    pair.</para>
-                </listitem>
-              </varlistentry>
-              <varlistentry>
-                <term>response</term>
-                <listitem>
-                  <para role="param">KeyID - [tas:KeyID]</para>
-                  <para role="text"> The key ID of the uploaded key pair.</para>
-                </listitem>
-              </varlistentry>
-              <varlistentry>
-                <term>faults</term>
-                <listitem>
-                  <para role="param">env:Receiver - ter:Action -
-                    ter:MaximumNumberOfKeysReached</para>
-                  <para role="text"> The device does not have enough storage space to store the key
-                    pair to be uploaded.</para>
-                  <para role="param">env:Sender - ter:InvalidArgVal - ter:PassphraseID</para>
-                  <para role="text"> No passphrase is stored under the requested
-                    PassphraseID.</para>
-                  <para role="param">env:Sender - ter:InvalidArgVal - ter:DecryptionFailed</para>
-                  <para role="text"> The given date could not be decrypted.</para>
-                  <para role="param">env:Sender - ter:InvalidArgVal -
-                    ter:UnsupportedPublicKeyAlgorithm</para>
-                  <para role="text"> The public key algorithm of the supplied key pair is not
-                    supported by the device.</para>
-                  <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidKeyStatus</para>
-                  <para role="text"> The key with the requested KeyID has an inappropriate
-                    status.</para>
-                  <para role="param">env:Sender - ter:InvalidArgVal - ter:BadPKCS8File</para>
-                  <para role="text"> The PKCS#8 data structure cannot be processed by the
-                    device.</para>
-                  <para role="param">env:Sender - ter:InvalidArgVal -
-                    ter:PublicPrivateKeyMismatch</para>
-                  <para role="text"> The supplied private key does not match the supplied public
-                    key.</para>
-                </listitem>
-              </varlistentry>
-              <varlistentry>
-                <term>access class</term>
-                <listitem>
-                  <para role="access">WRITE_SYSTEM</para>
-                </listitem>
-              </varlistentry>
-            </variablelist>
-          </section>
           <section xml:id="_Ref361388129">
             <title>GetKeyStatus</title>
             <para>This operation returns the status of a key as defined in Sect. <xref
@@ -2214,14 +2116,14 @@
           </section>
           <section>
             <title>CreateSelfSignedCertificate</title>
-            <para>This operation generates for a public key on the device a self-signed X.509
-              certificate that complies to RFC 5280. </para>
+            <para>This operation generates for a key on the device a self-signed X.509 certificate
+              that complies to RFC 5280. </para>
             <para>The X509Version parameter specifies the version of X.509 that the generated
               certificate shall comply to. A device that supports this command shall support the
-              generation of X.509v3 certificates as specified in RFC 5280 and may additionally be
+              generation of certificates as defined in the security baseline and may additionally be
               able to handle other X.509 certificate formats as indicated by the X.509Versions
-              capability. If no X509Version is specified in the request, the device shall produce an
-              X.509v3 certificate.</para>
+              capability. If no X509Version is specified in the request, the device shall produce a
+              certificate accordinting to the baseline.</para>
             <para>The key pair that contains the public key for which a self-signed certificate
               shall be produced is specified by its key pair ID. The subject parameter describes the
               entity that the public key belongs to.</para>
@@ -2244,8 +2146,8 @@
               parameter.</para>
             <para>The Extensions parameter specifies potential X509v3 extensions that shall be
               contained in the certificate. A device that supports this command shall support the
-              extensions that are defined in RFC5280, Sect. 4.2 as mandatory for CAs that issue
-              self-signed certificates.</para>
+              extensions that are defined in the security baseline, Sect. 4.2 as mandatory for CAs
+              that issue self-signed certificates.</para>
             <para>Distinguished name attribute values shall be supplied either in UTF-8 or in
               hexadecimal form as specified in RFC 4514.</para>
             <para>If the distinguished name attribute value is supplied in hexadecimal form, the
@@ -2359,6 +2261,8 @@
               supports this command shall be able to handle X.509v3 certificates as specified in RFC
               5280 and may additionally be able to handle other X.509 certificate formats as
               indicated by the X.509Versions capability. </para>
+            <para>An ONVIF compliant device supporting the security service shall support this
+              command.</para>
             <para>Certificates are uniquely identified using certificate IDs, and key pairs are
               uniquely identified using key IDs. The device shall generate a new certificate ID for
               the uploaded certificate.</para>
@@ -2490,48 +2394,23 @@
           <section>
             <title>UploadCertificateWithPrivateKeyInPKCS12</title>
             <para>This operation uploads a certification path consisting of X.509 certificates as
-              specified by RFC 5280 in DER encoding along with a private key to a device’s keystore.
-              Certificates and private key are supplied in the form of a PKCS#12 file as specified
-              in PKCS#12.</para>
-            <para>The device shall support PKCS#12 files that contain the following safe
-              bags:</para>
-            <itemizedlist>
-              <listitem>
-                <para>one or more instances of CertBag PKCS#12, Sect. 4.2.3</para>
-              </listitem>
-              <listitem>
-                <para>either exactly one instance of KeyBag PKCS#12, Sect. 4.3.1 or exactly one
-                  instance of PKCS8ShroudedKeyBag PKCS#12, Sect. 4.2.2.</para>
-              </listitem>
-            </itemizedlist>
+              specified by RFC 5280 in DER encoding along with a private key to a device’s keystore. </para>
+            <para>A device signaling support for PKCS12 shall support uploading of PKCS12 files
+              according to RFC 7292.</para>
             <para>If the IgnoreAdditionalCertificates parameter has the value
                 <emphasis>true</emphasis>, the device shall behave as if the client had supplied
               only the first CertBag in the sequence of CertBag instances.</para>
-            <para>The device shall support PKCS#12 passphrase integrity mode for integrity
-              protection of the PKCS#12 PFX as specified in PKCS#12, Sect. 4. The device shall
-              support PKCS8ShroudedKeyBags that are encrypted with the same passphrase as the
-              CertBag instances.</para>
             <para>If an integrity passphrase ID is supplied, the device shall use the corresponding
-              passphrase in the keystore to check the integrity of the supplied PKCS#12 PFX. If an
-              integrity passphrase ID is supplied, but the supplied PKCS#12 PFX has no integrity
-              protection, the device shall produce a BadPKCS12File fault and shall not store the
-              uploaded certificates nor the uploaded key pair in the keystore.</para>
+              passphrase in the keystore to decrypt check the integrity of the supplied PKCS#12 PFX.
+              If an integrity passphrase ID is supplied, but the supplied PKCS#12 PFX has no
+              integrity protection, the device shall produce a BadPKCS12File fault and shall not
+              store the uploaded certificates nor the uploaded key pair in the keystore.</para>
             <para>If an encryption passphrase ID is supplied, the device shall use the corresponding
-              passphrase in the keystore to decrypt the PKCS8ShroudedKeyBag and the CertBag
-              instances.</para>
-            <para>If an EncryptionPassphraseID is supplied, but a CertBag is not encrypted, the
-              device shall ignore the supplied EncryptionPassphraseID when processing this CertBag.
-              If an EncryptionPassphraseID is supplied, but a KeyBag is provided instead of a
-              PKCS8ShroudedKeyBag, the device shall ignore the supplied EncryptionPassphraseID when
-              processing the KeyBag.</para>
+              passphrase in the keystore to decrypt any encrypted content.</para>
             <para>If a passphrase is supplied, the device shall ignore an eventually supplied
               integrity passphrase ID and an eventually supplied encryption passphrase ID, and the
-              device shall use the supplied passphrase to check the integrity of the PKCS#12 PFX and
-              to decrypt the PKCS8ShroudedKeyBag and the CertBag instances. If a passphrase is
-              supplied, but a CertBag is not encrypted, the device shall ignore the supplied
-              passphrase when processing this CertBag. If a passphrase is supplied, but a KeyBag is
-              supplied instead of a PKCS8ShroudedKeyBag, the device shall ignore the supplied
-              passphrase when processing the KeyBag.</para>
+              device shall use the supplied passphrase to check the integrity and to decrypt the
+              encrypted content. </para>
             <para>If decryption of either the PKCS8ShroudedKeyBag or an encrypted CertBag failed,
               the device shall produce a DecryptionFailed fault and shall not store the uploaded
               certificates nor key pair in the keystore.</para>
@@ -2716,7 +2595,8 @@
           </section>
           <section>
             <title>GetCertificate</title>
-            <para>This operation returns a specific certificate from the device’s keystore.</para>
+            <para>This operation returns a specific certificate from the device’s keystore. An ONVIF
+              compliant device supporting the security service shall support this command.</para>
             <para>Certificates are uniquely identified using certificate IDs. If no certificate is
               stored under the requested certificate ID in the keystore, an InvalidArgVal fault is
               produced.</para>
@@ -2757,7 +2637,8 @@
           <section>
             <title>GetAllCertificates</title>
             <para>This operation returns all certificates that are stored in the device’s keystore.
-              An ONVIF compliant device shall support this command.</para>
+              An ONVIF compliant device shall support this command. An ONVIF compliant device
+              supporting the security service shall support this command.</para>
             <para>This operation may be used, e.g., if a client lost track of which certificates are
               present on the device.</para>
             <para>The certificates shall be returned in DER encoding.</para>
@@ -3411,14 +3292,9 @@
                 <term>request</term>
                 <listitem>
                   <para role="param">CertPathValidationPolicyID - [tas:CertPathValidationPolicyID] </para>
-                  <para role="text">The ID of the certification path validation policy to be
-                    modified.</para>
-                  <para role="param">Parameters - [tas:CertPathValidationParameters] </para>
-                  <para role="text">The parameters of the certification path validation
-                    policy.</para>
-                  <para role="param">TrustAnchor - unbounded [tas:TrustAnchor] </para>
-                  <para role="text">The trust anchors of the certification path validation
-                    policy.</para>
+                  <para role="text">This element is deprecated and ignored; the ID of the certification path validation policy being modified must be specified in the CertPathValidationPolicy structure.</para>
+                  <para role="param">CertPathValidationPolicy - [tas:CertPathValidationPolicy] </para>
+                  <para role="text">The updated certification path validation policy to be stored.</para>
                 </listitem>
               </varlistentry>
               <varlistentry>
@@ -4171,30 +4047,15 @@
       <section>
         <title>AddDot1XConfiguration</title>
         <para>This operation adds an IEEE 802.1X configuration to the device.</para>
-        <para>Configurations are uniquely identified using IEEE 802.1X configuration IDs. The device
-          shall ignore Dot1XID in the request, if present, and shall generate a unique configuration
-          ID for the added configuration.</para>
-        <para>If the command was successful, the device shall return the ID of the
-          configuration.</para>
-        <para>If the device does not have capacity for the configuration, the device shall produce a
-          MaximumNumberOfDot1XConfigurationsReached fault and shall not add the
-          configuration.</para>
-        <para>If Identity is used as an anonymous identity for the corresponding authentication
-          method, the device shall ignore an eventually supplied passphrase ID in the same
-          Dot1XStage. Otherwise, if the device cannot process a passphrase ID included in the
-          configuration to be added, the device shall produce a PassphraseID fault and shall not add
-          the configuration.</para>
-        <para>If the device cannot process a certification path ID included in the configuration to
-          be added, the device shall produce a CertificationPathID fault and shall not add the
-          configuration.</para>
-        <para>If the device cannot process an authentication method included in the configuration to
-          be added (e.g., unrecognized method or missing configuration parameter), the device shall
-          produce a Dot1XMethod fault and shall not add the configuration.</para>
-        <para>If the device cannot process the authentication method combination in the
-          configuration to be added, the device shall produce a Dot1XMethodCombination fault and
-          shall not add the configuration.</para>
-        <para>A device signalling support for IEEE 802.1X configuration with the
-          MaximumNumberOfDot1XConfigurations capability shall support this command.</para>
+        <para>Configurations are uniquely identified using IEEE 802.1X configuration IDs. The device shall ignore Dot1XID in the request, if present, and shall generate a unique configuration ID for the added configuration.</para>
+        <para>If the command was successful, the device shall return the ID of the configuration.</para>
+        <para>If the device does not have capacity for the configuration, the device shall produce a MaximumNumberOfDot1XConfigurationsReached fault and shall not add the configuration.</para>
+        <para>If Identity is used as an anonymous identity for the corresponding authentication method, the device shall ignore an eventually supplied passphrase ID in the same Dot1XStage. Otherwise, if the device cannot process a passphrase ID included in the configuration to be added, the device shall produce a PassphraseID fault and shall not add the configuration.</para>
+        <para>If the device cannot process a certification path ID included in the configuration to be added, the device shall produce a CertificationPathID fault and shall not add the configuration.</para>
+        <para>If no certification path validation policy is stored under the requested certification path validation policy ID, the device shall produce a CertPathValidationPolicyID fault.</para>
+        <para>If no certification path validation policy configured, authorization server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.</para>
+        <para>If the device cannot process an authentication method included in the configuration to be added (e.g., unrecognized method or missing configuration parameter), the device shall produce a Dot1XMethod fault and shall not add the configuration.</para>
+        <para>A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -4222,8 +4083,9 @@
               <para role="param">env:Sender - ter:InvalidArgVal - ter:PassphraseID </para>
               <para role="text">A supplied passphrase ID cannot be processed by the device.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificationPathID </para>
-              <para role="text">A supplied certification path ID cannot be processed by the
-                device.</para>
+              <para role="text">A supplied certification path ID cannot be processed by the device.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:CertPathValidationPolicyID </para>
+              <para role="text">No certification path validation policy is stored under the requested certification path validation policy ID.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:Dot1XMethod </para>
               <para role="text">A supplied IEEE 802.1X authentication method cannot be processed by
                 the device.</para>
@@ -4701,6 +4563,7 @@
             </listitem>
           </varlistentry>
         </variablelist>
+        <para>For security reasons a device shall not provide the parameter ClientSecret in the response.</para>
       </section>
       <section xml:id="section_d22_5r4_rwb">
         <title>CreateAuthorizationServerConfiguration</title>
@@ -4781,6 +4644,7 @@
         <para>This operation deletes the given authorization server configuration and configuration
           change shall always be persistent. The device shall support this command if
           MaxConfigurations capability is greater than zero.</para>
+        <para>If a reference exists for the specified configuration, the device shall produce a ReferenceExists fault and shall not delete it.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -4800,6 +4664,8 @@
             <listitem>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoConfig</para>
               <para role="text">The requested configuration does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:ReferenceExists</para>
+              <para role="text"> A reference exists for the configuration that is to be deleted.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -5024,11 +4890,11 @@
               </row>
               <row>
                 <entry>
-                  <para>PKCS8</para>
+                  <para>PKCS10</para>
                 </entry>
                 <entry>
-                  <para>Indicates support for uploading supported key pair in a PKCS#8 data
-                    structure.</para>
+                  <para>Indicates support for creating PKCS#10 requests for asymetric key pair and
+                    uploading the certificate obtained from a CA.</para>
                 </entry>
               </row>
               <row>
@@ -5038,15 +4904,6 @@
                 <entry>
                   <para>Indicates support for uploading a certificate along with a private key in a
                     PKCS#12 data structure.</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>PKCS10</para>
-                </entry>
-                <entry>
-                  <para>Indicates support for creating PKCS#10 requests for asymetric key pair and
-                    uploading the certificate obtained from a CA.</para>
                 </entry>
               </row>
               <row>
@@ -5076,11 +4933,10 @@
               </row>
               <row>
                 <entry>
-                  <para>PasswordBasedMACAlgorithms</para>
+                  <para>SymmetricEncryptionAlgorithms</para>
                 </entry>
                 <entry>
-                  <para>Indicates which password-based MAC algorithms are supported by the
-                    device.</para>
+                  <para>List of symmetric encryption alogrithm supported by the device (AES128-GCM-SHA256, AEAD_AES256_GCM_SHA_384, ...). </para>
                 </entry>
               </row>
               <row>
@@ -5133,6 +4989,12 @@
                 </entry>
               </row>
               <row>
+                <entry>AutoDeleteKey</entry>
+                <entry>DeleteCertificate automatically deletes the referenced key when there are no
+                  more references.</entry>
+                </entry>
+              </row>
+              <row>
                 <entry>
                   <para>SetCertPath</para>
                 </entry>
@@ -5140,11 +5002,6 @@
                   <para>The device supports modification of certificate path and certificate
                     validation path.</para>
                 </entry>
-              </row>
-              <row>
-                <entry>AutoDeleteKey</entry>
-                <entry>DeleteCertificate automatically deletes the referenced key when there are no
-                  more references.</entry>
               </row>
             </tbody>
           </tgroup>
@@ -5447,20 +5304,21 @@
               </row>
               <row>
                 <entry>
-                  <para>PKCS8</para>
+                  <para>PKCS10</para>
                 </entry>
                 <entry>
-                  <para>If true, the following commands shall be supported:</para>
+                  <para>If true, the following operations shall be supported:</para>
                   <itemizedlist>
                     <listitem>
-                      <para>UploadKeyPairInPKCS8</para>
+                      <para>Creating a CSR with the CreatePKCS10CSR command.</para>
+                    </listitem>
+                    <listitem>
+                      <para>Uploading the certificate created for the CSR as well as the certificate
+                        of the created certificate’s signer with the UploadCertificate
+                        command.</para>
                     </listitem>
                   </itemizedlist>
-                  <para>If true, the list of supported password-based encryption algorithms as
-                    indicated by the PasswordBasedEncryptionAlgorithms capability shall contain at
-                    least the algorithm <phrase>pbeWithSHAAnd3-KeyTripleDES-CBC</phrase>.</para>
-                  <para>If true, at least one capability between EllipticCurves and RSAKeyLenghts
-                    shall be specified.</para>
+                  <para>If true, the capability KeyPairGeneration shall not be empty.</para>
                 </entry>
               </row>
               <row>
@@ -5474,15 +5332,6 @@
                       <para>UploadCertificateWithPrivateKeyInPKCS12</para>
                     </listitem>
                     <listitem>
-                      <para>GetCertificate</para>
-                    </listitem>
-                    <listitem>
-                      <para>GetAllCertificates</para>
-                    </listitem>
-                    <listitem>
-                      <para>DeleteCertificate</para>
-                    </listitem>
-                    <listitem>
                       <para>GetCertificationPath</para>
                     </listitem>
                     <listitem>
@@ -5494,41 +5343,12 @@
                   </itemizedlist>
                   <para>If true, the list of supported password-based encryption algorithms as
                     indicated by the PasswordBasedEncryptionAlgorithms capability shall include the
-                    baseline specified in table Key Derivation Functions of the ONVIF Security
-                    Baseline.</para>
+                    baseline specified in the ONVIF Security Baseline.</para>
                   <para>If true, the list of supported password-based MAC algorithms as indicated by
                     the PasswordBasedMACAlgorithms capability shall include the baseline specified
                     in table Key Derivation Functions of the ONVIF Security Baseline.</para>
                   <para>If true, the list of supported X.509 versions as indicated by the
                     X.509Versions capability shall contain at least the value 3.</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>PKCS10</para>
-                </entry>
-                <entry>
-                  <para>If true, the following operations shall be supported:</para>
-                  <itemizedlist>
-                    <listitem>
-                      <para>Creating a CSR with the CreatePKCS10CSR command.</para>
-                    </listitem>
-                    <listitem>
-                      <para>GetCertificate</para>
-                    </listitem>
-                    <listitem>
-                      <para>GetAllCertificates</para>
-                    </listitem>
-                    <listitem>
-                      <para>DeleteCertificate</para>
-                    </listitem>
-                    <listitem>
-                      <para>Uploading the certificate created for the CSR as well as the certificate
-                        of the created certificate’s signer with the UploadCertificate
-                        command.</para>
-                    </listitem>
-                  </itemizedlist>
-                  <para>If true, the capability KeyPairGeneration shall not be empty.</para>
                 </entry>
               </row>
               <row>
@@ -5541,21 +5361,12 @@
                     <listitem>
                       <para>CreateSelfSignedCertificate</para>
                     </listitem>
-                    <listitem>
-                      <para>GetCertificate</para>
-                    </listitem>
-                    <listitem>
-                      <para>GetAllCertificates</para>
-                    </listitem>
-                    <listitem>
-                      <para>DeleteCertificate</para>
-                    </listitem>
                   </itemizedlist>
                   <para>If true, the following operations shall be supported:</para>
                   <itemizedlist>
                     <listitem>
                       <para>Key pair generation as signaled by the KeyPairGeneration or key pair
-                        upload as signaled by PKCS8 or PKCS12 capability.</para>
+                        upload as signaled by PKCS12 capability.</para>
                     </listitem>
                   </itemizedlist>
                 </entry>
@@ -5763,6 +5574,10 @@
                   <para>If the entry is non-empty it shall contain at least the baseline </para>
                 </entry>
               </row>
+              <row>
+                <entry><para>AuthorizationServer.MaxConfigurations</para></entry>
+                <entry><para>If > 0, MaximumNumberOfCertificationPathValidationPolicies>=2</para></entry>
+              </row>
             </tbody>
           </tgroup>
         </table>
@@ -5819,12 +5634,12 @@
       </listitem>
       <listitem>
         <para>Private keys must be protected against disclosure to unauthorized parties. If a
-          private key is uploaded in an encrypted PKCS#8 or PKCS#12 structure, the passphrase that
-          is used to encrypt the structure must be uploaded to the device over a communication
-          channel that is protected against eavesdropping in order to preserve the confidentiality
-          of the private key. Moreover, the confidentiality of the uploaded private key depends on
-          the strength of the encryption passphrase. It is therefore strongly recommended to use
-          random passwords with sufficient length.</para>
+          private key is uploaded in an encrypted PKCS#12 structure, the passphrase that is used to
+          encrypt the structure must be uploaded to the device over a communication channel that is
+          protected against eavesdropping in order to preserve the confidentiality of the private
+          key. Moreover, the confidentiality of the uploaded private key depends on the strength of
+          the encryption passphrase. It is therefore strongly recommended to use random passwords
+          with sufficient length.</para>
       </listitem>
       <listitem>
         <para>In general, externally generated keys must be regarded less trustworthy than keys that
@@ -5832,19 +5647,6 @@
           higher for an externally generated key than for an internally generated key. A client may
           determine whether a key was generated by the device from the
             <emphasis>externallyGenerated</emphasis> attribute of the key.</para>
-      </listitem>
-      <listitem>
-        <para>While new specifications should be based on PKCS#5 v2.0 or higher, adoption of this
-          standard is still limited. Therefore, this specification intends to balance security and
-          interoperability by mandating cryptographic algorithms based on PKCS#5 v1.5 as
-          interoperability baseline while strongly encouraging the use of PKCS#5 v2.0 or higher.
-          Future versions of this specification or specifications referring to this specification
-          may mandate additional cryptographic algorithms.</para>
-      </listitem>
-      <listitem>
-        <para>Although PKCS#8 RFC 5208 is widely used for exchanging cryptographic keys, this
-          specification is based on the successor standard RFC 5958, particularly in order to
-          incorporate both private key and public key in the same data structure.</para>
       </listitem>
       <listitem>
         <para>The default certification path validation policy is designed as a permissive
@@ -5904,10 +5706,10 @@
         operation for retrieving passphrases from a device is deliberately omitted. If client loses
         a previously uploaded passphrase, the client should create a new passphrase, upload the new
         passphrase to the device, and delete the old passphrase from the device.</para>
-      <para>This specification deliberately deviates from the terminology in PKCS#8 and PKCS#12 by
-        using the term ‘passphrase’ instead of ‘password’ in order to avoid confusion with the
-        password that is assigned to ONVIF device users and the corresponding API in the ONVIF
-        Device Management Service.</para>
+      <para>This specification deliberately deviates from the terminology in PKCS#12 by using the
+        term ‘passphrase’ instead of ‘password’ in order to avoid confusion with the password that
+        is assigned to ONVIF device users and the corresponding API in the ONVIF Device Management
+        Service.</para>
       <para>The keystore design is based on the rationale that an RSA key pair is a special type of
         key pair and a key pair is a special type of key. Therefore, key-related operations in the
         keystore deliberately refer to the most generic possible type in this hierarchy. For
@@ -5916,9 +5718,9 @@
         other hand, the GetPrivateKeyStatus command refers to a key pair instead of a key, since
         this command is not meaningful for a key that is not a key pair, e.g., a symmetric
         key.</para>
-      <para>While this revision of the keystore specification only supports RSA key pairs as key
-        pairs, later revisions of this specification may add other types of key pairs or symmetric
-        keys as special types of keys.</para>
+      <para>While this revision of the keystore specification only supports RSA and EC key pairs as
+        key pairs, later revisions of this specification may add other types of key pairs or
+        symmetric keys as special types of keys.</para>
       <para>Some interactions with the keystore, e.g., retrieving the private key for a public key
         that is contained in a certificate, are required device-internally, but need not be
         accessible to clients and may even, as in the above example, imply a security risk when made
@@ -6094,6 +5896,90 @@ m9sZXMiOlsib252aWY6T3BlcmF0b3IiXX0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
 CSeq: 2
 User-Agent: ./onvifClient
 Accept: application/sdp]]></programlisting>
+  </appendix>
+  <appendix>
+    <title>Deprecated Capabilities</title>
+    <para>
+      The following capabilities from the first version of the specification are still present in the schema files and are also partially referenced by the TLS Configuration Addon. 
+    </para>
+    <section>
+      <title>Keystore</title>
+      <table>
+        <title>Deprecated Keystore Capabilities</title>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="59*"/>
+          <colspec colname="c2" colwidth="41*"/>
+          <thead>
+            <row>
+              <entry>
+                <para>
+                  <emphasis role="bold">Capability Name</emphasis>
+                </para>
+              </entry>
+              <entry>
+                <para>
+                  <emphasis role="bold">Replacement</emphasis>
+                </para>
+              </entry>
+            </row>
+          </thead>
+          <tbody valign="top">
+            <row>
+              <entry>
+                <para>RSAKeyPairGeneration</para>
+              </entry>
+              <entry>
+                <para>KeyPairGeneration and RSAKeyLengths</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>ECCKeyPairGeneration</para>
+              </entry>
+              <entry>
+                <para>KeyPairGeneration and EllipticCurves</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>PKCS8RSAKeyPairUpload</para>
+              </entry>
+              <entry>
+                <para>deprecated</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>PKCS12CertificateWithRSAPrivateKeyUpload</para>
+              </entry>
+              <entry>
+                <para>PKCS12 and RSAKeyLengths</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>PKCS10ExternalCertificationWithRSA</para>
+              </entry>
+              <entry>
+                <para>PKCS10 and RSAKeyLengths</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>SelfSignedCertificateCreationWithRSA</para>
+              </entry>
+              <entry>
+                <para>SelfSignedCertificateCreation and RSAKeyLengths</para>
+              </entry>
+            </row>
+            <row>
+              <entry><para>PasswordBasedMACAlgorithms</para></entry>
+              <entry/>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
   </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>

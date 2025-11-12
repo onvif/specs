@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Copyright (c) 2008-2024 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2025 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
@@ -12,7 +12,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	xmlns:fc="http://www.onvif.org/ver20/analytics/humanface" 
 	xmlns:bd="http://www.onvif.org/ver20/analytics/humanbody" 
 			targetNamespace="http://www.onvif.org/ver20/analytics/humanbody" 
-			elementFormDefault="qualified" version="24.12">
+			elementFormDefault="qualified" version="25.06">
 	<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../ver10/schema/common.xsd"/>
 	<!--===============================-->
 	<!--    body metadata streaming    -->
@@ -98,6 +98,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:enumeration value="Overcoat"/>
 			<xs:enumeration value="Dress"/>
 			<xs:enumeration value="Vest"/> 	
+			<xs:enumeration value="SafetyVest"/> 	
 			<xs:enumeration value="Other"/>
 		</xs:restriction>
 	</xs:simpleType>
@@ -225,18 +226,22 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/> 
 	</xs:complexType>
-	<xs:simpleType name="KnapsackCategory">
+	<xs:simpleType name="BagCategory">
 		<xs:restriction base="xs:string">
-			<xs:enumeration value="SingleShoulderBag"/>
+			<xs:enumeration value="ShoulderBag"/>
 			<xs:enumeration value="Backpack"/>
-			<xs:enumeration value="Other"/>
+			<xs:enumeration value="ToteBag"/>
+			<xs:enumeration value="Briefcase"/>
+			<xs:enumeration value="Suitcase"/>
+			<xs:enumeration value="SingleShoulderBag"/>		<!-- Deprecated, use ShoulderBag -->
+			<xs:enumeration value="Other"/>					<!-- Deprecated, better omit -->
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:complexType name="Bag">
 		<xs:sequence>
 			<xs:element name="Category" type="xs:string" minOccurs="0">
 			<xs:annotation>
-				<xs:documentation>Describe the Category of the Bag, acceptable values are defined in bd:KnapsackCategory.</xs:documentation> 
+				<xs:documentation>Describe the Category of the Bag, acceptable values are defined in bd:BagCategory.</xs:documentation> 
 			</xs:annotation> 
 			</xs:element>
 			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
@@ -285,7 +290,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:enumeration value="BabyCarriage"/>
 			<xs:enumeration value="TwoWheelVehicle"/>
 			<xs:enumeration value="Tricyle"/>
-			<xs:enumeration value="Other"/>
+			<xs:enumeration value="Other"/>					<!-- Deprecated, better omit -->
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:complexType name="Cart">
@@ -304,7 +309,43 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/> 
 	</xs:complexType>
-	<xs:complexType name="Belonging">
+	<xs:simpleType name="WeaponCategory">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Knife"/>
+			<xs:enumeration value="Rifle"/>
+			<xs:enumeration value="Pistol"/>
+			<xs:enumeration value="Revolver"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="WeaponPose">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="InHolster"/>
+			<xs:enumeration value="InHand"/>
+			<xs:enumeration value="Aiming"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="Weapon">
+		<xs:sequence>
+			<xs:element name="Category" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Describe the Category of the Weapon, acceptable values are defined in bd:WeaponCategory.</xs:documentation> 
+				</xs:annotation> 
+			</xs:element>
+			<xs:element name="Color" type="tt:ColorDescriptor" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Describe the Color of the weapon, acceptable values are defined in tt:ColorDescriptor.</xs:documentation> 
+				</xs:annotation> 
+			</xs:element>
+			<xs:element name="Pose" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Describes how the weapon is held. Acceptable values are defined in bd:WeaponPose.</xs:documentation> 
+				</xs:annotation> 
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
+	<xs:complexType name="Belonging">		<!-- Deprecated, see Belongings -->
 		<xs:sequence>
 			<xs:element name="Bag" type="bd:Bag" minOccurs="0"> 
 			<xs:annotation> 
@@ -335,6 +376,33 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:annotation> 
 				<xs:documentation>Describe if the body carries the Weapon.</xs:documentation> 
 			</xs:annotation> 
+			</xs:element>			
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/> 
+	</xs:complexType>
+
+	<xs:complexType name="Belongings">
+		<xs:sequence>
+			<xs:element name="Bag" type="bd:Bag" minOccurs="0" maxOccurs="unbounded"> 
+				<xs:annotation> 
+					<xs:documentation>Describes a bag the body is wearing.</xs:documentation> 
+				</xs:annotation> 
+			</xs:element>
+			<xs:element name="Umbrella" type="bd:Umbrella" minOccurs="0"> 
+				<xs:annotation> 
+					<xs:documentation>Describes an umbrella carried by the body.</xs:documentation> 
+				</xs:annotation> 
+			</xs:element> 
+			<xs:element name="Cart" type="bd:Cart" minOccurs="0"> 	
+				<xs:annotation> 
+					<xs:documentation>Describes a cart pushed by the body.</xs:documentation> 
+				</xs:annotation> 
+			</xs:element>
+			<xs:element name="Weapon" type="bd:Weapon" minOccurs="0" maxOccurs="unbounded"> 	
+				<xs:annotation> 
+					<xs:documentation>Describe a waepon the body carries.</xs:documentation> 
+				</xs:annotation> 
 			</xs:element>			
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
@@ -402,7 +470,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element> 			
 			<xs:element name="Belonging" type="bd:Belonging" minOccurs="0"> 
 			<xs:annotation> 
-				<xs:documentation>Describe the Belonging of the body.</xs:documentation> 
+				<xs:documentation>Deprecated set of belongings. Use Belongings.</xs:documentation> 
 			</xs:annotation> 
 			</xs:element> 		
 			<xs:element name="Behaviour" type="bd:Behaviour" minOccurs="0"> 
@@ -410,6 +478,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:documentation>Describe the Behaviour of the body.</xs:documentation> 
 			</xs:annotation> 
 			</xs:element> 
+			<xs:element name="Belongings" type="bd:Belongings" minOccurs="0"> 
+				<xs:annotation> 
+					<xs:documentation>Set of belongings.</xs:documentation> 
+				</xs:annotation> 
+			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/> 

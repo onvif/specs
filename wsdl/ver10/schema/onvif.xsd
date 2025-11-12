@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--<?xml-stylesheet type="text/xsl" href="onvif-schema-viewer.xsl"?>-->
 <!--
-Copyright (c) 2008-2024 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2025 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
 THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
 IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.
 -->
-<xs:schema xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="24.12">
+<xs:schema xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="25.06">
 	<xs:include schemaLocation="common.xsd"/>
 	<xs:import namespace="http://www.w3.org/2005/05/xmlmime" schemaLocation="https://www.w3.org/2005/05/xmlmime"/>
 	<xs:import namespace="http://www.w3.org/2003/05/soap-envelope" schemaLocation="https://www.w3.org/2003/05/soap-envelope"/>
@@ -425,6 +425,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>
 			<xs:element name="Extension" type="tt:RotateExtension" minOccurs="0"/>
 		</xs:sequence>
+		<xs:attribute name="Mirror" type="xs:boolean">
+			<xs:annotation>
+				<xs:documentation>When enabled, the video will be flipped horizontally. If applied alongside rotation, the mirror effect shall be executed after the rotation. Additionally,<br/> 
+				when Mirror is enabled and Reverse=Auto is set in PTControlDirection or if the device doesn’t support Reverse in PTControlDirection, the device shall automatically adjust the pan direction. 
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
@@ -560,8 +567,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:sequence>
 		<xs:attribute name="Reboot" type="xs:boolean">
 			<xs:annotation>
-				<xs:documentation>Signals if a device requires a reboot after changing the rotation.
-				If a device can handle rotation changes without rebooting this value shall be set to false.</xs:documentation>
+				<xs:documentation>Signals if a device requires a reboot after changing the rotation or mirror.
+				If a device can handle rotation changes or mirror changes without rebooting this value shall be set to false.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="Mirror" type="xs:boolean">
+			<xs:annotation>
+				<xs:documentation>Signals if video source mirroring is supported.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
@@ -1818,6 +1830,68 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
+
+
+	<!--===============================-->
+	<!--          FrequencyDecibelPair            -->
+	<!--===============================-->
+
+	<xs:complexType name="FrequencyDecibelPair">
+	<xs:sequence>
+		<xs:element name="CenterFrequency" type="xs:int">
+			<xs:annotation>
+				<xs:documentation>The center frequency of the band in hertz (Readonly). For example, value of 1000 refers to 1kHz and 2000 refers to 2kHz.</xs:documentation>
+			</xs:annotation>
+		</xs:element>
+		<xs:element name="Decibel" type="xs:float">
+			<xs:annotation>
+				<xs:documentation>Decibel value associated with the center frequency.</xs:documentation>
+			</xs:annotation>
+		</xs:element>
+		<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		<!-- first Vendor then ONVIF -->
+	</xs:sequence>
+	</xs:complexType>
+
+	<!--===============================-->
+	<!--          EQPreset            -->
+	<!--===============================-->
+	<xs:complexType name="EQPreset">
+		<xs:sequence>
+			<xs:element name="Token" type="tt:ReferenceToken">
+				<xs:annotation>
+					<xs:documentation>Unique identifier for the preset.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Name" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Preset name. (Readonly)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="isDefault" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation>This indicates whether the EQ preset is designated as the default. When the scheduler is inactive, this preset will be applied. Only one preset can be set as the default among the EQ presets linked to an audio output. If all presets have isDefault set to false, the device may automatically select one preset as the default.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="ScheduleToken" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional schedule token (if supported).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="isFrequencyDecibelEditable" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation>Indicates whether the device allows changing the decibel level for frequencies. (Readonly)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="FrequencyDecibelPair" type="tt:FrequencyDecibelPair" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>List of frequency decibel pairs, each defined by a center frequency and its corresponding decibel value.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+		</xs:sequence>
+	</xs:complexType>
+
 	<!--===============================-->
 	<!--          AudioOutputConfigurationOptions            -->
 	<!--===============================-->
@@ -1854,6 +1928,16 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:annotation>
 					<xs:documentation>Minimum and maximum level range supported for this Output.</xs:documentation>
 				</xs:annotation>
+			</xs:element>
+			<xs:element name="EQPresetScheduleSupport" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Indicates whether EQPreset scheduling is supported.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="EQPresets" type="tt:EQPreset" minOccurs="0" maxOccurs="unbounded">
+			<xs:annotation>
+					<xs:documentation>List of supported EQPresets.</xs:documentation>
+			</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 		</xs:sequence>
@@ -7681,18 +7765,36 @@ and sample rate. </xs:documentation>
 			</xs:enumeration>
 		</xs:restriction>
 	</xs:simpleType>
+	<xs:complexType name="AsymmetricEncryption">
+		<xs:sequence>
+			<xs:element name="CertificateID" type="xs:string" minOccurs="1" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>List of certificates used to encrypt the symmetric key for the PSSH box.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="KeyRotationDuration" type="xs:duration" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>
+					Frequency at which the device shall generate a new key to encrypt a new segment. 
+					If not specified, key rotation is disabled. 
+					KeyRotationDuration must be a positive duration value.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+		</xs:sequence>
+	</xs:complexType>
 	<!--===============================-->
 	<xs:complexType name="RecordingEncryption">
 		<xs:sequence>
-			<xs:element name="KID" type="xs:string">
+			<xs:element name="KID" type="xs:string" minOccurs="0" maxOccurs="1">
 				<xs:annotation>
-					<xs:documentation>Key ID of the associated key for encryption.</xs:documentation>
+					<xs:documentation>Key ID of the associated key for encryption. This parameter is ignored when AsymmetricEncryption is configured.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="Key" type="xs:hexBinary" minOccurs="0">
+			<xs:element name="Key" type="xs:hexBinary" minOccurs="0" maxOccurs="1">
 				<xs:annotation>
 					<xs:documentation>
-						Key for encrypting content.
+						Key for encrypting content. This parameter is ignored when AsymmetricEncryption is configured.
 						The device shall not include this parameter when reading.
 					</xs:documentation>
 				</xs:annotation>
@@ -7706,6 +7808,7 @@ and sample rate. </xs:documentation>
 					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
+			<xs:element name="AsymmetricEncryption" type="tt:AsymmetricEncryption" minOccurs="0" maxOccurs="1" />
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 		</xs:sequence>
 		<xs:attribute name="Mode" type="xs:string" use="required">
@@ -9058,7 +9161,7 @@ and sample rate. </xs:documentation>
 	<!--=========================================-->
 
 	<!--=========================================-->
-	<!--  Begin, StorageConfiguration            -->
+	<!--  Begin, ExportRecordedDataState         -->
 	<!--=========================================-->
 	<xs:complexType name="FileProgress">
     	<xs:sequence>
@@ -9118,7 +9221,7 @@ and sample rate. </xs:documentation>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--=========================================-->
-	<!--  End, StorageConfiguration              -->
+	<!--  End, ExportRecordedDataState           -->
 	<!--=========================================-->
 	
 <xs:element name="PolygonOptions" type="tt:PolygonOptions"/>
