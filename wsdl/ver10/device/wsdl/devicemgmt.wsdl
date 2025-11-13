@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="../../../ver20/util/onvif-wsdl-viewer.xsl"?>
 <!--
-Copyright (c) 2008-2024 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2025 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
@@ -10,7 +10,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tds="http://www.onvif.org/ver10/device/wsdl" targetNamespace="http://www.onvif.org/ver10/device/wsdl">
 	<wsdl:types>
-		<xs:schema targetNamespace="http://www.onvif.org/ver10/device/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:tds="http://www.onvif.org/ver10/device/wsdl" elementFormDefault="qualified" version="24.12">
+		<xs:schema targetNamespace="http://www.onvif.org/ver10/device/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:tds="http://www.onvif.org/ver10/device/wsdl" elementFormDefault="qualified" version="25.06">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../../ver10/schema/onvif.xsd"/>
 			<!--===============================-->
 			<xs:element name="GetServices">
@@ -306,6 +306,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>Indicates support for firmware upgrade through MTOM.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="CloudFirmwareUpgrade" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for firmware upgrade through the cloud.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:attribute name="HttpFirmwareUpgrade" type="xs:boolean">
 					<xs:annotation>
 						<xs:documentation>Indicates support for firmware upgrade through HTTP.</xs:documentation>
@@ -334,6 +339,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:attribute name="MaxStorageConfigurations" type="xs:int">
 					<xs:annotation>
 						<xs:documentation>Indicates maximum number of storage configurations supported.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="StorageConfigurationRenewal" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for renewal of storage configuration.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="GeoLocationEntries" type="xs:int">
@@ -401,7 +411,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<!--===============================-->
 			<xs:simpleType name="HardwareTypes">
 				<xs:annotation>
-					All hardware types specified are related to network devices supporting ONVIF specification.
+					<xs:documentation>All hardware types specified are related to network devices supporting ONVIF specification.</xs:documentation>
 				</xs:annotation>
 				<xs:restriction base="xs:string">
 					<xs:enumeration value="Camera">
@@ -2113,6 +2123,21 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:element name="UpgradeFirmware">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Version" type="xs:string"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="UpgradeFirmwareResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ExpectedDownTime" type="xs:duration"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
 			<xs:element name="StartSystemRestore">
 				<xs:complexType>
 					<xs:sequence/>
@@ -2157,7 +2182,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:element>
 					<xs:element name="Password" type="xs:string" minOccurs="0">
 						<xs:annotation>	
-							<xs:documentation> optional password</xs:documentation> 
+							<xs:documentation> optional password, device shall not return the credentials (password) in the reply. </xs:documentation> 
 						</xs:annotation>
 					</xs:element>
 					<xs:element name="Extension" minOccurs="0">	<!-- deprecated -->
@@ -2169,7 +2194,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:element>
 					<xs:element name="Token" type="xs:string" minOccurs="0">
 						<xs:annotation>
-							<xs:documentation> optional access token</xs:documentation>
+							<xs:documentation> optional access token, device shall not return the credentials (token) in the reply. </xs:documentation>
 						</xs:annotation>
 					</xs:element>					
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
@@ -2240,6 +2265,34 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							<xs:documentation>The unique identifier of the certification path validation policy to be used for validating the server certificate as declared in the security service.</xs:documentation>
 							<xs:documentation>If not configured, server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.</xs:documentation>
 						</xs:annotation>
+					</xs:element>
+					<xs:element name="ConfigurationRenewal" minOccurs="0">
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="RenewalEndpoint" type="xs:anyURI">
+									<xs:annotation>
+										<xs:documentation>Remote URL to be queried by the device to renew the storage configuration.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+								<xs:element name="AuthorizationServer" type="tt:ReferenceToken">
+									<xs:annotation>
+										<xs:documentation>AuthorizationServer token referring to the server that provides access tokens to authorize with the the renewal endpoint.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+								<xs:element name="CertPathValidationPolicyID" type="xs:string" minOccurs="0">
+									<xs:annotation>
+										<xs:documentation>CertPathValidationPolicyID used to validate the renewal endpoint server certificate.
+											If not configured, server certificate validation behavior is undefined and the device may either apply
+											a vendor specific default validation policy or skip validation at all.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+								<xs:element name="Error" type="xs:string" minOccurs="0">
+									<xs:annotation>
+										<xs:documentation>Optional user readable error information (readonly).</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+							</xs:sequence>
+						</xs:complexType>
 					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	   <!-- first ONVIF then Vendor -->
 				</xs:sequence>
@@ -2926,6 +2979,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="StartFirmwareUpgradeResponse">
 		<wsdl:part name="parameters" element="tds:StartFirmwareUpgradeResponse"/>
 	</wsdl:message>
+	<wsdl:message name="UpgradeFirmwareRequest">
+		<wsdl:part name="parameters" element="tds:UpgradeFirmware"/>
+	</wsdl:message>
+	<wsdl:message name="UpgradeFirmwareResponse">
+		<wsdl:part name="parameters" element="tds:UpgradeFirmwareResponse"/>
+	</wsdl:message>
 	<wsdl:message name="StartSystemRestoreRequest">
 		<wsdl:part name="parameters" element="tds:StartSystemRestore"/>
 	</wsdl:message>
@@ -3519,6 +3578,24 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				The value of the Content-Type header in the HTTP POST request shall be “application/octetstream”.</wsdl:documentation>
 			<wsdl:input message="tds:StartFirmwareUpgradeRequest"/>
 			<wsdl:output message="tds:StartFirmwareUpgradeResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="UpgradeFirmware">
+			<wsdl:documentation>This operation initiates a firmware upgrade using between the device
+				and the MCS, without further actions from the client. Cloud firmware upgrade may be
+				achieved using the following steps:
+				<ol>
+					<li>Client retrieves the list of available firmware versions from the MCS.</li>
+					<li>Client calls UpgradeFirmware, selecting the desired FW version.</li>
+					<li>Device service responds with a downtime value.</li>
+					<li>Device and MCS perform the firmware upgrade procedure without further interaction from the Client</li>
+					<li>Device notifies the Client of the result by emitting the appropriate CloudFirmwareUpgrade event</li>
+				</ol>
+				After applying a firmware upgrade the device shall keep the basic network configuration
+				like IP address, subnet mask and gateway or DHCP settings, as well as all the parameters
+				of the Uplink and Security service unchanged, so that it can connect to the cloud.
+				Additionally a firmware upgrade shall not change user credentials.</wsdl:documentation>
+			<wsdl:input message="tds:UpgradeFirmwareRequest"/>
+			<wsdl:output message="tds:UpgradeFirmwareResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="StartSystemRestore">
 			<wsdl:documentation>This operation initiates a system restore from backed up configuration data using the HTTP
@@ -4483,6 +4560,15 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="StartFirmwareUpgrade">
 			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/StartFirmwareUpgrade"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="UpgradeFirmware">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/UpgradeFirmware"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
