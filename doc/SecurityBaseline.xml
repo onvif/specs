@@ -158,18 +158,24 @@
         </thead>
         <tbody valign="top">
           <row>
-            <entry>
-              <para>RSA</para>
-            </entry>
-            <entry>
-              <para>3072 Bit</para>
-            </entry>
+            <entry><para>RSA</para></entry>
+            <entry><para>3072 Bit</para></entry>
             <entry><para>RSA Baseline</para></entry>
+          </row>
+          <row>
+            <entry><para>RSA</para></entry>
+            <entry><para>4096 Bit</para></entry>
+            <entry><para>Verification only</para></entry>
           </row>
           <row>
             <entry><para>secp256r1</para></entry>
             <entry><para>256</para></entry>
             <entry><para>EC Baseline</para></entry>
+          </row>
+          <row>
+            <entry><para>secp384r1</para></entry>
+            <entry><para>384</para></entry>
+            <entry/>
           </row>
         </tbody>
       </tgroup>
@@ -247,15 +253,13 @@
     <table xml:id="sigTable">
       <title>Signatures</title>
       <tgroup cols="3">
-        <colspec colname="c1" colwidth="52*"/>
-        <colspec colname="c2" colwidth="12*"/>
+        <colspec colname="c1" colwidth="15*" align="left"/>
+        <colspec colname="c2" colwidth="15*"/>
         <thead>
           <row>
+            <entry><para>Scheme</para></entry>
             <entry>
-              <para>Name</para>
-            </entry>
-            <entry>
-              <para>Size</para>
+              <para>Hash</para>
             </entry>
             <entry>
               <para>Reference</para>
@@ -264,13 +268,20 @@
         </thead>
         <tbody valign="top">
           <row>
-            <entry><para>RSASSA-PSS</para></entry>
-            <entry><para>>= 3000 Bit</para></entry>
+            <entry><para>RSA PKCS1 v1_5</para></entry>
+            <entry><para>SHA 256, SHA 384, SHA 512</para></entry>
+            <entry><para>RFC 8017 not recommended</para></entry>
+          </row>
+          <row>
+            <entry>RSASSA-PSS</entry>
+            <entry>
+              <para>SHA 256, SHA 384, SHA 512</para>
+            </entry>
             <entry><para>RFC 8017</para></entry>
           </row>
           <row>
             <entry><para>ECDSA</para></entry>
-            <entry><para>>= 256 Bit</para></entry>
+            <entry><para>SHA 256, SHA 384, SHA 512</para></entry>
             <entry><para>RFC 5758, X9.62</para></entry>
           </row>
         </tbody>
@@ -322,11 +333,15 @@
     <table xml:id="signaturesTable">
       <title>Signature Baseline</title>
       <tgroup cols="3">
-        <colspec colname="c1" colwidth="52*"/>
+        <colspec colname="c1" colwidth="15*"/>
+        <colspec colname="c2" colwidth="12*"/>
         <thead>
           <row>
             <entry>
               <para>Name</para>
+            </entry>
+            <entry>
+              <para>OID</para>
             </entry>
             <entry>
               <para>Reference</para>
@@ -335,12 +350,70 @@
         </thead>
         <tbody valign="top">
           <row>
-            <entry><para>sha256WithRSAEncryption for RSA keys</para></entry>
-            <entry><para>RFC 4055</para></entry>
+            <entry>
+              <para>sha256WithRSAEncryption</para>
+            </entry>
+            <entry>
+              <para>1.2.840.113549.1.1.11</para>
+            </entry>
+            <entry>
+              <para>RFC 4055</para>
+            </entry>
           </row>
           <row>
-            <entry><para>ECDSA for EC keys</para></entry>
-            <entry><para>RFC 5758, X9.62</para></entry>
+            <entry>
+              <para>sha384WithRSAEncryption</para>
+            </entry>
+            <entry>
+              <para>1.2.840.113549.1.1.12</para>
+            </entry>
+            <entry>
+              <para>RFC 4055</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>sha512WithRSAEncryption</para>
+            </entry>
+            <entry>
+              <para>1.2.840.113549.1.1.13</para>
+            </entry>
+            <entry>
+              <para>RFC 4055</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>ecdsa-with-SHA256</para>
+            </entry>
+            <entry>
+              <para>1.2.840.10045.4.3.2</para>
+            </entry>
+            <entry>
+              <para>RFC 5758, X9.62</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>ecdsa-with-SHA384</para>
+            </entry>
+            <entry>
+              <para>1.2.840.10045.4.3.3</para>
+            </entry>
+            <entry>
+              <para>RFC 5758, X9.62</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>ecdsa-with-SHA512</para>
+            </entry>
+            <entry>
+              <para>1.2.840.10045.4.3.4</para>
+            </entry>
+            <entry>
+              <para>RFC 5758, X9.62</para>
+            </entry>
           </row>
         </tbody>
       </tgroup>
@@ -380,6 +453,45 @@
               <para>RFC 7292</para>
             </entry>
             <entry/>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <chapter>
+    <title>JWT</title>
+    <para>Requirements for JWT signature algorithm.</para>
+    <table xml:id="jwtTable">
+      <title>Signature Baseline</title>
+      <tgroup cols="3">
+        <colspec colname="c1" colwidth="15*"/>
+        <colspec colname="c2" colwidth="12*"/>
+        <thead>
+          <row>
+            <entry>
+              <para>Name</para>
+            </entry>
+            <entry>
+              <para>Reference</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry>
+              <para>HS256</para>
+            </entry>
+            <entry>
+              <para>RFC 7519</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>ES256</para>
+            </entry>
+            <entry>
+              <para>RFC 7519</para>
+            </entry>
           </row>
         </tbody>
       </tgroup>
