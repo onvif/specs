@@ -1,0 +1,648 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="docbook.xsl" type="text/xsl" ?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <info>
+    <title>Security Baseline Specification</title>
+    <titleabbrev>SecurityBaseline</titleabbrev>
+    <releaseinfo>25.12</releaseinfo>
+    <author>
+      <orgname>ONVIF™</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate>March 2025</pubdate>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="media/logo.png" contentwidth="60mm"/>
+      </imageobject>
+    </mediaobject>
+    <copyright>
+      <year>2008-2025</year>
+      <holder>ONVIF™ All rights reserved.</holder>
+    </copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so
+        long as this copyright notice, license and disclaimer are retained with all copies of the
+        document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR
+        AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+        LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+        NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE;
+        OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS,
+        TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY
+        DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR
+        RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION,
+        MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2)
+        SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR
+        DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT
+        APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR
+        RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF
+        THE CORPORATION.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>25.12</revnumber>
+        <date>Dec-2025</date>
+        <author>
+          <personname>Hans Busch</personname>
+        </author>
+        <revremark>Draft</revremark>
+      </revision>
+    </revhistory>
+  </info>
+  <chapter>
+    <title>Scope</title>
+    <para>This document defines the security baseline for ONVIF specifications. Its content is based on state of the art technology as published by NIST or BSI. </para>
+    <para>Note, that any updates to this specification require a review of implications on technical, profile and addon specifications. 
+      Publication of updates to this document must be synchronized with ONVIF Technical and Technical Service Committees.</para>
+  </chapter>
+  <chapter>
+    <title>Normative References</title>
+    <para>NIST FIPS 180-4 Secure Hash Standard (SHS)</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf"/>&gt; </para>
+    <para>NIST FIPS 186-5 Digital Signature Standard (DSS) - February 3, 2023</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-5.pdf"/>&gt;</para>
+    <para>BSI – Technical Guideline, Cryptographic Mechanisms: Recommendations and Key Length- January 31, 2025</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/Publications/TechGuidelines/TG02102/BSI-TR-02102-1.pdf?__blob=publicationFile&amp;v=9"/>&gt;</para>
+    <para>RFC 4055 - Additional Algorithms and Identifiers for RSA Cryptography for use in the Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc4055"/>&gt;</para>
+    <para>RFC 4868 -  Using HMAC-SHA-256, HMAC-SHA-384, and HMAC-SHA-512 with IPsec</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc4868"/>&gt;</para>
+    <para>RFC 5116 -  An Interface and Algorithms for Authenticated Encryption</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc5116"/>&gt;</para>
+    <para>RFC 5280 Internet X.509 Public Key Infrastructure Certificate and Certificate
+      Revocation List (CRL) Profile</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="http://www.ietf.org/rfc/rfc5280.txt"
+      >http://www.ietf.org/rfc/rfc5280.txt</link>&gt;</para>
+    <para>RFC 5758 - Internet X.509 Public Key Infrastructure: Additional Algorithms and Identifiers for DSA and ECDSA</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc5758"/>&gt;</para>
+    <para>RFC 5869 - HMAC-based Extract-and-Expand Key Derivation Function (HKDF)</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc5869"/>&gt;</para>
+    <para>RFC 7292 - PKCS #12: Personal Information Exchange Syntax v1.1</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc7292"/>&gt;</para>
+    <para>RFC 7714 - AES-GCM Authenticated Encryption in the Secure Real-time Transport Protocol (SRTP)</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc7714"/>&gt;</para>
+    <para>RFC 8017 - PKCS #1: RSA Cryptography Specifications Version 2.2</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc8017"/>&gt;</para>
+    <para>RFC 8018 - PKCS #5: Password-Based Cryptography Specification Version 2.1</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc8018"/>&gt;</para>
+    <para>RFC 8439 - ChaCha20 and Poly1305 for IETF Protocols</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc8439"/>&gt;</para>
+    <para>RFC 9579 - Use of Password-Based Message Authentication Code 1 (PBMAC1) in PKCS #12 Syntax</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc9579"/>&gt;</para>
+  </chapter>
+  <chapter>
+    <title>Definitions</title>
+    <informaltable>
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="27*"/>
+        <colspec colname="c2" colwidth="73*"/>
+        <tbody valign="top">
+          <row>
+            <entry>
+              <para>Asymmetric Encryption</para>
+            </entry>
+            <entry>
+              <para>Encryption with public and private key pair.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Method to create a unique fingerprint of a large data set.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>Signature</para>
+            </entry>
+            <entry>
+              <para>Private key signed hash that can be verified with the corresponding public
+                key.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </chapter>
+  <chapter>
+    <title>Overview</title>
+    <para>The content of this document is based on state of the art technology as published by the American institute NIST and the German department BSI. 
+      Note, that any updates to this specification require a review of implications on technical, profile and addon specifications.</para>
+    <para>Publication of updates must synchronized with ONVIF Technical and Technical Service Committee</para>
+  </chapter>
+  <chapter>
+    <title>Asymmetric Encryption Schemes and Key Agreement</title>
+    <para>Baseline for asymmetric encryption and key agreement schemes that a device shall support
+      when it signals supports for the algorithm.</para>
+    <table xml:id="_Ref395173040">
+      <title>Asymmetric Key Schemes</title>
+      <tgroup cols="3">
+        <colspec colname="c1" colwidth="52*"/>
+        <colspec colname="c2" colwidth="12*"/>
+        <colspec colname="c3" colwidth="12*"/>
+        <thead>
+          <row>
+            <entry>
+              <para>Name</para>
+            </entry>
+            <entry>
+              <para>Key Length </para>
+            </entry>
+            <entry>
+              <para>Comment</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry><para>RSA</para></entry>
+            <entry><para>3072 Bit</para></entry>
+            <entry><para>RSA Baseline</para></entry>
+          </row>
+          <row>
+            <entry><para>RSA</para></entry>
+            <entry><para>4096 Bit</para></entry>
+            <entry><para>Public key usage</para></entry>
+          </row>
+          <row>
+            <entry><para>secp256r1</para></entry>
+            <entry><para>256 Bit</para></entry>
+            <entry><para>EC Baseline</para></entry>
+          </row>
+          <row>
+            <entry><para>secp384r1</para></entry>
+            <entry><para>384 Bit</para></entry>
+            <entry/>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <chapter>
+    <title>Symmetric Encryption Schemes</title>
+    <para>Symmetric encryption algorithm a device shall support</para>
+    <table xml:id="symTable">
+      <title>Symmetric Encryption Schemes</title>
+      <tgroup cols="3">
+        <colspec colname="c1" colwidth="52*"/>
+        <colspec colname="c2" colwidth="12*"/>
+        <colspec colname="c3" colwidth="12*"/>
+        <thead>
+          <row>
+            <entry>
+              <para>Name</para>
+            </entry>
+            <entry>
+              <para>Key Length </para>
+            </entry>
+            <entry>
+              <para>Comment</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry><para>AES-GCM</para></entry>
+            <entry><para>128 Bit</para></entry>
+            <entry><para>RFC 5116</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <chapter>
+    <title>Hash Functions</title>
+    <para/>
+    <table xml:id="hashTable">
+      <title>Hashes</title>
+      <tgroup cols="3">
+        <colspec colname="c1" colwidth="52*"/>
+        <colspec colname="c2" colwidth="12*"/>
+        <colspec colname="c3" colwidth="12*"/>
+        <thead>
+          <row>
+            <entry>
+              <para>Name</para>
+            </entry>
+            <entry>
+              <para>Size</para>
+            </entry>
+            <entry>
+              <para>Reference</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry>
+              <para>SHA-2</para>
+            </entry>
+            <entry>
+              <para>256 Bit</para>
+            </entry>
+            <entry><para>FIPS 180-4</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <chapter>
+    <title>Signatures</title>
+    <para/>
+    <table xml:id="sigTable">
+      <title>Signatures</title>
+      <tgroup cols="3">
+        <colspec colname="c1" colwidth="52*"/>
+        <colspec colname="c2" colwidth="12*"/>
+        <colspec colname="c3" colwidth="12*"/>
+        <thead>
+          <row>
+            <entry><para>Scheme</para></entry>
+            <entry>
+              <para>Hash</para>
+            </entry>
+            <entry>
+              <para>Reference</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry><para>RSA PKCS1 v1_5</para></entry>
+            <entry><para>SHA 256, SHA 384, SHA 512</para></entry>
+            <entry><para>RFC 8017 not recommended</para></entry>
+          </row>
+          <row>
+            <entry><para>RSASSA-PSS</para></entry>
+            <entry>
+              <para>SHA 256, SHA 384, SHA 512</para>
+            </entry>
+            <entry><para>RFC 8017</para></entry>
+          </row>
+          <row>
+            <entry><para>ECDSA</para></entry>
+            <entry><para>SHA 256, SHA 384, SHA 512</para></entry>
+            <entry><para>RFC 5758, X9.62</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <chapter>
+    <title>Key Derivation</title>
+    <table xml:id="keyTable">
+      <title>Key Derivation Functions</title>
+      <tgroup cols="3">
+        <colspec colname="c1" colwidth="15*"/>
+        <colspec colname="c2" colwidth="12*"/>
+        <colspec colname="c3" colwidth="12*"/>
+        <thead>
+          <row>
+            <entry>
+              <para>Name</para>
+            </entry>
+            <entry>
+              <para>Reference</para>
+            </entry>
+            <entry>
+              <para>Comment</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry>
+              <para>PBKDF2</para>
+            </entry>
+            <entry><para>RFC 8018 &amp; RFC 9579</para></entry>
+            <entry><para>for passwords</para></entry>
+          </row>
+          <row>
+            <entry>
+              <para>HKDF</para>
+            </entry>
+            <entry><para>RFC 5869</para></entry>
+            <entry><para>for random keys</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <chapter>
+    <title>Certificates</title>
+    <para>Requirements for certificate upload and creation.</para>
+    <table xml:id="signaturesTable">
+      <title>Signature Baseline</title>
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="52*"/>
+        <colspec colname="c2" colwidth="12*"/>
+        <thead>
+          <row>
+            <entry>
+              <para>Name</para>
+            </entry>
+            <entry>
+              <para>OID</para>
+            </entry>
+            <entry>
+              <para>Reference</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry>
+              <para>sha256WithRSAEncryption</para>
+            </entry>
+            <entry>
+              <para>1.2.840.113549.1.1.11</para>
+            </entry>
+            <entry>
+              <para>RFC 4055</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>sha384WithRSAEncryption</para>
+            </entry>
+            <entry>
+              <para>1.2.840.113549.1.1.12</para>
+            </entry>
+            <entry>
+              <para>RFC 4055</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>sha512WithRSAEncryption</para>
+            </entry>
+            <entry>
+              <para>1.2.840.113549.1.1.13</para>
+            </entry>
+            <entry>
+              <para>RFC 4055</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>ecdsa-with-SHA256</para>
+            </entry>
+            <entry>
+              <para>1.2.840.10045.4.3.2</para>
+            </entry>
+            <entry>
+              <para>RFC 5758, X9.62</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>ecdsa-with-SHA384</para>
+            </entry>
+            <entry>
+              <para>1.2.840.10045.4.3.3</para>
+            </entry>
+            <entry>
+              <para>RFC 5758, X9.62</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>ecdsa-with-SHA512</para>
+            </entry>
+            <entry>
+              <para>1.2.840.10045.4.3.4</para>
+            </entry>
+            <entry>
+              <para>RFC 5758, X9.62</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table xml:id="certTable">
+      <title>Baseline for Encrypting Private Key</title>
+      <tgroup cols="3">
+        <colspec colname="c1" colwidth="2.82*"/>
+        <colspec colname="c2" colwidth="1*"/>
+        <colspec colname="newCol3" colwidth="1*"/>
+        <thead>
+          <row>
+            <entry>
+              <para>Name</para>
+            </entry>
+            <entry>
+              <para>Reference</para>
+            </entry>
+            <entry>
+              <para>Capability</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry>
+              <para>PBKDF2</para>
+            </entry>
+            <entry>
+              <para>RFC 8018</para>
+            </entry>
+            <entry><para>PasswordBasedEncryptionAlgorithms</para></entry>
+          </row>
+          <row>
+            <entry>
+              <para>AES-128-CBC</para>
+            </entry>
+            <entry>
+              <para>RFC 7292</para>
+            </entry>
+            <entry/>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <chapter>
+    <title>JWT</title>
+    <para>Requirements for JWT signature algorithm.</para>
+    <table xml:id="jwtTable">
+      <title>Signature Baseline</title>
+      <tgroup cols="3">
+        <colspec colname="c1" colwidth="15*"/>
+        <colspec colname="c2" colwidth="12*"/>
+        <thead>
+          <row>
+            <entry>
+              <para>Name</para>
+            </entry>
+            <entry>
+              <para>Reference</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry>
+              <para>RS256</para>
+            </entry>
+            <entry>
+              <para>RFC 7519</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>ES256</para>
+            </entry>
+            <entry>
+              <para>RFC 7519</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <appendix xml:id="b14_55m_51d">
+    <title>TLS Cipher Reference (Informative)</title>
+    
+    <para>This Annex is advocating a small subset of Ciphers as part of the ONVIF standard that readers of this specification can use as an informative guide. </para>
+    <para>The following small subset of ciphers covering TLS 1.2 / 1.3 are based on the baseline defined in this document and match common practise by Cloudflare, Mozilla, and ciphersuite.info.</para>
+    <para>While TLS 1.2 and 1.3 are both currently viable, we would suggest that TLS 1.3 is preferred. Do note that the table is not ordered by the strength of the cipher.</para>
+    
+    <table>
+      <title>TLS 1.3 / 1.2 Cipher list</title>
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="50*"/>
+        <colspec colname="c2" colwidth="50*"/>
+        <thead>
+          <row>
+            <entry><para>Minimum Protocol</para></entry><entry><para>IANA Name</para></entry>
+          </row>
+        </thead>
+        
+        <tbody valign="top">
+          <row>
+            <entry><para>TLS 1.3</para></entry><entry><para>TLS_AES_256_GCM_SHA384</para></entry>
+          </row>
+          <row>
+            <entry><para>TLS 1.3</para></entry><entry><para>TLS_CHACHA20_POLY1305_SHA256</para></entry>
+          </row>
+          <row>
+            <entry><para>TLS 1.2</para></entry><entry><para>TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</para></entry>
+          </row>
+          <row>
+            <entry><para>TLS 1.2</para></entry><entry><para>TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</para></entry>
+          </row>
+          <row>
+            <entry><para>TLS 1.2</para></entry><entry><para>TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</para></entry>
+          </row>
+          <row>
+            <entry><para>TLS 1.2</para></entry><entry><para>TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256</para></entry>
+          </row>
+          <row>
+            <entry><para>TLS 1.2</para></entry><entry><para>TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</para></entry>
+          </row>
+          <row>
+            <entry><para>TLS 1.2</para></entry><entry><para>TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </appendix>
+  <appendix>
+    <title>Hybrid Public Key Encryption (Informative)</title>
+    <para>This section lists the HPKE encryption baseline and links them to the relevant IANA
+      registry. The listed algorithm map to the definitions in the normative sections above. </para>
+    <para>
+      <table frame="all">
+        <title>HPKE KEM Identifiers</title>
+        <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="1.0*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.0*"/>
+          <thead>
+            <row>
+              <entry>IANA Registry</entry>
+              <entry>Reference</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>0x0010</para></entry>
+              <entry><para>DHKEM(P-256, HKDF-SHA256)</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table frame="all">
+        <title>HPKE KDF Identifiers</title>
+        <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="1.0*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.0*"/>
+          <thead>
+            <row>
+              <entry>IANA Registry</entry>
+              <entry>Reference</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>1</para></entry>
+              <entry><para>HKDF-SHA256</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table frame="all">
+        <title>HPKE AEAD Identifiers</title>
+        <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="1.0*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.0*"/>
+          <thead>
+            <row>
+              <entry>IANA Registry</entry>
+              <entry>Reference</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>2</para></entry>
+              <entry><para>AES-256-GCM</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </para>    
+  </appendix>
+  <appendix>
+    <title>Secure Streaming using SRTP (Informative)</title>
+    <para>This section lists the security baseline for SRTP streaming and links them to the relevant IANA
+      registry. The listed algorithm map to the definitions in the normative sections above. </para>
+    <para>
+      <table frame="all">
+        <title>SRTP Identifiers</title>
+        <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="1.0*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.0*"/>
+          <thead>
+            <row>
+              <entry>Algorithm</entry>
+              <entry>Reference</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>AEAD_AES_128_GCM</para></entry>
+              <entry><para>RFC 7714</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </para>    
+  </appendix>
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para/>
+  </appendix>
+</book>
