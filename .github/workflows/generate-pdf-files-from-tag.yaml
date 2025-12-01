@@ -18,7 +18,7 @@ jobs:
       - name: Install missing software
         run: |
           echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
-          sudo apt update && sudo DEBIAN_FRONTEND=noninteractive apt install -y --force-yes curl unzip $JAVA_VERSION fonts-noto-color-emoji ttf-mscorefonts-installer asciidoctor ; \
+          sudo apt update && sudo DEBIAN_FRONTEND=noninteractive apt install -y --force-yes curl unzip $JAVA_VERSION fonts-noto-color-emoji ttf-mscorefonts-installer asciidoctor gnupg ; \
           sudo fc-cache -fv
       - name: Checkout sources
         uses: actions/checkout@v3
@@ -62,6 +62,13 @@ jobs:
         run: |
           export JAVA_TOOL_OPTIONS="-Djavax.xml.XMLConstants.FEATURE_SECURE_PROCESSING=false" ; \
           cd ${{ github.workspace }} ; perl build/build.pl
+      - name: Digitally sign the documents
+        env:
+          PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
+        run: |
+          echo "$PRIVATE_KEY" > /tmp/private-key.gpg
+          gpg --import /tmp/private-key.gpg
+          find . -name "*.pdf" -exec gpg -v --detach-sign {} \; 
       - name: Calculate the short commit ID
         id: vars
         run: echo "source_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
@@ -71,6 +78,8 @@ jobs:
           name: ONVIF-specs-${{ steps.vars.outputs.source_tag }}
           path: |
             ${{ github.workspace }}/out/*/*.pdf
+            ${{ github.workspace }}/out/*/*.pdf.sig
             ${{ github.workspace }}/out/*.pdf
+            ${{ github.workspace }}/out/*.pdf.sig
           compression-level: 9
         
