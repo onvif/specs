@@ -79,6 +79,8 @@
     <para>This document defines how WebRTC and related protocols are to be used for ONVIF clients
       and devices to establish a peer-to-peer connection between a client and a device using a
       signaling server.</para>
+    <para>The client communication with its signaling server is provided as an example, both those
+      components belong to the Client and their interaction may be vendor dependent. </para>
     <para>Sending PTZ and other commands via WebRTC datachannels is outside of the scope of this 
       version of the specification.</para>
   </chapter>
@@ -325,30 +327,51 @@
         <table xml:id="_Ref_parameter_encoding" frame="all">
           <title>Parameter encoding</title>
           <tgroup cols="2">
-            <colspec colname="c1" colnum="1" colwidth="2.0*"/>
-            <colspec colname="c2" colnum="2" colwidth="8.0*"/>
+            <colspec colname="c1" colnum="1" colwidth="1*"/>
+            <colspec colname="c2" colnum="2" colwidth="2.36*"/>
             <thead>
               <row>
-                <entry><para>Type</para></entry>
-                <entry><para>Encoding</para></entry>
+                <entry>
+                  <para>Type</para>
+                </entry>
+                <entry>
+                  <para>Encoding</para>
+                </entry>
               </row>
             </thead>
             <tbody>
               <row>
-                <entry><para>SDP</para></entry>
-                <entry><para>SDP according to RFC 8866 with \r\n escaping</para></entry>
+                <entry>
+                  <para>SDP</para>
+                </entry>
+                <entry>
+                  <para>SDP according to RFC 8866 with \r\n escaping</para>
+                </entry>
               </row>
               <row>
-                <entry><para>IceCandidate</para></entry>
-                <entry><para>JSON encoding according to W3C WebRTC RTCIceCandidateInit</para></entry>
+                <entry>
+                  <para>IceCandidate</para>
+                </entry>
+                <entry>
+                  <para>JSON encoding according to W3C WebRTC RTCIceCandidateInit</para>
+                </entry>
               </row>
               <row>
-                <entry><para>RTCIceServer</para></entry>
-                <entry><para>Connection parameters for a STUN or TURN server as defined by W3C WebRTC</para></entry>
+                <entry>
+                  <para>RTCIceServer</para>
+                </entry>
+                <entry>
+                  <para>Connection parameters for a STUN or TURN server as defined by W3C
+                    WebRTC</para>
+                </entry>
               </row>
               <row>
-                <entry><para>DataChannelSubprotocol</para></entry>
-                <entry><para>Data channel subprotocol identifier</para></entry>
+                <entry>
+                  <para>DataChannelSubprotocol</para>
+                </entry>
+                <entry>
+                  <para>Data channel subprotocol identifier</para>
+                </entry>
               </row>
             </tbody>
           </tgroup>
@@ -382,7 +405,6 @@
               <row>
                 <entry><para>extend</para></entry>
                 <entry><para>The Connect command will return an expiry time parameter. It is possible to call the extend command
-
                     before the expiry time ends to extend the session. </para></entry>
               </row>
             </tbody>
@@ -807,6 +829,7 @@
           </tbody>
         </tgroup>
       </table>
+      <para>Note that the message layout slightly deviates from the JSON RPC 2.0 specification.</para>
     </section>
     <section>
       <title>Example Flow (informative)</title>
@@ -875,7 +898,14 @@ Server -> Client: { "error": {"code": 1001, "message": "Insufficient resources"}
         In particular, devices shall handle FIR messages, as defined in RFC 5104, and PLI messages,
         as defined in RFC 4585, and attempt to provide a synchronization point according to the
         semantics of these requests.</para>
-      <para></para>
+    </section>
+    <section>
+      <title>Congestion control</title>
+      <para>ONVIF recommends to always use congestion control to ensure that WebRTC cannot be used
+        to flood the network. For additional information, IETF recommends to use mechanism specified
+        in RFC8836 while many actual implementations refer to [RTP Extension for congestion control]
+        and its out of the scope for this specification to mandate specific congestion control
+        mechanism.</para>
     </section>
 	  <section>
 		  <title>ICE candidates</title>
@@ -886,8 +916,6 @@ Server -> Client: { "error": {"code": 1001, "message": "Insufficient resources"}
       <title>Video</title>
       <para>When using WebRTC with a web browser only certain codecs will work. Because of this
         ONVIF recommends to use the h.264 codec.</para>
-      <para>In line with WebRTC standard, ONVIF also recommends to always use congestion control to
-        ensure that WebRTC cannot be used to flood the network.</para>
     </section>
     <section xml:id="section_wyt_v12_v5b">
       <title>Audio</title>
@@ -932,6 +960,13 @@ Server -> Client: { "error": {"code": 1001, "message": "Insufficient resources"}
         </section>
     </section>
   </chapter>
+  <appendix>
+    <title>Bibliography</title>
+    <para>[RFC8836] Congestion Control Requirements for Interactive Real-Time Media</para>
+    <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc8836"/></para>
+    <para>[RTP Extension for congestion control] RTP Extensions for Transport-wide Congestion Control</para>
+    <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/draft-holmer-rmcat-transport-wide-cc-extensions-01"/></para>    
+  </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
     <para/>
