@@ -4,12 +4,12 @@
   <info>
     <title>Analytics Service Specification</title>
     <titleabbrev>Analytics</titleabbrev>
-    <releaseinfo>24.12</releaseinfo>
+    <releaseinfo>25.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June, 2025</pubdate>
+    <pubdate>December, 2025</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -240,7 +240,7 @@
         <author>
           <personname>Fredrik Svensson, Hans Busch, Sriram Bhetanabottla, Venki Aravapalli</personname>
         </author>
-        <revremark>Move scene description to separate chapter and append section on JSON syntax. 
+        <revremark>Move scene description to separate chapter and append section on JSON syntax.
           Clarify color value range. Add missing Access Class for DeleteAnalyticsModule. Update license plate rule configuration.</revremark>
       </revision>
       <revision>
@@ -291,6 +291,14 @@
         </author>
         <revremark>Introduce enhanced type Belongings and deprecate type Belonging. Add support for license plate colors. Clarify requirements for faults for rules and modules creation and modification.</revremark>
       </revision>
+      <revision>
+        <revnumber>25.12</revnumber>
+        <date>Dec-2025</date>
+        <author>
+          <personname>Sriram Bhetanabottla</personname>
+        </author>
+        <revremark>Add object track aggregation.</revremark>
+      </revision>
     </revhistory>
   </info>
   <chapter>
@@ -321,7 +329,6 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://unece.org/DAM/trans/danger/publi/ghs/ghs_rev07/English/ST_SG_AC10_30_Rev7e.pdf"></link>&gt;</para>
     <para>UNECE Agreement Concerning the International Carriage of Dangerous Goods by Road Volume II, 2021</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://unece.org/sites/default/files/2021-01/ADR2021_Vol2e.pdf"></link>&gt;</para>
-    
   </chapter>
   <chapter>
     <title>Terms and Definitions</title>
@@ -562,7 +569,7 @@
       XML-based Scene Description Interface including data types. For easy consumption by
       non-traditional clients (e.g. cloud vendors) and to bridge gap between traditional
       surveillance systems and IoT ecosystems metadata including scene description can be published
-      in JSON format over the MQTT protocol.</para>    
+      in JSON format over the MQTT protocol.</para>
     <para>Rules describe how the scene description is interpreted and how to react on that information. The specification defines standard rule syntax and methods to communicate configuration of these rules from the application to the device. </para>
     <para>A device supporting ONVIF Analytics Service shall implement the Scene Description Interface and allow events to be dispatched using the Event Service. If the device additionally supports a rule engine then it shall implement the Rules Analytics Modules Interface.</para>
     <para>Event and action engine interfaces and configuration is out of scope of this specification. The event interface is handled through the Event Service as described in the ONVIF Core specification.</para>
@@ -644,7 +651,7 @@
           <para>A transformation node has an optional scaling vector <inlinemediaobject><imageobject><imagedata fileref="media/Analytics/image11.svg" contentwidth="61" contentdepth="51" /></imageobject></inlinemediaobject> and an optional translational vector <inlinemediaobject><imageobject><imagedata fileref="media/Analytics/image12.svg" contentwidth="60" contentdepth="51" /></imageobject></inlinemediaobject>. If the scaling is not specified, its default value <inlinemediaobject><imageobject><imagedata fileref="media/Analytics/image13.svg" contentwidth="51" contentdepth="48" /></imageobject></inlinemediaobject> is assumed. Similarly, the default value for the translation is <inlinemediaobject><imageobject><imagedata fileref="media/Analytics/image14.svg" contentwidth="52" contentdepth="48" /></imageobject></inlinemediaobject>. The transformation node modifies the top-most coordinate system in the following way:</para>
           <para><inlinemediaobject><imageobject><imagedata fileref="media/Analytics/image15.svg" contentdepth="51" /></imageobject></inlinemediaobject>,
             <inlinemediaobject><imageobject><imagedata fileref="media/Analytics/image16.svg" contentdepth="51"  /></imageobject></inlinemediaobject>, where
-            <inlinemediaobject><imageobject><imagedata fileref="media/Analytics/image17.svg" contentdepth="51"  /></imageobject></inlinemediaobject> and 
+            <inlinemediaobject><imageobject><imagedata fileref="media/Analytics/image17.svg" contentdepth="51"  /></imageobject></inlinemediaobject> and
             <inlinemediaobject><imageobject><imagedata fileref="media/Analytics/image18.svg" contentdepth="51"  /></imageobject></inlinemediaobject> replace the top-most coordinate system.
           </para>
           <para>For example, the coordinates of the scene description are given in a frame coordinate system, where the lower-left corner has coordinates (0,0) and the upper-right corner coordinates (320,240).  The frame node resembles the following code where the scaling is set to the doubled reciprocal of the frame width and the frame height:</para>
@@ -893,7 +900,7 @@
               xmlns:xlink="http://www.w3.org/1999/xlink"
               xlink:href="http://www.onvif.org/ver10/colorspace/YCbCr"/>. Alternate color spaces as
             defined in <xref linkend="_colorspaces"/> can be defined on frame level and individually
-            for each object.</para> 
+            for each object.</para>
           <para>An example metadata containing color information of the detected object is given below.  </para>
           <programlisting><![CDATA[<tt:Frame UtcTime="2010-09-10T12:24:57.721" Colorspace="RGB">
   <tt:Transformation>
@@ -2373,7 +2380,7 @@
                   <entry>
                     <para>Barcode type Code-128, PDF417, QRCode etc., Acceptable values are defined in tt:BarcodeType.</para>
                   </entry>
-                </row>                
+                </row>
                 <row>
                   <entry>
                     <para>PPM</para>
@@ -2442,7 +2449,7 @@
                   <entry>
                     <para>ISO Registered safety signs</para>
                   </entry>
-                </row>                
+                </row>
                 <row>
                   <entry>
                     <para>UNECE_ADR</para>
@@ -2472,7 +2479,6 @@
               </imageobject>
             </mediaobject>
           </figure>
-          
           <para>An example metadata describing slippery floor according ISO 7010 is given
           below</para>
           <programlisting><![CDATA[<tt:VideoAnalytics>
@@ -3919,9 +3925,8 @@ xmlns:acme="http://www.acme.com/schema"&gt;
 
           <para>In case of setting up any region based detection rule for event trigger (e.g. Field Detector, Loitering Detector, Declarative motion detector, Object Detection) rule should contain a parameter 'Field' ElementItem. The ElementItem identifies the region usually defined by a polygon for which the rule has been setup. The corresponding ElementItemDescription resembles the following:</para>
           <programlisting><![CDATA[<tt:ElementItemDescription Name="Field" Type="tt:Polygon">]]></programlisting>
-		  
 		  <para>If the rule supports activation and deactivation, the rule should contain a parameter 'Armed' SimpleItem. The corresponding SimpleItemDescription resembles the following:</para>
-          <programlisting><![CDATA[<<tt:SimpleItemDescription Name="Armed" Type="xs:boolean">]]></programlisting>		 
+          <programlisting><![CDATA[<<tt:SimpleItemDescription Name="Armed" Type="xs:boolean">]]></programlisting>
 
         </section>
       <section xml:id="_objectClass">
@@ -3973,7 +3978,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
         <programlisting><![CDATA[<tt:ElementItemDescription Name="PTZVector" Type="tt:PTZVector">]]></programlisting>
         <para>As alternative the rules may include a "PresetToken" that acts in the same way as the "PTZVector". The
           corresponding SimpleItemDescription resembles the following:</para>
-        <programlisting><![CDATA[<tt:SimpleItemDescription Name="PresetToken" Type="tt:ReferenceToken">]]></programlisting>  
+        <programlisting><![CDATA[<tt:SimpleItemDescription Name="PresetToken" Type="tt:ReferenceToken">]]></programlisting>
         <para>Note that tolerances for matching are outside of the scope of this specification.
           However devices should strive to tolerate and compensate for small deviations.</para>
       </section>
@@ -4194,7 +4199,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
       </variablelist>
       <para>CountAggregation defined by the following code using the rule description language: </para>
       <programlisting><![CDATA[<tt:RuleDescription Name="tt:LineCounting">
-  <tt:Parameters>    
+  <tt:Parameters>
     <tt:SimpleItemDescription Name="ReportTimeInterval" Type="xs:duration"/>
     <tt:SimpleItemDescription Name="ResetTime" Type="xs:time"/>
     <tt:SimpleItemDescription Name="Direction" Type="tt:Direction"/>
@@ -4220,7 +4225,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
       <para>The occupancy counting rule counts the number of objects inside an enclosure by counting
         objects passing in and out of a set of line segments (barriers). The counter increments when
         objects pass from left to right and decrements when objects pass from right to left.</para>
-      <para>The configuration parameters also include the time interval to report the events and 
+      <para>The configuration parameters also include the time interval to report the events and
         time interval to reset its counter.</para>
       <variablelist role="op">
         <varlistentry>
@@ -4379,12 +4384,12 @@ xmlns:acme="http://www.acme.com/schema"&gt;
         </varlistentry>
         <varlistentry>
           <term>Data</term>
-          <listitem>            
+          <listitem>
             <para role="param">ObjectId [tt:StringList]</para>
             <para role="text">List of objects triggering this rule.</para>
           </listitem>
         </varlistentry>
-      </variablelist>      
+      </variablelist>
       <para>See below example for a Object Abandoned definition:</para>
       <programlisting><![CDATA[<tt:RuleDescription Name="tt:ObjectAbandoned">
   <tt:Parameters>
@@ -4396,7 +4401,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
     <tt:Source>
       ...
     </tt:Source>
-    <tt:Data>      
+    <tt:Data>
       <tt:SimpleItemDescription Name="ObjectId" Type="tt:StringList"/>
     </tt:Data >
     <tt:ParentTopic>
@@ -4436,12 +4441,12 @@ xmlns:acme="http://www.acme.com/schema"&gt;
         </varlistentry>
         <varlistentry>
           <term>Data</term>
-          <listitem>            
+          <listitem>
             <para role="param">ObjectId [tt:StringList]</para>
             <para role="text">List of objects triggering this rule.</para>
           </listitem>
         </varlistentry>
-      </variablelist>      
+      </variablelist>
       <para>See below example for a Object Removed definition:</para>
       <programlisting><![CDATA[<tt:RuleDescription Name="tt:ObjectRemoved">
   <tt:Parameters>
@@ -4453,7 +4458,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
     <tt:Source>
       ...
     </tt:Source>
-    <tt:Data>     
+    <tt:Data>
       <tt:SimpleItemDescription Name="ObjectId" Type="tt:StringList"/>
     </tt:Data >
     <tt:ParentTopic>
@@ -4474,7 +4479,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
       <para>It is recommended to enable ObjectTrack data in sparsely crowded scenes to optimize data
         produced from the device.</para>
       <para>The process by which device aggregates object track data for a given object is out of
-        scope of this specification.</para>      
+        scope of this specification.</para>
       <para>The Object Track Aggregation rule generates an object track aggregation event for below
         listed scenarios </para>
       <itemizedlist>
@@ -4492,7 +4497,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
         </listitem>
       </itemizedlist>
       <para>Optionally, device may include additional object track data for e.g. snapshot image as
-        configured in ObjectTrackDataFilter parameter. Devices may prune track information for 
+        configured in ObjectTrackDataFilter parameter. Devices may prune track information for
         objects with complex or long lasting motion patterns.</para>
       <para>If an initial or intermediate aggregation is sent for an object, Final aggregation event
         for that object shall be sent even if final classification does not meet class or threshold
@@ -4519,10 +4524,10 @@ xmlns:acme="http://www.acme.com/schema"&gt;
             <para role="param">EarlyReport - optional [xs:boolean]</para>
             <para role="text">Signals that a device shall send an intermediate report as soon as it has sufficient information.</para>
             <para role="param">ReportTimeInterval - optional [xs:duration]</para>
-            <para role="text">Optional time interval to request intermediate updates at a recurring 
-              rate. Reports may be omitted if the information hasn’t significantly changed. 
+            <para role="text">Optional time interval to request intermediate updates at a recurring
+              rate. Reports may be omitted if the information hasn’t significantly changed.
               Details are implementation dependent and outside of the scope of this specification.
-              The time interval is not intended as an exact clock and devices may adapt durations. 
+              The time interval is not intended as an exact clock and devices may adapt durations.
             </para>
             <para role="param">ObjectTrackDataFilter - optional [tt:StringList]</para>
             <para role="text">Optional subset of XPath 1.0 filter relative to tt:Object for e.g.
@@ -4547,7 +4552,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
           <listitem>
             <para role="param">AggregationStart - mandatory [xs:dateTime] </para>
             <para role="text">All aggregation events shall set object track start time as the
-              AggregationStart time. </para>        
+              AggregationStart time. </para>
             <para role="param">Object - mandatory [tt:Object]</para>
             <para role="text">Track aggregation data of an object.</para>
             <para role="param">ObjectTrack - optional [tt:ObjectTrack]</para>
@@ -4557,7 +4562,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
               object.</para>
           </listitem>
         </varlistentry>
-      </variablelist>      
+      </variablelist>
       <para>See below example for an Object Track Aggregation definition:</para>
       <programlisting><![CDATA[<tt:RuleDescription Name="tt:ObjectTrackAggregation">
   <tt:Parameters>
@@ -5638,7 +5643,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
     </section>
     <section>
       <title>Radiometry Rules</title>
-      <para>Following radiometry rules are defined, RadiometryTemperatureRule and TemperatureMeasurementRule.</para> 
+      <para>Following radiometry rules are defined, RadiometryTemperatureRule and TemperatureMeasurementRule.</para>
       <section>
         <title>RadiometryTemperatureRule</title>
       <para>Calling the GetRuleOptions operation with the ttr:RadiometryRule type shall return an ttr:RadiometryRuleConfigOptions, as well as ttr:RadiometryTemperatureRuleConfig, if Radiometry Rules are supported by the Device.</para>
@@ -5872,7 +5877,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
   </xs:MessageDescription>
 </xs:RuleDescription>
 ]]>
-		 </programlisting> 
+		 </programlisting>
 		  <table xml:id="_RefMeasurementRuleTable">
         <title>TemperatureMeasurementRule configuration parameters </title>
         <tgroup cols="2">
@@ -5988,7 +5993,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
   <tt:SimpleItemDescription Name="ThresholdTemperature" Type="xs:float"/>
   <tt:SimpleItemDescription Name="RuleCondition" Type="xs:string"/>
   <tt:SimpleItemDescription Name="Duration" Type="xs:duration"/>
-  <tt:SimpleItemDescription Name="TemperatureMeasurementModule" Type="xs:string"/>   
+  <tt:SimpleItemDescription Name="TemperatureMeasurementModule" Type="xs:string"/>
 </tt:Parameters>
 <tt:Messages>
   <tt:Source>
@@ -6006,9 +6011,9 @@ xmlns:acme="http://www.acme.com/schema"&gt;
     <tt:ElementItemDescription Type="tt:Rectangle" Name="BoundingBox"/>
   </tt:Data>
   <tt:ParentTopic>tns1:RuleEngine/Radiometry/BodyTemperatureAlarm</tt:ParentTopic>
-</tt:Messages> 
+</tt:Messages>
 ]]>
-		 </programlisting> 
+		 </programlisting>
 		  <table xml:id="_RefBodMeasurementRuleTable">
         <title>BodyTemperatureRule configuration parameters </title>
         <tgroup cols="2">
@@ -7194,7 +7199,7 @@ xmlns:acme="http://www.acme.com/schema"&gt;
                 <para>Threshold</para>
               </entry>
               <entry>
-                <para>The level of confidence required for the detection/recognition.</para>                
+                <para>The level of confidence required for the detection/recognition.</para>
               </entry>
               <entry>
                 <para>Optional</para>
