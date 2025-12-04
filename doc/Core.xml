@@ -4,12 +4,12 @@
   <info>
     <title>ONVIF Core Specification</title>
     <titleabbrev>ONVIF Core Spec</titleabbrev>
-    <releaseinfo>25.06</releaseinfo>
+    <releaseinfo>25.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June, 2025</pubdate>
+    <pubdate>December, 2025</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -317,7 +317,7 @@
         <author>
           <personname>Ottavio Campana</personname>
         </author>
-        <revremark>Add cloud firmware upgrade support.</revremark>
+        <revremark>Add support for user roles and cloud firmware upgrade</revremark>
       </revision>
     </revhistory>
   </info>
@@ -459,8 +459,8 @@
           <row>
             <entry>Shinichi Hatae</entry>
             <entry>Canon Inc</entry>
-            <entry>Masashi Tonomura</entry>
-            <entry>Sony Corporation</entry>
+            <entry/>
+            <entry/>
           </row>
           <row>
             <entry>Takahiro Iwasaki</entry>
@@ -2431,9 +2431,16 @@ X-Frame-Options: SAMEORIGIN]]></programlisting>
               <para>User</para>
             </listitem>
             <listitem>
+              <para>Extended</para>
+            </listitem>
+            <listitem>
               <para>Anonymous</para>
             </listitem>
           </orderedlist>
+          <para>For users with the Extended user level, a device will authenticate requests as for other
+            user levels, but authorization will depend on the information configured in the
+            corresponding <emphasis>Extension</emphasis> field of the corresponding
+              <emphasis>User</emphasis> element.</para>
           <para>Unauthenticated users are placed into the anonymous category and a device shall not allow users to be added to the anonymous user level category. </para>
         </section>
         <section xml:id="AccessClasses">
@@ -2607,6 +2614,39 @@ X-Frame-Options: SAMEORIGIN]]></programlisting>
           <para>By default, the device should enforce the following default access policy, which gives an acceptable level of security in many systems.</para>
           <para>The default access policy builds upon the access classes that are associated to the services and grants access rights in the following way. A user of level c shall be granted access to a service associated to access class r if and only if an "X" is present in the cell at column c and row r in <xref linkend="_Ref292468385" />.</para>
           <para>A device that signals support for the Default Access Policy via the respective capability shall support at least one user of each user level Administrator, Operator and User.</para>
+        </section>
+        <section>
+          <title>User roles</title>
+          <para>To have finer control of invokable functions, extended users levels may be
+            associated to one or more roles, see <xref linkend="_Ref443486820"/>.</para>
+          <para>Devices supporting user roles shall predefine the following non editable
+            roles:</para>
+          <itemizedlist>
+            <listitem>
+              <para><emphasis>onvif:Administrator</emphasis> : the predefined role corresponding to
+                the Administrator user level. Users with Administrator user level and extended users
+                with onvif:Administrator role shall be functionally equivalent.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>onvif:Operator</emphasis> : the predefined role corresponding to the
+                Operator user level. Users with Operator user level and extended users with
+                onvif:Operator role shall be functionally equivalent.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>onvif:User</emphasis> : the predefined role corresponding to the User
+                user level. Users with User user level and extended users with onvif:User role shall
+                be functionally equivalent.</para>
+            </listitem>
+          </itemizedlist>
+          <para>The usage of the <emphasis>onvif:</emphasis> prefix for new roles is reserved and
+            shall not be used to create custom user roles. Roles with the
+              <emphasis>onvif:</emphasis> prefix are fixed and cannot be edited.</para>
+          <para>The name of custom user roles shall not include spaces.</para>
+          <para>Unlike user levels, more than one role may be associated with an Extended User. As
+            an example, in this way it is possibile to define a new set of credentials with
+            onvif:User and PTZControl roles, to give a user the possibility of accessing a camera
+            and to only control the PTZ, without altering any other state of the device, such as
+            I/Os.</para>
         </section>
       </section>
       <section>
@@ -3220,7 +3260,7 @@ onvif://www.onvif.org/name/ARV-453
                   </entry>
                 </row>
                 <row>
-                  <entry morerows="16">
+                  <entry morerows="17">
                     <para>Security</para>
                   </entry>
                   <entry>
@@ -3350,12 +3390,25 @@ onvif://www.onvif.org/name/ARV-453
                     <para>Maximum number of passwords that the device can remember for each user. If the device does not support the password history this attribute should be zero or not present</para>
                   </entry>
                 </row>
-				 <row>
+                <row>
                   <entry>
                     <para>HashingAlgorithms</para>
                   </entry>
                   <entry>
                     <para>Indicates which hashing algorithms are supported as part of HTTP and RTSP digest authentication.</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>MaxUserRoles</para>
+                  </entry>
+                  <entry>
+                    <para>Whenever set to an integer greater than zero, it signals that the device
+                      supports user roles, as described in section <xref linkend="_Ref443486820"/>.
+                      It indicates the maximum number of editable user roles, including the three
+                      predefined roles <emphasis>onvif:Administrator</emphasis>,
+                        <emphasis>onvif:Operator</emphasis> and
+                      <emphasis>onvif:User</emphasis>.</para>
                   </entry>
                 </row>
                 <row>
@@ -5408,7 +5461,7 @@ onvif://www.onvif.org/name/ARV-453
     </section>
     <section xml:id="_Ref474427788">
       <title>Security</title>
-      <para>This section contains a set of security management operations. Such operations are sensitive to network attacks and shall be protected using appropriate authorization levels in order not to compromise the device.<emphasis></emphasis></para>
+      <para>This section contains a set of security management operations. Such operations are sensitive to network attacks and shall be protected using appropriate authorization levels in order not to compromise the device.</para>
       <section xml:id="_Toc213907681">
         <title>Get access policy</title>
         <para>Access to different services and sub-sets of services should be subject to access control. Section <xref linkend="_Ref208379139" /> gives the prerequisite for end-point authentication. Authorization decisions can then be taken using an <emphasis>access security policy. </emphasis>This standard does not mandate any particular policy description format or security policy but this is up to the device manufacturer or system provider to choose policy and policy description format of choice. However, an access policy (in arbitrary format) can be requested using this command. If the device supports access policy settings, then the device shall support this command. </para>
@@ -5509,7 +5562,7 @@ onvif://www.onvif.org/name/ARV-453
       </section>
       <section>
         <title>Create users</title>
-        <para>This operation creates new device users and corresponding credentials on a device for authentication, see Section <xref linkend="_Ref208379139" /> for details.  A device shall support this command unless support signalled via the UserConfigNotSupported capability is ‘True’. The device shall support creation of device users and their credentials for authentication through the CreateUsers command as long as the number of existing users does not exceed the capability value MaxUsers. Either all users are created successfully or a fault message shall be returned without creating any user.</para>
+        <para>This operation creates new device users and corresponding credentials on a device for authentication, see Section <xref linkend="_Ref208379139" /> for details.  A device shall support this command unless support is signalled via the UserConfigNotSupported capability is ‘True’. The device shall support creation of device users and their credentials for authentication through the CreateUsers command as long as the number of existing users does not exceed the capability value MaxUsers. Either all users are created successfully or a fault message shall be returned without creating any user.</para>
         <para>ONVIF compliant devices are recommended to support password length of at least 28 bytes.</para>
         <variablelist role="op">
           <varlistentry>
@@ -5726,6 +5779,128 @@ onvif://www.onvif.org/name/ARV-453
             </listitem>
           </varlistentry>
         </variablelist>
+      </section>
+      <section xml:id="_Ref443486820">
+        <title>User roles</title>
+        <para>A device that signals support for user roles handling via the Security Capability
+          MaxUserRoles shall support these operations.</para>
+        <section>
+          <title>Get user roles</title>
+          <para>This operation returns the user roles configured in the device, including the
+            pre-defined onvif ones <emphasis>onvif:Administrator</emphasis>,
+              <emphasis>onvif:Operator</emphasis> and <emphasis>onvif:User</emphasis> corresponding
+            to the Administrator, Operator and User levels. For the predefined roles, the functions
+            list is empty because it is implicetly derived the device access policy. Whenever the
+            name of a user role is passed in the request, information only about that level is
+            returned.</para>
+          <variablelist role="op">
+            <varlistentry>
+              <term>request</term>
+              <listitem>
+                <para role="param">Name - optional [xs:string]</para>
+                <para role="text">If a value is defined for Name, then only the information for the
+                  user role matching that name is returned.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>response</term>
+              <listitem>
+                <para role="param">UserRoles - optional unbounded [tt:UserRole]</para>
+                <para role="text">Information about one or more user roles. </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>faults</term>
+              <listitem>
+                <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidUserRole</para>
+                <para role="text">The specified user role does not exist.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>access class</term>
+              <listitem>
+                <para role="access">READ_SYSTEM</para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+        </section>
+        <section>
+          <title>Set user role</title>
+          <para>This operation configures a user role in the device. If the name passed in the
+            UserRole argument already exists in the device, its configuration will be overwritten.
+            Otherwise, a new role will be created.</para>
+          <para>A client is expected to use the capabilities of the device to request only functions
+            that are implemented in the device. In case a client requests an unknown or not
+            implemented function, the device must return an error.</para>
+          <variablelist role="op">
+            <varlistentry>
+              <term>request</term>
+              <listitem>
+                <para role="param">UserRole - [tt:UserRole]</para>
+                <para role="text">The user role to be created or overwritten.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>response</term>
+              <listitem>
+                <para role="text">This is an empty message.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>faults</term>
+              <listitem>
+                <para role="param>">env:Receiver - ter:Action - ter:TooManyUserRoles</para>
+                <para role="text">Maximum number of supported user roles exceeded.</para>
+                <para role="param>">env:Receiver - ter:Action - ter:FunctionNotImplemented</para>
+                <para role="text">One or more requested functions are not implemented in the
+                  device.</para>
+                <para role="param">env:Sender - ter:OperationProhibited  - ter:OnvifPrefix</para>
+                <para role="text">The client cannot create or edit roles starting with the onvif:
+                  prefix.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>access class</term>
+              <listitem>
+                <para role="access">WRITE_SYSTEM</para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+        </section>
+        <section>
+          <title>Delete user role</title>
+          <para>This operation deletes a user role in the device. </para>
+          <variablelist role="op">
+            <varlistentry>
+              <term>request</term>
+              <listitem>
+                <para role="param">Name - [xs:string]</para>
+                <para role="text">The user role that has to be deleted.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>response</term>
+              <listitem>
+                <para role="text">This is an empty message.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>faults</term>
+              <listitem>
+                <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidUserRole</para>
+                <para role="text">The specified user role does not exist.</para>
+                <para role="param">env:Sender - ter:OperationProhibited - ter:OnvifPrefix</para>
+                <para role="text">The client delete roles starting with the onvif: prefix.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>access class</term>
+              <listitem>
+                <para role="access">WRITE_SYSTEM</para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+        </section>
       </section>
     </section>
     <section xml:id="_Ref1614781087">
@@ -6849,7 +7024,7 @@ Event description:
               <emphasis role="bold">tev:ChangedOnly</emphasis> A pullpoint should not provide Initialized nor Deleted events for Properties.</para>
           </listitem>
         </itemizedlist>
-        <para >Both request and response message contain the same elements as the SubscriptionRequest and Response of [WS-BaseNotification] without the ConsumerReference.</para>
+        <para>Both request and response message contain the same elements as the SubscriptionRequest and Response of [WS-BaseNotification] without the ConsumerReference.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -7449,7 +7624,7 @@ Event description:
       </section>
       <section xml:id="_Ref210036144">
         <title>Topic Type Information</title>
-        <para>A device shall add a MessageDescription element, of type MessageDescriptionType defined in Section ‎<xref linkend="_Toc214003093" />, below all elements representing topics in the topic set supported by the device. Furthermore a device shall, in accordance with the notification specification, identify all element representing topics in the topic set by including the wstop:topic attribute with value "true".</para>
+        <para>A device shall add a MessageDescription element, of type MessageDescriptionType defined in Section ‎<xref linkend="_Toc214003093" />, below all elements representing topics in the topic set supported by the device. Furthermore a device shall, in accordance with the notification specification, identify all elements representing topics in the topic set by including the wstop:topic attribute with value "true".</para>
         <para>The following example demonstrates how Topics of a TopicSet are augmented with Message Descriptions:</para>
         <programlisting><![CDATA[<wstop:TopicSet xmlns=””>
   <tns1:RuleEngine>
@@ -8418,7 +8593,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>Dot11Configuration</para>
             </entry>
@@ -8852,7 +9027,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>MetadataSearch</para>
             </entry>
@@ -8916,7 +9091,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>VideoSources</para>
             </entry>
@@ -8925,7 +9100,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>VideoOutputs</para>
             </entry>
@@ -8934,7 +9109,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>AudioSources</para>
             </entry>
@@ -8943,7 +9118,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>AudioOutputs</para>
             </entry>
@@ -8952,7 +9127,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>RelayOutputs</para>
             </entry>
@@ -9348,6 +9523,6 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
   </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
-    <para />
+    <para/>
   </appendix>
 </book>

@@ -4,7 +4,7 @@
   <info>
     <title>Security Service Specification</title>
     <titleabbrev>Security Configuration</titleabbrev>
-    <releaseinfo>25.12 Draft</releaseinfo>
+    <releaseinfo>25.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
@@ -920,75 +920,54 @@
       <title>JWT-based client authorization</title>
       <section>
         <title>General</title>
-        <para>Unlike with HTTP Digest and WS-UsernameToken authentication, this specification
-          defines how to associate clients with the different User Levels as defined in the ONVIF
-          Core Specification. Devices are not expected to have the user credentials stored in their
-          memory, instead they will verify that the user has been correctly authenticated by a
-          trusted service based on OpenID Connect and authorize accessing different functions, based
-          on the claims presented in the supplied JWT. JWTs can be presented as headers in case of
-          HTTPS or RTSP, or they can be embedded in SOAP messages, in the form of binary security
-          tokens. In case JWTs are embedded in binary security tokens, their content is
-          base64url-encoded according to RFC 7519.</para>
-        <para>JWTs consists of three elements:</para>
-        <para>
-          <itemizedlist>
-            <listitem>
-              <para>JOSE header</para>
-            </listitem>
-            <listitem>
-              <para>Payload</para>
-            </listitem>
-            <listitem>
-              <para>Signature</para>
-            </listitem>
-          </itemizedlist>
-        </para>
-        <para>The JOSE header shall declare that the encoded object is a JSON Web Token by setting
-          the <emphasis>typ</emphasis> parameter to <emphasis>JWT</emphasis>, and the JWT is a JWS
-          that is signed using the algorithm identified by the <emphasis>alg</emphasis> claim with a
-          value defined in RFC7518. Since the keystore does not support symmetric encryption, this
-          specification only mandates asymmetric encryption.</para>
-        <para>The JWT payload shall include the following standard claims:</para>
-        <para>
-          <itemizedlist>
-            <listitem>
-              <para><emphasis>iss</emphasis>: Issuer, the URI of the server that generated the
-                JWT.</para>
-            </listitem>
-            <listitem>
-              <para><emphasis>aud</emphasis>: Audience, a list of strings representing the
-                recipients that the JWT is intended for. Each principal intended to process the JWT
-                shall identify itself with a value in the audience claim. If the principal
-                processing the claim does not identify itself with a value in the audience claim
-                when this claim is present, then the JWT shall be rejected.</para>
-            </listitem>
-            <listitem>
-              <para><emphasis>exp</emphasis>: Expiration Time.</para>
-            </listitem>
-            <listitem>
-              <para><emphasis>nbf</emphasis>: Not before.</para>
-            </listitem>
-          </itemizedlist>
-        </para>
-        <para>For the <emphasis>exp</emphasis>, <emphasis>nbf</emphasis> claims, a device shall
-          reject a token when the current time is not within the range of claims nbf and exp. It
-          shall reject a token when at least one of the claims is missing.</para>
-        <para>The JWT payload shall include the <emphasis>roles</emphasis> claim, as defined within
-          RFC 7643:</para>
-        <para>
-          <itemizedlist>
-            <listitem>
-              <para><emphasis>roles</emphasis>: Access class. One of the authenticated classes of
-                the default access policy prefixed with the string <emphasis>onvif:</emphasis>, i.e.
-                "onvif:Administrator", "onvif:Operator" or "onvif:User" as defined also within the
-                ONVIF Core Specification. This access level will be used to authorize access to the
-                required function.</para>
-            </listitem>
-          </itemizedlist>
-        </para>
-        <para>The signature is evaluated by applying ECDSA using secp256r1 and SHA-256 hashing to
-          the base64url-encoded header and payload, concatenated by a '.'</para>
-        <programlisting>ECDSA-SHA256 (base64UrlEncode(header) + "." +
+      <para>Unlike with HTTP Digest and WS-UsernameToken authentication, this specification defines how to associate clients with the different User Levels as defined in the ONVIF Core Specification. Devices are not expected to have the user credentials stored in their memory, instead they will verify that the user has been correctly authenticated by a trusted service based on OpenID Connect and authorize accessing different functions, based on the claims presented in the supplied JWT. JWTs can be presented as headers in case of HTTPS or RTSP, or they can be embedded in SOAP messages, in the form of binary security tokens. In case JWTs are embedded in binary security tokens, their content is base64url-encoded according to RFC 7519.</para>
+      <para>JWTs consists of three elements:</para>
+      <para>
+        <itemizedlist>
+          <listitem>
+            <para>JOSE header</para>
+          </listitem>
+          <listitem>
+            <para>Payload</para>
+          </listitem>
+          <listitem>
+            <para>Signature</para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>The JOSE header shall declare that the encoded object is a JSON Web Token by setting the <emphasis>typ</emphasis> parameter to <emphasis>JWT</emphasis>, and the JWT is a JWS that is signed using the algorithm identified by the <emphasis>alg</emphasis> claim with a value defined in RFC7518. Since the keystore does not support symmetric encryption, this specification only mandates asymmetric encryption.</para>
+      <para>The JWT payload shall include the following standard claims:</para>
+      <para>
+        <itemizedlist>
+          <listitem>
+            <para><emphasis>iss</emphasis>: Issuer, the URI of the server that generated the JWT.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>aud</emphasis>: Audience, a list of strings representing the recipients that the JWT is intended for. Each principal intended to process the JWT shall identify itself with a value in the audience claim. If the principal processing the claim does not identify itself with a value in the audience claim when this claim is present, then the JWT shall be rejected.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>exp</emphasis>: Expiration Time.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>nbf</emphasis>: Not before.</para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>For the <emphasis>exp</emphasis>, <emphasis>nbf</emphasis> claims, a device shall reject a token when the current time is not within the range of claims nbf and exp. It shall reject a token when at least one of the claims is missing.</para>
+      <para>The JWT payload shall include the <emphasis>roles</emphasis> claim, as defined within RFC 7643:</para>
+      <para>
+        <itemizedlist>
+          <listitem>
+            <para><emphasis>roles</emphasis>: Access role. One or more user roles, either
+              pre-defined ones or prefixed with the string <emphasis>onvif:</emphasis> .i.e.
+              "onvif:Administrator", "onvif:Operator" or "onvif:User" as defined also within the
+              ONVIF Core Specification,  or custom ones defined on the device. These access roles
+              will be used to authorize access to the required function.</para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>The signature is evaluated by applying ECDSA using secp256r1 and SHA-256 hashing to the base64url-encoded header and payload, concatenated by a '.'</para>
+      <programlisting>ECDSA-SHA256 (base64UrlEncode(header) + "." +
               base64UrlEncode(payload),
               secp256r1))</programlisting>
         <para>The evaluated signature is further appended to the encoded header and payload with a
@@ -4878,7 +4857,9 @@
                   <para>RSAKeyLengths</para>
                 </entry>
                 <entry>
-                  <para>Indicates which RSA key lengths are supported by the device.</para>
+                  <para>Indicates which RSA key lengths are supported by the device for private and
+                    public key usage. Note that a device may support additional key length for
+                    public key usages.</para>
                 </entry>
               </row>
               <row>
@@ -4886,7 +4867,7 @@
                   <para>EllipticCurves</para>
                 </entry>
                 <entry>
-                  <para>Indicates which elliptic curves are supported by the device.</para>
+                  <para>Indicates which elliptic curves are supported by the device. Supported curve names can be found in the IANA TLS Supported Groups section, under the Description field.</para>
                 </entry>
               </row>
               <row>

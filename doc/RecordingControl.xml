@@ -1759,6 +1759,7 @@ Change Request 2061, 2063, 2065, 2109</revremark>
   </tt:Data> 
 </tt:MessageDescription>
 ]]></programlisting>
+        <para>This event is not applicable for data removal from object storage targets for e.g. Object Storage S3.</para>
       </section>
       <section>
         <title>Recording and track creation and deletion</title>
@@ -2213,6 +2214,7 @@ aligned(8) class AsymmetricKeySystemHeaderBox extends FullBox('pssh', version=1,
   unsigned int(32) DataSize;
   unsigned int(32) EncryptedKeyEntryCount;
   for (i=1; i <= EncryptedKeyEntryCount; i++) {
+    unsigned int(16) CertificateThumbprintAlgorithm;
     unsigned int(32) CertificateThumbprintSize;
     unsigned int(8)[CertificateThumbprintSize] CertificateThumbprint;
     unsigned int(8) EncryptionVersion;
@@ -2240,6 +2242,10 @@ aligned(8) class AsymmetricKeySystemHeaderBox extends FullBox('pssh', version=1,
           <para><literal>KID</literal> is the generated UUID by the device. This <literal>KID</literal> should be the same in all segments until the symmetric key changes.</para>
           <para><literal>DataSize</literal> is the size in bytes of all the other fields present in this box following this field.</para>
           <para><literal>EncryptedKeyEntryCount</literal> Number of entries containing encryption information required to decrypt the symmetric key. Shall be 1 or more.</para>
+          <para>
+            <literal>CertificateThumbprintAlgorithm</literal> defines the algorithm identifier used to compute the certificate thumbprint.
+            The valid identifiers are <literal>1</literal> for SHA-1, <literal>2</literal> for SHA-256.
+          </para>
           <para><literal>CertificateThumbprintSize</literal> Size of the <literal>CertificateThumbprint</literal> field.</para>
           <para><literal>CertificateThumbprint</literal> Thumbprint of the certificate used to encrypted the symmetric key.</para>
           <para><literal>EncryptionVersion</literal> defines the encryption strategy used to encrypt the symmetric key for this certificate.</para>
