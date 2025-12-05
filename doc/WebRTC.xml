@@ -4,12 +4,12 @@
   <info>
     <title>WebRTC Specification</title>
     <titleabbrev>WebRTC</titleabbrev>
-    <releaseinfo>25.06</releaseinfo>
+    <releaseinfo>25.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June 2025</pubdate>
+    <pubdate>December 2025</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -64,8 +64,8 @@
         </author>
         <revremark>Added data channels.</revremark>
       </revision>
-			<revision>
-			<revnumber>25.12</revnumber>
+      <revision>
+        <revnumber>25.12</revnumber>
         <date>Dec, 2025</date>
         <author>
           <personname>Henrik Hein</personname>
@@ -81,7 +81,7 @@
       signaling server.</para>
     <para>The client communication with its signaling server is provided as an example, both those
       components belong to the Client and their interaction may be vendor dependent. </para>
-    <para>Sending PTZ and other commands via WebRTC datachannels is outside of the scope of this 
+    <para>Sending PTZ and other commands via WebRTC datachannels is outside of the scope of this
       version of the specification.</para>
   </chapter>
   <chapter xml:id="chapter_uxt_v12_v5b">
@@ -287,7 +287,7 @@
   <chapter xml:id="chapter_zxt_v12_v5b">
     <title>Signaling Protocol</title>
     <para>The <emphasis role="italic">Signaling Protocol</emphasis> defines the messages between a
-      <emphasis role="italic">client</emphasis> and a <emphasis role="italic">device</emphasis> 
+      <emphasis role="italic">client</emphasis> and a <emphasis role="italic">device</emphasis>
       with the intention of establishing a WebRTC peer-to-peer connection between the
       client and a device. The messages are always sent via the <emphasis>signaling
         server</emphasis>, called <emphasis>server</emphasis> from now on. Once a peer-to-peer
@@ -664,7 +664,7 @@
         </varlistentry>
       </variablelist>
       <para>Both client and device produce ICE candidates and send them to each other, via the
-          server. Once all ICE candidates have been sent by a peer, it shall send a last trickle 
+          server. Once all ICE candidates have been sent by a peer, it shall send a last trickle
           notification with an empty ICE candidate content to indicate that all candidates have
           been sent according to RFC 8838.</para>
       <para><emphasis role="bold">NOTE</emphasis>: Note that ICE candidates can arrive <emphasis
@@ -841,18 +841,18 @@ Server -> Client: { "result": { "id": "client-a1" }, "id": 1}
 Device -> Server: { "method": "register", "params": {"authorization": "access token"}, "id":1}
 Server -> Device: { "result": { "id": "device-b1" }, "id": 1}
 
-Client -> Server: { "method": "connect", 
+Client -> Server: { "method": "connect",
                 "params": {"authorization": "access token", "peer": "device-b1"}, "id":2}
-Server -> Device: { "method": "connect", 
-                "params": {"session": "s1", "iceServers": [{"urls": ["stun:1.2.3.4"]}], 
+Server -> Device: { "method": "connect",
+                "params": {"session": "s1", "iceServers": [{"urls": ["stun:1.2.3.4"]}],
                 "id":2}
 Device -> Server: { "result": {}, "id": 2}
-Server -> Client: { "result": {"session": "s1", 
+Server -> Client: { "result": {"session": "s1",
                 "iceServers": [{"urls": ["stun:1.2.3.4"]}]}, "id": 2}
 
-Device -> Server: { "method": "invite", "params": {"session": "s1", "offer": "SDP...", 
+Device -> Server: { "method": "invite", "params": {"session": "s1", "offer": "SDP...",
                 "subprotocols": ["proto1"]}, "id":3}
-Server -> Client: { "method": "invite", "params": {"session": "s1", "offer": "SDP...", 
+Server -> Client: { "method": "invite", "params": {"session": "s1", "offer": "SDP...",
                 "subprotocols": ["proto1"]}, "id":3}
 Client -> Server: { "result": {"answer": "SDP...", "subprotocols": ["proto1"]}, "id": 3}
 Server -> Device: { "result": {"answer": "SDP...", "subprotocols": ["proto1"]}, "id": 3}
@@ -866,7 +866,7 @@ Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate"
 Client -> Server: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
 Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate": {...}}}
 ...
-Client -> Server: { "method": "extend", "params": {"session": "s1", "authorization": "...", 
+Client -> Server: { "method": "extend", "params": {"session": "s1", "authorization": "...",
                 "id": 4}
 Server -> Client: { "error": {"code": -32601, "message": "Method not found"}, "id": "4"}
 ...
@@ -887,9 +887,9 @@ Server -> Client: { "error": {"code": 1001, "message": "Insufficient resources"}
       client based on the available bandwidth or other limiting factors. For example, a specific
       profile for mobile clients, another one for high quality streaming, etc.</para>
       <para>Devices should estimate available uplink bandwidth and reduce stream
-        bitrate as needed to avoid packet loss. It may be achieved by selecting video stream 
+        bitrate as needed to avoid packet loss. It may be achieved by selecting video stream
         from another profile with the same video source and the same video codec.
-        Once there is enough available bandwidth, devices should aim to switch back to the desired 
+        Once there is enough available bandwidth, devices should aim to switch back to the desired
         configuration.</para>
     </section>
     <section xml:id="section_xyt_v12_v5b">
@@ -907,11 +907,11 @@ Server -> Client: { "error": {"code": 1001, "message": "Insufficient resources"}
         and its out of the scope for this specification to mandate specific congestion control
         mechanism.</para>
     </section>
-	  <section>
-		  <title>ICE candidates</title>
-	    <para>A device shall support generating and receiving host, server reflexive and relay ICE candidates as defined in RFC 8445.</para>
-    	<para>A device shall handle passive ICE TCP candidates as defined in RFC 6544. On reception, it shall generate an active ICE TCP candidate to match and establish a TCP connection to the endpoint announced by the candidate. A device is not required to listen on a TCP endpoint and generate a passive ICE TCP candidate.</para>
-	  </section>
+    <section>
+      <title>ICE candidates</title>
+        <para>A device shall support generating and receiving host, server reflexive and relay ICE candidates as defined in RFC 8445.</para>
+        <para>A device shall handle passive ICE TCP candidates as defined in RFC 6544. On reception, it shall generate an active ICE TCP candidate to match and establish a TCP connection to the endpoint announced by the candidate. A device is not required to listen on a TCP endpoint and generate a passive ICE TCP candidate.</para>
+    </section>
     <section xml:id="section_vyt_v12_v5b">
       <title>Video</title>
       <para>When using WebRTC with a web browser only certain codecs will work. Because of this
@@ -921,41 +921,45 @@ Server -> Client: { "error": {"code": 1001, "message": "Insufficient resources"}
       <title>Audio</title>
       <para>When using WebRTC with a web browser only certain codecs will work. Because of this
         ONVIF recommends to use the Opus or PCMU codec.</para>
-      <para>For two-way audio it's recommended to use echo cancellation to avoid feedback
-        loops.</para>
+      <para>If the selected media profile contains an AudioDecoder, the device shall include an
+        audio track with <literal>a=recvonly</literal> in its SDP offer. If the selected media profile contains
+        an AudioEncoder, the device shall include an audio track with <literal>a=sendonly in its SDP offer</literal>.
+        If the profile contains both AudioEncoder and AudioDecoder, the device shall include an audio
+        track with <literal>a=sendrecv</literal> in its SDP offer. For two-way audio it is  recommended to use echo 
+        cancellation to avoid feedback loops.</para>
     </section>
     <section xml:id="section_data_channels">
       <title>Data channels</title>
         <section xml:id="section_data_channels_enable">
           <title>Enabling data channels</title>
-            <para>If the device supports WebRTC data channels, it shall signal this in the SDP offer 
-              of the invite method. If the client supports data channels and intends to use them during 
+            <para>If the device supports WebRTC data channels, it shall signal this in the SDP offer
+              of the invite method. If the client supports data channels and intends to use them during
               the WebRTC session, it shall signal this in the SDP answer.</para>
-            <para>ONVIF-defined data channel subprotocol names shall have “vnd.onvif” prefix.  
+            <para>ONVIF-defined data channel subprotocol names shall have “vnd.onvif” prefix.
               Usage of this prefix is restricted to ONVIF-defined subprotocols only.</para>
-            <para>Before creating and using any data channel subprotocol, the device and client shall 
-              exchange a list of allowed data channel subprotocols in the invite method. Only 
-              subprotocols provided by both the device and client during the invite method shall be 
+            <para>Before creating and using any data channel subprotocol, the device and client shall
+              exchange a list of allowed data channel subprotocols in the invite method. Only
+              subprotocols provided by both the device and client during the invite method shall be
               allowed to be enabled during the WebRTC session.</para>
-            <para>At any time after obtaining a WebRTC connection, a client may request enabling a 
-              pre-negotiated data channel subprotocol by creating a new data channel with the specified 
-              subprotocol identifier. Device shall enable the requested data channel subprotocol only 
-              after ensuring it was negotiated during the SDP exchange; otherwise, it shall close the 
+            <para>At any time after obtaining a WebRTC connection, a client may request enabling a
+              pre-negotiated data channel subprotocol by creating a new data channel with the specified
+              subprotocol identifier. Device shall enable the requested data channel subprotocol only
+              after ensuring it was negotiated during the SDP exchange; otherwise, it shall close the
               data channel.
             </para>
         </section>
         <section xml:id="section_data_channels_metadata">
           <title>Metadata over data channels</title>
           <para><emphasis role="bold">Subprotocol identifier</emphasis>: vnd.onvif.metadata+gzip</para>
-            <para>The Metadata data channel subprotocol enables streaming XML Metadata over WebRTC data 
-              channels. An ONVIF compliant device supporting streaming of metadata shall support gzip 
+            <para>The Metadata data channel subprotocol enables streaming XML Metadata over WebRTC data
+              channels. An ONVIF compliant device supporting streaming of metadata shall support gzip
               compressed metadata as signaled via the subprotocol vnd.onvif.metadata+gzip.
             </para>
-            <para>A device shall use the MetadataConfiguration from the media streaming profile selected 
+            <para>A device shall use the MetadataConfiguration from the media streaming profile selected
               for the WebRTC session and ignore the CompressionType setting.</para>
-            <para>The data channel Metadata payload is a binary data channel message starting with a GZIP 
-              header according to RFC 1952, followed by the compressed data. Messages may be fragmented as 
-              needed, and the client shall determine the beginning of a new GZIP payload based on the 
+            <para>The data channel Metadata payload is a binary data channel message starting with a GZIP
+              header according to RFC 1952, followed by the compressed data. Messages may be fragmented as
+              needed, and the client shall determine the beginning of a new GZIP payload based on the
               existence of the GZIP header.</para>
         </section>
     </section>
@@ -965,7 +969,7 @@ Server -> Client: { "error": {"code": 1001, "message": "Insufficient resources"}
     <para>[RFC8836] Congestion Control Requirements for Interactive Real-Time Media</para>
     <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc8836"/></para>
     <para>[RTP Extension for congestion control] RTP Extensions for Transport-wide Congestion Control</para>
-    <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/draft-holmer-rmcat-transport-wide-cc-extensions-01"/></para>    
+    <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/draft-holmer-rmcat-transport-wide-cc-extensions-01"/></para>
   </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>

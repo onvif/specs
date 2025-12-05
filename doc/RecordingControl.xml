@@ -4,12 +4,12 @@
   <info>
     <title>ONVIF Recording Control Service Specification</title>
     <titleabbrev>RecordingControl</titleabbrev>
-    <releaseinfo>25.06</releaseinfo>
+    <releaseinfo>25.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June, 2025</pubdate>
+    <pubdate>December, 2025</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -98,7 +98,7 @@
         <author>
           <personname>Hasan Timucin Ozdemir</personname>
         </author>
-        <revremark>Added 5.21 ExportRecordedData command and corresponding capability flag in 5.24 Capabilitites 
+        <revremark>Added 5.21 ExportRecordedData command and corresponding capability flag in 5.24 Capabilitites
 Added 5.22 StopExportRecordedData
 Added 5.23 GetExportRecordedDataStatus</revremark>
       </revision>
@@ -186,6 +186,14 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           <personname>Jean-Francois Levesque, Jose Melancon</personname>
         </author>
         <revremark>Add the possibility to temporary override of segment duration for Cloud Recording.</revremark>
+      </revision>
+      <revision>
+        <revnumber>25.12</revnumber>
+        <date>Dec-2025</date>
+        <author>
+          <personname>Maxime Bédar, Jose Melancon</personname>
+        </author>
+        <revremark>Add seektable attribute in cloud object metadata.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -400,7 +408,7 @@ Change Request 2061, 2063, 2065, 2109</revremark>
       <section>
         <title>External targets</title>
         <para>
-          The target interface allows configuration for devices that support recording to external storage targets. 
+          The target interface allows configuration for devices that support recording to external storage targets.
           For authentication configuration see the related storage configuration APIs of the core specification.
         </para>
         <para>
@@ -550,7 +558,7 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <para>
           <emphasis role="bold">AutoCreateReceiver</emphasis>: If a request includes this field set to true and no source token is provided, the device shall create a
           receiver object (through the receiver service) and assign the ReceiverReference to the
-          <emphasis role="bold">SourceToken</emphasis> field. A device shall never report this parameter in a 
+          <emphasis role="bold">SourceToken</emphasis> field. A device shall never report this parameter in a
           RecordingJobConfiguration. A device may reject a request that neither contains a SourceToken nor AutoCreateRecevier set to true.</para>
         <para>
           <emphasis role="bold">SourceTag</emphasis>: If the received RTSP stream contains multiple tracks of the same type, the <emphasis role="bold">SourceTag</emphasis> differentiates between those Tracks.</para>
@@ -562,7 +570,7 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <title>Event recording</title>
         <para>A device signalling support for EventRecording via its capabilities shall support
           controling recording job activity via the EventFilter with the following set of
-          parameters: 
+          parameters:
           </para>
         <variablelist>
           <varlistentry>
@@ -1511,7 +1519,7 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         duration on its next segment. The override duration shall not exceed 1 hour.
       </para>
       <para>
-        When a new override request is sent before the previous override has expired, the new override shall replace the 
+        When a new override request is sent before the previous override has expired, the new override shall replace the
         previous override and the new expiration shall apply.
       </para>
       <para>
@@ -1696,14 +1704,14 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <title>Recording job state changes</title>
         <para>If the state field of the RecordingJobStateInformation structure changes, a device shall provide the following event:</para>
         <para>Topic: tns1:RecordingConfig/<phrase>JobState</phrase></para>
-        <programlisting><![CDATA[<tt:MessageDescription IsProperty="true"> 
-  <tt:Source> 
-    <tt:SimpleItemDescription Name="RecordingJobToken" Type="tt:RecordingJobReference"/> 
-  </tt:Source> 
-  <tt:Data> 
-    <tt:SimpleItemDescription Name="State" Type="xs:String"/> 
-    <tt:ElementItemDescription Name="Information" Type="tt:RecordingJobStateInformation"/> 
-  </tt:Data> 
+        <programlisting><![CDATA[<tt:MessageDescription IsProperty="true">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="RecordingJobToken" Type="tt:RecordingJobReference"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription Name="State" Type="xs:String"/>
+    <tt:ElementItemDescription Name="Information" Type="tt:RecordingJobStateInformation"/>
+  </tt:Data>
 </tt:MessageDescription>
 ]]></programlisting>
         <para>The ElementItem Information shall be provided whenever the state of the different tracks is not unique. It can be omitted when the state of all tracks of a recording is consistent.</para>
@@ -1712,35 +1720,35 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <title>Configuration changes</title>
         <para>If the configuration of a recording is changed, a device shall provide the following event:</para>
         <para>Topic: tns1:RecordingConfig/<phrase>RecordingConfiguration</phrase></para>
-        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false"> 
-  <tt:Source> 
-    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/> 
-  </tt:Source> 
-  <tt:Data> 
-    <tt:ElementItemDescription Name="Configuration" Type="tt:RecordingConfiguration"/> 
-  </tt:Data> 
+        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:ElementItemDescription Name="Configuration" Type="tt:RecordingConfiguration"/>
+  </tt:Data>
 </tt:MessageDescription>]]></programlisting>
         <para>If the configuration of a track is changed, a device shall provide the following event:</para>
         <para>Topic: tns1:RecordingConfig/<phrase>TrackConfiguration</phrase></para>
-        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false"> 
-  <tt:Source> 
-    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/> 
-    <tt:SimpleItemDescription Name="TrackToken" Type="tt:TrackReference"/> 
-  </tt:Source> 
-  <tt:Data> 
-    <tt:ElementItemDescription Name="Configuration" Type="tt:TrackConfiguration"/> 
-  </tt:Data> 
+        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/>
+    <tt:SimpleItemDescription Name="TrackToken" Type="tt:TrackReference"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:ElementItemDescription Name="Configuration" Type="tt:TrackConfiguration"/>
+  </tt:Data>
 </tt:MessageDescription>
 ]]></programlisting>
         <para>If the configuration of a recording job is changed, a device shall provide the following event:</para>
         <para>Topic: tns1:RecordingConfig/<phrase>RecordingJobConfiguration</phrase></para>
-        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false"> 
-  <tt:Source> 
-    <tt:SimpleItemDescription Name="RecordingJobToken" Type="tt:RecordingJobReference"/> 
-  </tt:Source> 
-  <tt:Data> 
-    <tt:ElementItemDescription Name="Configuration" Type="tt:RecordingJobConfiguration"/> 
-  </tt:Data> 
+        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="RecordingJobToken" Type="tt:RecordingJobReference"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:ElementItemDescription Name="Configuration" Type="tt:RecordingJobConfiguration"/>
+  </tt:Data>
 </tt:MessageDescription>
 ]]></programlisting>
       </section>
@@ -1748,15 +1756,15 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <title>Data deletion</title>
         <para>Whenever data is deleted, a device shall provide the following event:</para>
         <para>Topic: tns1:RecordingConfig/<phrase>DeleteTrackData</phrase></para>
-        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false"> 
-  <tt:Source> 
-    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/> 
-    <tt:SimpleItemDescription Name="TrackToken" Type="tt:TrackReference"/> 
-  </tt:Source> 
-  <tt:Data> 
-    <tt:SimpleItemDescription Name="StartTime" Type="xsDateTime"/> 
-    <tt:SimpleItemDescription Name="EndTime" Type="xsDateTime"/> 
-  </tt:Data> 
+        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/>
+    <tt:SimpleItemDescription Name="TrackToken" Type="tt:TrackReference"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription Name="StartTime" Type="xsDateTime"/>
+    <tt:SimpleItemDescription Name="EndTime" Type="xsDateTime"/>
+  </tt:Data>
 </tt:MessageDescription>
 ]]></programlisting>
         <para>This event is not applicable for data removal from object storage targets for e.g. Object Storage S3.</para>
@@ -1765,44 +1773,44 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         <title>Recording and track creation and deletion</title>
         <para>Whenever a recording is created, a device shall provide the following event:</para>
         <para>Topic: tns1:RecordingConfig/<phrase>CreateRecording</phrase></para>
-        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false"> 
-  <tt:Source> 
-    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/> 
-  </tt:Source> 
-  <tt:Data> 
-  </tt:Data> 
+        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/>
+  </tt:Source>
+  <tt:Data>
+  </tt:Data>
 </tt:MessageDescription>
 ]]></programlisting>
         <para>Whenever a recording is deleted, a device shall provide the following event:</para>
         <para>Topic: tns1:RecordingConfig/Delete<phrase>Recording</phrase></para>
-        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false"> 
-  <tt:Source> 
-    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/> 
-  </tt:Source> 
-  <tt:Data> 
-  </tt:Data> 
+        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/>
+  </tt:Source>
+  <tt:Data>
+  </tt:Data>
 </tt:MessageDescription>
 ]]></programlisting>
         <para>Whenever a track is created, a device shall provide the following event:</para>
         <para>Topic: tns1:RecordingConfig/CreateTrack</para>
-        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false"> 
-  <tt:Source> 
-    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/> 
-    <tt:SimpleItemDescription Name="TrackToken" Type="tt:TrackReference"/> 
-  </tt:Source> 
-  <tt:Data> 
-  </tt:Data> 
+        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/>
+    <tt:SimpleItemDescription Name="TrackToken" Type="tt:TrackReference"/>
+  </tt:Source>
+  <tt:Data>
+  </tt:Data>
 </tt:MessageDescription>
 ]]></programlisting>
         <para>Whenever a track is deleted, a device shall provide the following event:</para>
         <para>Topic: tns1:RecordingConfig/DeleteTrack</para>
-        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false"> 
-  <tt:Source> 
-    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/> 
-    <tt:SimpleItemDescription Name="TrackToken" Type="tt:TrackReference"/> 
-  </tt:Source> 
-  <tt:Data> 
-  </tt:Data> 
+        <programlisting><![CDATA[<tt:MessageDescription IsProperty="false">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="RecordingToken" Type="tt:RecordingReference"/>
+    <tt:SimpleItemDescription Name="TrackToken" Type="tt:TrackReference"/>
+  </tt:Source>
+  <tt:Data>
+  </tt:Data>
 </tt:MessageDescription>
 ]]></programlisting>
       </section>
@@ -1970,7 +1978,7 @@ SetRecordingJobMode(JobToken, Active)
         <literal>SegmentDuration</literal> configured for the recording, the device shall close
         the open segment of this span and open a new segment for this span. When closing the open
         segment of a span and opening a new segment for this span, there shall be no time gap
-        between the two segments. Note that the actual segment duration may vary and can be plus or 
+        between the two segments. Note that the actual segment duration may vary and can be plus or
         minus one GOP size from the configured duration because a segment shall start with an I-Frame.
         Depending on resource constraints, the device may close the segment earlier than the
         configured <literal>SegmentDuration</literal> if the requested length cannot be
@@ -2057,7 +2065,7 @@ secfrac = "." 1*6DIGIT</programlisting>
       <para>
         The device shall open a single span for an active recording containing all tracks of the recording.
         The device shall use <literal>mp4</literal> as the extension for this span type.
-        The device shall upload each segment object belonging to a span of this type with the content type <literal>video/mp4</literal>. 
+        The device shall upload each segment object belonging to a span of this type with the content type <literal>video/mp4</literal>.
         This content type is also used for audio-only recordings or metadata-only recordings.
         The device should include the <literal>codecs</literal> parameter in the content type according to RFC 6381.
       </para>
