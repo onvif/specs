@@ -77,4 +77,3 @@ Note that this repository sole purpose is technical specification evolution. Any
 
 While governance of the specification is the role of the ONVIF Technical Committee, the evolution of the specification happens through the participation of members of the developer community at large. 
 Any person willing to contribute to the effort is welcome, and contributions may include filing or participating in issues, creating pull requests, or helping others with such activities.
-
