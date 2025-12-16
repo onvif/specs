@@ -1,3 +1,16 @@
+# Prerequisites on a local PC
+#
+# $ sudo apt install gnupg
+# $ gpg --quick-gen-key help@onvif.org default default 2029-03-31
+# $ gpg --output public-key.pgp --armor --export help@onvif.org
+# $ gpg --output private-key.pgp --armor --export-private-key help@onvif.org
+#
+# In Github, under Settings -> Secrets and Variables -> Actions create the following repository secrets
+# PRIVATE_KEY with the content of private-key.pgp
+# PASSPHRASE with the passphrase chosen when creating the key
+#
+# Finally, upload public-key.pgp to the ONVIF website and store the PASSPHRASE in the keypass wallet
+
 name: generate-pdf-files-from-tag
 run-name: "Generate ONVIF specs from a tag"
 
@@ -62,13 +75,19 @@ jobs:
         run: |
           export JAVA_TOOL_OPTIONS="-Djavax.xml.XMLConstants.FEATURE_SECURE_PROCESSING=false" ; \
           cd ${{ github.workspace }} ; perl build/build.pl
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
       - name: Digitally sign the documents
         env:
           PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
+          PASSPHRASE: ${{secrets.PASSPHRASE}}
         run: |
-          echo "$PRIVATE_KEY" > /tmp/private-key.gpg
-          gpg --import /tmp/private-key.gpg
-          find . -name "*.pdf" -exec gpg -v --detach-sign {} \; 
+          find . -name "*.pdf" -exec gpg -v --passphrase "$PASSPHRASE" --detach-sign {} \; 
       - name: Calculate the short commit ID
         id: vars
         run: echo "source_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
