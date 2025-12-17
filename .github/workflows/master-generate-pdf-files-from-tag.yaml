@@ -1,10 +1,22 @@
-name: generate-pdf-files-from-development
-run-name: "Generate ONVIF specs from the development branch"
+# Prerequisites on a local PC
+#
+# $ sudo apt install gnupg
+# $ gpg --quick-gen-key help@onvif.org default default 2029-03-31
+# $ gpg --output public-key.pgp --armor --export help@onvif.org
+# $ gpg --output private-key.pgp --armor --export-private-key help@onvif.org
+#
+# In Github, under Settings -> Secrets and Variables -> Actions create the following repository secrets
+# PRIVATE_KEY with the content of private-key.pgp
+# PASSPHRASE with the passphrase chosen when creating the key
+#
+# Finally, upload public-key.pgp to the ONVIF website and store the PASSPHRASE in the keypass wallet
+
+name: master-generate-pdf-files-from-tag
+run-name: "Generate ONVIF specs from a tag"
 
 on:
   push:
-    branches:
-      - development
+    tags: '[0-9][0-9].[0-9][0-9]'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,12 +33,14 @@ jobs:
     fail-fast: true
     runs-on: ubuntu-24.04
     steps:
+      - name: Check that we are on master
+        if: github.event.base_ref != 'refs/heads/master'
+        run: exit 1
       - name: Install missing software
         run: |
           echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
-          sudo apt update && sudo DEBIAN_FRONTEND=noninteractive apt install -y --force-yes curl unzip $JAVA_VERSION fonts-noto-color-emoji ttf-mscorefonts-installer asciidoctor ; \
+          sudo apt update && sudo DEBIAN_FRONTEND=noninteractive apt install -y --force-yes curl unzip $JAVA_VERSION fonts-noto-color-emoji ttf-mscorefonts-installer asciidoctor gnupg ; \
           sudo fc-cache -fv
-          pip install 'pyHanko[pkcs11,image-support,opentype,qr]' pyhanko-cli
       - name: Checkout sources
         uses: actions/checkout@v3
       - name: Configure Java
@@ -69,16 +83,30 @@ jobs:
         run: |
           export JAVA_TOOL_OPTIONS="-Djavax.xml.XMLConstants.FEATURE_SECURE_PROCESSING=false" ; \
           cd ${{ github.workspace }} ; perl build/build.pl
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+      - name: Digitally sign the documents
+        env:
+          PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
+          PASSPHRASE: ${{secrets.PASSPHRASE}}
+        run: |
+          find . -name "*.pdf" -exec gpg -v --passphrase "$PASSPHRASE" --detach-sign {} \; 
       - name: Calculate the short commit ID
         id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        run: echo "source_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
       - name: "Save generated PDF files as build artifact"
         uses: actions/upload-artifact@v4
         with:
-          name: ONVIF-specs-${{ steps.vars.outputs.sha_short }}
+          name: ONVIF-specs-${{ steps.vars.outputs.source_tag }}
           path: |
             ${{ github.workspace }}/out/*/*.pdf
+            ${{ github.workspace }}/out/*/*.pdf.sig
             ${{ github.workspace }}/out/*.pdf
+            ${{ github.workspace }}/out/*.pdf.sig
           compression-level: 9
-          retention-days: 30
         
