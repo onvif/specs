@@ -81,19 +81,19 @@ jobs:
         run: |
           export JAVA_TOOL_OPTIONS="-Djavax.xml.XMLConstants.FEATURE_SECURE_PROCESSING=false" ; \
           cd ${{ github.workspace }} ; perl build/build.pl
-      - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.PRIVATE_KEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
-          git_user_signingkey: true
-          git_commit_gpgsign: true
-      - name: Digitally sign the documents
-        env:
-          PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
-          PASSPHRASE: ${{secrets.PASSPHRASE}}
-        run: |
-          find . -name "*.pdf" -exec gpg -v --passphrase "$PASSPHRASE" --detach-sign {} \; 
+      #- name: Import GPG key
+      #  uses: crazy-max/ghaction-import-gpg@v6
+      #  with:
+      #    gpg_private_key: ${{ secrets.PRIVATE_KEY }}
+      #    passphrase: ${{ secrets.PASSPHRASE }}
+      #    git_user_signingkey: true
+      #    git_commit_gpgsign: true
+      #- name: Digitally sign the documents
+      #  env:
+      #    PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
+      #    PASSPHRASE: ${{secrets.PASSPHRASE}}
+      #  run: |
+      #    find . -name "*.pdf" -exec gpg -v --passphrase "$PASSPHRASE" --detach-sign {} \; 
       - name: Calculate the short commit ID
         id: vars
         run: echo "source_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT

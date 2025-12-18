@@ -25,9 +25,9 @@ jobs:
       - name: Install missing software
         run: |
           echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
-          sudo apt update && sudo DEBIAN_FRONTEND=noninteractive apt install -y --force-yes curl unzip $JAVA_VERSION fonts-noto-color-emoji ttf-mscorefonts-installer asciidoctor ; \
+          sudo apt update && sudo DEBIAN_FRONTEND=noninteractive apt install -y --force-yes curl unzip $JAVA_VERSION fonts-noto-color-emoji ttf-mscorefonts-installer asciidoctor fd-find ; \
           sudo fc-cache -fv
-          pip install 'pyHanko[pkcs11,image-support,opentype,qr]' pyhanko-cli
+          pip install pdf-watermark
       - name: Checkout sources
         uses: actions/checkout@v3
       - name: Configure Java
@@ -70,6 +70,9 @@ jobs:
         run: |
           export JAVA_TOOL_OPTIONS="-Djavax.xml.XMLConstants.FEATURE_SECURE_PROCESSING=false" ; \
           cd ${{ github.workspace }} ; perl build/build.pl
+      - name: Add draft watermark to the PDF files
+        run: |
+          cd ${{ github.workspace }} ; fdfind -e pdf . 'out'  -x watermark grid {} "draft"
       - name: Calculate the short commit ID
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
