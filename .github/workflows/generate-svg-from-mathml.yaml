@@ -49,8 +49,13 @@ jobs:
           cat /tmp/xmlcalabash-3.0.32/image.svg
       - name: Convert the equations to SVG
         run: |
+          echo "Checksum before updating the images"
+          cd ${{ github.workspace }} ; fdfind -e svg . 'doc/equations'  -x md5sum {}
           cd ${{ github.workspace }} ; fdfind -e xml . 'doc/equations'  -x java -jar /tmp/xmlcalabash-3.0.32/xmlcalabash-app-3.0.32.jar /tmp/xmlcalabash-3.0.32/pipeline.xpl --input:source={} --output:result={.}.svg
           cd ${{ github.workspace }} ; fdfind -e svg . 'doc/equations'  -x sed -i 's/<?xml version="1.0" encoding="UTF-8"?>//g' {}
+          echo "Checksum before updating the images"
+          cd ${{ github.workspace }} ; fdfind -e svg . 'doc/equations'  -x md5sum {}
+          echo "Directory listing"
           ls -alR ${{ github.workspace }}/doc/equations
       - name: Add and commit regenerated SVG files
         uses: EndBug/add-and-commit@v9
