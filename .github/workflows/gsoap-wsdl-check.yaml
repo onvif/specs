@@ -1,0 +1,41 @@
+name: gsoap-wsdl-check
+run-name: "WSDL files syntax check with gSoap"
+
+on:
+  push:
+    paths:
+      - '**.wsdl'
+      - '**.xsd'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gsoap-wsdl-check:
+    strategy:
+      fail-fast: true
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install missing software
+        run: |
+          sudo apt update && sudo apt install gcc g++ curl autoconf automake cmake bison flex libssl-dev zlib1g-dev make 
+      - name: Checkout tools repo
+        uses: actions/checkout@v6
+        with:
+          repository: onvif/gsoap-wsdl-checker
+          path: gsoap-wsdl-checker
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Get branch names.
+        id: branch-names
+        uses: tj-actions/branch-names@5250492686b253f06fa55861556d1027b067aeb5
+      - name: Install gsoap
+        run: |
+          cd gsoap-wsdl-checker
+          cmake CMakeLists.txt -DBRANCH=${{ steps.branch-names.outputs.current_branch }}
+          make gsoap
+      - name: Compile the WDSL files
+        run: |
+          cd gsoap-wsdl-checker
+          make
+

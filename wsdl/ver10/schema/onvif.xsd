@@ -8,7 +8,7 @@ Recipients of this document may copy, distribute, publish, or display this docum
 THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
 IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.
 -->
-<xs:schema xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="25.06">
+<xs:schema xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="25.12">
 	<xs:include schemaLocation="common.xsd"/>
 	<xs:import namespace="http://www.w3.org/2005/05/xmlmime" schemaLocation="https://www.w3.org/2005/05/xmlmime"/>
 	<xs:import namespace="http://www.w3.org/2003/05/soap-envelope" schemaLocation="https://www.w3.org/2003/05/soap-envelope"/>
@@ -425,6 +425,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>
 			<xs:element name="Extension" type="tt:RotateExtension" minOccurs="0"/>
 		</xs:sequence>
+		<xs:attribute name="Mirror" type="xs:boolean">
+			<xs:annotation>
+				<xs:documentation>When enabled, the video will be flipped horizontally. If applied alongside rotation, the mirror effect shall be executed after the rotation. Additionally,<br/> 
+				when Mirror is enabled and Reverse=Auto is set in PTControlDirection or if the device doesn’t support Reverse in PTControlDirection, the device shall automatically adjust the pan direction. 
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
@@ -560,8 +567,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:sequence>
 		<xs:attribute name="Reboot" type="xs:boolean">
 			<xs:annotation>
-				<xs:documentation>Signals if a device requires a reboot after changing the rotation.
-				If a device can handle rotation changes without rebooting this value shall be set to false.</xs:documentation>
+				<xs:documentation>Signals if a device requires a reboot after changing the rotation or mirror.
+				If a device can handle rotation changes or mirror changes without rebooting this value shall be set to false.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="Mirror" type="xs:boolean">
+			<xs:annotation>
+				<xs:documentation>Signals if video source mirroring is supported.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
@@ -2028,6 +2040,230 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 		<xs:sequence>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 		</xs:sequence>
+	</xs:complexType>
+	<!--===============================-->
+	<!--     MulticastAudioDecoder     -->
+	<!--===============================-->
+	<xs:complexType name="MulticastAudioDecoderConfiguration">
+		<xs:annotation>
+			<xs:documentation>
+				Configuration for the Multicast Audio Decoder.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="tt:ConfigurationEntity">
+				<xs:sequence>
+					<xs:element name="Enable" type="xs:boolean">
+						<xs:annotation>
+							<xs:documentation>
+								Indicates whether the Multicast Audio Decoder is enabled or disabled.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioOutputToken" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>
+								Token of the physical Audio output. This element is optional and can occur multiple times.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Encoding" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>
+								Specifies the encoding type according to IANA media types.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Bitrate" type="xs:int">
+						<xs:annotation>
+							<xs:documentation>
+								The bitrate of the audio stream in bits per second.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="SamplingRate" type="xs:int">
+						<xs:annotation>
+							<xs:documentation>
+								The sampling rate of the audio stream in kHz.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Multicast" type="tt:MulticastReceiverConfiguration">
+						<xs:annotation>
+							<xs:documentation>
+								Contains configuration details for multicast settings.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="RTPPayloadType" type="xs:int">
+						<xs:annotation>
+							<xs:documentation>
+							Defines the RTP payload type used for the audio stream.
+							To ensure compatibility, it is recommended to use dynamic payload types (96 and above), as specified in RFC 3551.
+							Standard payload types (0-95) should only be used for predefined audio formats matching the audio encoding as defined in 
+							<a href="https://www.iana.org/assignments/rtp-parameters/rtp-parameters.xhtml#rtp-parameters-1">IANA RTP Payload Types</a>, 
+							as using them for non-standard media may lead to unexpected errors or interoperability issues.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Priority" type="xs:int">
+						<xs:annotation>
+							<xs:documentation>
+								Indicates the priority level when multiple configurations are active. 
+								A higher value signifies a higher priority. If several configurations have the same priority value the order between those configurations is undefined.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MediaFormatParameters" type="xs:string" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>
+								Optional media format parameters as specified in SDP, such as:
+								a=fmtp:101 stereo=1; sprop-stereo=1.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="SRTPPreSharedParameters" type="tt:SRTPPreShared" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>
+								 Optional configuration parameters for SRTP pre-shared key usage, applicable when SRTP is supported. When this configuration is present, RTP packets shall be encrypted.
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/> <!-- first Vendor then ONVIF -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="SRTPPreShared">
+		<xs:sequence>
+			<xs:element name="SRTPPSK" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+				An optional SRTP Pre-Shared Key (PSK) represented as a hexadecimal string.
+				This includes both the SRTP master key, followed by the master salt.
+				The sizes of the key and salt depend on the specified SRTPCryptoPolicy.
+				When this element is specified, RTP packets shall be encrypted.
+				The SRTPPSK shall never be returned on a get method.
+				</xs:documentation>
+			</xs:annotation>
+			</xs:element>
+			<xs:element name="SecureStreamingProtocolAlgorithm" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+				Specifies the cryptographic algorithm when using SRTP,
+				selecting from predefined values provided in the GetMulticastAudioDecoderConfigurationOptions response.
+				</xs:documentation>
+			</xs:annotation>
+			</xs:element>
+			<xs:element name="ROCExtMapID" type="xs:int">
+			<xs:annotation>
+				<xs:documentation>
+				The RTP header extension ID (ExtMapID) used to identify the ROC extension, as defined in RFC 8285.
+				Valid values are 1 to 14 for one-byte header extensions.
+				</xs:documentation>
+			</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/> <!-- first Vendor then ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="MulticastReceiverConfiguration">
+		<xs:sequence>
+			<xs:element name="Address" type="tt:IPAddress">
+				<xs:annotation>
+					<xs:documentation>The multicast address (if this address is set to 0 no multicast streaming is enabled)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Port" type="xs:int">
+				<xs:annotation>
+					<xs:documentation>The RTP multicast destination port. A device may support RTCP. In this case the port value shall be even to allow the corresponding RTCP stream to be mapped to the next higher (odd) destination port number as defined in the RTSP specification.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="TTL" type="xs:int">
+				<xs:annotation>
+					<xs:documentation>In case of IPv6 the TTL value is assumed as the hop limit. Note that for IPV6 and administratively scoped IPv4 multicast the primary use for hop limit / TTL is to prevent packets from (endlessly) circulating and not limiting scope. In these cases the address contains the scope.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="InterfaceToken" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Unique identifier of the network interface on the device. If not specified, all available interfaces will be used for listening. </xs:documentation>
+					</xs:annotation>
+			</xs:element>
+			<xs:element name="SourceSpecificMulticast" type="tt:IPAddress" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>When a source-specific multicast address is configured, the device will process multicast data only from the specified source, in accordance with SSM principles defined in RFC 4607.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="MulticastAudioDecoderConfigurationOptions">
+		<xs:sequence>
+			<xs:element name="EncodingOptions" type="tt:AudioDecoder2Options">
+				<xs:annotation>
+					<xs:documentation>Supported encoding options for the multicast audio decoder.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="PriorityRange" type="tt:IntRange">
+				<xs:annotation>
+					<xs:documentation>
+						Specifies the priority range as an integer. This indicates the priority level for audio configuration.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="SecureStreamingProtocolAlgorithms" type="tt:StringList" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>
+							An optional parameter specifies the list of supported cryptographic algorithms when SRTP support is signaled as 'true' in the GetServiceCapabilitiesResponse.
+							Refer to tt:SrtpSecurityAlgorithms for the acceptable values.
+							</xs:documentation>
+						</xs:annotation>
+			</xs:element>
+			<xs:element name="AudioOutputTokens" type="tt:StringList" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>
+						Optional list of physical Audio output tokens. This element is used when only certain audio outputs can be configured for this token.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="AudioDecoder2Options">
+		<xs:sequence>
+			<xs:element name="Encoding" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Audio Media Subtype for the audio format. For definitions see tt:AudioEncodingMimeNames and <a href="https://www.iana.org/assignments/media-types/media-types.xhtml#audio"> IANA Media Types</a>.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="BitrateList" type="tt:IntItems">
+				<xs:annotation>
+					<xs:documentation>List of supported bitrates in kbps for the specified Encoding</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="SampleRateList" type="tt:IntItems">
+				<xs:annotation>
+					<xs:documentation>List of supported Sample Rates in kHz for the specified Encoding</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="RTPPayloadType" type="xs:int" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>
+						Optional element for specifying the RTP payload type, 
+						particularly when it is fixed for a specific audio encoding as defined in <a href="https://www.iana.org/assignments/rtp-parameters/rtp-parameters.xhtml#rtp-parameters-1">IANA RTP Payload Types</a>.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
 	<!--          Streaming            -->
@@ -3905,6 +4141,22 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 		</xs:restriction>
 	</xs:simpleType>
 	<!--===============================-->
+	<xs:complexType name="UserRole">
+		<xs:sequence>
+			<xs:element name="Name" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Name of the editable user level.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Functions" type="tt:StringList">
+				<xs:annotation>
+					<xs:documentation>Names of the permitted function for the editable user level. The names must be prepended by the namespace prefix and colon.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
 	<xs:complexType name="User">
 		<xs:sequence>
 			<xs:element name="Username" type="xs:string">
@@ -3929,6 +4181,11 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 	<!--===============================-->
 	<xs:complexType name="UserExtension">
 		<xs:sequence>
+			<xs:element name="Roles" type="tt:StringList" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>The names of the roles assigned to the user.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 		</xs:sequence>
 	</xs:complexType>
@@ -7753,18 +8010,36 @@ and sample rate. </xs:documentation>
 			</xs:enumeration>
 		</xs:restriction>
 	</xs:simpleType>
+	<xs:complexType name="AsymmetricEncryption">
+		<xs:sequence>
+			<xs:element name="CertificateID" type="xs:string" minOccurs="1" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>List of certificates used to encrypt the symmetric key for the PSSH box.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="KeyRotationDuration" type="xs:duration" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>
+					Frequency at which the device shall generate a new key to encrypt a new segment. 
+					If not specified, key rotation is disabled. 
+					KeyRotationDuration must be a positive duration value.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+		</xs:sequence>
+	</xs:complexType>
 	<!--===============================-->
 	<xs:complexType name="RecordingEncryption">
 		<xs:sequence>
-			<xs:element name="KID" type="xs:string">
+			<xs:element name="KID" type="xs:string" minOccurs="0" maxOccurs="1">
 				<xs:annotation>
-					<xs:documentation>Key ID of the associated key for encryption.</xs:documentation>
+					<xs:documentation>Key ID of the associated key for encryption. This parameter is ignored when AsymmetricEncryption is configured.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="Key" type="xs:hexBinary" minOccurs="0">
+			<xs:element name="Key" type="xs:hexBinary" minOccurs="0" maxOccurs="1">
 				<xs:annotation>
 					<xs:documentation>
-						Key for encrypting content.
+						Key for encrypting content. This parameter is ignored when AsymmetricEncryption is configured.
 						The device shall not include this parameter when reading.
 					</xs:documentation>
 				</xs:annotation>
@@ -7778,6 +8053,7 @@ and sample rate. </xs:documentation>
 					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
+			<xs:element name="AsymmetricEncryption" type="tt:AsymmetricEncryption" minOccurs="0" maxOccurs="1" />
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 		</xs:sequence>
 		<xs:attribute name="Mode" type="xs:string" use="required">
@@ -9130,7 +9406,7 @@ and sample rate. </xs:documentation>
 	<!--=========================================-->
 
 	<!--=========================================-->
-	<!--  Begin, StorageConfiguration            -->
+	<!--  Begin, ExportRecordedDataState         -->
 	<!--=========================================-->
 	<xs:complexType name="FileProgress">
     	<xs:sequence>
@@ -9190,7 +9466,7 @@ and sample rate. </xs:documentation>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--=========================================-->
-	<!--  End, StorageConfiguration              -->
+	<!--  End, ExportRecordedDataState           -->
 	<!--=========================================-->
 	
 <xs:element name="PolygonOptions" type="tt:PolygonOptions"/>
