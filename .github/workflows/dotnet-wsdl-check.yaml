@@ -17,14 +17,23 @@ jobs:
       fail-fast: true
     runs-on: ubuntu-24.04
     steps:
+      - name: Check that remote files are reachable
+        run: |
+          export MISSING_FILES=0
+          curl --head http://docs.oasis-open.org/wsn/b-2.xsd ||  export MISSING_FILES=$((MISSING_FILES+1))
+          echo "MISSING_FILES=$MISSING_FILES" >> $GITHUB_OUTPUT
+          echo "MISSING_FILES=$MISSING_FILES"
       - name: Install missing software
+        if: ${{ steps.vars.outputs.MISSING_FILES }} == 0
         run: |
           sudo add-apt-repository ppa:dotnet/backports
           sudo apt update && sudo apt install dotnet-sdk-9.0
       - name: Get branch names.
+        if: ${{ steps.vars.outputs.MISSING_FILES }} == 0
         id: branch-names
         uses: tj-actions/branch-names@v9.0.2
       - name: Run dotnet-svcutil
+        if: ${{ steps.vars.outputs.MISSING_FILES }} == 0
         run: |
           dotnet new tool-manifest
           dotnet tool install dotnet-svcutil
