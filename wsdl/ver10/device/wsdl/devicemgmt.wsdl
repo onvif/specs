@@ -316,6 +316,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>Indicates support for firmware upgrade through the cloud.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="AvailableFirmwareListing" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Specifies support for retrieving the list of available firmware through GetAvailableFirmwares.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:attribute name="HttpFirmwareUpgrade" type="xs:boolean">
 					<xs:annotation>
 						<xs:documentation>Indicates support for firmware upgrade through HTTP.</xs:documentation>
@@ -2494,6 +2499,49 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>	 		
 			<!--===============================-->
+			<xs:element name="GetAvailableFirmwares">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="OnlyOfficial" type="xs:boolean" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Optional flag to filter only official firmware versions.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+					</xs:sequence>
+					<xs:anyAttribute processContents="lax"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetAvailableFirmwaresResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="FirmwareInfo" type="tds:FirmwareInfo" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>List of available firmware versions.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+					</xs:sequence>
+					<xs:anyAttribute processContents="lax"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:complexType name="FirmwareInfo">
+				<xs:sequence>
+					<xs:element name="FirmwareName" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>The name of the firmware version.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="FirmwareDescription" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>Description of the firmware version.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->
 			<!--===============================-->
 		</xs:schema>
 	</wsdl:types>
@@ -3115,6 +3163,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</wsdl:message>
 	<wsdl:message name="SetHashingAlgorithmResponse">
 		<wsdl:part name="parameters" element="tds:SetHashingAlgorithmResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetAvailableFirmwaresRequest">
+		<wsdl:part name="parameters" element="tds:GetAvailableFirmwares"/>
+	</wsdl:message>
+	<wsdl:message name="GetAvailableFirmwaresResponse">
+		<wsdl:part name="parameters" element="tds:GetAvailableFirmwaresResponse"/>
 	</wsdl:message>
 	
 	<wsdl:portType name="Device">
@@ -3770,6 +3824,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</wsdl:documentation>
 			<wsdl:input message="tds:SetHashingAlgorithmRequest"/>
 			<wsdl:output message="tds:SetHashingAlgorithmResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetAvailableFirmwares">
+			<wsdl:documentation>
+				This operation returns the list of firmware versions available for the device. The retrieved firmware name can then be used with the UpgradeFirmware operation.
+			</wsdl:documentation>
+			<wsdl:input message="tds:GetAvailableFirmwaresRequest"/>
+			<wsdl:output message="tds:GetAvailableFirmwaresResponse"/>
 		</wsdl:operation>
 
 		<!--===============================-->
@@ -4776,6 +4837,15 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="SetHashingAlgorithm">
 			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/SetHashingAlgorithm"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetAvailableFirmwares">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetAvailableFirmwares"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
