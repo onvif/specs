@@ -10,7 +10,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tds="http://www.onvif.org/ver10/device/wsdl" targetNamespace="http://www.onvif.org/ver10/device/wsdl">
 	<wsdl:types>
-		<xs:schema targetNamespace="http://www.onvif.org/ver10/device/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:tds="http://www.onvif.org/ver10/device/wsdl" elementFormDefault="qualified" version="25.06">
+		<xs:schema targetNamespace="http://www.onvif.org/ver10/device/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:tds="http://www.onvif.org/ver10/device/wsdl" elementFormDefault="qualified" version="25.12">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../../ver10/schema/onvif.xsd"/>
 			<!--===============================-->
 			<xs:element name="GetServices">
@@ -272,6 +272,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
                     				<xs:documentation>Supported hashing algorithms as part of HTTP and RTSP Digest authentication.Example: MD5,SHA-256</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="MaxUserRoles" type="xs:int">
+					<xs:annotation>
+						<xs:documentation>Whenever set to an integer greater than zero, it signals that the device supports editable user roles. It indicates the maximum number of editable user roles.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
@@ -304,6 +309,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:attribute name="FirmwareUpgrade" type="xs:boolean">
 					<xs:annotation>
 						<xs:documentation>Indicates support for firmware upgrade through MTOM.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="CloudFirmwareUpgrade" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for firmware upgrade through the cloud.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="HttpFirmwareUpgrade" type="xs:boolean">
@@ -968,6 +978,53 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>
 			<xs:element name="SetUserResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetUserRoles">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="UserRole" type="xs:string" minOccurs="0" maxOccurs="1">
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetUserRolesResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="UserRole" type="tt:UserRole" minOccurs="0" maxOccurs="unbounded">
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetUserRole">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="UserRole" type="tt:UserRole" minOccurs="1" maxOccurs="1">
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetUserRoleResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="DeleteUserRole">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="UserRole" type="xs:string" minOccurs="1" maxOccurs="1">
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="DeleteUserRoleResponse">
 				<xs:complexType>
 					<xs:sequence>
 					</xs:sequence>
@@ -2118,6 +2175,21 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:element name="UpgradeFirmware">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Version" type="xs:string"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="UpgradeFirmwareResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ExpectedDownTime" type="xs:duration"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
 			<xs:element name="StartSystemRestore">
 				<xs:complexType>
 					<xs:sequence/>
@@ -2162,7 +2234,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:element>
 					<xs:element name="Password" type="xs:string" minOccurs="0">
 						<xs:annotation>	
-							<xs:documentation> optional password</xs:documentation> 
+							<xs:documentation> optional password, device shall not return the credentials (password) in the reply. </xs:documentation> 
 						</xs:annotation>
 					</xs:element>
 					<xs:element name="Extension" minOccurs="0">	<!-- deprecated -->
@@ -2174,7 +2246,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:element>
 					<xs:element name="Token" type="xs:string" minOccurs="0">
 						<xs:annotation>
-							<xs:documentation> optional access token</xs:documentation>
+							<xs:documentation> optional access token, device shall not return the credentials (token) in the reply. </xs:documentation>
 						</xs:annotation>
 					</xs:element>					
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
@@ -2599,6 +2671,24 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="SetUserResponse">
 		<wsdl:part name="parameters" element="tds:SetUserResponse"/>
 	</wsdl:message>
+	<wsdl:message name="GetUserRolesRequest">
+		<wsdl:part name="parameters" element="tds:GetUserRoles"/>
+	</wsdl:message>
+	<wsdl:message name="GetUserRolesResponse">
+		<wsdl:part name="parameters" element="tds:GetUserRolesResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetUserRoleRequest">
+		<wsdl:part name="parameters" element="tds:SetUserRole"/>
+	</wsdl:message>
+	<wsdl:message name="SetUserRoleResponse">
+		<wsdl:part name="parameters" element="tds:SetUserRoleResponse"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteUserRoleRequest">
+		<wsdl:part name="parameters" element="tds:DeleteUserRole"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteUserRoleResponse">
+		<wsdl:part name="parameters" element="tds:DeleteUserRoleResponse"/>
+	</wsdl:message>
 	<wsdl:message name="GetWsdlUrlRequest">
 		<wsdl:part name="parameters" element="tds:GetWsdlUrl"/>
 	</wsdl:message>
@@ -2959,6 +3049,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="StartFirmwareUpgradeResponse">
 		<wsdl:part name="parameters" element="tds:StartFirmwareUpgradeResponse"/>
 	</wsdl:message>
+	<wsdl:message name="UpgradeFirmwareRequest">
+		<wsdl:part name="parameters" element="tds:UpgradeFirmware"/>
+	</wsdl:message>
+	<wsdl:message name="UpgradeFirmwareResponse">
+		<wsdl:part name="parameters" element="tds:UpgradeFirmwareResponse"/>
+	</wsdl:message>
 	<wsdl:message name="StartSystemRestoreRequest">
 		<wsdl:part name="parameters" element="tds:StartSystemRestore"/>
 	</wsdl:message>
@@ -3193,6 +3289,24 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				endpoint reference.</wsdl:documentation>
 			<wsdl:input message="tds:GetEndpointReferenceRequest"/>
 			<wsdl:output message="tds:GetEndpointReferenceResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetUserRoles">
+			<wsdl:documentation>This operation returns the editable user levels configured in the device. Whenever an editable
+				user level is passed in the request, information only about that level is returned.</wsdl:documentation>
+			<wsdl:input message="tds:GetUserRolesRequest"/>
+			<wsdl:output message="tds:GetUserRolesResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetUserRole">
+			<wsdl:documentation>This operation configures an editable user level in the device. If the level
+				passed in UserRole already exists in the device, its configuration is overwritten. Otherwise,
+				a new editable user level is created.</wsdl:documentation>
+			<wsdl:input message="tds:SetUserRoleRequest"/>
+			<wsdl:output message="tds:SetUserRoleResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteUserRole">
+			<wsdl:documentation>This operation deletes an editable user level in the device.</wsdl:documentation>
+			<wsdl:input message="tds:DeleteUserRoleRequest"/>
+			<wsdl:output message="tds:DeleteUserRoleResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="GetRemoteUser">
 			<wsdl:documentation>This operation returns the configured remote user (if any). A device supporting remote user
@@ -3552,6 +3666,24 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				The value of the Content-Type header in the HTTP POST request shall be “application/octetstream”.</wsdl:documentation>
 			<wsdl:input message="tds:StartFirmwareUpgradeRequest"/>
 			<wsdl:output message="tds:StartFirmwareUpgradeResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="UpgradeFirmware">
+			<wsdl:documentation>This operation initiates a firmware upgrade using between the device
+				and the MCS, without further actions from the client. Cloud firmware upgrade may be
+				achieved using the following steps:
+				<ol>
+					<li>Client retrieves the list of available firmware versions from the MCS.</li>
+					<li>Client calls UpgradeFirmware, selecting the desired FW version.</li>
+					<li>Device service responds with a downtime value.</li>
+					<li>Device and MCS perform the firmware upgrade procedure without further interaction from the Client</li>
+					<li>Device notifies the Client of the result by emitting the appropriate CloudFirmwareUpgrade event</li>
+				</ol>
+				After applying a firmware upgrade the device shall keep the basic network configuration
+				like IP address, subnet mask and gateway or DHCP settings, as well as all the parameters
+				of the Uplink and Security service unchanged, so that it can connect to the cloud.
+				Additionally a firmware upgrade shall not change user credentials.</wsdl:documentation>
+			<wsdl:input message="tds:UpgradeFirmwareRequest"/>
+			<wsdl:output message="tds:UpgradeFirmwareResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="StartSystemRestore">
 			<wsdl:documentation>This operation initiates a system restore from backed up configuration data using the HTTP
@@ -3967,6 +4099,33 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="SetUser">
 			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/SetUser"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetUserRoles">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetUserRoles"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetUserRole">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/SetUserRole"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteUserRole">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/DeleteUserRole"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
@@ -4516,6 +4675,15 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="StartFirmwareUpgrade">
 			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/StartFirmwareUpgrade"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="UpgradeFirmware">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/UpgradeFirmware"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
