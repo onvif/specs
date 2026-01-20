@@ -2132,6 +2132,29 @@ Sec-WebSocket-Protocol: rtsp.onvif.org
       </mediaobject>
     </figure>
   </chapter>
+  <appendix>
+    <title>SRTP (Informative)</title>
+    <para>When implementing SRTP functionality, implementers should be aware of specific library requirements that may affect packet data handling.</para>
+    <section>
+      <title>libsrtp Implementation Considerations</title>
+      <para>If libsrtp is used for SRTP implementation, proper alignment is required for packet data. The libsrtp library documentation specifies the following alignment assumptions:</para>
+      <itemizedlist>
+        <listitem>
+          <para>The <code>srtp_protect</code> method assumes that the RTP packet is aligned on a 32-bit boundary.</para>
+        </listitem>
+        <listitem>
+          <para>The <code>srtp_protect_rtcp</code> method assumes that the RTCP packet is aligned on a 32-bit boundary.</para>
+        </listitem>
+        <listitem>
+          <para>The <code>srtp_unprotect</code> method assumes that the SRTP packet is aligned on a 32-bit boundary.</para>
+        </listitem>
+        <listitem>
+          <para>The <code>srtp_unprotect_rtcp</code> method assumes that the SRTCP packet is aligned on a 32-bit boundary.</para>
+        </listitem>
+      </itemizedlist>
+      <para>Implementers should ensure that packet buffers are properly aligned on 32-bit boundaries before passing them to libsrtp functions. Failure to maintain proper alignment may result in performance degradation or runtime errors on some platforms. It is recommended to consult the libsrtp documentation for specific alignment requirements of the version being used.</para>
+    </section>
+  </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
     <para/>

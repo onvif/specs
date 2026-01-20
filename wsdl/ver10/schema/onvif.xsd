@@ -1019,6 +1019,14 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<!--===============================-->
 	<!--   VideoEncoder2Configuration   -->
 	<!--===============================-->
+	<xs:simpleType name="SrtpSecurityAlgorithms">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="NONE"/>
+			<xs:enumeration value="AES_CM_128_HMAC_SHA1_80"/>
+			<xs:enumeration value="AEAD_AES_128_GCM"/>
+			<xs:enumeration value="AEAD_AES_256_GCM"/>
+		</xs:restriction>
+	</xs:simpleType>
 	<xs:simpleType name="VideoEncodingMimeNames">
 		<xs:annotation>
 			<xs:documentation>Video Media Subtypes as referenced by IANA (without the leading "video/" Video Media Type).  See also <a href="https://www.iana.org/assignments/media-types/media-types.xhtml#video"> IANA Media Types</a>.</xs:documentation>
@@ -2141,11 +2149,11 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			<xs:element name="SRTPPSK" type="xs:string">
 			<xs:annotation>
 				<xs:documentation>
-				An optional SRTP Pre-Shared Key (PSK) represented as a hexadecimal string.
+				SRTP Pre-Shared Key (PSK) represented as a hexadecimal string.
 				This includes both the SRTP master key, followed by the master salt.
 				The sizes of the key and salt depend on the specified SRTPCryptoPolicy.
-				When this element is specified, RTP packets shall be encrypted.
-				The SRTPPSK shall never be returned on a get method.
+				When this element contains a non-empty value, RTP packets shall be encrypted.
+				The SRTPPSK shall be returned as an empty string on a get method.
 				</xs:documentation>
 			</xs:annotation>
 			</xs:element>
