@@ -671,7 +671,11 @@
   </xs:sequence>
 </xs:complexType>
 ]]></programlisting>
-          <para>For example, the coordinates of the scene description are given in a frame coordinate system, where the lower-left corner has coordinates (0,0) and the upper-right corner coordinates (320,240). The video source aspect ratio is 4:3. The frame node resembles the following code, where the scale is set to crop the image to other supported aspect ratios:</para>
+          <para>If the transformation is a centered crop on one axis, no Translate vector is needed and Scale vector is calculated with this formula.</para>
+		  <para>For the rendered aspect ratios greater than the video source aspect ratio, fix ScaleX = 1 and compute ScaleY = RenderedAspectRatio / VideoSourceAspectRatio.</para>
+		  <para>For the rendered aspect ratios less than the video source aspect ratio, fix ScaleY = 1 and compute ScaleX = VideoSourceAspectRatio / RenderedAspectRatio.</para>
+		  <para>For example, the coordinates of the scene description are given in a frame coordinate system, where the lower-left corner has coordinates (0,0) and the upper-right corner coordinates (1920,1440). The video source aspect ratio is 4:3. The device supports resolutions 1920x1080 and 960x576 corresponding aspect ratio 16:9 = 1.77777778 and 5:3 = 1.66666667.</para>
+		  <para>The frame node resembles the following code, where the scale is set to crop the image to other supported aspect ratios:</para>
           <programlisting><![CDATA[<tt:Frame UtcTime="2008-10-10T12:24:57.321">
   <tt:AspectRatioTransformation ratio="1.66666667">
     <tt:Scale x="1" y="1.25"/>
