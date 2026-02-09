@@ -7661,6 +7661,42 @@ and sample rate. </xs:documentation>
 			</xs:element>
 		</xs:sequence>
 	</xs:complexType>	
+
+	<!-- FindNLSearchResultList -->
+	<xs:complexType name="FindNLSearchResultList">
+		<xs:sequence>
+			<xs:element name="SearchState" type="tt:SearchState">
+				<xs:annotation>
+					<xs:documentation>The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Result" type="tt:FindNLSearchResult" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation><xs:documentation>A FindNLSearchResult structure for each found set of image matching the search.</xs:documentation></xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+
+	<!-- FindNLSearchResult -->
+	<xs:complexType name="FindNLSearchResult">
+		<xs:sequence>
+			<xs:element name="ObjectUUID" type="xs:string">
+				<xs:annotation><xs:documentation>Object unique identifier.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="TargetImageURI" type="xs:anyURI">
+				<xs:annotation><xs:documentation>The URI of the detected target object image. This can be either: - a local image stored in the Target Image repository (LocalStorage format), or - an external image provided by the client for image search or feature matching.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="Time" type="xs:dateTime">
+				<xs:annotation><xs:documentation>The time when the target was found. Users can use this as a reference point to search records that occurred before and after this specific time point.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="Similarity" type="xs:float">
+				<xs:annotation><xs:documentation>It represents the similarity between two vectors, which is used to measure the similarity of the directions of the vectors. The closer the value is to 1, the higher the similarity; the closer the value is to 0, the lower the similarity.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="RecordingToken" type="tt:RecordingReference">
+				<xs:annotation><xs:documentation>The recording where this result was found.</xs:documentation></xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>	
+
 	<!--===============================-->
 	<xs:simpleType name="SearchState">
 		<xs:restriction base="xs:string">
@@ -9234,7 +9270,10 @@ and sample rate. </xs:documentation>
 	<!--=========================================-->
 <xs:element name="FindObjectImageResultList" type="tt:FindObjectImageResultList"/>
 <xs:element name="FindObjectImageResult" type="tt:FindObjectImageResult"/>
-	
+
+<xs:element name="FindNLSearchResultList" type="tt:FindNLSearchResultList"/>
+<xs:element name="FindNLSearchResult" type="tt:FindNLSearchResult"/>
+
 <xs:element name="PolygonOptions" type="tt:PolygonOptions"/>
  
 <xs:complexType name="PolygonOptions">
