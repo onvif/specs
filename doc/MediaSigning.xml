@@ -4,19 +4,19 @@
   <info>
     <title>Media Signing Specification</title>
     <titleabbrev>Media Signing</titleabbrev>
-    <releaseinfo>24.12</releaseinfo>
+    <releaseinfo>25.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate> December, 2024</pubdate>
+    <pubdate>December, 2025</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
       </imageobject>
     </mediaobject>
     <copyright>
-      <year>2022-2024</year>
+      <year>2022-2025</year>
       <holder>ONVIF™ All rights reserved.</holder>
     </copyright>
     <legalnotice>
@@ -42,11 +42,28 @@
     <revhistory>
       <revision>
         <revnumber>24.12</revnumber>
-        <date>Dec 2024</date>
+        <date>Dec-2024</date>
         <author>
           <personname>Björn Völcker, Fredrik Svensson, Axel Keskikangas</personname>
         </author>
         <revremark>First release</revremark>
+      </revision>
+      <revision>
+        <revnumber>25.06</revnumber>
+        <date>Jun-2025</date>
+        <author>
+          <personname>Björn Völcker</personname>
+        </author>
+        <revremark>Clarify the difference between Firmware and Software version.</revremark>
+      </revision>
+      <revision>
+        <revnumber>25.12</revnumber>
+        <date>Dec-2025</date>
+        <author>
+          <personname>Björn Völcker</personname>
+        </author>
+        <revremark>Added a second timestamp to bitstream and removed specification version.
+          Requires SEIs to be added in sequential order.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -57,12 +74,6 @@
       specification further defines how an ONVIF client should act at file export to preserve the
       signing feature, and also how an ONVIF client should validate the authenticity of a signed
       stream. Audio is outside of scope.</para>
-  </chapter>
-  <chapter xml:id="chapter_spec_version">
-    <title>Specification version v1.0</title>
-    <para>This number should be updated when an update to the specification breaks the bitstream
-      format or when new features are added. Such features could be new ways of hashing or support
-      of more codecs.</para>
   </chapter>
   <chapter xml:id="chapter_a3s_njq_bwb">
     <title>Normative references</title>
@@ -220,8 +231,8 @@
     <section xml:id="section_g3s_njq_bwb">
       <title>Limitations</title>
       <para><emphasis role="bold">Codecs</emphasis>. <emphasis>Signed Video</emphasis> is defined
-        for the H.264 and H.265 video codec formats, for full details see references. 
-        Therefore, most of the description uses the Network Abstraction Layer (NAL) concept. 
+        for the H.264 and H.265 video codec formats, for full details see references.
+        Therefore, most of the description uses the Network Abstraction Layer (NAL) concept.
         For simplicity, hashing is done on NAL Units
         instead of full frame data. One frame may be split into multiple NAL Units and therefore
         generating multiple hashes per frame. Note that raw video is not covered, since there are
@@ -285,6 +296,9 @@
               or complete GOP.</para>
             <para>This is necessary to secure the order of frames from tampering.</para>
           </listitem>
+          <listitem>
+            <para>The generated SEIs shall be added to the stream in sequence order.</para>
+          </listitem>
         </itemizedlist>
       </para>
     </section>
@@ -292,12 +306,12 @@
       <title>Detailed description on how the device generates SEI frames including
         signatures</title>
       <para>The H.264 and H.265 codec formats, as specified in referenced documents, allows the user
-        to add arbitrary data to a stream through SEI frames of type user data unregistered. 
-        <emphasis>Signed Video</emphasis> puts the produced signatures and additional metadata in such frames. 
-        These SEI frames are ignored by the decoder and will therefore not affect the video rendering. 
+        to add arbitrary data to a stream through SEI frames of type user data unregistered.
+        <emphasis>Signed Video</emphasis> puts the produced signatures and additional metadata in such frames.
+        These SEI frames are ignored by the decoder and will therefore not affect the video rendering.
         One obvious drawback is that it is easy to change the video from signed to unsigned by dropping
-        these SEI frames. In some cases this can also be beneficial. For example, if the user is no 
-        longer interested in its authenticity, the SEI frames can be removed and thereby reducing the bitrate. 
+        these SEI frames. In some cases this can also be beneficial. For example, if the user is no
+        longer interested in its authenticity, the SEI frames can be removed and thereby reducing the bitrate.
         It is out of scope to protect against lost SEI frames. Validating a video where SEIs have been lost or
         removed will anyhow be marked as not authentic, or unsigned (if no SEIs are present).</para>
       <para>All operations are done on the encoded video stream. Each picture frame is split into
@@ -305,8 +319,8 @@
         Note that it is not necessarily a one-to-one correspondance between frames and NAL Units. A
         frame split into slices (multiple NAL Units) will generate multiple hashes. In this
         specification, unless explicitly stated, hashing a frame means hashing a NAL Unit.</para>
-      <para>All picture NAL Units should be hashed. In addition, all SEI frames, generated by ONVIF
-        Media Signing should also be hashed accordingly, unless the SEI includes a signature.</para>
+      <para>All picture NAL Units shall be hashed. In addition, all SEI frames, generated by ONVIF
+        Media Signing shall also be hashed accordingly, unless the SEI includes a signature.</para>
       <para>Some NAL Units have no or limited impact on the visual video and are ignored:
         <itemizedlist>
           <listitem>
@@ -384,19 +398,19 @@
       <para>Let <code>H(F)</code> denote the hash of a NAL Unit <code>F</code>, and <code>h_anch =
           H(I)</code> is the hash of the leading I-frame in a GOP and used as anchor (linked hash).
         Then each frame in a GOP is hashed according to <code>hash(F) = H(h_anch, H(F))</code>,
-        where <code>h_anch</code> and <code>H(F)</code> should be hashed as if they were aligned in
+        where <code>h_anch</code> and <code>H(F)</code> shall be hashed as if they were aligned in
         memory. All hashes are collected in a list and together with some metadata forms a
           <code>document</code>, which later will be signed.</para>
       <para>All NAL Unit data, from the NAL Unit header to the last byte, including the stop bit,
-        should be hashed. The start code is excluded when hashing.</para>
-      <para>If the I-frame is sliced into multiple NAL Units, the hash of the primary slice should
+        shall be hashed. The start code is excluded when hashing.</para>
+      <para>If the I-frame is sliced into multiple NAL Units, the hash of the primary slice shall
         be used as <code>h_anch = H(Iprimaryslice)</code>. The other NAL Units of the I-frame are
         hashed in the linked manner described above.</para>
-      <para>The NAL Units should be hashed in the same order as the encoder emits them, that is, in
+      <para>The NAL Units shall be hashed in the same order as the encoder emits them, that is, in
         decoding order. For example, consider 4 consecutive images with data D1, D2, D3, D4.
         Let the encoder use a GOP structure with two B-frames, which in presentation order would be
         I-B-B-P. The order out from the encoder becomes I1-P4-B2-B3, which also is the order of
-        which they should be hashed and put in the list of hashes
+        which they shall be hashed and put in the list of hashes
         [h_ach, hash(P4), hash(B2), hash(B3)].</para>
       <para>A hash (<code>gophash</code>) of the list of hashes is added to metadata, <code>gophash
           = H(h_anch, hash(NALUnit1), hash(NALUnit2), ..., hash(NALUnitN))</code>. The
@@ -406,7 +420,7 @@
         can be added by omitting the list of hashes.</para>
       <para>To preserve the order of GOPs the hash of the I-frame of the previous GOP is also added
         to metadata, that is, <code>hash(Iprevious) = h_anch_previous</code>. For the very first GOP
-        a static and pre-defined hash should be used; See the TLV section below.</para>
+        a static and pre-defined hash shall be used; See the TLV section below.</para>
       <para>This <code>document</code> is then signed to produce a signature as <code>signature =
           sign(H(document))</code> and together with the <code>document</code> itself added to the
         stream in a SEI, that is, SEI = <code>document + signature</code>. The next GOP is initiated
@@ -488,6 +502,9 @@
       <para>All, by this specification, generated SEI frames without a signature must be hashed and
         added to the list of NAL Unit hashes. Note that they have to be hashed in the same order as
         they appear in the stream.</para>
+      <para>The SEI frames shall be added in the exact order they are generated, regardless of their readiness.
+        For example, a SEI frame without a signature that is ready before the previous
+        signed SEI is, cannot be added until the signed SEI is completed.</para>
       <section>
         <title>Example</title>
         <para>The following example figures show how multiple short GOPs can be signed. The yellow
@@ -519,9 +536,9 @@
             </imageobject>
           </mediaobject>
         </figure>
-        <para>While the third SEI is being signed a SEI representing GOP 4 is generated and injected to the stream as shown in <xref linkend="smg04"/>.</para>
+        <para>While the third SEI is being signed, a SEI representing GOP 4 is generated and waiting to be injected to the stream as shown in <xref linkend="smg04"/>.</para>
         <figure xml:id="smg04">
-          <title>Injection of SEI representing GOP 4.</title>
+          <title>Pending injection of SEI representing GOP 4.</title>
           <mediaobject>
             <imageobject>
               <imagedata fileref="media/MediaSigning/SigningMultipleGops04.svg" contentwidth="150mm"/>
@@ -530,7 +547,7 @@
         </figure>
         <para>When the signature is ready it is added to the corresponding SEI and injected to the stream as shown in <xref linkend="smg05"/>.</para>
         <figure xml:id="smg05">
-          <title>Out of order injection of signed SEI.</title>
+          <title>In order injection of signed SEI.</title>
           <mediaobject>
             <imageobject>
               <imagedata fileref="media/MediaSigning/SigningMultipleGops05.svg" contentwidth="150mm"/>
@@ -547,8 +564,7 @@
         </figure>
         <para>Finally <xref linkend="smg07"/> and <xref linkend="smg08"/> provide an overview of
           which frames are secured by which SEI. In the case of <xref linkend="smg07"/> the SEIs
-          have been prepended to the same frame that triggered the SEI while in the case of <xref
-            linkend="smg08"/> the SEIs have been added to the stream on the next available
+          have been prepended to the same frame that triggered the SEI while in the case of <xref linkend="smg08"/> the SEIs have been added to the stream on the next available
           instance.</para>
         <figure xml:id="smg07">
           <title>Overview when SEIs are prepended.</title>
@@ -754,11 +770,11 @@
         <title>The reserved byte</title>
         <para>Right after the UUID, and before the TLV data, is a reserved byte. This byte represents
           bit flags of information that cannot be put in the TLV structure.</para>
-        <para>The first bit should be set to 1 if this is a certificate SEI.</para>
-        <para>The second bit should be set to 1 if emulation prevention was applied
+        <para>The first bit shall be set to 1 if this is a certificate SEI.</para>
+        <para>The second bit shall be set to 1 if emulation prevention was applied
           <emphasis role="bold">before</emphasis> this SEI (the document) was hashed for signing.
         </para>
-        <para>The last bit should be set to 0. If, in the future, 7 bits is not enough to signal
+        <para>The last bit shall be set to 0. If, in the future, 7 bits is not enough to signal
           settings outside the TLV structure, this bit will be used to signal more reserved
           bytes.</para>
       </section>
@@ -770,7 +786,7 @@
           certificate SEI from the video stream and can be copied and added to any exported
           material.</para>
         <para>If the video is signed with a user provisioned signing key, this certificate SEI
-          should be signed with the manifacturer provisioned signing key. Note that both
+          shall be signed with the manifacturer provisioned signing key. Note that both
           certificates of Public keys have to be included in the certificate SEI.</para>
       </section>
       <section xml:id="section_n3s_njq_bwb">
@@ -914,15 +930,14 @@
         <itemizedlist>
           <listitem>
             <para>Tag version (1 byte)</para>
-            <para>Version = 1</para>
+            <para>Version = 2</para>
           </listitem>
           <listitem>
             <para>Specification version (3 byte)</para>
-            <para>The major and minor bytes should be set to the version of this specification, that
-              is, [1, 0]; See Chapter <xref linkend="chapter_spec_version"/>.</para>
+            <para>The major and minor bytes shall be set to the specification revision, e.g., [25, 12].</para>
             <para>The patch byte is reserved by the open-source reference implementation code
-              (github.com/onvif/signed-media-framework). Should be set to 0 if not using
-              signed-media-framework.</para>
+              (github.com/onvif/media-signing-framework). Should be set to 0 if not using
+              media-signing-framework.</para>
           </listitem>
           <listitem>
             <para>Signing triggered by partial-GOP (1 byte)</para>
@@ -933,16 +948,25 @@
           </listitem>
           <listitem>
             <para>The UTC (8 bytes) based time represented by the number of 100-nanosecond intervals
-              since January 1, 1601 of the I-frame leading the GOP.</para>
-            <para>The timestamp value is a 64 bit parameter and the 8 bytes should be written with
+              since January 1, 1601 of the frame leading the (partial) GOP.</para>
+            <para>The start timestamp value is a 64 bit parameter and the 8 bytes shall be written with
               little endian.</para>
           </listitem>
           <listitem>
+            <para>Only present from tag version 2.</para>
+            <para>The UTC (8 bytes) based time represented by the number of 100-nanosecond intervals
+              since January 1, 1601 of the frame leading the upcoming (partial) GOP.</para>
+            <para>The end timestamp value is a 64 bit parameter and the 8 bytes shall be written with
+              little endian.</para>
+            <para>The duration of the signed (partial) GOP can now be calculated as duration =
+              "end timestamp" - "start timestamp". Note that the end timestamp is exclusive.</para>
+          </listitem>
+          <listitem>
             <para>GOP counter (4 bytes)</para>
-            <para>A running counter that should increment by 1 for each GOP. This counter is a
+            <para>A running counter that shall increment by 1 for each GOP. This counter is a
               helper during validation when detecting lost SEIs and syncing SEIs with the
               associated GOP.</para>
-            <para>The counter value is a 32 bit parameter and the 4 bytes should be written with
+            <para>The counter value is a 32 bit parameter and the 4 bytes shall be written with
               little endian.</para>
             <para>Note that the counter is only incremented upon transition to a new GOP and not
               for each partial-GOP.</para>
@@ -950,7 +974,7 @@
           <listitem>
             <para>Number of NAL Units represented by partial-GOP hash (2 bytes)</para>
             <para>The GOP-hash added below is by definition a hash of NAL Unit hashes. For simplified
-              validation knowledge of the number of NAL Units used should be added, represented by
+              validation knowledge of the number of NAL Units used shall be added, represented by
               an unsigned 16 bit value.</para>
           </listitem>
           <listitem>
@@ -964,7 +988,7 @@
             <para>In most cases this is the hash of the linked I-frame, that is, the I-frame leading
               the previously signed GOP (<code>h_anch_previous</code>). Number of bytes depends on
               the hash function used.</para>
-            <para>For the first signed GOP these <code>h</code> bytes should be set to
+            <para>For the first signed GOP these <code>h</code> bytes shall be set to
                 <code>0x00</code>.</para>
           </listitem>
         </itemizedlist>
@@ -1327,13 +1351,13 @@
               list if present in the SEI.</para>
           </listitem>
           <listitem>
-            <para>The client should signal AUTHENTIC if all computed hashes are verified
+            <para>The client shall signal AUTHENTIC if all computed hashes are verified
               successfully against the hashes in the SEI, and the order is preserved and no NAL
               Units are missing.</para>
-            <para>If any missing NAL Unit is detected the client should signal AUTHENTIC WITH
+            <para>If any missing NAL Unit is detected the client shall signal AUTHENTIC WITH
               MISSING NAL UNITS.</para>
-            <para>If no SEIs are present the client should signal NOT SIGNED.</para>
-            <para>If none of the above applies the video is not authentic and the client should
+            <para>If no SEIs are present the client shall signal NOT SIGNED.</para>
+            <para>If none of the above applies the video is not authentic and the client shall
               signal NOT AUTHENTIC.</para>
           </listitem>
         </itemizedlist>
@@ -1381,9 +1405,9 @@
         the end of the video may not be covered by the verification information in the current
         segment. </para>
     </section>
-  </appendix>  
+  </appendix>
   <appendix>
-    <title>Bibliography</title>    
+    <title>Bibliography</title>
     <para> Alliance for Open Media | AV1 Bitstream &amp; Decoding Process Specification </para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://aomedia.org/av1/specification/"/>&gt;</para>
     <para>IETF RFC 3447 Public-Key Cryptography Standards (PKCS) #1: RSA Cryptography Specifications

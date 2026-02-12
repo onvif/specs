@@ -1,0 +1,88 @@
+name: development-generate-pdf-files
+run-name: "Generate ONVIF specs from the development branch"
+
+on:
+  push:
+    branches:
+      - development
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOCBOOK_SOURCE_DIR: ${{ github.workspace }}/doc
+  DOCBOOK_BUILD_DIR: ${{ github.workspace }}/build
+  JAVA_VERSION: openjdk-8-jdk
+  JAVA_HOME: /usr/lib/jvm/java-8-openjdk-amd64
+
+jobs:
+  build-pdf:
+    strategy:
+      fail-fast: true
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install missing software
+        run: |
+          echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
+          sudo apt update && sudo DEBIAN_FRONTEND=noninteractive apt install -y --force-yes curl unzip $JAVA_VERSION fonts-noto-color-emoji ttf-mscorefonts-installer asciidoctor fd-find ; \
+          sudo fc-cache -fv
+          pip install pdf-watermark
+      - name: Checkout sources
+        uses: actions/checkout@v3
+      - name: Configure Java
+        run: |
+          echo "####" ; \
+          export TARGET=$JAVA_HOME/jre/lib/jaxp.properties ;  \
+          sudo touch $TARGET; \
+          sudo chmod 666 $TARGET ; \
+          ls -al $JAVA_HOME/jre/lib ; \
+          sudo echo jdk.xml.maxXMLNameLimit=1000 > $TARGET ; \
+          sudo echo jdk.xml.xpathExprGrpLimit=0 >> $TARGET ; \
+          sudo echo jdk.xml.xpathExprOpLimit=0 >> $TARGET ; \
+          sudo echo jdk.xml.xpathTotalOpLimit=0 >> $TARGET ; \
+          sudo echo javax.xml.accessExternalStylesheet=file,http >> $TARGET ; \
+          sudo echo javax.xml.accessExternalDTD=file,http >> $TARGET ; \
+          sudo echo javax.xml.transform.TransformerFactory=org.apache.xalan.processor.TransformerFactoryImpl >> $TARGET ; \
+          sudo echo javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING=false >> $TARGET ; \
+          sudo echo jdk.xml.enableExtensionFunctions=true >> $TARGET ; \
+          sudo chmod 644 $TARGET ;
+      - name: Download Apache Fop 2.9
+        uses: ethanjli/cached-download-action@v0.1.3
+        with:
+          url: https://archive.apache.org/dist/xmlgraphics/fop/binaries/fop-2.9-bin.tar.gz
+          destination: /tmp/fop-2.9-bin.tar.gz
+      - name: Install Fop
+        run: |
+          cd /tmp ; sudo tar -xvzf fop-2.9-bin.tar.gz -C /usr/local
+      - name: Download Apache Xalan-j 2.7.1
+        uses: ethanjli/cached-download-action@v0.1.3
+        with:
+          url: https://archive.apache.org/dist/xml/xalan-j/binaries/xalan-j_2_7_1-bin.zip
+          destination: /tmp/xalan-j_2_7_1-bin.zip
+      - name: Install Xalan-j
+        run: |
+          sudo mkdir -p $JAVA_HOME/jre/lib/endorsed ; \
+          cd /tmp ; unzip /tmp/xalan-j_2_7_1-bin.zip ; \
+          sudo cp /tmp/xalan-j_2_7_1/xalan.jar $JAVA_HOME/jre/lib/endorsed ; \
+          sudo cp /tmp/xalan-j_2_7_1/serializer.jar $JAVA_HOME/jre/lib/endorsed
+      - name: Compile PDF files
+        run: |
+          export JAVA_TOOL_OPTIONS="-Djavax.xml.XMLConstants.FEATURE_SECURE_PROCESSING=false" ; \
+          cd ${{ github.workspace }} ; perl build/build.pl
+      - name: Add draft watermark to the PDF files
+        run: |
+          cd ${{ github.workspace }} ; fdfind -e pdf . 'out'  -x watermark grid {} "draft"
+      - name: Calculate the short commit ID
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: "Save generated PDF files as build artifact"
+        uses: actions/upload-artifact@v4
+        with:
+          name: ONVIF-specs-${{ steps.vars.outputs.sha_short }}
+          path: |
+            ${{ github.workspace }}/out/*/*.pdf
+            ${{ github.workspace }}/out/*.pdf
+          compression-level: 9
+          retention-days: 30
+        

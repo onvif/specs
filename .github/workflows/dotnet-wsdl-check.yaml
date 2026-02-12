@@ -1,0 +1,76 @@
+name: dotnet-wsdl-check
+run-name: "WSDL files syntax check with .Net 9.0"
+
+on:
+  push:
+    paths:
+      - '**.wsdl'
+      - '**.xsd'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dotnet-wsdl-check:
+    strategy:
+      fail-fast: true
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check that remote files are reachable
+        id: vars
+        run: |
+          export MISSING_FILES=0
+          curl --head http://docs.oasis-open.org/wsn/b-2.xsd ||  export MISSING_FILES=$((MISSING_FILES+1))
+          echo "MISSING_FILES=$MISSING_FILES" >> $GITHUB_OUTPUT
+          echo "MISSING_FILES=$MISSING_FILES"
+      - name: Install missing software
+        if: ${{ steps.vars.outputs.MISSING_FILES == 0 }}
+        run: |
+          sudo add-apt-repository ppa:dotnet/backports
+          sudo apt update && sudo apt install dotnet-sdk-9.0
+      - name: Get branch names.
+        if: ${{ steps.vars.outputs.MISSING_FILES == 0 }}
+        id: branch-names
+        uses: tj-actions/branch-names@v9.0.2
+      - name: Set target
+        id: target
+        run: |
+          if [ ${{ steps.branch-names.outputs.is_tag }} == 'true' ]; then
+            echo "TARGET=${{ steps.branch-names.outputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "TARGET=${{ steps.branch-names.outputs.current_branch }}" >> $GITHUB_OUTPUT
+          fi
+      - name: Run dotnet-svcutil
+        if: ${{ steps.vars.outputs.MISSING_FILES == 0 }}
+        run: |
+          echo "TARGET #${{ steps.target.outputs.TARGET }}#"
+          dotnet new tool-manifest
+          dotnet tool install dotnet-svcutil
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/accessrules/wsdl/accessrules.wsdl -d . -o AccessRules.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/advancedsecurity/wsdl/advancedsecurity.wsdl -d . -o Security.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/appmgmt/wsdl/appmgmt.wsdl -d . -o AppMgmt.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/authenticationbehavior/wsdl/authenticationbehavior.wsdl -d . -o AuthenticationBehavior.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/credential/wsdl/credential.wsdl -d . -o Credential.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/display/wsdl/index.htm -d . -o Display.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/device/wsdl/devicemgmt.wsdl -d . -o Device.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/events/wsdl/event.wsdl -d . -o Event.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/media/wsdl/media.wsdl -d . -o Media.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/pacs/accesscontrol.wsdl -d . -o Accesscontrol.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/pacs/doorcontrol.wsdl -d . -o  Doorcontrol.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/provisioning/wsdl/provisioning.wsdl -d . -o  Provisioning.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/schedule/wsdl/schedule.wsdl -d . -o Schedule.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/thermal/wsdl/thermal.wsdl -d . -o  Thermal.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver10/uplink/wsdl/uplink.wsdl -d . -o Uplink.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver20/analytics/wsdl/analytics.wsdl -d . -o Analytics.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver20/imaging/wsdl/imaging.wsdl -d . -o Imaging.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver20/media/wsdl/media.wsdl -d . -o Media2.cs || /bin/true
+          DOTNET_SVCUTIL_TELEMETRY_OPTOUT=1 dotnet tool run dotnet-svcutil https://raw.githubusercontent.com/onvif/specs/refs/heads/${{ steps.target.outputs.TARGET }}/wsdl/ver20/ptz/wsdl/ptz.wsdl -d . -o PTZ.cs || /bin/true
+          ls *.cs
+          count=$(ls -1 *.cs 2>/dev/null | wc -l)
+          echo  "Number of generated files: $count"
+          if [ "$count" -eq 19 ]; then
+            /bin/true
+          else
+            /bin/false
+          fi
