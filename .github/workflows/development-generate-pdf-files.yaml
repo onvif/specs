@@ -5,17 +5,6 @@ on:
   push:
     branches:
       - development
-  workflow_dispatch:
-    inputs:
-      reason:
-        description: 'Reason for manual run'
-        required: false
-        default: 'Testing'
-      add_watermark:
-        description: 'Add "draft" watermark to PDF?'
-        required: true
-        type: boolean
-        default: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -82,8 +71,6 @@ jobs:
           export JAVA_TOOL_OPTIONS="-Djavax.xml.XMLConstants.FEATURE_SECURE_PROCESSING=false" ; \
           cd ${{ github.workspace }} ; perl build/build.pl
       - name: Add draft watermark to the PDF files
-        # Runs if it's a push OR if the manual trigger 'add_watermark' is true
-        if: github.event_name == 'push' || inputs.add_watermark == true
         run: |
           cd ${{ github.workspace }} ; fdfind -e pdf . 'out'  -x watermark grid {} "draft"
       - name: Calculate the short commit ID
