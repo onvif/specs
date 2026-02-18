@@ -664,7 +664,7 @@
         <title>CreateProfile</title>
         <para>This operation creates a new media profile. The media profile shall be created in the device.</para>
         <para>A device implementing this service shall support the creation of media profiles as long as the number of existing profiles does not exceed the capability value MaximumNumberOfProfiles.</para>
-        <para>A created profile shall be deletable and a device shall set the “fixed” attribute to false in the returned Profile.</para>
+        <para>A created profile shall be deletable and a device shall set the "fixed" attribute to false in the returned Profile.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -1852,7 +1852,7 @@
             <term>faults</term>
             <listitem>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoConfig</para>
-              <para role="text">The requested video source configuration ConfigurationToken does not exist.</para>
+              <para role="text">The requested video source configuration does not exist.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -2310,7 +2310,7 @@
           </varlistentry>
         </variablelist>
       </section>
-      <section xml:id="section_wvd_dzg_ryd">
+      <section xml:id="section_wvd_dzg_ryb">
         <title>AddAudioClip</title>
         <para>This operation adds audio clip configuration to the device and provides the audio clip upload
 		URI to the client. The response to the command includes an HTTP URL to which the audio clip may be uploaded	with in the expiry time. If the client is unable to upload the audio clip within the URL's expiry time, the associated audio clip configuration will deleted from the device.
@@ -3022,6 +3022,119 @@ Topics: tns1:Monitoring/ActiveSessions/VideoEncoder
     </tt:MessageDescription>
   ]]></programlisting>
 </section>
+    </section>
+    <section xml:id="_SipStreamingConfiguration">
+      <title>SIP Streaming Configuration</title>
+      <para>
+        The SIP streaming configuration defines the media configurations used during SIP-based streaming sessions.
+        It allows a client to update the provided configurations used when the device participates in a SIP call.
+      </para>
+      <para>
+        Only a single SIP streaming configuration is supported per device. If the device has a SIP server configuration
+        (as defined in the Device Management service), the SIP streaming configuration determines the media
+        parameters applied during incoming or outgoing SIP sessions. A configuration shall be provided per configuration 
+        type that the device supports for SIP streaming. For example, if the device supports both video and audio streaming over SIP, 
+        the SIP streaming configuration shall include a video source configuration, a video encoder configuration, an audio source 
+        configuration and an audio encoder configuration. If the device supports only audio output (such as a speaker device), then the configuration shall 
+        only include the audio output configuration and audio decoder configuration.
+      </para>
+      <para>
+        Note: The configuration listed as part of the SIP streaming configuration are not expected to be used by the device for non-SIP streaming sessions.
+        This means that the configurations needs not to be returned in GetXConfigurations, nor to be configured through SetXConfiguration.
+      </para>
+      <section xml:id="section_get_sip_streaming_configuration">
+        <title>GetSipStreamingConfiguration</title>
+        <para>This operation retrieves the current SIP streaming configuration of the device.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">SipStreamingConfiguration [tr2:SipStreamingConfiguration]</para>
+              <para role="text">The current SIP streaming configuration of the device.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="section_set_sip_streaming_configuration">
+        <title>SetSipStreamingConfiguration</title>
+        <para>This operation sets the SIP streaming configuration of the device.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">SipStreamingConfiguration [tr2:SipStreamingConfiguration]</para>
+              <para role="text">The SIP streaming configuration to set on the device. Only one SIP streaming configuration is supported.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="section_get_sip_streaming_configuration_options">
+        <title>GetSipStreamingConfigurationOptions</title>
+        <para>This operation retrieves the supported options for the SIP streaming configuration of the device.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">SipStreamingConfigurationOptions [tr2:SipStreamingConfigurationOptions]</para>
+              <para role="text">The supported options for SIP streaming configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
     </section>
   </chapter>
   <appendix xml:id="_Ref425842742">
