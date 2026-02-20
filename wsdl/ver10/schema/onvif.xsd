@@ -4551,6 +4551,13 @@ decoding .A decoder shall decode every data it receives (according to its capabi
           </xs:documentation>
 				</xs:annotation>
 			</xs:element>
+			<xs:element name="SupportedPattern" type="tt:PTZPatternSupported" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>
+						Detail of supported Preset Tour feature.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:element name="Extension" type="tt:PTZNodeExtension2" minOccurs="0"/>
 		</xs:sequence>
 	</xs:complexType>
@@ -4579,6 +4586,29 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 	</xs:complexType>
 	<!--===============================-->
 	<xs:complexType name="PTZPresetTourSupportedExtension">
+		<xs:sequence>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+		</xs:sequence>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="PTZPatternSupported">
+		<xs:sequence>
+			<xs:element name="MaximumNumberOfPattern" type="xs:int">
+				<xs:annotation>
+					<xs:documentation>Indicates number of patterns that can be created. Required pattern operations shall be available for this PTZ Node if one or more pattern is supported.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="PTZPatternOperation" type="tt:PTZPatternOperation" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Indicates which pattern operations are available for this PTZ Node.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Extension" type="tt:PTZPatternSupportedExtension" minOccurs="0"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="PTZPatternSupportedExtension">
 		<xs:sequence>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 		</xs:sequence>
@@ -5368,6 +5398,161 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			<xs:enumeration value="ObjectID"/>
 		</xs:restriction>
 	</xs:simpleType>
+	<!--===============================-->
+	<xs:simpleType name="PTZPatternState">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Idle"/>
+			<xs:enumeration value="Touring"/>
+			<xs:enumeration value="Paused"/>
+			<xs:enumeration value="Extended"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--===============================-->
+	<xs:simpleType name="PTZPatternDirection">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Forward"/>
+			<xs:enumeration value="Backward"/>
+			<xs:enumeration value="Extended"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--===============================-->
+	<xs:simpleType name="PTZPatternOperation">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Start"/>
+			<xs:enumeration value="Stop"/>
+			<xs:enumeration value="Pause"/>
+			<xs:enumeration value="Extended"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--===============================-->
+	<xs:complexType name="PTZPattern">
+		<xs:sequence>
+			<xs:element name="Name" type="tt:Name" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Readable name of the pattern.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Status" type="tt:PTZPatternStatus">
+				<xs:annotation>
+					<xs:documentation>Read only parameters to indicate the status of the pattern.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AutoStart" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation>Auto Start flag of the pattern. True allows the pattern to be activated always.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="StartingCondition" type="tt:PTZPatternStartingCondition">
+				<xs:annotation>
+					<xs:documentation>Parameters to specify the detail behavior of the pattern.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Extension" type="tt:PTZPatternExtension" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="token" type="tt:ReferenceToken">
+			<xs:annotation>
+				<xs:documentation>Unique identifier of this pattern.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="PTZPatternExtension">
+		<xs:sequence>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+		</xs:sequence>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="PTZPatternStatus">
+		<xs:sequence>
+			<xs:element name="State" type="tt:PTZPatternState">
+				<xs:annotation>
+					<xs:documentation>Indicates state of this pattern by Idle/Touring/Paused.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Extension" type="tt:PTZPatternStatusExtension" minOccurs="0"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="PTZPatternStatusExtension">
+		<xs:sequence>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+		</xs:sequence>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="PTZPatternStartingCondition">
+		<xs:sequence>
+			<xs:element name="RecurringTime" type="xs:int" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional parameter to specify how many times the pattern is recurred.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="RecurringDuration" type="xs:duration" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional parameter to specify how long time duration the pattern is recurred.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Direction" type="tt:PTZPatternDirection" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional parameter to choose which direction the pattern goes. Forward shall be chosen in case it is omitted.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Extension" type="tt:PTZPatternStartingConditionExtension" minOccurs="0"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="PTZPatternStartingConditionExtension">
+		<xs:sequence>
+			<xs:any namespace="##targetNamespace" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="PTZPatternOptions">
+		<xs:sequence>
+			<xs:element name="AutoStart" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation>Indicates whether or not the AutoStart is supported.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="StartingCondition" type="tt:PTZPatternStartingConditionOptions">
+				<xs:annotation>
+					<xs:documentation>Supported options for Pattern Starting Condition.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="PTZPatternStartingConditionOptions">
+		<xs:sequence>
+			<xs:element name="RecurringTime" type="tt:IntRange" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Supported range of Recurring Time.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="RecurringDuration" type="tt:DurationRange" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Supported range of Recurring Duration.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Direction" type="tt:PTZPatternDirection" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Supported options for Direction of Pattern.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Extension" type="tt:PTZPatternStartingConditionOptionsExtension" minOccurs="0"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="PTZPatternStartingConditionOptionsExtension">
+		<xs:sequence>
+			<xs:any namespace="##targetNamespace" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
 	<!--===============================-->
 	<!--     End, PTZ Related Types    -->
 	<!--===============================-->

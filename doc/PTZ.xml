@@ -47,7 +47,7 @@
         <author>
           <personname>Takahiro Iwasaki</personname>
         </author>
-        <revremark>Addition of Preset Tour and PT Control Direction features
+        <revremark>Addition of Pattern and PT Control Direction features
 Change Request 648</revremark>
       </revision>
       <revision>
@@ -420,6 +420,9 @@ Add GeoMove</revremark>
           <listitem>
             <para>MaximumNumberOfPresetTours – Indicates number of preset tours that can be created. Required preset tour operations shall be available for this PTZ node if one or more preset tours are supported.</para>
           </listitem>
+		  <listitem>
+            <para>MaximumNumberOfPatterns – Indicates number of patterns that can be created. Required pattern operations shall be available for this PTZ node if one or more patterns are supported.</para>
+          </listitem>
         </itemizedlist>
       </section>
       <section>
@@ -538,6 +541,9 @@ Add GeoMove</revremark>
           </listitem>
           <listitem>
             <para>PresetTourRamp – The optional acceleration ramp used by the device when executing PresetTours.</para>
+          </listitem>
+		  <listitem>
+            <para>PatternRamp – The optional acceleration ramp used by the device when executing patterns.</para>
           </listitem>
         </itemizedlist>
         <para>The default position/translation/velocity spaces are introduced to allow clients sending move requests without the need to specify a certain coordinate system. The default speeds are introduced to control the speed of move requests (absolute, relative, preset), where no explicit speed has been set.</para>
@@ -1734,7 +1740,7 @@ Add GeoMove</revremark>
     </section>
     <section>
       <title>Preset Tour Operations</title>
-      <para>Preset tour is a feature for PTZ-capable devices, enabling the PTZ unit to move on specified presets sequentially at some  interval.</para>
+      <para>Preset tour is a feature for PTZ-capable devices, enabling the PTZ unit to move on specified presets sequentially at some interval.</para>
       <para>This section describes operations that manage the preset tours. These operations shall be implemented when a PTZ node in the PTZ service indicates support of preset tours with MaximumNumberOfPresetTours&gt;0 capability value, All operations require a profile token referencing a Media Profile including a PTZConfiguration. All operations for preset tours shall always be persistent.</para>
       <para>PresetTours can have forward and backward directions, and in case direction is omitted, it is assumed to be forward. However, it is possible to specify random execution by setting the RandomPresetOrder attribute. In case RandomPresetOrder is set to true and Direction is also present, Direction will be ignored and presets of the Tour will be recalled randomly.</para>
       <section>
@@ -1941,7 +1947,7 @@ Add GeoMove</revremark>
             <para>Stop: indicates stopping the preset tour.</para>
           </listitem>
           <listitem>
-            <para>Pause:iIndicates pausing the preset tour.</para>
+            <para>Pause: indicates pausing the preset tour.</para>
           </listitem>
         </itemizedlist>
         <para>When receiving another OperatePresetTour command of Start operation for a preset tour which has already been started, the preset tour shall be restarted with the newly requested parameter.</para>
@@ -1988,7 +1994,7 @@ Add GeoMove</revremark>
       </section>
       <section>
         <title>RemovePresetTour</title>
-        <para>A device supporting preset tours shall support removing preset tours through RemoevPresetTour.</para>
+        <para>A device supporting preset tours shall support removing preset tours through RemovePresetTour.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -2109,6 +2115,358 @@ Add GeoMove</revremark>
       </section>
     </section>
     <section>
+      <title>Pattern Operations</title>
+      <para>Pattern is a feature for PTZ-capable devices, enabling the PTZ unit to replay camera movements sequences.</para>
+      <para>This section describes operations that manage the patterns. These operations shall be implemented when a PTZ node in the PTZ service indicates support of patterns with MaximumNumberOfPatterns&gt;0 capability value, All operations require a profile token referencing a Media Profile including a PTZConfiguration. All operations for patterns shall always be persistent.</para>
+      <para>TO BE DETERMINED - Patterns can have forward and backward directions, and in case direction is omitted, it is assumed to be forward.</para>
+      <section>
+        <title>GetPatterns</title>
+        <para>A device supporting Pattern feature shall return all available patterns through GetPatterns.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ProfileToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to an existing media profile.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Pattern - optional, unbounded [tt:PTZPattern]</para>
+              <para role="text">List of patterns defined for the requested MediaProfile.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
+              <para role="text">The requested profile token ProfileToken does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPTZProfile</para>
+              <para role="text">The requested profile token does not reference a PTZ configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>GetPattern</title>
+        <para>A device supporting patterns shall return the requested pattern through GetPattern.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ProfileToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to an existing media profile.</para>
+              <para role="param">PatternToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to an existing pattern.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Pattern [tt:PTZPattern]</para>
+              <para role="text">The requested pattern.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
+              <para role="text">The requested profile token does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPTZProfile</para>
+              <para role="text">The requested profile token does not reference a PTZ configuration.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoToken</para>
+              <para role="text">The requested pattern token does not exist.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>GetPatternOptions</title>
+        <para>A device supporting patterns shall provide options for how patterns can be configured through GetPatternOptions.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ProfileToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to an existing media profile.</para>
+              <para role="param">PatternToken - optional [tt:ReferenceToken]</para>
+              <para role="text">Optional reference to an existing pattern.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Pattern [tt:PTZPatternOptions]</para>
+              <para role="text">The requested pattern options.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
+              <para role="text">The requested profile token does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPTZProfile</para>
+              <para role="text">The requested profile token does not reference a PTZ configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>CreatePattern</title>
+        <para>A device supporting Pattern feature shall allow creating a new Pattern through the CreatePattern.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ProfileToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to an existing media profile.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">PatternToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to an existing pattern.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
+              <para role="text">The requested profile token ProfileToken does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPTZProfile</para>
+              <para role="text">The requested profile token does not reference a PTZ configuration.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:TooManyPatterns</para>
+              <para role="text">There is not enough space in the device to create the new pattern for the profile</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>ModifyPattern</title>
+        <para>A device supporting patterns shall allow modifying a pattern through ModifyPattern.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ProfileToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to an existing media profile.</para>
+              <para role="param">Pattern [tt:PTZPattern]</para>
+              <para role="text">The pattern parameters to be set.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
+              <para role="text">The requested profile token does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPTZProfile</para>
+              <para role="text">The requested profile token does not reference a PTZ configuration.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:<phrase>InvalidPattern</phrase></para>
+              <para role="text">The requested Pattern includes invalid parameter(s).</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:TooManyPresets</para>
+              <para role="text">Too many TourSpots are included in the Pattern.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoToken</para>
+              <para role="text">The requested pattern token does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:SpaceNotSupported</para>
+              <para role="text">A space is referenced which is not supported by the PTZ node.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+	  <!-- TODO Start and StopRecordingPattern -->
+      <section>
+        <title>OperatePattern</title>
+        <para>A device supporting patterns shall allow starting, stopping, or pausing a pattern through OperatePattern.</para>
+        <para>Pattern can be operated with the PatternOperation parameter of OperatePattern command. </para>
+        <itemizedlist>
+          <listitem>
+            <para>Start: indicates starting the pattern or re-starting the paused pattern. </para>
+          </listitem>
+          <listitem>
+            <para>Stop: indicates stopping the pattern.</para>
+          </listitem>
+          <listitem>
+            <para>Pause: indicates pausing the pattern.</para>
+          </listitem>
+        </itemizedlist>
+        <para>When receiving another OperatePattern command of Start operation for a pattern which has already been started, the pattern shall be restarted with the newly requested parameter.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ProfileToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to an existing media profile.</para>
+              <para role="param">PatternToken [tt:PTZPatternToken]</para>
+              <para role="text">Reference to an existing pattern.</para>
+              <para role="param">Operation [tt:PTZPatternOperation]</para>
+              <para role="text">Operation information.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
+              <para role="text">The requested profile token does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPTZProfile</para>
+              <para role="text">The requested profile token does not reference a PTZ configuration.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoToken</para>
+              <para role="text">The requested pattern token does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:<phrase>InvalidPattern</phrase></para>
+              <para role="text">The requested Pattern includes invalid parameter(s).</para>
+              <para role="param">env:Receiver - ter:InvalidArgVal - ter:ActivationFailed</para>
+              <para role="text">The requested pattern cannot be activated while PTZ unit is moving or another pattern is now activated.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>RemovePattern</title>
+        <para>A device supporting patterns shall support removing patterns through RemovePattern.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ProfileToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to an existing media profile.</para>
+              <para role="param">PatternToken [tt:PTZPatternToken]</para>
+              <para role="text">Reference to an existing pattern.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
+              <para role="text">The requested profile token ProfileToken does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPTZProfile</para>
+              <para role="text">The requested profile token does not reference a PTZ configuration.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoToken</para>
+              <para role="text">The requested pattern token does not exist.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>Pattern parameters</title>
+        <para>A pattern is composed of following parameters:</para>
+        <para>
+          <emphasis role="bold">Pattern</emphasis>: Configuration of a pattern.</para>
+        <itemizedlist>
+          <listitem>
+            <para>Name: Name of the pattern [Optional]</para>
+          </listitem>
+          <listitem>
+            <para>Status: Indicates the current status of the pattern. This parameter in the argument of the ModifyPattern command shall be ignored.</para>
+            <itemizedlist>
+              <listitem>
+                <para>Idle: Pattern is not activated.</para>
+              </listitem>
+              <listitem>
+                <para>Touring: Pattern is activated and now under touring.</para>
+              </listitem>
+              <listitem>
+                <para>Paused: Pattern is under pause at the middle of the tour by client. This status requires Start operation from a client to re-start.</para>
+              </listitem>
+            </itemizedlist>
+          </listitem>
+          <listitem>
+            <para>AutoStart: Flag to enable the pattern activated always. When this flag is set to True in a pattern, the device shall set the flags of all other patterns referring to the same PTZNode to False, so that only one tour on the device is marked as AutoStart. Starting and stopping the pattern by OperatePattern shall change this flag to False. Pausing and resuming the pattern by OperatePattern shall not change this flag.</para>
+          </listitem>
+          <listitem>
+            <para>PatternStartingCondition: Configuration of the starting pattern. </para>
+            <itemizedlist>
+              <listitem>
+                <para>RecurringTime: Parameter to specify how many times the pattern is recurred. [Optional]</para>
+              </listitem>
+              <listitem>
+                <para>RecurringDuration: Parameter to specify how long duration time the pattern is recurred [Optional]</para>
+                <itemizedlist>
+                  <listitem>
+                    <para>If both conditions RecurringTime and RecurringDuration are configured, the pattern shall finish with one of the conditions satisfied earlier. If both are omitted, Pattern shall be recurred without limitation.</para>
+                  </listitem>
+                </itemizedlist>
+              </listitem>
+              <listitem>
+                <para>PatternDirection: A device refers this flag to choose which direction the pattern goes. It is omissible parameter and Forward shall be chosen in case it is omitted. [Optional] </para>
+                <itemizedlist>
+                  <listitem>
+                    <para>Forward: Pattern goes in forward order.</para>
+                  </listitem>
+                  <listitem>
+                    <para>Backward: Pattern goes in backward order.</para>
+                  </listitem>
+                </itemizedlist>
+              </listitem>
+            </itemizedlist>
+          </listitem>
+          <listitem>
+            <para>Token: Unique identifier of the pattern</para>
+          </listitem>
+        </itemizedlist>
+      </section>
+    </section>
+	<section>
       <title>Pan/tilt control direction configuration</title>
       <para>Pan/tilt control direction configuration is one set of parameters in PTZ configuration used to configure the movement directions of pan and tilt in the two following ways:</para>
       <orderedlist>
@@ -2243,9 +2601,9 @@ tns1:PTZController/PTZPresets/Left
 ]]></programlisting>
       </section>
       <section>
-        <title>PresetTours</title>
+        <title>Preset Tours</title>
         <para>When a PTZ node in a device supporting the PTZ service indicates support of Preset Tour with MaximumNumberOfPresetTours greater than 0 capability value, the device shall support the following topic to inform subscribers about preset tour events. Whenever a change in Preset Tours occurs, the PTZ service shall dispatch this event:</para>
-        <programlisting><![CDATA[Topic: tns1:PTZController/PTZPresetTours/Configuration
+        <programlisting><![CDATA[Topic: tns1:PTZController/PTZPresetTour/Configuration
 <tt:MessageDescription isProperty=True>
   <tt:Source>
     <tt:SimpleItemDescriptionName="ProfileToken" Type="tt:ReferenceToken"/>
@@ -2257,7 +2615,24 @@ tns1:PTZController/PTZPresets/Left
   </tt:Data>
 </tt:MessageDescription>
 ]]></programlisting>
-        <para>Note, the StateChange flag in the data part becomes true when the mentioned Preset Tour includes any changes of its State.</para>
+        <para>Note, the StateChange flag in the data part becomes true when the mentioned Pattern includes any changes of its State.</para>
+      </section>
+      <section>
+        <title>Patterns</title>
+        <para>When a PTZ node in a device supporting the PTZ service indicates support of Pattern with MaximumNumberOfPatterns greater than 0 capability value, the device shall support the following topic to inform subscribers about pattern events. Whenever a change in Patterns occurs, the PTZ service shall dispatch this event:</para>
+        <programlisting><![CDATA[Topic: tns1:PTZController/PTZPatterns/Configuration
+<tt:MessageDescription isProperty=True>
+  <tt:Source>
+    <tt:SimpleItemDescriptionName="ProfileToken" Type="tt:ReferenceToken"/>
+    <tt:SimpleItemDescriptionName="PatternToken" Type="tt:ReferenceToken"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescriptionName="StateChange" Type="xs:boolean"/>
+    <tt:ElementItemDescription Name="Pattern" Type="tt:PTZPattern"/>
+  </tt:Data>
+</tt:MessageDescription>
+]]></programlisting>
+        <para>Note, the StateChange flag in the data part becomes true when the mentioned Pattern includes any changes of its State.</para>
       </section>
     </section>
   </chapter>
