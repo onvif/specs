@@ -66,11 +66,11 @@ class DepthMapHandler(xml.sax.ContentHandler):
 def get_changed_lines(file_path, base_ref):
     """
     Returns a set of 1-based line numbers changed in the file.
-    Uses errors='replace' to avoid crashing on the very bad bytes we aim to fix.
+    Uses the triple-dot syntax to compare against the merge base.
     """
-    cmd = ["git", "diff", "-U0", base_ref, "--", file_path]
+    # The '...' tells Git to compare the working branch against the point where it diverged from base_ref
+    cmd = ["git", "diff", "-U0", f"{base_ref}...", "--", file_path]
     try:
-        # Crucial: errors='replace' prevents crash when diffing files with bad encoding
         output = subprocess.check_output(cmd).decode("utf-8", errors="replace")
     except subprocess.CalledProcessError:
         return set()
@@ -92,9 +92,6 @@ def get_changed_lines(file_path, base_ref):
     return changed_lines
 
 def smart_wrap(content, indent_str, max_len):
-    """
-    Wraps text content (string) to fill the line up to max_len.
-    """
     clean_content = ' '.join(content.split())
     
     full_line = indent_str + clean_content
@@ -112,20 +109,17 @@ def smart_wrap(content, indent_str, max_len):
     return "\n".join(wrapped_lines) + "\n"
 
 def process_file(file_path, base_ref):
-    # 1. Get changed lines (from the dirty file on disk)
+    # 1. Get changed lines (from the dirty file on disk, relative to merge base)
     changed_lines = get_changed_lines(file_path, base_ref)
     if not changed_lines:
         return
 
     # 2. Read file as BINARY
-    # We must operate in binary to handle the specific byte replacements safely.
     with open(file_path, "rb") as f:
         original_lines_bytes = f.readlines()
 
-    # 3. Create a 'Clean-in-Memory' version
-    # We apply the byte replacements ONLY to the changed lines.
-    # This buffer will be used for parsing (to avoid crashes) and formatting.
-    cleaned_lines_bytes = list(original_lines_bytes) # Make a copy
+    # 3. Create a 'Clean-in-Memory' version for parser
+    cleaned_lines_bytes = list(original_lines_bytes) 
     
     for i in range(len(cleaned_lines_bytes)):
         line_num = i + 1
@@ -135,16 +129,13 @@ def process_file(file_path, base_ref):
                 current_line = current_line.replace(bad_byte, replacement)
             cleaned_lines_bytes[i] = current_line
 
-    # 4. Parse the Cleaned Content for Depth
-    # We join the cleaned lines into a single byte stream for the parser.
-    # This prevents the parser from crashing on the user's bad bytes.
+    # 4. Parse the Cleaned Content
     full_clean_content = b"".join(cleaned_lines_bytes)
     
     handler = DepthMapHandler()
     parser = xml.sax.make_parser()
     parser.setContentHandler(handler)
     try:
-        # xml.sax can parse bytes directly!
         xml.sax.parseString(full_clean_content, handler)
     except xml.sax.SAXException:
         print(f"Skipping {file_path}: Malformed XML.")
@@ -156,31 +147,27 @@ def process_file(file_path, base_ref):
     for i, line_bytes in enumerate(cleaned_lines_bytes):
         line_num = i + 1
         
-        # IF Protected (programlisting): Keep the bytes exactly as they are
+        # Protected Block: Keep original bytes exactly
         if line_num in handler.protected_lines:
-            final_output_lines.append(line_bytes)
+            final_output_lines.append(original_lines_bytes[i])
             continue
         
-        # IF Changed: Decode -> Format -> Encode
+        # Changed Block: Format
         if line_num in changed_lines and line_num in handler.line_depths:
             try:
-                # Decode to string for text wrapping (should be safe now after cleaning)
                 line_text = line_bytes.decode('utf-8')
             except UnicodeDecodeError:
-                # Fallback: If it still fails, keep original bytes
-                final_output_lines.append(line_bytes)
+                final_output_lines.append(original_lines_bytes[i])
                 continue
 
             depth = handler.line_depths[line_num]
             correct_indent = CONFIG["indent_char"] * (CONFIG["indent_size"] * depth)
             
-            # Smart wrap returns a string, we must encode back to bytes
             formatted_text = smart_wrap(line_text, correct_indent, CONFIG["max_line_length"])
             final_output_lines.append(formatted_text.encode('utf-8'))
             
         else:
-            # IF Unchanged: Use the ORIGINAL bytes from disk (Step 2)
-            # This ensures we don't accidentally touch bytes in the rest of the file.
+            # Unchanged Block: Keep original bytes exactly
             final_output_lines.append(original_lines_bytes[i])
 
     # 6. Write back as BINARY
@@ -195,7 +182,8 @@ if __name__ == "__main__":
     base_ref = sys.argv[1]
     
     try:
-        diff_cmd = ["git", "diff", "--name-only", base_ref]
+        # Use triple dots to compare against the merge base
+        diff_cmd = ["git", "diff", "--name-only", f"{base_ref}..."]
         files = subprocess.check_output(diff_cmd).decode("utf-8").splitlines()
         
         target_files = [
