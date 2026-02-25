@@ -189,7 +189,7 @@ def process_file(file_path, base_ref):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python progressive_xml_lint.py <base_ref>")
+        print("Usage: python progressive_lint.py <base_ref>")
         sys.exit(1)
 
     base_ref = sys.argv[1]
