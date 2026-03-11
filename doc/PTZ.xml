@@ -1726,11 +1726,20 @@ Add GeoMove</revremark>
       </section>
     </section>
     <section>
-      <title>Preset Tour Operations</title>
-      <para>Preset tour is a feature for PTZ-capable devices, enabling the PTZ unit to move
-        sequentially on a set of presets or a recorded tour.</para>
-      <para>This section describes operations that manage the preset tours. These operations shall be implemented when a PTZ node in the PTZ service indicates support of preset tours with MaximumNumberOfPresetTours&gt;0 capability value, All operations require a profile token referencing a Media Profile including a PTZConfiguration. All operations for preset tours shall always be persistent.</para>
-      <para>PresetTours can have forward and backward directions, and in case direction is omitted, it is assumed to be forward. However, it is possible to specify random execution by setting the RandomPresetOrder attribute. In case RandomPresetOrder is set to true and Direction is also present, Direction will be ignored and presets of the Tour will be recalled randomly.</para>
+      <title>Tour Operations</title>
+      <para>Tours are a feature for PTZ-capable devices, enabling the PTZ unit to move sequentially
+        on a set of presets or a recorded tour.</para>
+      <para>This section describes operations to manage and operate tours. A PTZ node signaling
+        SupportedPresetTour shall support preset tour configuration and operation. </para>
+      <para>All operations require a profile token referencing a Media Profile including a
+        PTZConfiguration. Tour configurations shall be persistent.</para>
+      <para>Preset tours can have forward and backward directions, and in case direction is omitted,
+        it is assumed to be forward. However, it is possible to specify random execution by setting
+        the RandomPresetOrder attribute. In case RandomPresetOrder is set to true and Direction is
+        also present, Direction will be ignored and presets of the Tour will be recalled
+        randomly.</para>
+      <para>A device signaling support for operation mode Record shall support recording of
+        tours.</para>
       <section>
         <title>GetPresetTours</title>
         <para>A device supporting Preset Tour feature shall return all available preset tours through GetPresetTours.</para>
@@ -1926,7 +1935,8 @@ Add GeoMove</revremark>
       </section>
       <section>
         <title>OperatePresetTour</title>
-        <para>A device supporting preset tours shall allow starting, stopping, or pausing a preset tour through OperatePresetTour.</para>
+        <para>A device supporting preset tours shall allow starting, stopping, or pausing a preset
+          tour as signaled by the PTZ node configuration.</para>
         <para>Preset tour can be operated with the PresetTourOperation parameter of OperatePresetTour command. </para>
         <itemizedlist>
           <listitem>
@@ -1951,8 +1961,8 @@ Add GeoMove</revremark>
               <para role="text">Reference to an existing media profile.</para>
               <para role="param">PresetTourToken [tt:PTZPresetTourToken]</para>
               <para role="text">Reference to an existing preset tour.</para>
-              <para role="param">Operation [tt:PTZPresetTourOperation]</para>
-              <para role="text">Operation information.</para>
+              <para role="param">Operation [xs:string]</para>
+              <para role="text">Operation as define by tt:PTZTourOperation.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -1986,7 +1996,8 @@ Add GeoMove</revremark>
       </section>
       <section>
         <title>RemovePresetTour</title>
-        <para>A device supporting preset tours shall support removing preset tours through RemoevPresetTour.</para>
+        <para>A device supporting preset tours shall support removing preset tours through
+          RemovePresetTour.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -2088,7 +2099,8 @@ Add GeoMove</revremark>
                 </itemizedlist>
               </listitem>
               <listitem>
-                <para>PresetTourDirection: A device refers this flag to choose which direction the preset tour goes. It is omissible parameter and Forward shall be chosen in case it is omitted. [Optional] </para>
+                <para>PresetTourDirection: Optional list of supported operation direction. Defaults
+                  to forward only.</para>
                 <itemizedlist>
                   <listitem>
                     <para>Forward: Preset tour goes in forward order.</para>
@@ -2099,6 +2111,10 @@ Add GeoMove</revremark>
                 </itemizedlist>
               </listitem>
             </itemizedlist>
+          </listitem>
+          <listitem>
+            <para>IsRecording: The preset tour has been recorded instead of being defined by a set
+              of presets.</para>
           </listitem>
           <listitem>
             <para>Token: Unique identifier of the preset tour</para>
