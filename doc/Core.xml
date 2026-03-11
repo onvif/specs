@@ -4,12 +4,12 @@
   <info>
     <title>ONVIF Core Specification</title>
     <titleabbrev>ONVIF Core Spec</titleabbrev>
-    <releaseinfo>25.06</releaseinfo>
+    <releaseinfo>25.12</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>June, 2025</pubdate>
+    <pubdate>December, 2025</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -311,6 +311,15 @@
         </author>
         <revremark>Add storage configuration renewal. Remove deprecated mirror url. Remove renew in pullpoint subscription.</revremark>
       </revision>
+      <revision>
+        <revnumber>25.12</revnumber>
+        <date>Dec-2025</date>
+        <author>
+          <personname>Ottavio Campana, Tomasz Zajac</personname>
+        </author>
+        <revremark>Add support for user roles and cloud firmware upgrade. Fix mapping of namespaces
+          in MQTT topics.</revremark>
+      </revision>
     </revhistory>
   </info>
   <preface>
@@ -451,8 +460,8 @@
           <row>
             <entry>Shinichi Hatae</entry>
             <entry>Canon Inc</entry>
-            <entry>Masashi Tonomura</entry>
-            <entry>Sony Corporation</entry>
+            <entry/>
+            <entry/>
           </row>
           <row>
             <entry>Takahiro Iwasaki</entry>
@@ -857,6 +866,14 @@
             </row>
             <row>
               <entry valign="middle">
+                <para>MCS</para>
+              </entry>
+              <entry valign="middle">
+                <para>Manufacturer Cloud Service</para>
+              </entry>
+            </row>
+            <row>
+              <entry valign="middle">
                 <para>MTOM</para>
               </entry>
               <entry valign="middle">
@@ -902,6 +919,10 @@
               <entry valign="middle">
                 <para>Organization for the Advancement of Structured Information Standards</para>
               </entry>
+            </row>
+            <row>
+              <entry valign="middle">OCS</entry>
+              <entry valign="middle">Operational Cloud Service</entry>
             </row>
             <row>
               <entry valign="middle">
@@ -1285,9 +1306,14 @@
       </section>
       <section>
         <title>Firmware Upgrade</title>
-        <para>Two mechanisms are provided for upgrading the firmware on a device. The first uses the UpgradeSystemFirmware command to send the new firmware image using MTOM.</para>
-        <para>The second is a two stage process; first the client sends the StartFirmwareUpgrade command to instruct the device to prepare for upgrade, then it sends the firmware image using HTTP POST.</para>
+        <para>Two mechanisms are provided for upgrading the firmware on a device. The first is a two
+          stage process; first the client sends the StartFirmwareUpgrade command to instruct the
+          device to prepare for upgrade, then it sends the firmware image using HTTP POST.</para>
         <para>The HTTP method is designed for resource-limited devices that may not be capable of receiving a new firmware image in its normal operating state.</para>
+        <para>The second method applies to cloud connected devices and involves an interaction
+          between the Operational Cloud Service (OCS), the Manufacturer Cloud Service (MCS) and the
+          device, in order to trigger the firmware upgrade. For the complete description of the
+          roles of the cloud clients, please refer to the Cloud Integration Specification.</para>
       </section>
       <section>
         <title>System Restore</title>
@@ -2406,9 +2432,16 @@ X-Frame-Options: SAMEORIGIN]]></programlisting>
               <para>User</para>
             </listitem>
             <listitem>
+              <para>Extended</para>
+            </listitem>
+            <listitem>
               <para>Anonymous</para>
             </listitem>
           </orderedlist>
+          <para>For users with the Extended user level, a device will authenticate requests as for other
+            user levels, but authorization will depend on the information configured in the
+            corresponding <emphasis>Extension</emphasis> field of the corresponding
+              <emphasis>User</emphasis> element.</para>
           <para>Unauthenticated users are placed into the anonymous category and a device shall not allow users to be added to the anonymous user level category. </para>
         </section>
         <section xml:id="AccessClasses">
@@ -2582,6 +2615,39 @@ X-Frame-Options: SAMEORIGIN]]></programlisting>
           <para>By default, the device should enforce the following default access policy, which gives an acceptable level of security in many systems.</para>
           <para>The default access policy builds upon the access classes that are associated to the services and grants access rights in the following way. A user of level c shall be granted access to a service associated to access class r if and only if an "X" is present in the cell at column c and row r in <xref linkend="_Ref292468385" />.</para>
           <para>A device that signals support for the Default Access Policy via the respective capability shall support at least one user of each user level Administrator, Operator and User.</para>
+        </section>
+        <section>
+          <title>User roles</title>
+          <para>To have finer control of invokable functions, extended users levels may be
+            associated to one or more roles, see <xref linkend="_Ref443486820"/>.</para>
+          <para>Devices supporting user roles shall predefine the following non editable
+            roles:</para>
+          <itemizedlist>
+            <listitem>
+              <para><emphasis>onvif:Administrator</emphasis> : the predefined role corresponding to
+                the Administrator user level. Users with Administrator user level and extended users
+                with onvif:Administrator role shall be functionally equivalent.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>onvif:Operator</emphasis> : the predefined role corresponding to the
+                Operator user level. Users with Operator user level and extended users with
+                onvif:Operator role shall be functionally equivalent.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>onvif:User</emphasis> : the predefined role corresponding to the User
+                user level. Users with User user level and extended users with onvif:User role shall
+                be functionally equivalent.</para>
+            </listitem>
+          </itemizedlist>
+          <para>The usage of the <emphasis>onvif:</emphasis> prefix for new roles is reserved and
+            shall not be used to create custom user roles. Roles with the
+              <emphasis>onvif:</emphasis> prefix are fixed and cannot be edited.</para>
+          <para>The name of custom user roles shall not include spaces.</para>
+          <para>Unlike user levels, more than one role may be associated with an Extended User. As
+            an example, in this way it is possibile to define a new set of credentials with
+            onvif:User and PTZControl roles, to give a user the possibility of accessing a camera
+            and to only control the PTZ, without altering any other state of the device, such as
+            I/Os.</para>
         </section>
       </section>
       <section>
@@ -3048,7 +3114,7 @@ onvif://www.onvif.org/name/ARV-453
                   </entry>
                 </row>
                 <row>
-                  <entry morerows="17">
+                  <entry morerows="18">
                     <para>System</para>
                   </entry>
                   <entry>
@@ -3091,7 +3157,17 @@ onvif://www.onvif.org/name/ARV-453
                     <para>FirmwareUpgrade</para>
                   </entry>
                   <entry>
-                    <para>Indication if the device supports firmware upgrade as specified in Section <xref linkend="_Toc213907666" />.</para>
+                    <para>Indication if the device supports firmware upgrade using
+                      UpgradeSystemFirmware (deprecated).</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>CloudFirmwareUpgrade</para>
+                  </entry>
+                  <entry>
+                    <para>Indication if the device supports cloud firmware upgrade as specified in
+                      Section <xref linkend="_Ref276040029"/>.</para>
                   </entry>
                 </row>
                 <row>
@@ -3185,7 +3261,7 @@ onvif://www.onvif.org/name/ARV-453
                   </entry>
                 </row>
                 <row>
-                  <entry morerows="16">
+                  <entry morerows="17">
                     <para>Security</para>
                   </entry>
                   <entry>
@@ -3315,12 +3391,25 @@ onvif://www.onvif.org/name/ARV-453
                     <para>Maximum number of passwords that the device can remember for each user. If the device does not support the password history this attribute should be zero or not present</para>
                   </entry>
                 </row>
-				 <row>
+                <row>
                   <entry>
                     <para>HashingAlgorithms</para>
                   </entry>
                   <entry>
                     <para>Indicates which hashing algorithms are supported as part of HTTP and RTSP digest authentication.</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>MaxUserRoles</para>
+                  </entry>
+                  <entry>
+                    <para>Whenever set to an integer greater than zero, it signals that the device
+                      supports user roles, as described in section <xref linkend="_Ref443486820"/>.
+                      It indicates the maximum number of editable user roles, including the three
+                      predefined roles <emphasis>onvif:Administrator</emphasis>,
+                        <emphasis>onvif:Operator</emphasis> and
+                      <emphasis>onvif:User</emphasis>.</para>
                   </entry>
                 </row>
                 <row>
@@ -4791,46 +4880,6 @@ onvif://www.onvif.org/name/ARV-453
           </varlistentry>
         </variablelist>
       </section>
-      <section xml:id="_Toc213907666">
-        <title>UpgradeSystemFirmware</title>
-        <para>This interface has been deprecated. A device shall implement this command if the capability FirmwareUpgrade is signaled. For a replacement method see the next section.</para>
-        <para>This operation upgrades a device firmware version. After a successful upgrade the response message is sent before the device reboots. The exact format of the firmware data is <emphasis>outside the scope </emphasis>of this standard.</para>
-        <para>After applying a firmware upgrade the device shall keep the basic network configuration like IP address, subnet mask and gateway or DHCP settings unchanged. Additionally a firmware upgrade shall not change user credentials.</para>
-        <para>The firmware is transmitted through MTOM [MTOM].</para>
-        <variablelist role="op">
-          <varlistentry>
-            <term>request</term>
-            <listitem>
-              <para role="param">Firmware [tt:AttachmentData]</para>
-              <para role="text">This message contains the firmware used for the upgrade. The firmware upgrade is “soft” meaning that all parameters keep their current value.
-</para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>response</term>
-            <listitem>
-              <para role="param">Message [Xs:string]</para>
-              <para role="text">This message contains a “Message” string allowing the device to report back a message to the client as for an example “Upgrade successful, rebooting in x seconds.”
-</para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>faults</term>
-            <listitem>
-              <para role="param">env:Sender - ter:InvalidArgs - ter:InvalidFirmware</para>
-              <para role="text">The firmware was invalid, i.e., not supported by this device.</para>
-              <para role="param">env:Receiver - ter:Action - ter:FirmwareUpgrade- - Failed</para>
-              <para role="text">The firmware upgrade failed.</para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>access class</term>
-            <listitem>
-              <para role="access">UNRECOVERABLE</para>
-            </listitem>
-          </varlistentry>
-        </variablelist>
-      </section>
       <section>
         <title>StartFirmwareUpgrade</title>
         <para>This operation initiates a firmware upgrade using the HTTP POST mechanism. The response to the command includes an HTTP URL to which the upgrade file may be uploaded. The actual upgrade takes place as soon as the HTTP POST operation has completed. The device should support firmware upgrade through the StartFirmwareUpgrade command. The exact format of the firmware data is outside the scope of this specification.</para>
@@ -4887,7 +4936,66 @@ onvif://www.onvif.org/name/ARV-453
             </listitem>
           </varlistentry>
         </variablelist>
-        <para>In case it is not possible to provide exact figures for either UploadDelay or ExpectedDownTime, the device shall provide best-effort estimates.</para>
+        <para xml:id="_Ref276040029">In case it is not possible to provide exact figures for either UploadDelay or ExpectedDownTime, the device shall provide best-effort estimates.</para>
+      </section>
+      <section>
+        <title>UpgradeFirmware</title>
+        <para>This operation initiates a firmware upgrade using between the device and the MCS,
+          without further actions from the client.</para>
+        <para>Cloud firmware upgrade  may be achieved using the following steps:</para>
+        <orderedlist>
+          <listitem>
+            <para>Client retrieves the list of available firmware versions from the MCS.</para>
+          </listitem>
+          <listitem>
+            <para>Client calls StartCloudFirmwareUpgrade, selecting the desired FW version.</para>
+          </listitem>
+          <listitem>
+            <para>Device service responds with a downtime value.</para>
+          </listitem>
+          <listitem>
+            <para>Device and MCS perform the firmware upgrade procedure without further interaction
+              from the Client</para>
+          </listitem>
+          <listitem>
+            <para>Device notifies the Client of the result by emitting the appropriate
+              CloudFirmwareUpgrade event</para>
+          </listitem>
+        </orderedlist>
+        <para>After applying a firmware upgrade the device shall keep the basic network
+          configuration like IP address, subnet mask and gateway or DHCP settings, as well as all
+          the parameters of the Uplink and Security service unchanged, so that it can connect to the
+          cloud. Additionally a firmware upgrade shall not change user credentials.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">Version [xs:string]</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">ExpectedDownTime [xs:duration]</para>
+              <para role="text">A duration that indicates how long the device expects to be unavailable after the firmware upload is complete.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param" />
+              <para role="text">No command-specific faults.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">UNRECOVERABLE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+        <para xml:id="_Ref276040030">In case it is not possible to provide exact figures for
+          ExpectedDownTime, the device shall provide best-effort estimates.</para>
       </section>
       <section xml:id="_Ref482093370">
         <title>GetSystemLog</title>
@@ -5354,7 +5462,7 @@ onvif://www.onvif.org/name/ARV-453
     </section>
     <section xml:id="_Ref474427788">
       <title>Security</title>
-      <para>This section contains a set of security management operations. Such operations are sensitive to network attacks and shall be protected using appropriate authorization levels in order not to compromise the device.<emphasis></emphasis></para>
+      <para>This section contains a set of security management operations. Such operations are sensitive to network attacks and shall be protected using appropriate authorization levels in order not to compromise the device.</para>
       <section xml:id="_Toc213907681">
         <title>Get access policy</title>
         <para>Access to different services and sub-sets of services should be subject to access control. Section <xref linkend="_Ref208379139" /> gives the prerequisite for end-point authentication. Authorization decisions can then be taken using an <emphasis>access security policy. </emphasis>This standard does not mandate any particular policy description format or security policy but this is up to the device manufacturer or system provider to choose policy and policy description format of choice. However, an access policy (in arbitrary format) can be requested using this command. If the device supports access policy settings, then the device shall support this command. </para>
@@ -5455,7 +5563,7 @@ onvif://www.onvif.org/name/ARV-453
       </section>
       <section>
         <title>Create users</title>
-        <para>This operation creates new device users and corresponding credentials on a device for authentication, see Section <xref linkend="_Ref208379139" /> for details.  A device shall support this command unless support signalled via the UserConfigNotSupported capability is ‘True’. The device shall support creation of device users and their credentials for authentication through the CreateUsers command as long as the number of existing users does not exceed the capability value MaxUsers. Either all users are created successfully or a fault message shall be returned without creating any user.</para>
+        <para>This operation creates new device users and corresponding credentials on a device for authentication, see Section <xref linkend="_Ref208379139" /> for details.  A device shall support this command unless support is signalled via the UserConfigNotSupported capability is ‘True’. The device shall support creation of device users and their credentials for authentication through the CreateUsers command as long as the number of existing users does not exceed the capability value MaxUsers. Either all users are created successfully or a fault message shall be returned without creating any user.</para>
         <para>ONVIF compliant devices are recommended to support password length of at least 28 bytes.</para>
         <variablelist role="op">
           <varlistentry>
@@ -5672,6 +5780,128 @@ onvif://www.onvif.org/name/ARV-453
             </listitem>
           </varlistentry>
         </variablelist>
+      </section>
+      <section xml:id="_Ref443486820">
+        <title>User roles</title>
+        <para>A device that signals support for user roles handling via the Security Capability
+          MaxUserRoles shall support these operations.</para>
+        <section>
+          <title>Get user roles</title>
+          <para>This operation returns the user roles configured in the device, including the
+            pre-defined onvif ones <emphasis>onvif:Administrator</emphasis>,
+              <emphasis>onvif:Operator</emphasis> and <emphasis>onvif:User</emphasis> corresponding
+            to the Administrator, Operator and User levels. For the predefined roles, the functions
+            list is empty because it is implicetly derived the device access policy. Whenever the
+            name of a user role is passed in the request, information only about that level is
+            returned.</para>
+          <variablelist role="op">
+            <varlistentry>
+              <term>request</term>
+              <listitem>
+                <para role="param">Name - optional [xs:string]</para>
+                <para role="text">If a value is defined for Name, then only the information for the
+                  user role matching that name is returned.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>response</term>
+              <listitem>
+                <para role="param">UserRoles - optional unbounded [tt:UserRole]</para>
+                <para role="text">Information about one or more user roles. </para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>faults</term>
+              <listitem>
+                <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidUserRole</para>
+                <para role="text">The specified user role does not exist.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>access class</term>
+              <listitem>
+                <para role="access">READ_SYSTEM</para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+        </section>
+        <section>
+          <title>Set user role</title>
+          <para>This operation configures a user role in the device. If the name passed in the
+            UserRole argument already exists in the device, its configuration will be overwritten.
+            Otherwise, a new role will be created.</para>
+          <para>A client is expected to use the capabilities of the device to request only functions
+            that are implemented in the device. In case a client requests an unknown or not
+            implemented function, the device must return an error.</para>
+          <variablelist role="op">
+            <varlistentry>
+              <term>request</term>
+              <listitem>
+                <para role="param">UserRole - [tt:UserRole]</para>
+                <para role="text">The user role to be created or overwritten.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>response</term>
+              <listitem>
+                <para role="text">This is an empty message.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>faults</term>
+              <listitem>
+                <para role="param>">env:Receiver - ter:Action - ter:TooManyUserRoles</para>
+                <para role="text">Maximum number of supported user roles exceeded.</para>
+                <para role="param>">env:Receiver - ter:Action - ter:FunctionNotImplemented</para>
+                <para role="text">One or more requested functions are not implemented in the
+                  device.</para>
+                <para role="param">env:Sender - ter:OperationProhibited  - ter:OnvifPrefix</para>
+                <para role="text">The client cannot create or edit roles starting with the onvif:
+                  prefix.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>access class</term>
+              <listitem>
+                <para role="access">WRITE_SYSTEM</para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+        </section>
+        <section>
+          <title>Delete user role</title>
+          <para>This operation deletes a user role in the device. </para>
+          <variablelist role="op">
+            <varlistentry>
+              <term>request</term>
+              <listitem>
+                <para role="param">Name - [xs:string]</para>
+                <para role="text">The user role that has to be deleted.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>response</term>
+              <listitem>
+                <para role="text">This is an empty message.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>faults</term>
+              <listitem>
+                <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidUserRole</para>
+                <para role="text">The specified user role does not exist.</para>
+                <para role="param">env:Sender - ter:OperationProhibited - ter:OnvifPrefix</para>
+                <para role="text">The client delete roles starting with the onvif: prefix.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>access class</term>
+              <listitem>
+                <para role="access">WRITE_SYSTEM</para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+        </section>
       </section>
     </section>
     <section xml:id="_Ref1614781087">
@@ -6252,10 +6482,7 @@ onvif://www.onvif.org/name/ARV-453
       </section>
       <section>
         <title>Configuration Renewal</title>
-        <para>
-          The configuration allows for a renewal endpoint to be set. If the device supports this feature, it shall automatically renew the credentials 
-          when they are about to expire.
-        </para>
+        <para> The configuration allows for a renewal endpoint to be set.</para>
         <para>
           The device shall do a GET request to the configured <literal>RenewalEndpoint</literal> with the access token retrieved from the configured 
           <literal>AuthorizationServer</literal>. The endpoint shall respond with a JSON payload with the following structure:
@@ -6271,16 +6498,15 @@ onvif://www.onvif.org/name/ARV-453
 }]]></programlisting>
           Any null value in the response shall clear the corresponding optional parameter in the configuration used by the device.
         </para>
-        <para>
-          When the device receives a configuration with the <literal>ConfigurationRenewal</literal> set, it shall immediately contact
-          the renewal endpoint to get up-to-date credentials. The device may use the credentials available in the configuration in the
-          meantime to avoid service disruption.
-        </para>
-        <para>
-          The device shall ensure to renew the configuration before the expiration provided by the <literal>expiresAt</literal> field.
-          If the renewal endpoint fails to provide a valid response, the device shall continue to use the existing configuration and retry
-          later using an exponential backoff strategy.
-        </para>
+        <para> When the device receives a configuration with the
+            <literal>ConfigurationRenewal</literal> set, it shall immediately contact the renewal
+          endpoint to get up-to-date renewal configuration payload including credentials. The device
+          may use the current credentials available in the configuration in the meantime to avoid
+          service disruption. </para>
+        <para> The device shall ensure to renew the configuration including credentials before the
+          expiration provided by the <literal>expiresAt</literal> field. If the renewal endpoint
+          fails to provide a valid response, the device shall continue to use the existing
+          configuration and retry later using an exponential backoff strategy. </para>
       </section>
       <section>
         <title>GetStorageConfigurations</title>
@@ -6353,7 +6579,11 @@ onvif://www.onvif.org/name/ARV-453
       </section>
       <section>
         <title>GetStorageConfiguration</title>
-        <para>This operation retrieves the Storage configuration when the storage configuration token is known. A device indicating storage configuration capability shall support retrieval of specific storage configuration through the GetStorageConfiguration command.</para>
+        <para>This operation retrieves the Storage configuration when the storage configuration
+          token is known. A device indicating storage configuration capability shall support
+          retrieval of specific storage configuration through the GetStorageConfiguration command.
+          Furthermore a device shall not return the credentials (password or access token) in the
+          reply.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -6721,6 +6951,26 @@ Event description:
 </tt:MessageDescription>
 ]]></programlisting>
       </section>
+      <section>
+        <title>Cloud Firmware Upgrade</title>
+        <para>If a device supports cloud firmware upgrade, it should provide the cloud firmware
+          upgrade event, to inform a client of the result of the procedure.</para>
+        <para>The source of the event shall be the same UUID returned in GetEndpointReference,
+          Success indicates whether the procedure was successful or not, while Information is a
+          string available for providing additional information to the client.</para>
+        <programlisting><![CDATA[Topic: tns1:Monitoring/CloudFirmwareUpgrade/Completed
+Event description:
+<tt:MessageDescription IsProperty="true“>
+  <tt:source>
+    <tt:SimpleItemDescription Name="UUID" Type="xs:string"/>
+  </tt:source>
+  <tt:Data>
+    <tt:ElementItemDescription Name="Success" Type=“xs:boolean"/>
+    <tt:ElementItemDescription Name="Information" Type=“xs:string"/>
+  </tt:Data>
+</tt:MessageDescription>
+]]></programlisting>
+      </section>
     </section>
   </chapter>
   <chapter>
@@ -6772,7 +7022,7 @@ Event description:
               <emphasis role="bold">tev:ChangedOnly</emphasis> A pullpoint should not provide Initialized nor Deleted events for Properties.</para>
           </listitem>
         </itemizedlist>
-        <para >Both request and response message contain the same elements as the SubscriptionRequest and Response of [WS-BaseNotification] without the ConsumerReference.</para>
+        <para>Both request and response message contain the same elements as the SubscriptionRequest and Response of [WS-BaseNotification] without the ConsumerReference.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -7372,7 +7622,7 @@ Event description:
       </section>
       <section xml:id="_Ref210036144">
         <title>Topic Type Information</title>
-        <para>A device shall add a MessageDescription element, of type MessageDescriptionType defined in Section ‎<xref linkend="_Toc214003093" />, below all elements representing topics in the topic set supported by the device. Furthermore a device shall, in accordance with the notification specification, identify all element representing topics in the topic set by including the wstop:topic attribute with value "true".</para>
+        <para>A device shall add a MessageDescription element, of type MessageDescriptionType defined in Section ‎<xref linkend="_Toc214003093" />, below all elements representing topics in the topic set supported by the device. Furthermore a device shall, in accordance with the notification specification, identify all elements representing topics in the topic set by including the wstop:topic attribute with value "true".</para>
         <para>The following example demonstrates how Topics of a TopicSet are augmented with Message Descriptions:</para>
         <programlisting><![CDATA[<wstop:TopicSet xmlns=””>
   <tns1:RuleEngine>
@@ -8077,12 +8327,12 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
                 "Device/HardwareFailure/StorageFailure". This means that the default topic namespace
                 is ONVIF, i.e. "http://www.onvif.org/ver10/topics". If an event uses another topic
                 namespace this should be signalled using the syntax:
-                "tns:{namespace-alias}/&lt;topic&gt;". Vendor specific extensions should choose a
+                "{namespace-alias}:&lt;topic&gt;". Vendor specific extensions should choose a
                 suitable namespace alias to avoid name clashes. As an example, consider the ONVIF
                 topic "tns1:Device/HardwareFailure/acme:LensFailure" where
                 tns1="http://www.onvif.org/ver10/topics" and acme="http://www.acme.com/topics". This
                 should be translated to the MQTT topic
-                "Device/HardwareFailure/tns:acme/LensFailure".</para>
+                "Device/HardwareFailure/acme:LensFailure".</para>
             </listitem>
             <listitem>
               <para>SVALUE being the value of the Value attribute of a SimpleItem in the Source part
@@ -8341,7 +8591,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>Dot11Configuration</para>
             </entry>
@@ -8397,7 +8647,8 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
               <para>FirmwareUpgrade</para>
             </entry>
             <entry>
-              <para>Indication if the device supports firmware upgrade as specified in Section <xref linkend="_Toc213907666" />.</para>
+              <para>Indication if the device supports firmware upgrade using UpgradeSystemFirmware
+                (deprecated).</para>
             </entry>
           </row>
           <row>
@@ -8774,7 +9025,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>MetadataSearch</para>
             </entry>
@@ -8838,7 +9089,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>VideoSources</para>
             </entry>
@@ -8847,7 +9098,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>VideoOutputs</para>
             </entry>
@@ -8856,7 +9107,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>AudioSources</para>
             </entry>
@@ -8865,7 +9116,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>AudioOutputs</para>
             </entry>
@@ -8874,7 +9125,7 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
             </entry>
           </row>
           <row>
-            <entry />
+            <entry/>
             <entry>
               <para>RelayOutputs</para>
             </entry>
@@ -9144,6 +9395,15 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
       </itemizedlist>
       <para> The definitions are available via the link <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification-v1606.pdf">http://www.onvif.org/specs/core/ONVIF-Core-Specification-v1606.pdf</link>.</para>
     </section>
+    <section>
+      <title>System</title>
+      <para>The definition and interfaces for MTOM firmware upgrade have been deprecated with release 25.06. The following interfaces have been removed from the specification:</para>
+      <itemizedlist>
+        <listitem>
+          <para>UpgradeSystemFirmware</para>
+        </listitem>
+      </itemizedlist>
+    </section>
   </appendix>
   <appendix>
     <title>JSON payload format</title>
@@ -9261,6 +9521,6 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
   </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
-    <para />
+    <para/>
   </appendix>
 </book>
