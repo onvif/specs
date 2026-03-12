@@ -797,6 +797,37 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:sequence>
 	</xs:complexType>
 	<!--===============================-->
+	<xs:complexType name="DynamicCompression">
+		<xs:sequence>
+			<xs:element name="GovMode" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>dynamic or fixed. Dynamic mode allows to skip unnecessary I-frames when there is no motion.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="MaximumGovLength" type="xs:int" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>The maximum interval in which the I-Frames can be coded when configured in dynamic GovMode. This value is based on the configured maximum frame rate.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="FrameRateMode" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>dynamic or fixed. Dynamic mode allows to skip unnecessary P-frames when there is no motion.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="MinimumFrameRate" type="xs:int" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>The minimum output framerate in fps.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="CompressionStrength" type="xs:int" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Level of compression of how the device can dynamically lower quality outside region of interest. 0 is disabled, 1 is low.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+		</xs:sequence>
+	</xs:complexType>
+	<!--===============================-->
 	<xs:complexType name="Mpeg4Configuration">
 		<xs:sequence>
 			<xs:element name="GovLength" type="xs:int">
@@ -1069,6 +1100,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							<xs:documentation>Optional element to configure rate control related parameters.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
+					<xs:element name="DynamicCompression" type="tt:DynamicCompression" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Optional element to configure dynamic compression related parameters.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 					<xs:element name="Multicast" type="tt:MulticastConfiguration" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>Defines the multicast settings that could be used for video streaming.</xs:documentation>
@@ -1220,6 +1256,23 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:documentation>
 					Indicates the support for the GuaranteedFrameRate attribute on the VideoEncoder2Configuration element.
 				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		
+		<xs:attribute name="DynamicCompressionSupported" type="xs:boolean">
+			<xs:annotation>
+				<xs:documentation></xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="MaximumGovLengthLimit" type="xs:int">
+			<xs:annotation>
+				<xs:documentation></xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		
+		<xs:attribute name="DynamicCompressionStrengthRange" type="tt:IntList">
+			<xs:annotation>
+				<xs:documentation>Exactly two values, which define the Lower and Upper bounds for the supported group of Video frames length. These values typically correspond to the I-Frame distance.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
