@@ -797,34 +797,19 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:sequence>
 	</xs:complexType>
 	<!--===============================-->
-	<xs:complexType name="DynamicCompression">
+	<xs:complexType name="DynamicEncoding">
 		<xs:sequence>
-			<xs:element name="GovMode" type="xs:string" minOccurs="0">
+			<xs:element name="DynamicGov" type="xs:boolean" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation>dynamic or fixed. Dynamic mode allows to skip unnecessary I-frames when there is no motion.</xs:documentation>
+					<xs:documentation>Indicates if device is allowed to skip unnecessary I-frames when there is no motion. The GovLength is the maximum interval rather than a fixed value.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="MaximumGovLength" type="xs:int" minOccurs="0">
+			<xs:element name="DynamicFPS" type="xs:boolean" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation>The maximum interval in which the I-Frames can be coded when configured in dynamic GovMode. This value is based on the configured maximum frame rate.</xs:documentation>
+					<xs:documentation>Indicates that device is allowed to skip unnecessary P-frames when there is no motion. To ensure a minimum framerate, enable GuaranteedFrameRate and set FrameRate.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="FrameRateMode" type="xs:string" minOccurs="0">
-				<xs:annotation>
-					<xs:documentation>dynamic or fixed. Dynamic mode allows to skip unnecessary P-frames when there is no motion.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element name="MinimumFrameRate" type="xs:int" minOccurs="0">
-				<xs:annotation>
-					<xs:documentation>The minimum output framerate in fps.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element name="CompressionStrength" type="xs:int" minOccurs="0">
-				<xs:annotation>
-					<xs:documentation>Level of compression of how the device can dynamically lower quality outside region of interest. 0 is disabled. At the maximum value, the highest compression is used.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 		</xs:sequence>
 	</xs:complexType>
 	<!--===============================-->
@@ -1100,11 +1085,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							<xs:documentation>Optional element to configure rate control related parameters.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element name="DynamicCompression" type="tt:DynamicCompression" minOccurs="0">
-						<xs:annotation>
-							<xs:documentation>Optional element to configure dynamic compression related parameters.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
 					<xs:element name="Multicast" type="tt:MulticastConfiguration" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>Defines the multicast settings that could be used for video streaming.</xs:documentation>
@@ -1113,6 +1093,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:element name="Quality" type="xs:float">
 						<xs:annotation>
 							<xs:documentation>Relative value for the video quantizers and the quality of the video. A high value within supported quality range means higher quality</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="DynamicEncoding" type="tt:DynamicEncoding" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Optional element to configure dynamic encoding related parameters.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
@@ -1260,27 +1245,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:attribute>
 		<xs:attribute name="DynamicGovSupported" type="xs:boolean">
 			<xs:annotation>
-				<xs:documentation>Indicates the support for enabling Dynamic GOV and setting MaximumGovLength.</xs:documentation>
+				<xs:documentation>Indicates the support for enabling DynamicGOV.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="DynamicFpsSupported" type="xs:boolean">
 			<xs:annotation>
-				<xs:documentation>Indicates the support for enabling Dynamic FPS and setting MinimunFrameRate.</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="DynamicCompressionSupported" type="xs:boolean">
-			<xs:annotation>
-				<xs:documentation>Indicates the support for CompressionStrength configuration.</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="MaximumGovLengthLimit" type="xs:int">
-			<xs:annotation>
-				<xs:documentation>Indicates the maximum allowed gov length when Dynamic Gov is enabled.</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="MaximumDynamicCompressionStrength" type="xs:int">
-			<xs:annotation>
-				<xs:documentation>Indicates the maximum strength value for dynamic compression.</xs:documentation>
+				<xs:documentation>Indicates the support for enabling DynamicFPS.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
