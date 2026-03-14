@@ -1732,9 +1732,8 @@ Add GeoMove</revremark>
     <section>
       <title>Tour Operations</title>
       <para>Tours are a feature for PTZ-capable devices, enabling the PTZ unit to move sequentially
-        on a set of presets or a recorded tour.</para>
-      <para>This section describes operations to manage and operate tours. A PTZ node signaling
-        SupportedPresetTour shall support preset tour configuration and operation. </para>
+        on a set of presets or a recorded tour. This section describes operations to manage and
+        operate tours. </para>
       <para>All operations require a profile token referencing a Media Profile including a
         PTZConfiguration. Tour configurations shall be persistent.</para>
       <para>Preset tours can have forward and backward directions, and in case direction is omitted,
@@ -1746,7 +1745,8 @@ Add GeoMove</revremark>
         tours.</para>
       <section>
         <title>GetPresetTours</title>
-        <para>A device supporting Preset Tour feature shall return all available preset tours through GetPresetTours.</para>
+        <para>A device with PTZ node signaling support for SupportedPresetTour or MaxRecordedTours
+          shall support this command to return all tours of a PTZ node.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -1781,7 +1781,8 @@ Add GeoMove</revremark>
       </section>
       <section>
         <title>GetPresetTour</title>
-        <para>A device supporting preset tours shall return the requested preset tour through GetPresetTour.</para>
+        <para>A device with PTZ node signaling support for SupportedPresetTour or MaxRecordedTours
+          shall support this command to return the configuration of the requested tour.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -1813,14 +1814,16 @@ Add GeoMove</revremark>
           <varlistentry>
             <term>access class</term>
             <listitem>
-              <para role="access">READ_MEDIA</para>
+              <para role="access">READ_MEDIA </para>
             </listitem>
           </varlistentry>
         </variablelist>
       </section>
       <section>
         <title>GetPresetTourOptions</title>
-        <para>A device supporting preset tours shall provide options for how preset tours can be configured through GetPresetTourOptions.</para>
+        <para>A device with PTZ node signaling SupportedPresetTour shall support this command and
+          provide options for how preset tours can be configured through
+          GetPresetTourOptions.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -1857,8 +1860,9 @@ Add GeoMove</revremark>
       </section>
       <section>
         <title>CreatePresetTour</title>
-        <para>Create an empty preset tour to be either filled via ModifyPresetTour or learn via the
-          Record operation depending on the supported device capabilities.</para>
+        <para>Create an empty preset tour to be filled via ModifyPresetTour. A device signaling
+          support via its PTZ node field MaximumNumberOfPresetTours shall support this
+          command.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -1883,6 +1887,49 @@ Add GeoMove</revremark>
               <para role="text">The requested profile token does not reference a PTZ configuration.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:TooManyPresetTours</para>
               <para role="text">There is not enough space in the device to create the new preset tour for the profile</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>RecordTour</title>
+        <para>Create an recorded tour or overwrite an existing tour. Finish the recording with tour
+          operation stop. A tour can be deleted with RemovePresetTour.</para>
+        <para>A device signaling support for recorded tours via the capability MaxRecordedTours
+          shall support this command.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ProfileToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to an existing media profile.</para>
+              <para role="param">TourToken - optional [tt:ReferenceToken]</para>
+              <para role="text">If provided an existing tour will be overwritten instead of creating a new one.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">TourToken [tt:ReferenceToken]</para>
+              <para role="text">Reference to the newly created tour.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
+              <para role="text">The requested profile token ProfileToken does not exist.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPTZProfile</para>
+              <para role="text">The requested profile token does not reference a PTZ configuration.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:TooManyRecordedTours</para>
+              <para role="text">The limit of MaxRecordedTours has been reached and no further
+                recorded tours can be created for the requested PTZ node.</para>
             </listitem>
           </varlistentry>
           <varlistentry>

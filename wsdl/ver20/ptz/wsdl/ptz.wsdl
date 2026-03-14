@@ -634,6 +634,26 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:element name="RecordTour">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ProfileToken" type="tt:ReferenceToken"/>
+						<xs:element name="TourToken" type="tt:ReferenceToken" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Optional tour to be overwritten. By default create a new tour.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="RecordTourResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="TourToken" type="tt:ReferenceToken"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
 			<xs:element name="ModifyPresetTour">
 				<xs:complexType>
 					<xs:sequence>
@@ -653,11 +673,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:sequence>
 						<xs:element name="ProfileToken" type="tt:ReferenceToken"/>
 						<xs:element name="PresetTourToken" type="tt:ReferenceToken"/>
-						<xs:element name="Operation" type="xs:string">
-							<xs:annotation>
-								<xs:documentation>Operation as define by tt:PTZTourOperation.</xs:documentation>
-							</xs:annotation>
-						</xs:element>
+						<xs:element name="Operation" type="tt:PTZPresetTourOperation"/>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
@@ -899,6 +915,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</wsdl:message>
 	<wsdl:message name="CreatePresetTourResponse">
 		<wsdl:part name="parameters" element="tptz:CreatePresetTourResponse"/>
+	</wsdl:message>
+	<wsdl:message name="RecordTourRequest">
+		<wsdl:part name="parameters" element="tptz:RecordTour"/>
+	</wsdl:message>
+	<wsdl:message name="RecordTourResponse">
+		<wsdl:part name="parameters" element="tptz:RecordTourResponse"/>
 	</wsdl:message>
 	<wsdl:message name="ModifyPresetTourRequest">
 		<wsdl:part name="parameters" element="tptz:ModifyPresetTour"/>
@@ -1150,6 +1172,11 @@ If no stop argument for pan, tilt or zoom is set, the device will stop all ongoi
 			<wsdl:input message="tptz:CreatePresetTourRequest"/>
 			<wsdl:output message="tptz:CreatePresetTourResponse"/>
 		</wsdl:operation>
+		<wsdl:operation name="RecordTour">
+			<wsdl:documentation>Start recording of a new recorded tour or start overwriting an existing tour.</wsdl:documentation>
+			<wsdl:input message="tptz:RecordTourRequest"/>
+			<wsdl:output message="tptz:RecordTourResponse"/>
+		</wsdl:operation>
 		<wsdl:operation name="ModifyPresetTour">
 			<wsdl:documentation>Operation to modify a preset tour for the selected media profile.</wsdl:documentation>
 			<wsdl:input message="tptz:ModifyPresetTourRequest"/>
@@ -1396,6 +1423,15 @@ If no stop argument for pan, tilt or zoom is set, the device will stop all ongoi
 		</wsdl:operation>
 		<wsdl:operation name="CreatePresetTour">
 			<soap:operation soapAction="http://www.onvif.org/ver20/ptz/wsdl/CreatePresetTour"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="RecordTour">
+			<soap:operation soapAction="http://www.onvif.org/ver20/ptz/wsdl/RecordTour"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
