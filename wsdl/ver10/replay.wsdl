@@ -55,6 +55,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>If playback streaming over WebSocket is supported, this shall return the RTSP WebSocket URI as described in Streaming Specification Section 5.1.1.5.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="SupportedSRTPProtocolAlgorithms" type="tt:StringAttrList">
+					<xs:annotation>
+						<xs:documentation>If SRTP playback streaming is supported, this shall return the list of supported cryptographic algorithms as defined by tt:SrtpSecurityAlgorithms.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>				
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<xs:element name="Capabilities" type="trp:Capabilities"/>
@@ -70,6 +75,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:element name="RecordingToken" type="tt:ReferenceToken">
 							<xs:annotation>
 								<xs:documentation>The identifier of the recording to be streamed.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="SRTPProtocol " type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The optional parameter defines the network protocol for SRTP Playback streaming as defined by trp:SRTPTransportProtocol. The Device should ignore StreamSetup parameters once this parameter is present.</xs:documentation>								
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -120,6 +130,14 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
+			<!--===============================-->
+			<xs:simpleType name="SRTPTransportProtocol">
+				<xs:restriction base="xs:string">					
+					<xs:enumeration value="RtspsUnicast"/>		<!-- Secure RTSP streaming SRTP as UDP Unicast. -->
+					<xs:enumeration value="RtspsMulticast"/>	<!-- Secure RTSP streaming SRTP as UDP Multicast. -->					
+				</xs:restriction>
+			</xs:simpleType>
+			<!--===============================-->
 		</xs:schema>
 	</wsdl:types>
 	<wsdl:message name="GetServiceCapabilitiesRequest">
@@ -155,7 +173,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<wsdl:operation name="GetReplayUri">
 			<wsdl:documentation>
 				Requests a URI that can be used to initiate playback of a recorded stream
-				using RTSP as the control protocol. The URI is valid only as it is
+				using RTSP or RTSPS as the control protocol. The URI is valid only as it is
 				specified in the response.
 				A device supporting the Replay Service shall support the GetReplayUri command.
 			</wsdl:documentation>
