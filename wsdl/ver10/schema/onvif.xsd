@@ -797,22 +797,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:sequence>
 	</xs:complexType>
 	<!--===============================-->
-	<xs:complexType name="DynamicEncoding">
-		<xs:sequence>
-			<xs:element name="DynamicGov" type="xs:boolean" minOccurs="0">
-				<xs:annotation>
-					<xs:documentation>Indicates if device is allowed to skip unnecessary I-frames. The GovLength is the maximum interval rather than a fixed value.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element name="DynamicFPS" type="xs:boolean" minOccurs="0">
-				<xs:annotation>
-					<xs:documentation>Indicates that device is allowed to skip unnecessary P-frames when there is no motion. To ensure a minimum framerate, enable GuaranteedFrameRate and set FrameRateLimit.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
-		</xs:sequence>
-	</xs:complexType>
-	<!--===============================-->
 	<xs:complexType name="Mpeg4Configuration">
 		<xs:sequence>
 			<xs:element name="GovLength" type="xs:int">
@@ -1095,16 +1079,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							<xs:documentation>Relative value for the video quantizers and the quality of the video. A high value within supported quality range means higher quality</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element name="DynamicEncoding" type="tt:DynamicEncoding" minOccurs="0">
-						<xs:annotation>
-							<xs:documentation>Optional element to configure dynamic encoding related parameters.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 				</xs:sequence>
 				<xs:attribute name="GovLength" type="xs:int">
 					<xs:annotation>
-						<xs:documentation>Group of Video frames length. Determines typically the interval in which the I-Frames will be coded. An entry of 1 indicates I-Frames are continuously generated. An entry of 2 indicates that every 2nd image is an I-Frame, and 3 only every 3rd frame, etc. The frames in between are coded as P or B Frames.</xs:documentation>
+						<xs:documentation>Group of Video frames length. Determines typically the interval in which the I-Frames will be coded. An entry of 1 indicates I-Frames are continuously generated. An entry of 2 indicates that every 2nd image is an I-Frame, and 3 only every 3rd frame, etc. The frames in between are coded as P or B Frames. The actual interval may be higher due to e.g. dynamic encoding.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="AnchorFrameDistance" type="xs:int">
@@ -1170,6 +1149,26 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:documentation>The target average output bitrate in kbps. If this parameter is set to 0, AverageBitRate shall be ignored.</xs:documentation>
 					<xs:documentation>If this parameter is configured beyond BitrateLimit, device adapts to BitrateLimit.</xs:documentation>
 					<xs:documentation>When this parameter is set to a non-zero value, ConstantBitRate shall be ignored.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="DynamicGov" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional - Indicates if device is allowed to skip unnecessary I-frames. The GovLength is the minimum interval rather than a fixed value. The MaxGovLength is the upper bound.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="MaxGovLength" type="xs:int" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional - Indicates the maximum interval in which the I-Frames will be coded.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="DynamicFPS" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional - Indicates that device is allowed to skip unnecessary P-frames when there is no motion. To ensure a minimum framerate, set MinFrameRate. The FrameRateLimit is the upper bound.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="MinFrameRate" type="xs:int" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional - Indicates that the minimum framerate.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
@@ -1245,12 +1244,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:attribute>
 		<xs:attribute name="DynamicGovSupported" type="xs:boolean">
 			<xs:annotation>
-				<xs:documentation>Indicates the support for enabling DynamicGOV.</xs:documentation>
+				<xs:documentation>Indicates the support for enabling DynamicGOV and configuring MaxGovLength.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="DynamicFpsSupported" type="xs:boolean">
 			<xs:annotation>
-				<xs:documentation>Indicates the support for enabling DynamicFPS.</xs:documentation>
+				<xs:documentation>Indicates the support for enabling DynamicFPS and configuring MinFrameRate.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
