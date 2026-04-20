@@ -251,7 +251,7 @@
     <section>
       <title>Use case 2: Forensic analysis at court</title>
       <para>A court receives video clips from a grocery store, a street surveillance system and a metro operator. All three videos are shown in the court’s approved video player.</para>
-      <para>The judges want to see the suspect in all three video clips with exact time information. They also want to have information when the video clips have been exported and whether the video sequence is complete and authentic. Further, they preferably also want to validate the authenticity and provenance of videos using ONVIF Media Signing.</para>
+      <para>The judges want to see the suspect in all three video clips with exact time information. They also want to have information when the video clips have been exported and whether the video sequence is complete and authentic. </para>
     </section>
     <section>
       <title>Use case 3: Playback at players not equipped according to the present specification</title>
@@ -263,25 +263,19 @@
     <section>
       <title>Requirements to Preserve Media Signing</title>
       <para>In order to maintain the integrity and authenticity of ONVIF streaming media signed in
-        accordance with the ONVIF Media Signing (OMS) specification when exporting to an MP4
-        container, the following prerequisite steps shall be adhered to during the export process to
-        ensure signature verification remains intact and media evidence can be trusted as
+        accordance with the ONVIF Media Signing specification when exporting to an MP4 container,
+        the following prerequisite steps shall be adhered to during the export process to ensure
+        signature verification remains intact and media evidence can be trusted as
         tamper-proof.</para>
       <para><emphasis role="bold">Preserve NAL order and bytes</emphasis></para>
-      <para> ONVIF signed media bitstream captured from the device shall not be filtered, rewritten
+      <para>ONVIF signed media bitstream captured from the device shall not be filtered, rewritten
         reencoded or normalized, as the raw format and order of NAL units is critical.</para>
-      <para><emphasis role="bold">Keep OMS SEI NAL units</emphasis></para>
-      <para> ONVIF signed media includes signature information in SEI (Supplemental Enhancement
-        Information) frames of type <literal>user data unregistered</literal> within the codec
-        format (H.264 and H.265) and they shall not be stripped.</para>
-      <para>As SEI frames do not affect the video frame decoding, ISO/IEC 14496-12 provides the
-        user an option to remove these when creating an MP4 file, but these are critical for ONVIF
-        signed media and hence <emphasis role="bold">Never strip these.</emphasis></para>
-      <para><emphasis role="bold">Add OMS Certificate SEI NAL unit if present</emphasis></para>
-      <para> The device has an option to add a Certificate SEI at the beginning of a stream. This
-        SEI includes all necessary information to validate subsequent SEIs. If the stream from the
-        device had a Certificate SEI, that SEI shall be added to the first access unit of the
-        exported recording.</para>
+      <para><emphasis role="bold">Keep Media Signing SEI NAL units</emphasis></para>
+      <para>All SEI frames of type user data unregistered with UUID
+          <code>005bc93f-2d71-5e95-ada4-796f90877a6f</code> shall not be stripped.</para>
+      <para><emphasis role="bold">Add Certificate SEI NAL unit if present</emphasis></para>
+      <para>The exported file should contain a certificate SEI at the beginning of a stream. This
+        SEI includes all necessary information to validate subsequent SEIs. </para>
     </section>
     <section>
       <title>Required Side Information</title>
