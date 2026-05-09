@@ -6743,8 +6743,10 @@ Event description:
             <para>tns1:Device/Sensor/AbsoluteHumidity/Low - Absolute Humidity too low event</para>
           </listitem>
         </itemizedlist>
-        
-        <para>The following event should be generated with true value when a temperature sensor detects a value exceeding the configured high threshold (Temperature unit: Kelvin).</para>
+
+        <para>Each sensor event is associated with a detection threshold that determines when the event is generated.</para>
+
+        <para>The following event should be generated with true value when a temperature sensor detects a value exceeding the high threshold. The event is triggered only when the sensor value exceeds this threshold (Temperature unit: Kelvin).</para>
         
         <programlisting><![CDATA[Topic: tns1:Device/Sensor/Temperature/High
 Event description:
@@ -6754,10 +6756,11 @@ Event description:
   </tt:Source>
   <tt:Data>
     <tt:SimpleItemDescription Name="Value" Type="xs:float"/>
+    <tt:SimpleItemDescription Name="Threshold" Type="xs:float"/>
   </tt:Data>
 </tt:MessageDescription>]]></programlisting>
 
-        <para>The following event should be generated with true value when a temperature sensor detects a value below the configured low threshold (Temperature unit: Kelvin).</para>
+        <para>The following event should be generated with true value when a temperature sensor detects a value below the low threshold. The event is triggered only when the sensor value falls below this threshold (Temperature unit: Kelvin).</para>
         
         <programlisting><![CDATA[Topic: tns1:Device/Sensor/Temperature/Low
 Event description:
@@ -6767,10 +6770,11 @@ Event description:
   </tt:Source>
   <tt:Data>
     <tt:SimpleItemDescription Name="Value" Type="xs:float"/>
+    <tt:SimpleItemDescription Name="Threshold" Type="xs:float"/>
   </tt:Data>
 </tt:MessageDescription>]]></programlisting>
 
-        <para>The following event should be generated with true value when a relative humidity sensor detects a value exceeding the configured high threshold  (relative humidity unit: %).</para>
+        <para>The following event should be generated with true value when a relative humidity sensor detects a value exceeding the high threshold. The event is triggered only when the sensor value exceeds this threshold (relative humidity unit: %).</para>
         
         <programlisting><![CDATA[Topic: tns1:Device/Sensor/RelativeHumidity/High
 Event description:
@@ -6780,10 +6784,11 @@ Event description:
   </tt:Source>
   <tt:Data>
     <tt:SimpleItemDescription Name="Value" Type="xs:float"/>
+    <tt:SimpleItemDescription Name="Threshold" Type="xs:float"/>
   </tt:Data>
 </tt:MessageDescription>]]></programlisting>
 
-        <para>The following event should be generated with true value when a relative humidity sensor detects a value below the configured low threshold  (relative humidity unit: %).</para>
+        <para>The following event should be generated with true value when a relative humidity sensor detects a value below the low threshold. The event is triggered only when the sensor value falls below this threshold (relative humidity unit: %).</para>
         
         <programlisting><![CDATA[Topic: tns1:Device/Sensor/RelativeHumidity/Low
 Event description:
@@ -6793,10 +6798,11 @@ Event description:
   </tt:Source>
   <tt:Data>
     <tt:SimpleItemDescription Name="Value" Type="xs:float"/>
+    <tt:SimpleItemDescription Name="Threshold" Type="xs:float"/>
   </tt:Data>
 </tt:MessageDescription>]]></programlisting>
 
-        <para>The following event should be generated with true value when a absolute humidity sensor detects a value exceeding the configured high threshold (absolute humidity unit: g/m³).</para>
+        <para>The following event should be generated with true value when an absolute humidity sensor detects a value exceeding the high threshold. The event is triggered only when the sensor value exceeds this threshold (absolute humidity unit: g/m³).</para>
         
         <programlisting><![CDATA[Topic: tns1:Device/Sensor/AbsoluteHumidity/High
 Event description:
@@ -6806,10 +6812,11 @@ Event description:
   </tt:Source>
   <tt:Data>
     <tt:SimpleItemDescription Name="Value" Type="xs:float"/>
+    <tt:SimpleItemDescription Name="Threshold" Type="xs:float"/>
   </tt:Data>
 </tt:MessageDescription>]]></programlisting>
 
-        <para>The following event should be generated with true value when a absolute humidity sensor detects a value below the configured low threshold (absolute humidity unit: g/m³).</para>
+        <para>The following event should be generated with true value when an absolute humidity sensor detects a value below the low threshold. The event is triggered only when the sensor value falls below this threshold (absolute humidity unit: g/m³).</para>
         
         <programlisting><![CDATA[Topic: tns1:Device/Sensor/AbsoluteHumidity/Low
 Event description:
@@ -6819,6 +6826,7 @@ Event description:
   </tt:Source>
   <tt:Data>
     <tt:SimpleItemDescription Name="Value" Type="xs:float"/>
+    <tt:SimpleItemDescription Name="Threshold" Type="xs:float"/>
   </tt:Data>
 </tt:MessageDescription>]]></programlisting>
 
@@ -8329,46 +8337,51 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
 }</programlisting>
 
           <para>The following examples show sensor event messages published via MQTT. In these examples TopicPrefix has been set to "MyDevice".</para>
-          
+
+          <para>These events are generated when the sensor value exceeds or falls below the detection threshold. The detection threshold determines the boundary at which the event is triggered.</para>
+
           <para>Topic for temperature high event:</para>
           <programlisting>MyDevice/onvif-ej/Device/Sensor/Temperature/High</programlisting>
-          
-          <para>Temperature high event payload (Temperature unit: Kelvin):</para>
+
+          <para>Temperature high event payload. This event is triggered when the temperature exceeds the high detection threshold (Temperature unit: Kelvin):</para>
           <programlisting>{
   "UtcTime": "2025-07-15T14:30:00Z",
   "Source": {
     "SensorID": "temp_001"
   },
   "Data": {
-    "Value": 298.65
+    "Value": 298.65,
+    "Threshold": 295.15
   }
 }</programlisting>
 
           <para>Topic for relative humidity high event:</para>
           <programlisting>MyDevice/onvif-ej/Device/Sensor/RelativeHumidity/High</programlisting>
-          
-          <para>Relative Humidity high event payload (Unit: %)</para>
+
+          <para>Relative Humidity high event payload. This event is triggered when the relative humidity exceeds the high detection threshold (Unit: %)</para>
           <programlisting>{
   "UtcTime": "2025-07-15T14:30:00Z",
   "Source": {
     "SensorID": "humidity_001"
   },
   "Data": {
-    "Value": 65.2
+    "Value": 65.2,
+    "Threshold": 60.0
   }
 }</programlisting>
 
           <para>Topic for absolute humidity high event:</para>
           <programlisting>MyDevice/onvif-ej/Device/Sensor/AbsoluteHumidity/High</programlisting>
-          
-          <para>Absolute Humidity high event payload (Unit: g/m³)</para>
+
+          <para>Absolute Humidity high event payload. This event is triggered when the absolute humidity exceeds the high detection threshold (Unit: g/m³)</para>
           <programlisting>{
   "UtcTime": "2025-07-15T14:30:00Z",
   "Source": {
     "SensorID": "humidity_001"
   },
   "Data": {
-    "Value": 10
+    "Value": 10,
+    "Threshold": 8
   }
 }</programlisting>
 
