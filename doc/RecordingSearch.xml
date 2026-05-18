@@ -1326,7 +1326,7 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
       <para>The device shall continue searching until one of the following occurs:</para>
       <itemizedlist>
         <listitem>
-          <para>The entire time range from <emphasis>StartPoint</emphasis> to <emphasis>EndPoint</emphasis> has been searched through.</para>
+          <para>The entire time range from <emphasis>StartPoint</emphasis> to <emphasis>EndPoint</emphasis> has been searched through, or until the latest available data if <emphasis>EndPoint</emphasis> is omitted.</para>
         </listitem>
         <listitem>
           <para>The total number of matches has been found, defined by the <emphasis>MaxMatches</emphasis> parameter.</para>
@@ -1344,8 +1344,8 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
           <listitem>
             <para role="param">StartPoint [xs:dateTime]</para>
             <para role="text">The point of time where the search will start.</para>
-            <para role="param">EndPoint [xs:dateTime]</para>
-            <para role="text">The point of time where the search will stop.</para>
+            <para role="param">EndPoint - optional [xs:dateTime]</para>
+            <para role="text">The point of time where the search will stop. If omitted, the search shall continue until the latest available data.</para>
             <para role="param">RecordingToken - optional [tt:RecordingReference]</para>
             <para role="text">Token for the recording to search.</para>
             <para role="param">Text [xs:string]</para>
@@ -1424,20 +1424,33 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
     <section>
       <title>SearchImageByImage</title>
       <para>SearchImageByImage starts a search session, looking for video records based on a provided image. Results from the search are acquired using the GetImageSearchResults request, specifying the search token returned from this request.</para>
+      <para>The device shall continue searching until one of the following occurs:</para>
+      <itemizedlist>
+        <listitem>
+          <para>The entire time range from <emphasis>StartPoint</emphasis> to <emphasis>EndPoint</emphasis> has been searched through, or until the latest available data if <emphasis>EndPoint</emphasis> is omitted.</para>
+        </listitem>
+        <listitem>
+          <para>The total number of matches has been found, defined by the <emphasis>MaxMatches</emphasis> parameter.</para>
+        </listitem>
+        <listitem>
+          <para>The session has been ended by a client EndSearch request.</para>
+        </listitem>
+        <listitem>
+          <para>The session has been ended because <emphasis>KeepAliveTime</emphasis> since the last request related to this session has expired.</para>
+        </listitem>
+      </itemizedlist>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
           <listitem>
             <para role="param">StartPoint [xs:dateTime]</para>
             <para role="text">The point of time where the search will start.</para>
-            <para role="param">EndPoint [xs:dateTime]</para>
-            <para role="text">The point of time where the search will stop.</para>
+            <para role="param">EndPoint - optional [xs:dateTime]</para>
+            <para role="text">The point of time where the search will stop. If omitted, the search shall continue until the latest available data.</para>
             <para role="param">RecordingToken - optional [tt:RecordingReference]</para>
             <para role="text">Token for the recording to search.</para>
-            <para role="param">TargetImageURI - optional [xs:anyURI]</para>
-            <para role="text">The URI of the detected target object image. This can be either: - a local image stored in the Target Image repository (LocalStorage format), or - an external image provided by the client for image search or feature matching.</para>
-            <para role="param">TargetImageData - optional [xs:base64Binary]</para>
-            <para role="text">Base64-encoded target object image used for visual search.</para>
+            <para role="param">TargetImageURI | TargetImageData [xs:anyURI | xs:base64Binary]</para>
+            <para role="text">Exactly one of TargetImageURI or TargetImageData shall be provided. TargetImageURI specifies the URI of the detected target object image (local repository or external). TargetImageData provides a Base64-encoded target object image for visual search.</para>
             <para role="param">MaxMatches - optional [xs:int]</para>
             <para role="text">The search ends after MaxMatches.</para>
             <para role="param">KeepAliveTime [xs:duration]</para>
