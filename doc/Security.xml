@@ -5590,10 +5590,50 @@
 </tt:MessageDescription>
 ]]></programlisting>
       </section>
+      <section xml:id="section_lhd_zp3_hjc">
+          <title>Media signing key assignment status</title>
+          <para>A device that indicates support for signing of media using a user provisioned key
+            via the UserMediaSigningKeySupported capability shall provide information about assigned
+            key changes via the below specified event</para>
+          <programlisting><![CDATA[Topic: tns1:Advancedsecurity/MediaSigning/KeyStatus
+<tt:MessageDescription IsProperty="true">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="KeyID" Type="tas:KeyID"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription Name="Assigned" Type="xs:boolean"/>
+    <tt:SimpleItemDescription Name="ActiveStream" Type="xs:boolean"/>
+  </tt:Data>
+</tt:MessageDescription>
+]]></programlisting>
+          <para>The Assigned status shall indicate key assignment for future signed media streams
+            while ActiveStream shall is indicate key actively in use for the signed media
+            streaming.</para>
+          <para>If client configures the user provisioned key via <emphasis role="bold"
+              >AddMediaSigningCertificateAssignment</emphasis>, Changed property event with the
+            KeyID set to user provisioned key shall be triggered with 'Assigned' status set to True.
+            During this operation, If there are active signed media streams using manufactuter
+            provisioned key are in progress, ActiveStream status in the event payload for user
+            provisioned key shall be set to False.</para>
+          <para>If client removes the user provisioned key <emphasis role="bold"
+              >RemoveMediaSigningCertificateAssignment</emphasis>, Changed property event with the
+            KeyID falling back to manufacturer provisioned key shall be triggered with 'Assigned'
+            status set to True. During this operation, If there are active signed media streams
+            using user provisioned key are in progress, ActiveStream status in the event payload for
+            manufactuter provisioned key shall be set to False.</para>
+          <para>When client starts the first signed media stream, irrespective of user or
+            manufacturer provisioned key assignment, Changed property event gets triggered with
+            'ActiveStream' status set to True along with the Assigned key status.</para>
+          <para>When client stops the last signed media stream, irrespective of user or manufacturer
+            provisioned key assignment,  Changed property event gets triggered with 'ActiveStream'
+            status set to False along with the Assigned key status.</para>
+        </section>
     </section>
+    
     <section>
       <title>Service specific data types</title>
-      <para>The service specific data types are defined in security.wsdl.</para>
+      <para>The service specific data types are defined in security.wsdl. CertificationPathID -
+          [tas:CertificationPathID]</para>
     </section>
    </section>
   </chapter>
