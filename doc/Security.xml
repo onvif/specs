@@ -5601,32 +5601,32 @@
     <tt:SimpleItemDescription Name="KeyID" Type="tas:KeyID"/>
   </tt:Source>
   <tt:Data>
-    <tt:SimpleItemDescription Name="Assigned" Type="xs:boolean"/>
-    <tt:SimpleItemDescription Name="ActiveStream" Type="xs:boolean"/>
+    <tt:SimpleItemDescription Name="Effective" Type="xs:boolean"/>
   </tt:Data>
 </tt:MessageDescription>
 ]]></programlisting>
-          <para>The Assigned status shall indicate key assignment for future signed media streams
-            while ActiveStream shall is indicate key actively in use for the signed media
-            streaming.</para>
-          <para>If client configures the user provisioned key via <emphasis role="bold"
-              >AddMediaSigningCertificateAssignment</emphasis>, Changed property event with the
-            KeyID set to user provisioned key shall be triggered with 'Assigned' status set to True.
-            During this operation, If there are active signed media streams using manufactuter
-            provisioned key are in progress, ActiveStream status in the event payload for user
-            provisioned key shall be set to False.</para>
-          <para>If client removes the user provisioned key <emphasis role="bold"
-              >RemoveMediaSigningCertificateAssignment</emphasis>, Changed property event with the
-            KeyID falling back to manufacturer provisioned key shall be triggered with 'Assigned'
-            status set to True. During this operation, If there are active signed media streams
-            using user provisioned key are in progress, ActiveStream status in the event payload for
-            manufactuter provisioned key shall be set to False.</para>
-          <para>When client starts the first signed media stream, irrespective of user or
-            manufacturer provisioned key assignment, Changed property event gets triggered with
-            'ActiveStream' status set to True along with the Assigned key status.</para>
-          <para>When client stops the last signed media stream, irrespective of user or manufacturer
-            provisioned key assignment,  Changed property event gets triggered with 'ActiveStream'
-            status set to False along with the Assigned key status.</para>
+          <para>When user provisioned key is configured via <emphasis role="bold"
+              >AddMediaSigningCertificateAssignment</emphasis> and If there are no active signed
+            streams using manufacturer key, Changed property event with the KeyID set to user
+            provisioned key shall be triggered with 'Effective' status set to True, indicating that
+            new signed streams shall use the user-provisioned key for signing immediately.</para>
+          <para>When user provisioned key is configured via <emphasis role="bold"
+              >AddMediaSigningCertificateAssignment</emphasis> and If there are signed streams using
+            manufacturer key in progress, Changed property event with the KeyID set to user
+            provisioned key shall be triggered with 'Effective' status set to False, indicating that
+            ongoing signed streams shall continue using the manufacturer key until
+            terminated.</para>
+          <para>When configured user provisioned key is removed via <emphasis role="bold"
+              >RemoveMediaSigningCertificateAssignment</emphasis> and If there are no active signed
+            streams using user provisioned key, Changed property event with the KeyID set to
+            manufacturer key shall be triggered with 'Effective' status set to True, indicating that
+            new signed streams shall use the manufacturer key for signing immediately.</para>
+          <para>When configured user provisioned key is removed via <emphasis role="bold"
+              >RemoveMediaSigningCertificateAssignment</emphasis> and If there are signed streams
+            using user provisioned key in progress, Changed property event with the KeyID set to
+            manufacturer key shall be triggered with 'Effective' status set to False, indicating
+            that ongoing signed streams shall continue using the user-provisioned key until
+            terminated.</para>
         </section>
     </section>
     
