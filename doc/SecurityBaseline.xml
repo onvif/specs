@@ -85,6 +85,8 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc7292"/>&gt;</para>
     <para>RFC 7714 - AES-GCM Authenticated Encryption in the Secure Real-time Transport Protocol (SRTP)</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc7714"/>&gt;</para>
+    <para>RFC 7518 - JSON Web Algorithms (JWA)</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc7518"/>&gt;</para>
     <para>RFC 7519 - JSON Web Token (JWT)</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc7519"/>&gt;</para>
     <para>RFC 8017 - PKCS #1: RSA Cryptography Specifications Version 2.2</para>
@@ -97,6 +99,8 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/html/rfc9579"/>&gt;</para>
     <para>ANSI X9.62 - Public Key Cryptography for the Financial Services Industry: The Elliptic Curve Digital Signature Algorithm (ECDSA)</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://webstore.ansi.org/standards/ascx9/ansix9622005"/>&gt;</para>
+    <para>NIST Special Publication 800-38A - Recommendation for Block Cipher Modes of Operation: Methods and Techniques</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38a.pdf"/>&gt;</para>
   </chapter>
   <chapter>
     <title>Terms and Definitions</title>
@@ -127,6 +131,14 @@
             </entry>
             <entry>
               <para>A hash signed with a private key that can be verified using the corresponding public key.</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>Public Key Cryptography</para>
+            </entry>
+            <entry>
+              <para>Cryptographic operations using a key pair (public and private key), including encryption, key agreement, and digital signatures.</para>
             </entry>
           </row>
         </tbody>
@@ -193,13 +205,13 @@
           <row>
             <entry><para>Recording and data-at-rest encryption</para></entry>
             <entry><para>Recording Control</para></entry>
-            <entry><para>Symmetric Encryption, Key Derivation</para></entry>
+            <entry><para>Symmetric Encryption, Key Derivation Functions</para></entry>
             <entry><para>—</para></entry>
           </row>
           <row>
             <entry><para>Secure key encapsulation (HPKE)</para></entry>
             <entry><para>Various</para></entry>
-            <entry><para>Asymmetric Key Schemes, Key Derivation, Symmetric Encryption</para></entry>
+            <entry><para>Asymmetric Key Schemes, Key Derivation Functions, Symmetric Encryption</para></entry>
             <entry><para>Annex B — Hybrid Public Key Encryption</para></entry>
           </row>
         </tbody>
@@ -232,21 +244,21 @@
         <tbody valign="top">
           <row>
             <entry morerows="2"><para>SHA-2</para></entry>
-            <entry><para>id-sha256</para></entry>
+            <entry><para>SHA-256</para></entry>
             <entry><para>256 Bit</para></entry>
             <entry><para>2.16.840.1.101.3.4.2.1</para></entry>
             <entry><para>FIPS 180-4</para></entry>
             <entry><para>Required</para></entry>
           </row>
           <row>
-            <entry><para>id-sha384</para></entry>
+            <entry><para>SHA-384</para></entry>
             <entry><para>384 Bit</para></entry>
             <entry><para>2.16.840.1.101.3.4.2.2</para></entry>
             <entry><para>FIPS 180-4</para></entry>
             <entry><para>Optional</para></entry>
           </row>
           <row>
-            <entry><para>id-sha512</para></entry>
+            <entry><para>SHA-512</para></entry>
             <entry><para>512 Bit</para></entry>
             <entry><para>2.16.840.1.101.3.4.2.3</para></entry>
             <entry><para>FIPS 180-4</para></entry>
@@ -258,20 +270,22 @@
   </chapter>
   <chapter>
     <title>Symmetric Encryption</title>
-    <para>The following table specifies the symmetric encryption algorithm that a device shall
-      support when implementing symmetric encryption.</para>
+    <para>The following table specifies the symmetric encryption algorithms that a device shall
+      support when implementing symmetric encryption operations.</para>
     <table xml:id="symTable">
       <title>Symmetric Encryption Schemes</title>
-      <tgroup cols="4">
-        <colspec colname="c1" colwidth="52*"/>
-        <colspec colname="c2" colwidth="12*"/>
-        <colspec colname="c3" colwidth="12*"/>
-        <colspec colname="c4" colwidth="12*"/>
+      <tgroup cols="5">
+        <colspec colname="c1" colwidth="20*"/>
+        <colspec colname="c2" colwidth="10*"/>
+        <colspec colname="c3" colwidth="14*"/>
+        <colspec colname="c4" colwidth="34*"/>
+        <colspec colname="c5" colwidth="12*"/>
         <thead>
           <row>
             <entry><para>Algorithm</para></entry>
             <entry><para>Key Length</para></entry>
             <entry><para>Reference</para></entry>
+            <entry><para>Usage</para></entry>
             <entry><para>Baseline requirement</para></entry>
           </row>
         </thead>
@@ -280,6 +294,21 @@
             <entry><para>AES-GCM</para></entry>
             <entry><para>128 Bit</para></entry>
             <entry><para>RFC 5116</para></entry>
+            <entry><para>General symmetric encryption</para></entry>
+            <entry><para>Required</para></entry>
+          </row>
+          <row>
+            <entry><para>AES-CTR</para></entry>
+            <entry><para>128 Bit</para></entry>
+            <entry><para>NIST SP 800-38A</para></entry>
+            <entry><para>Recording content encryption</para></entry>
+            <entry><para>Required</para></entry>
+          </row>
+          <row>
+            <entry><para>AES-128-CBC</para></entry>
+            <entry><para>128 Bit</para></entry>
+            <entry><para>NIST SP 800-38A</para></entry>
+            <entry><para>Private key wrapping (PKCS#12)</para></entry>
             <entry><para>Required</para></entry>
           </row>
         </tbody>
@@ -290,8 +319,8 @@
     <title>Public Key Cryptography</title>
     <section>
       <title>Asymmetric Key Schemes</title>
-      <para>The following table specifies the requirements for asymmetric encryption and key
-        agreement schemes that a device shall support when implementing asymmetric encryption.</para>
+      <para>The following table specifies the requirements for public key encryption and key
+        agreement schemes that a device shall support when implementing public key cryptography.</para>
       <table xml:id="_Ref395173040">
         <title>Asymmetric Key Schemes</title>
         <tgroup cols="5">
@@ -368,7 +397,7 @@
           </thead>
           <tbody valign="top">
             <row>
-              <entry morerows="2"><para>RSA PKCS1 v1_5 (not recommended)</para></entry>
+              <entry morerows="2"><para>RSA PKCS#1 v1.5 (not recommended)</para></entry>
               <entry><para>sha256WithRSAEncryption</para></entry>
               <entry><para>1.2.840.113549.1.1.11</para></entry>
               <entry><para>RFC 4055, RFC 8017</para></entry>
@@ -459,7 +488,10 @@
       <title>Private Key Protection</title>
       <para>This section defines the algorithms used to protect private keys during storage.
         PBKDF2 (defined in <xref linkend="keyTable"/>) is used to derive the encryption key from
-        a password prior to wrapping the private key material.</para>
+        a password, and AES-128-CBC (defined in <xref linkend="symTable"/>) is used to encrypt
+        the private key material in PKCS#12 format (RFC 7292). Note that this covers PKCS#12
+        key transport; device-internal at-rest key storage may use stronger direct encryption
+        as required by the applicable profile specification.</para>
       <table xml:id="certTable">
         <title>Private Key Protection Algorithms</title>
         <tgroup cols="4">
@@ -480,12 +512,6 @@
               <entry><para>PBKDF2</para></entry>
               <entry><para>RFC 8018</para></entry>
               <entry><para>PasswordBasedEncryptionAlgorithms</para></entry>
-              <entry><para>Required</para></entry>
-            </row>
-            <row>
-              <entry><para>AES-128-CBC</para></entry>
-              <entry><para>RFC 7292</para></entry>
-              <entry/>
               <entry><para>Required</para></entry>
             </row>
           </tbody>
@@ -517,12 +543,12 @@
           <tbody valign="top">
             <row>
               <entry><para>RS256</para></entry>
-              <entry><para>RFC 7519</para></entry>
+              <entry><para>RFC 7518</para></entry>
               <entry><para>Required</para></entry>
             </row>
             <row>
               <entry><para>ES256</para></entry>
-              <entry><para>RFC 7519</para></entry>
+              <entry><para>RFC 7518</para></entry>
               <entry><para>Required</para></entry>
             </row>
           </tbody>
