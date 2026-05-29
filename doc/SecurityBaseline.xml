@@ -99,7 +99,7 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://webstore.ansi.org/standards/ascx9/ansix9622005"/>&gt;</para>
   </chapter>
   <chapter>
-    <title>Definitions</title>
+    <title>Terms and Definitions</title>
     <informaltable>
       <tgroup cols="2">
         <colspec colname="c1" colwidth="27*"/>
@@ -140,13 +140,158 @@
     <para>Publication of updates must be synchronized with ONVIF Technical and Technical Service Committee.</para>
   </chapter>
   <chapter>
-    <title>(Informative) Use case description</title>
+    <title>(Informative) Cryptographic Baseline Usage by ONVIF Specifications</title>
+    <para>The following table provides an informative mapping between ONVIF security use cases and
+      the sections of this specification that define the required cryptographic primitives.
+      Implementers should consult the referenced normative sections in conjunction with the
+      corresponding ONVIF specification for each use case.</para>
+    <informaltable>
+      <tgroup cols="4">
+        <colspec colname="c1" colwidth="22*"/>
+        <colspec colname="c2" colwidth="20*"/>
+        <colspec colname="c3" colwidth="36*"/>
+        <colspec colname="c4" colwidth="22*"/>
+        <thead>
+          <row>
+            <entry><para>ONVIF Use Case</para></entry>
+            <entry><para>ONVIF Specification</para></entry>
+            <entry><para>Required Sections</para></entry>
+            <entry><para>Informative Annex</para></entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry><para>TLS mutual authentication</para></entry>
+            <entry><para>Security Service</para></entry>
+            <entry><para>Asymmetric Key Schemes, Digital Signatures, Hash Functions, Symmetric Encryption</para></entry>
+            <entry><para>Annex A — TLS Cipher Reference</para></entry>
+          </row>
+          <row>
+            <entry><para>X.509 certificate management and PKI</para></entry>
+            <entry><para>Security Service</para></entry>
+            <entry><para>Asymmetric Key Schemes, Digital Signatures, Hash Functions, Private Key Protection</para></entry>
+            <entry><para>—</para></entry>
+          </row>
+          <row>
+            <entry><para>JWT client authorization</para></entry>
+            <entry><para>Security Service</para></entry>
+            <entry><para>JSON Web Token (JWT), Digital Signatures, Hash Functions</para></entry>
+            <entry><para>—</para></entry>
+          </row>
+          <row>
+            <entry><para>Media signing</para></entry>
+            <entry><para>Media Signing</para></entry>
+            <entry><para>Digital Signatures (ECDSA), Hash Functions</para></entry>
+            <entry><para>—</para></entry>
+          </row>
+          <row>
+            <entry><para>Secure streaming (SRTP)</para></entry>
+            <entry><para>Streaming</para></entry>
+            <entry><para>Symmetric Encryption</para></entry>
+            <entry><para>Annex C — Secure Streaming using SRTP</para></entry>
+          </row>
+          <row>
+            <entry><para>Recording and data-at-rest encryption</para></entry>
+            <entry><para>Recording Control</para></entry>
+            <entry><para>Symmetric Encryption, Key Derivation</para></entry>
+            <entry><para>—</para></entry>
+          </row>
+          <row>
+            <entry><para>Secure key encapsulation (HPKE)</para></entry>
+            <entry><para>Various</para></entry>
+            <entry><para>Asymmetric Key Schemes, Key Derivation, Symmetric Encryption</para></entry>
+            <entry><para>Annex B — Hybrid Public Key Encryption</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
   </chapter>
   <chapter>
-    <title>Key generation</title>
+    <title>Hash Functions</title>
+    <para>This chapter defines the hash functions and their corresponding algorithm OIDs that
+      devices shall support when implementing hash-based operations.</para>
+    <table xml:id="hashTable">
+      <title>Hash Functions and Algorithm OIDs</title>
+      <tgroup cols="6">
+        <colspec colname="c1" colwidth="14*"/>
+        <colspec colname="c2" colwidth="18*"/>
+        <colspec colname="c3" colwidth="10*"/>
+        <colspec colname="c4" colwidth="24*"/>
+        <colspec colname="c5" colwidth="16*"/>
+        <colspec colname="c6" colwidth="18*"/>
+        <thead>
+          <row>
+            <entry><para>Scheme Category</para></entry>
+            <entry><para>Algorithm</para></entry>
+            <entry><para>Size</para></entry>
+            <entry><para>OID</para></entry>
+            <entry><para>Reference</para></entry>
+            <entry><para>Baseline requirement</para></entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry morerows="2"><para>SHA-2</para></entry>
+            <entry><para>id-sha256</para></entry>
+            <entry><para>256 Bit</para></entry>
+            <entry><para>2.16.840.1.101.3.4.2.1</para></entry>
+            <entry><para>FIPS 180-4</para></entry>
+            <entry><para>Required</para></entry>
+          </row>
+          <row>
+            <entry><para>id-sha384</para></entry>
+            <entry><para>384 Bit</para></entry>
+            <entry><para>2.16.840.1.101.3.4.2.2</para></entry>
+            <entry><para>FIPS 180-4</para></entry>
+            <entry><para>Optional</para></entry>
+          </row>
+          <row>
+            <entry><para>id-sha512</para></entry>
+            <entry><para>512 Bit</para></entry>
+            <entry><para>2.16.840.1.101.3.4.2.3</para></entry>
+            <entry><para>FIPS 180-4</para></entry>
+            <entry><para>Optional</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <chapter>
+    <title>Symmetric Encryption</title>
+    <para>The following table specifies the symmetric encryption algorithm that a device shall
+      support when implementing symmetric encryption.</para>
+    <table xml:id="symTable">
+      <title>Symmetric Encryption Schemes</title>
+      <tgroup cols="4">
+        <colspec colname="c1" colwidth="52*"/>
+        <colspec colname="c2" colwidth="12*"/>
+        <colspec colname="c3" colwidth="12*"/>
+        <colspec colname="c4" colwidth="12*"/>
+        <thead>
+          <row>
+            <entry><para>Algorithm</para></entry>
+            <entry><para>Key Length</para></entry>
+            <entry><para>Reference</para></entry>
+            <entry><para>Baseline requirement</para></entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry><para>AES-GCM</para></entry>
+            <entry><para>128 Bit</para></entry>
+            <entry><para>RFC 5116</para></entry>
+            <entry><para>Required</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <chapter>
+    <title>Asymmetric Cryptography</title>
     <section>
-      <title>Asymmetric Encryption Schemes and Key Agreement</title>
-      <para>The following table specifies the requirements for asymmetric encryption and key agreement schemes that a device shall support when implementing asymmetric encryption.</para>
+      <title>Asymmetric Key Schemes</title>
+      <para>The following table specifies the requirements for asymmetric encryption and key
+        agreement schemes that a device shall support when implementing asymmetric encryption.</para>
       <table xml:id="_Ref395173040">
         <title>Asymmetric Key Schemes</title>
         <tgroup cols="5">
@@ -155,25 +300,13 @@
           <colspec colname="c3" colwidth="12*"/>
           <colspec colname="c4" colwidth="12*"/>
           <colspec colname="c5" colwidth="12*"/>
-
           <thead>
             <row>
-              <entry>
-                <para>Algorithm</para>
-              </entry>
-              <entry>
-                <para>Key Length</para>
-              </entry>
-              <entry>
-                <para>OID</para>
-              </entry>
-              <entry>
-                <para>Reference</para>
-              </entry>
-              <entry>
-                <para>Baseline requirement</para>
-              </entry>
-
+              <entry><para>Algorithm</para></entry>
+              <entry><para>Key Length</para></entry>
+              <entry><para>OID</para></entry>
+              <entry><para>Reference</para></entry>
+              <entry><para>Baseline requirement</para></entry>
             </row>
           </thead>
           <tbody valign="top">
@@ -183,7 +316,6 @@
               <entry><para>1.2.840.113549.1.1.1</para></entry>
               <entry><para>RFC 8017</para></entry>
               <entry><para>Required</para></entry>
-
             </row>
             <row>
               <entry><para>RSA</para></entry>
@@ -191,7 +323,6 @@
               <entry><para>1.2.840.113549.1.1.1</para></entry>
               <entry><para>RFC 8017</para></entry>
               <entry><para>Optional</para></entry>
-
             </row>
             <row>
               <entry><para>secp256r1</para></entry>
@@ -199,7 +330,6 @@
               <entry><para>1.2.840.10045.3.1.7</para></entry>
               <entry><para>RFC 5480</para></entry>
               <entry><para>Required</para></entry>
-
             </row>
             <row>
               <entry><para>secp384r1</para></entry>
@@ -207,14 +337,13 @@
               <entry><para>1.3.132.0.34</para></entry>
               <entry><para>RFC 5480</para></entry>
               <entry><para>Optional</para></entry>
-
             </row>
           </tbody>
         </tgroup>
       </table>
     </section>
     <section>
-      <title>Signatures</title>
+      <title>Digital Signatures</title>
       <para>This section defines the signature schemes and their corresponding algorithm OIDs that
         devices shall support when implementing digital signatures. The listed algorithm OIDs are
         applicable to certificate signatures as well as other cryptographic operations such as media
@@ -289,239 +418,117 @@
     </section>
   </chapter>
   <chapter>
-    <title>Symmetric Encryption Schemes</title>
-    <para>The following table specifies the symmetric encryption algorithm that a device shall support when implementing symmetric encryption.</para>
-    <table xml:id="symTable">
-      <title>Symmetric Encryption Schemes</title>
-      <tgroup cols="4">
-        <colspec colname="c1" colwidth="52*"/>
-        <colspec colname="c2" colwidth="12*"/>
-        <colspec colname="c3" colwidth="12*"/>
-        <colspec colname="c4" colwidth="12*"/>
-        <thead>
-          <row>
-            <entry>
-              <para>Algorithm</para>
-            </entry>
-            <entry>
-              <para>Key Length</para>
-            </entry>
-            <entry>
-              <para>Reference</para>
-            </entry>
-            <entry>
-              <para>Baseline requirement</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody valign="top">
-          <row>
-            <entry><para>AES-GCM</para></entry>
-            <entry><para>128 Bit</para></entry>
-            <entry><para>RFC 5116</para></entry>
-            <entry><para>Required</para></entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
+    <title>Key Management</title>
+    <section>
+      <title>Key Derivation</title>
+      <para>This section defines the key derivation functions that devices shall support when
+        implementing key derivation.</para>
+      <table xml:id="keyTable">
+        <title>Key Derivation Functions</title>
+        <tgroup cols="4">
+          <colspec colname="c1" colwidth="15*"/>
+          <colspec colname="c2" colwidth="12*"/>
+          <colspec colname="c3" colwidth="12*"/>
+          <colspec colname="c4" colwidth="12*"/>
+          <thead>
+            <row>
+              <entry><para>Algorithm</para></entry>
+              <entry><para>Reference</para></entry>
+              <entry><para>Usage</para></entry>
+              <entry><para>Baseline requirement</para></entry>
+            </row>
+          </thead>
+          <tbody valign="top">
+            <row>
+              <entry><para>PBKDF2</para></entry>
+              <entry><para>RFC 8018 &amp; RFC 9579</para></entry>
+              <entry><para>For password-based key derivation</para></entry>
+              <entry><para>Required</para></entry>
+            </row>
+            <row>
+              <entry><para>HKDF</para></entry>
+              <entry><para>RFC 5869</para></entry>
+              <entry><para>For random key derivation</para></entry>
+              <entry><para>Required</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section>
+      <title>Private Key Protection</title>
+      <para>This section defines the algorithms used to protect private keys during storage.
+        PBKDF2 (defined in <xref linkend="keyTable"/>) is used to derive the encryption key from
+        a password prior to wrapping the private key material.</para>
+      <table xml:id="certTable">
+        <title>Private Key Protection Algorithms</title>
+        <tgroup cols="4">
+          <colspec colname="c1" colwidth="2*"/>
+          <colspec colname="c2" colwidth="1*"/>
+          <colspec colname="c3" colwidth="2*"/>
+          <colspec colname="c4" colwidth="2*"/>
+          <thead>
+            <row>
+              <entry><para>Algorithm</para></entry>
+              <entry><para>Reference</para></entry>
+              <entry><para>Capability</para></entry>
+              <entry><para>Baseline requirement</para></entry>
+            </row>
+          </thead>
+          <tbody valign="top">
+            <row>
+              <entry><para>PBKDF2</para></entry>
+              <entry><para>RFC 8018</para></entry>
+              <entry><para>PasswordBasedEncryptionAlgorithms</para></entry>
+              <entry><para>Required</para></entry>
+            </row>
+            <row>
+              <entry><para>AES-128-CBC</para></entry>
+              <entry><para>RFC 7292</para></entry>
+              <entry/>
+              <entry><para>Required</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
   </chapter>
   <chapter>
-    <title>Hash Functions</title>
-    <para>This chapter defines the hash functions and their corresponding algorithm OIDs that
-      devices shall support when implementing hash-based operations.</para>
-    <table xml:id="hashTable">
-      <title>Hash Functions and Algorithm OIDs</title>
-      <tgroup cols="6">
-        <colspec colname="c1" colwidth="14*"/>
-        <colspec colname="c2" colwidth="18*"/>
-        <colspec colname="c3" colwidth="10*"/>
-        <colspec colname="c4" colwidth="24*"/>
-        <colspec colname="c5" colwidth="16*"/>
-        <colspec colname="c6" colwidth="18*"/>
-        <thead>
-          <row>
-            <entry><para>Scheme Category</para></entry>
-            <entry><para>Algorithm</para></entry>
-            <entry><para>Size</para></entry>
-            <entry><para>OID</para></entry>
-            <entry><para>Reference</para></entry>
-            <entry><para>Baseline requirement</para></entry>
-          </row>
-        </thead>
-        <tbody valign="top">
-          <row>
-            <entry morerows="2"><para>SHA-2</para></entry>
-            <entry><para>id-sha256</para></entry>
-            <entry><para>256 Bit</para></entry>
-            <entry><para>2.16.840.1.101.3.4.2.1</para></entry>
-            <entry><para>FIPS 180-4</para></entry>
-            <entry><para>Required</para></entry>
-          </row>
-          <row>
-            <entry><para>id-sha384</para></entry>
-            <entry><para>384 Bit</para></entry>
-            <entry><para>2.16.840.1.101.3.4.2.2</para></entry>
-            <entry><para>FIPS 180-4</para></entry>
-            <entry><para>Optional</para></entry>
-          </row>
-          <row>
-            <entry><para>id-sha512</para></entry>
-            <entry><para>512 Bit</para></entry>
-            <entry><para>2.16.840.1.101.3.4.2.3</para></entry>
-            <entry><para>FIPS 180-4</para></entry>
-            <entry><para>Optional</para></entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-  </chapter>
-
-  <chapter>
-    <title>Key Derivation</title>
-        <para>This chapter defines the key derivation functions that devices shall support when implementing key derivation.</para>
-    <table xml:id="keyTable">
-      <title>Key Derivation Functions</title>
-      <tgroup cols="4">
-        <colspec colname="c1" colwidth="15*"/>
-        <colspec colname="c2" colwidth="12*"/>
-        <colspec colname="c3" colwidth="12*"/>
-        <colspec colname="c4" colwidth="12*"/>
-        <thead>
-          <row>
-            <entry>
-              <para>Algorithm</para>
-            </entry>
-            <entry>
-              <para>Reference</para>
-            </entry>
-            <entry>
-              <para>Usage</para>
-            </entry>
-            <entry>
-              <para>Baseline requirement</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody valign="top">
-          <row>
-            <entry>
-              <para>PBKDF2</para>
-            </entry>
-            <entry><para>RFC 8018 &amp; RFC 9579</para></entry>
-            <entry><para>for passwords</para></entry>
-            <entry><para>Required</para></entry>
-          </row>
-          <row>
-            <entry>
-              <para>HKDF</para>
-            </entry>
-            <entry><para>RFC 5869</para></entry>
-            <entry><para>for random keys</para></entry>
-            <entry><para>Required</para></entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-  </chapter>
-  <chapter>
-    <title>Private Key Encryption</title>
-      <para>This chapter defines the private key encryption algorithms that devices shall support when implementing private key encryption.</para>
-    <table xml:id="certTable">
-      <title>Baseline for Encrypting Private Key</title>
-      <tgroup cols="4">
-        <colspec colname="c1" colwidth="2*"/>
-        <colspec colname="c2" colwidth="1*"/>
-        <colspec colname="c3" colwidth="2*"/>
-        <colspec colname="c4" colwidth="2*"/>
-        <thead>
-          <row>
-            <entry>
-              <para>Algorithm</para>
-            </entry>
-            <entry>
-              <para>Reference</para>
-            </entry>
-            <entry>
-              <para>Capability</para>
-            </entry>
-              <entry>
-                <para>Baseline requirement</para>
-              </entry>
-          </row>
-        </thead>
-        <tbody valign="top">
-          <row>
-            <entry>
-              <para>PBKDF2</para>
-            </entry>
-            <entry>
-              <para>RFC 8018</para>
-            </entry>
-            <entry><para>PasswordBasedEncryptionAlgorithms</para></entry>
-            <entry><para>Required</para></entry>
-          </row>
-          <row>
-            <entry>
-              <para>AES-128-CBC</para>
-            </entry>
-            <entry>
-              <para>RFC 7292</para>
-            </entry>
-            <entry/>
-            <entry><para>Required</para></entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-  </chapter>
-  <chapter>
-    <title>JWT</title>
-    <para>This chapter specifies the requirements for JWT signature algorithms.</para>
-    <table xml:id="jwtTable">
-      <title>Signature Baseline</title>
-      <tgroup cols="3">
-        <colspec colname="c1" colwidth="15*"/>
-        <colspec colname="c2" colwidth="12*"/>
-        <colspec colname="c3" colwidth="12*"/>
-        <thead>
-          <row>
-            <entry>
-              <para>Algorithm</para>
-            </entry>
-            <entry>
-              <para>Reference</para>
-            </entry>
-            <entry>
-              <para>Baseline requirement</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody valign="top">
-          <row>
-            <entry>
-              <para>RS256</para>
-            </entry>
-            <entry>
-              <para>RFC 7519</para>
-            </entry>
-            <entry>
-              <para>Required</para>
-            </entry>
-          </row>
-          <row>
-            <entry>
-              <para>ES256</para>
-            </entry>
-            <entry>
-              <para>RFC 7519</para>
-            </entry>
-            <entry>
-              <para>Required</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
+    <title>Authentication and Authorization</title>
+    <section>
+      <title>JSON Web Token (JWT)</title>
+      <para>This section specifies the requirements for JWT signature algorithms used in ONVIF
+        client authorization flows. The signature algorithms listed below depend on the digital
+        signature schemes defined in this document and the hash functions defined in
+        <xref linkend="hashTable"/>.</para>
+      <table xml:id="jwtTable">
+        <title>JWT Signature Algorithm Baseline</title>
+        <tgroup cols="3">
+          <colspec colname="c1" colwidth="15*"/>
+          <colspec colname="c2" colwidth="12*"/>
+          <colspec colname="c3" colwidth="12*"/>
+          <thead>
+            <row>
+              <entry><para>Algorithm</para></entry>
+              <entry><para>Reference</para></entry>
+              <entry><para>Baseline requirement</para></entry>
+            </row>
+          </thead>
+          <tbody valign="top">
+            <row>
+              <entry><para>RS256</para></entry>
+              <entry><para>RFC 7519</para></entry>
+              <entry><para>Required</para></entry>
+            </row>
+            <row>
+              <entry><para>ES256</para></entry>
+              <entry><para>RFC 7519</para></entry>
+              <entry><para>Required</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
   </chapter>
   <appendix xml:id="b14_55m_51d">
     <title>TLS Cipher Reference (Informative)</title>
