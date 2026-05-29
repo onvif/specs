@@ -161,7 +161,8 @@
       the sections of this specification that define the required cryptographic primitives.
       Implementers should consult the referenced normative sections in conjunction with the
       corresponding ONVIF specification for each use case.</para>
-    <informaltable>
+    <table xml:id="usecaseTable">
+    <title>Usecase to cryptographic baseline mapping</title>
       <tgroup cols="4">
         <colspec colname="c1" colwidth="22*"/>
         <colspec colname="c2" colwidth="20*"/>
@@ -220,7 +221,7 @@
           </row>
         </tbody>
       </tgroup>
-    </informaltable>
+    </table>
   </chapter>
   <chapter>
     <title>Hash Functions</title>
@@ -313,7 +314,7 @@
             <entry><para>Required</para></entry>
           </row>
           <row>
-            <entry><para>AES-128-CBC</para></entry>
+            <entry><para>AES-CBC</para></entry>
             <entry><para>128 Bit</para></entry>
             <entry><para>2.16.840.1.101.3.4.1.2</para></entry>
             <entry><para>RFC 7292</para></entry>
@@ -329,7 +330,7 @@
     <section>
       <title>Asymmetric Key Schemes</title>
       <para>The following table specifies the requirements for public key encryption and key
-        agreement schemes that a device shall support when implementing public key cryptography.</para>
+        agreement schemes that a product shall support when implementing public key cryptography.</para>
       <table xml:id="_Ref395173040">
         <title>Asymmetric Key Schemes</title>
         <tgroup cols="5">
@@ -376,6 +377,13 @@
               <entry><para>RFC 5480</para></entry>
               <entry><para>Optional</para></entry>
             </row>
+            <row>
+              <entry><para>secp521r1</para></entry>
+              <entry><para>521 Bit</para></entry>
+              <entry><para>1.3.132.0.35</para></entry>
+              <entry><para>RFC 5480</para></entry>
+              <entry><para>Optional</para></entry>
+            </row>
           </tbody>
         </tgroup>
       </table>
@@ -406,7 +414,7 @@
           </thead>
           <tbody valign="top">
             <row>
-              <entry morerows="2"><para>RSA PKCS#1 v1.5 (not recommended)</para></entry>
+              <entry morerows="2"><para>RSA PKCS#1 v1.5*</para></entry>
               <entry><para>sha256WithRSAEncryption</para></entry>
               <entry><para>1.2.840.113549.1.1.11</para></entry>
               <entry><para>RFC 4055, RFC 8017</para></entry>
@@ -416,13 +424,13 @@
               <entry><para>sha384WithRSAEncryption</para></entry>
               <entry><para>1.2.840.113549.1.1.12</para></entry>
               <entry><para>RFC 4055, RFC 8017</para></entry>
-              <entry><para>Required</para></entry>
+              <entry><para>Optional</para></entry>
             </row>
             <row>
               <entry><para>sha512WithRSAEncryption</para></entry>
               <entry><para>1.2.840.113549.1.1.13</para></entry>
               <entry><para>RFC 4055, RFC 8017</para></entry>
-              <entry><para>Required</para></entry>
+              <entry><para>Optional</para></entry>
             </row>
             <row>
               <entry><para>RSASSA-PSS</para></entry>
@@ -442,24 +450,25 @@
               <entry><para>ecdsa-with-SHA384</para></entry>
               <entry><para>1.2.840.10045.4.3.3</para></entry>
               <entry><para>RFC 5758, X9.62</para></entry>
-              <entry><para>Required</para></entry>
+              <entry><para>Optional</para></entry>
             </row>
             <row>
               <entry><para>ecdsa-with-SHA512</para></entry>
               <entry><para>1.2.840.10045.4.3.4</para></entry>
               <entry><para>RFC 5758, X9.62</para></entry>
-              <entry><para>Required</para></entry>
+              <entry><para>Optional</para></entry>
             </row>
           </tbody>
         </tgroup>
       </table>
+      <para>*Note: RSA signatures using PKCS#1 v1.5 padding are marked as Required for baseline conformance due to their widespread use in existing ONVIF specifications and implementations, particularly for certificate signatures. However, implementers are encouraged to use other required alternatives from the table for new implementations and signatures, as it provides stronger security posture.</para>
     </section>
   </chapter>
   <chapter>
     <title>Key Management</title>
     <section>
       <title>Key Derivation Functions</title>
-      <para>This section defines the key derivation functions that devices shall support when
+      <para>This section defines the key derivation functions that products shall support when
         implementing key derivation.</para>
       <table xml:id="keyTable">
         <title>Key Derivation Functions</title>
@@ -468,9 +477,11 @@
           <colspec colname="c2" colwidth="12*"/>
           <colspec colname="c3" colwidth="12*"/>
           <colspec colname="c4" colwidth="12*"/>
+          <colspec colname="c5" colwidth="12*"/>
           <thead>
             <row>
               <entry><para>Algorithm</para></entry>
+              <entry><para>OID</para></entry>
               <entry><para>Reference</para></entry>
               <entry><para>Usage</para></entry>
               <entry><para>Baseline requirement</para></entry>
@@ -479,12 +490,14 @@
           <tbody valign="top">
             <row>
               <entry><para>PBKDF2</para></entry>
+              <entry><para>1.2.840.113549.1.5.12</para></entry>
               <entry><para>RFC 8018 &amp; RFC 9579</para></entry>
               <entry><para>For password-based key derivation</para></entry>
               <entry><para>Required</para></entry>
             </row>
             <row>
               <entry><para>HKDF</para></entry>
+              <entry><para>1.2.840.113549.1.9.16.3.28</para></entry>
               <entry><para>RFC 5869</para></entry>
               <entry><para>For random key derivation</para></entry>
               <entry><para>Required</para></entry>
@@ -493,40 +506,42 @@
         </tgroup>
       </table>
     </section>
-    <section>
-      <title>Private Key Protection</title>
-      <para>This section defines the algorithms used to protect private keys during storage.
-        PBKDF2 (defined in <xref linkend="keyTable"/>) is used to derive the encryption key from
-        a password, and AES-128-CBC (defined in <xref linkend="symTable"/>) is used to encrypt
-        the private key material in PKCS#12 format (RFC 7292). Note that this covers PKCS#12
-        key transport; device-internal at-rest key storage may use stronger direct encryption
-        as required by the applicable profile specification.</para>
-      <table xml:id="certTable">
-        <title>Private Key Protection Algorithms</title>
-        <tgroup cols="4">
-          <colspec colname="c1" colwidth="2*"/>
-          <colspec colname="c2" colwidth="1*"/>
-          <colspec colname="c3" colwidth="2*"/>
-          <colspec colname="c4" colwidth="2*"/>
-          <thead>
-            <row>
-              <entry><para>Algorithm</para></entry>
-              <entry><para>Reference</para></entry>
-              <entry><para>Capability</para></entry>
-              <entry><para>Baseline requirement</para></entry>
-            </row>
-          </thead>
-          <tbody valign="top">
-            <row>
-              <entry><para>PBKDF2</para></entry>
-              <entry><para>RFC 8018</para></entry>
-              <entry><para>PasswordBasedEncryptionAlgorithms</para></entry>
-              <entry><para>Required</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-    </section>
+  </chapter>
+    <chapter>
+      
+        <title>Private Key Protection</title>
+        <para>This section defines the algorithms used to protect private keys during transit between key generation to key upload.
+          PBKDF2 (defined in <xref linkend="keyTable"/>) is used to derive the encryption key from
+          a password, and AES-CBC (defined in <xref linkend="symTable"/>) is used to wrap
+          the private key material in PKCS#12 format (RFC 7292).</para>
+        <table xml:id="certTable">
+          <title>Private Key Protection Algorithms</title>
+          <tgroup cols="4">
+            <colspec colname="c1" colwidth="2*"/>
+            <colspec colname="c2" colwidth="1*"/>
+            <colspec colname="c3" colwidth="2*"/>
+            <colspec colname="c4" colwidth="2*"/>
+            <thead>
+              <row>
+                <entry><para>Algorithm</para></entry>
+                <entry><para>Reference</para></entry>
+                <entry><para>Capability</para></entry>
+                <entry><para>Baseline requirement</para></entry>
+              </row>
+            </thead>
+            <tbody valign="top">
+              <row>
+                <entry><para>PBKDF2 + AES-CBC</para></entry>
+                <entry><para>RFC 8018</para></entry>
+                <entry><para>PasswordBasedEncryptionAlgorithms</para></entry>
+                <entry><para>Required</para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      <para>Note that this covers PKCS#12
+          key transport; device-internal at-rest key storage may use stronger direct encryption
+          as required by the applicable profile specification.</para>
   </chapter>
   <chapter>
     <title>Authentication and Authorization</title>
@@ -534,7 +549,7 @@
       <title>JSON Web Token (JWT)</title>
       <para>This section specifies the requirements for JWT signature algorithms used in ONVIF
         client authorization flows. The signature algorithms listed below depend on the digital
-        signature schemes defined in this document and the hash functions defined in
+        signature schemes defined in <xref linkend="sigTable"/> and the hash functions defined in
         <xref linkend="hashTable"/>.</para>
       <table xml:id="jwtTable">
         <title>JWT Signature Algorithm Baseline</title>
@@ -584,6 +599,9 @@
         </thead>
         
         <tbody valign="top">
+          <row>
+            <entry><para>TLS 1.3</para></entry><entry><para>TLS_AES_128_GCM_SHA256</para></entry>
+          </row>
           <row>
             <entry><para>TLS 1.3</para></entry><entry><para>TLS_AES_256_GCM_SHA384</para></entry>
           </row>
