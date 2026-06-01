@@ -2190,10 +2190,11 @@ secfrac = "." 1*6DIGIT</programlisting>
         for any open segments and shall start to use the new configuration for new segments.
       </para>
       <section xml:id="_refW3CpsshFormat">
-        <title>CENC Initialization Data Format</title>
+        <title>W3C Common Encryption System</title>
         <para>
-          All encrypted segments shall include one PSSH box following the [W3C 'cenc' Initialization Data Format].
-          Additional types of 'PSSH' boxes may be present to support alternative DRM systems.
+          All encrypted segments, in both supported modes and with either KID/Key strategy or AsymmetricEncryption strategy, shall
+          include one PSSH box following the [W3C 'cenc' Initialization Data Format] Common SystemID, containing the KIDs of the keys used for encryption.
+          Additional types of 'PSSH' boxes may be present to support alternative DRM systems, such as the Asymmetric Key System.
         </para>
         <section>
           <title>Syntax</title>
@@ -2231,7 +2232,8 @@ aligned(8) class ProtectionSystemSpecificHeaderBox extends FullBox('pssh', versi
           <literal>Key</literal> for its encryption.
         </para>
         <para>
-          The device shall also include in each segment an <literal>AsymmetricKeySystemHeaderBox</literal> PSSH box containing the information needed to play the segment.
+          In addition to the W3C Initialization Data, the device shall also include in each segment an
+          <literal>AsymmetricKeySystemHeaderBox</literal> PSSH box containing the information needed to play the segment.
           This box contains the KID, the encrypted symmetric key and the list of certificates that can be used to decrypt it.
           The symmetric key is encrypted once for each configured certificate using their public key.
           The client needs access to at least one of the certificates' private key to decrypt it, either directly or through a key server.
