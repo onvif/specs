@@ -244,8 +244,7 @@
     <para>IETF RFC 2435, RFC2435 - RTP Payload Format for JPEG-compressed Video</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc2435.txt"></link>&gt;</para>
     <para>IETF RFC 3016, RTP Payload Format for MPEG-4 Audio/Visual Streams</para>
-    <programlisting><![CDATA[http://www.ietf.org/rfc/rfc3016.txt
-]]></programlisting>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc3016.txt"></link>&gt;</para>
     <para>IETF RFC 3550, RTP: A Transport Protocol for Real-Time Applications</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc3550.txt"></link>&gt;</para>
     <para>IETF RFC 3551, RTP Profile for Audio and Video Conferences  with Minimal Control</para>
@@ -280,6 +279,10 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7826.txt"></link>&gt;</para>
     <para>IETF RFC 8285, A General Mechanism for RTP Header Extensions</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.ietf.org/rfc/rfc8285.txt"></link>&gt;</para>
+    <para>AV1 Bitstream and Decoding Process Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://aomediacodec.github.io/av1-spec/"></link>&gt;</para>
+    <para>RTP Payload Format For AV1</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://aomediacodec.github.io/av1-rtp-spec"></link>&gt;</para>    
     <para>GZIP file format specification version 4.3</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://tools.ietf.org/html/rfc1952"></link>&gt;</para>
     <para>Apple Computer Inc. RTSP over HTTP, Tunneling QuickTime RTSP and RTP over HTTP</para>
@@ -521,6 +524,18 @@
                 <para>Efficient XML Interchange Format</para>
               </entry>
             </row>
+            <row>
+              <entry valign="middle">SPS</entry>
+              <entry valign="middle">Sequence Parameter Set</entry>
+            </row>
+            <row>
+              <entry valign="middle">PPS</entry>
+              <entry valign="middle">Picture Parameter Set</entry>
+            </row>
+            <row>
+              <entry valign="middle">VPS</entry>
+              <entry valign="middle">Video Parameter Set</entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -566,6 +581,11 @@
       </listitem>
       <listitem>
         <para>HEVC [ISO23008-2]</para>
+      </listitem>
+    </itemizedlist>
+    <itemizedlist>
+      <listitem>
+        <para>AV1 [AOM AV1 Bitstream &amp; Decoding Process Specification]</para>
       </listitem>
     </itemizedlist>
     <para>and for the following audio codecs:</para>
@@ -625,6 +645,8 @@
           <title>RTP</title>
           <para>The Real-time Transport Protocol provides real-time transfer for media streams between two end points. The RTP protocol provides support for re-ordering, de-jittering and media synchronization.</para>
           <para>All media streams transferred by the RTP protocol shall conform to [RFC 3550], [RFC 3551], [RFC 3984], [RFC 7798], [RFC 3016] or [RFC 3640], and JPEG over RTP (see Section <xref linkend="_Toc214944378" />).</para>
+          <para>For AV1 video transported over RTP, the RTP payload format defined in [RTP Payload
+            Format for AV1] shall be used.</para>
           <figure>
             <title>RTP header</title>
             <mediaobject>
@@ -708,7 +730,10 @@
                     <para>0/1</para>
                   </entry>
                   <entry>
-                    <para>The usage shall be conform to related RFCs (e.g. [RFC 3984] for H.264 Video) or to this standard e.g “JPEG over RTP” (see Section <xref linkend="_Toc214944378" />) or RTP streaming of metadata (see Section <xref linkend="_Ref213223702" />).</para>
+                    <para>The usage shall be conform to related RFCs (e.g. [RFC 3984] for H.264
+                      Video) or to this standard e.g “JPEG over RTP” (see Section <xref
+                        linkend="_Toc214944378"/>) or RTP Payload Format For AV1 or RTP streaming of
+                      metadata (see Section <xref linkend="_Ref213223702"/>).</para>
                   </entry>
                 </row>
                 <row>
@@ -875,7 +900,11 @@
         <para>Synchronization points allow clients to decode and correctly use data after the synchronization point. A synchronization point MAY be requested by a client in case of decoder error (e.g. in consequence of packet loss) to enforce the device to add an I-Frame as soon as possible or to request the current ptz or event status.</para>
         <para>The WebService based methods require to support the Synchronization Point request as defined in the section “Synchronization Point” of the ONVIF Media Service Specification. </para>
         <para>In addition it is recommended to support the PLI messages as described in [RFC 4585] in order to allow receivers as defined in the ONVIF Receiver Service Specification to request a Synchronization Point. </para>
-        <para>For H.264 and H.265 Video the SPS/PPS header shall be sent in-band if these have been changed during the transmission.</para>
+        <para>For H.264 and H.265 Video the SPS/PPS/VPS header shall be sent in-band if these have
+          been changed during the transmission.</para>
+        <para>For AV1 video, the device shall generate a Key Frame in response to a synchronization
+          point request. If the Sequence Header changes during transmission, it shall be sent
+          in-band prior to or together with the Key Frame.</para>
       </section>
       <section xml:id="_Ref289166764">
         <title>JPEG over RTP</title>
