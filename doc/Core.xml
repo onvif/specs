@@ -3103,7 +3103,7 @@ onvif://www.onvif.org/name/ARV-453
                     <para>SNMPSecurityLevels</para>
                   </entry>
                   <entry>
-                    <para>Enumerates the supported SNMP security levels.</para>
+                    <para>Enumerates the supported SNMP security levels. As defined in <literal>tds:SNMPSecurityLevel</literal>.</para>
                   </entry>
                 </row>
                 <row>
@@ -3111,7 +3111,7 @@ onvif://www.onvif.org/name/ARV-453
                     <para>SNMPAuthenticationProtocols</para>
                   </entry>
                   <entry>
-                    <para>Enumerates the supported SNMP authentication protocols.</para>
+                    <para>Enumerates the supported SNMP authentication protocols. As defined in <literal>tds:SNMPAuthenticationProtocol</literal>.</para>
                   </entry>
                 </row>
                 <row>
@@ -3119,7 +3119,7 @@ onvif://www.onvif.org/name/ARV-453
                     <para>SNMPPrivacyProtocols</para>
                   </entry>
                   <entry>
-                    <para>Enumerates the supported SNMP privacy protocols.</para>
+                    <para>Enumerates the supported SNMP privacy protocols. As defined in <literal>tds:SNMPPrivacyProtocol</literal>.</para>
                   </entry>
                 </row>
                 <row>
@@ -5501,25 +5501,29 @@ onvif://www.onvif.org/name/ARV-453
                     <row>
                       <entry>EngineID</entry>
                       <entry>xs:hexBinary</entry>
-                      <entry>The SNMP Engine ID of the Device, as defined in [RFC 3411]. This value
-                          is typically read-only after initial configuration or discovery by the
-                          SNMP engine itself. The Device should persist this EngineID across
-                          reboots.</entry>
+                      <entry>The SNMP Engine ID of the Device, as defined in [RFC 3411]. This is
+                          the value that was provided or auto-assigned when the service was
+                          enabled. The Device shall persist this EngineID across reboots. Returned
+                          only when the service is enabled.</entry>
                     </row>
                     <row>
                       <entry>ListeningPort</entry>
                       <entry>xs:unsignedInt</entry>
-                      <entry>The UDP port number on which the SNMP agent is listening. The default SNMP port is 161.</entry>
+                      <entry>The UDP port number on which the SNMP agent is listening. Returned
+                          only when the service is enabled.</entry>
                     </row>
                     <row>
                       <entry>InitialUserName</entry>
                       <entry>xs:string</entry>
-                      <entry>The user name of the configured initial SNMP user. Returned only if an initial user has been configured.</entry>
+                      <entry>The user name of the initial SNMPv3 USM user. Returned only when the
+                          service is enabled.</entry>
                     </row>
                     <row>
                       <entry>SecurityLevel</entry>
                       <entry>xs:string</entry>
-                      <entry>The security level of the configured initial user. Returned only if an initial user has been configured. Valid values are defined by <literal>tds:SNMPSecurityLevel</literal>.</entry>
+                      <entry>The security level of the initial user. Returned only when the
+                          service is enabled. Valid values are defined by
+                          <literal>tds:SNMPSecurityLevel</literal>.</entry>
                     </row>
                     <row>
                       <entry>AuthenticationProtocol</entry>
@@ -5529,7 +5533,7 @@ onvif://www.onvif.org/name/ARV-453
                     <row>
                       <entry>PrivacyProtocol</entry>
                       <entry>xs:string</entry>
-                      <entry>The privacy protocol of the configured initial user. Returned only if the security level is authPriv. Valid values are defined by <literal>tds:SNMPPrivacyProtocol</literal>.
+                      <entry>The privacy protocol of the configured initial user. Returned only if the security level is authPriv. Valid values are defined by <literal>tds:SNMPPrivacyProtocol</literal>.</entry>
                     </row>
                   </tbody>
                 </tgroup>
@@ -5553,24 +5557,33 @@ onvif://www.onvif.org/name/ARV-453
 
       <section xml:id="op.SetSNMPConfiguration">
         <title>SetSNMPConfiguration</title>
-        <para>This operation allows the client to enable or disable the SNMP service and to
-            configure its parameters. This operation can optionally create an initial SNMP user
-            during service setup (only SNMPv3 users are supported). A device that signals support
-            for SNMP via the SNMP capability shall implement this command. </para>
-        <para>Some parameters, like the EngineID may only allowed to be set when the service is
-            disabled, while returning an error otherwise. If an optional parameter is missing in the
-            request, the device shall retain the current value of that parameter. </para>
-        <para>The operation request may include SecurityLevel along with InitialUserName for initial
-            user creation. Depending on the type of SecurityLevel input, additional authentication
-            and privacy parameters shall be required as specified in the parameter descriptions. The
-            device shall validate required parameters for the chosen security level and returns
-            appropriate fault codes if the configuration is incomplete or invalid. </para>
+        <para>This operation enables or disables the SNMPv3 service. A device that signals support
+            for SNMP via the SNMP capability shall implement this command.</para>
+        <para>This operation is atomic with respect to configuration: all SNMPv3 parameters shall
+            be provided together in the enable request. Configuration parameters are only accepted
+            when the request transitions the service from disabled to enabled, i.e. when
+            <literal>Enabled</literal> is <literal>true</literal> and the service is currently
+            disabled. A device shall return <literal>ter:SNMPServiceAlreadyEnabled</literal> if any
+            configuration parameter is included in a request while the service is already
+            enabled.</para>
+        <para>When the service is disabled by setting <literal>Enabled</literal> to
+            <literal>false</literal>, the device shall clear all stored SNMPv3 configuration,
+            including any configured user credentials and derived keys. To reconfigure the service,
+            a client shall first send <literal>SetSNMPConfiguration</literal> with
+            <literal>Enabled=false</literal>, then send a new
+            <literal>SetSNMPConfiguration</literal> with <literal>Enabled=true</literal> and all
+            required parameters.</para>
+        <para>When enabling the service, InitialUserName and SecurityLevel are required. The device
+            shall validate all parameters required for the chosen security level and return
+            appropriate fault codes if the configuration is incomplete or invalid.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
             <listitem>
               <para role="param">SNMPConfiguration [tt:SNMPConfiguration]</para>
-              <para role="text">The SNMP service configuration to be applied. Fields within this structure are individually optional for the set operation.</para>
+              <para role="text">The SNMP service configuration to apply. Configuration parameters
+                  other than <literal>Enabled</literal> are only accepted when enabling the service;
+                  they shall be ignored when disabling it.</para>
               <informaltable frame="all">
                 <tgroup cols="4">
                   <colspec colname="c1" colwidth="1*"/>
@@ -5590,60 +5603,74 @@ onvif://www.onvif.org/name/ARV-453
                       <entry>Enabled</entry>
                       <entry>xs:boolean</entry>
                       <entry></entry>
-                      <entry>Enables or disables the SNMP service. If not provided, the current
-                          state is maintained.</entry>
+                      <entry>Set to <literal>true</literal> to enable the SNMPv3 service with the
+                          parameters provided in this request. Set to <literal>false</literal> to
+                          disable the service and clear all stored SNMPv3 configuration.</entry>
                     </row>
                     <row>
                       <entry>EngineID</entry>
                       <entry>xs:hexBinary</entry>
                       <entry>optional</entry>
-                      <entry>The SNMP Engine ID. The ability to set this <emphasis role="bold"
-                            >may</emphasis> be restricted by the Device. If not provided, the
-                          current EngineID is maintained. </entry>
+                      <entry>The SNMP Engine ID as defined in [RFC 3411]. Only accepted when
+                          enabling the service. If omitted, the device shall assign and persist a
+                          suitable EngineID automatically.</entry>
                     </row>
                     <row>
                       <entry>ListeningPort</entry>
                       <entry>xs:unsignedInt</entry>
                       <entry>optional</entry>
-                      <entry>The UDP port number for the SNMP agent. If not provided, the current
-                          port is maintained. Valid port range is typically 1-65535. </entry>
+                      <entry>The UDP port number for the SNMP agent. Only accepted when enabling
+                          the service. If omitted, port 161 is used. Valid port range is
+                          1–65535.</entry>
                     </row>
                     <row>
                       <entry>InitialUserName</entry>
                       <entry>xs:string</entry>
-                      <entry>optional</entry>
-                      <entry>Username for the initial SNMP user. If provided, SecurityLevel shall
-                          also be included. Max length 32 octets per USM requirements.</entry>
+                      <entry>required when enabling</entry>
+                      <entry>Username for the initial SNMPv3 USM user. Required when enabling the
+                          service. Max length 32 octets per USM requirements.</entry>
                     </row>
                     <row>
                       <entry>SecurityLevel</entry>
                       <entry>xs:string</entry>
-                      <entry>optional</entry>
-                      <entry>Security level for the initial user. Required if InitialUserName is provided. Valid values are defined by <literal>tds:SNMPSecurityLevel</literal>.</entry>
+                      <entry>required when enabling</entry>
+                      <entry>Security level for the initial user. Required when enabling the
+                          service. Valid values are defined by
+                          <literal>tds:SNMPSecurityLevel</literal>.</entry>
                     </row>
                     <row>
                       <entry>AuthenticationProtocol</entry>
                       <entry>xs:string</entry>
                       <entry>optional</entry>
-                      <entry>Authentication protocol. Required if SecurityLevel is authNoPriv or authPriv. Valid values are defined by <literal>tds:SNMPAuthenticationProtocol</literal>.</entry>
+                      <entry>Authentication protocol. Required if SecurityLevel is authNoPriv or
+                          authPriv. Valid values are defined by
+                          <literal>tds:SNMPAuthenticationProtocol</literal>.</entry>
                     </row>
                     <row>
                       <entry>AuthPassword</entry>
                       <entry>xs:string</entry>
                       <entry>optional</entry>
-                      <entry>Authentication password. Required if SecurityLevel is authNoPriv or authPriv. Minimum 8 characters as required by [RFC 3414] §2.6. The Device shall derive and localize the authentication key from this password as specified in Section <xref linkend="s.snmp_security_parameter_configuration"/>.</entry>
+                      <entry>Authentication password. Required if SecurityLevel is authNoPriv or
+                          authPriv. Minimum 8 characters as required by [RFC 3414] §2.6. The
+                          Device shall derive and localize the authentication key from this password
+                          as specified in Section <xref
+                              linkend="s.snmp_security_parameter_configuration"/>.</entry>
                     </row>
                     <row>
                       <entry>PrivacyProtocol</entry>
                       <entry>xs:string</entry>
                       <entry>optional</entry>
-                      <entry>Privacy protocol. Required if SecurityLevel is authPriv. Valid values are defined by <literal>tds:SNMPPrivacyProtocol</literal>.
+                      <entry>Privacy protocol. Required if SecurityLevel is authPriv. Valid values
+                          are defined by <literal>tds:SNMPPrivacyProtocol</literal>.</entry>
                     </row>
                     <row>
                       <entry>PrivacyPassword</entry>
                       <entry>xs:string</entry>
                       <entry>optional</entry>
-                      <entry>Privacy password. Required if SecurityLevel is authPriv. Minimum 8 characters as required by [RFC 3414] §2.6. The Device shall derive and localize the privacy key from this password as specified in Section <xref linkend="s.snmp_security_parameter_configuration"/>.</entry>
+                      <entry>Privacy password. Required if SecurityLevel is authPriv. Minimum 8
+                          characters as required by [RFC 3414] §2.6. The Device shall derive and
+                          localize the privacy key from this password as specified in Section <xref
+                              linkend="s.snmp_security_parameter_configuration"/>.</entry>
                     </row>
                   </tbody>
                 </tgroup>
@@ -5659,20 +5686,27 @@ onvif://www.onvif.org/name/ARV-453
           <varlistentry>
             <term>faults</term>
             <listitem>
+              <para role="param">env:Receiver - ter:OperationProhibited -
+                  ter:SNMPServiceAlreadyEnabled</para>
+              <para role="text">The SNMP service is already enabled. The device does not accept
+                  configuration parameters while the service is enabled. Disable the service
+                  first.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidSNMPPort</para>
-              <para role="text">The provided ListeningPort  is outside the valid range or is
+              <para role="text">The provided ListeningPort is outside the valid range or is
                   otherwise unusable.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidSNMPEngineID</para>
               <para role="text">The provided EngineID is malformed or invalid according to [RFC
                   3411].</para>
-              <para role="param">env:Receiver - ter:OperationProhibited -
-                  ter:SNMPEngineIDNotSettable</para>
-              <para role="text">The Device does not allow the EngineID to be set via this command
-                  under the current conditions.</para>
-              <para role="param">env:Sender - ter:InvalidArgVal - ter:SNMPInitialUserIncomplete</para>
-              <para role="text">Initial user configuration is incomplete (missing required fields for specified SecurityLevel).</para>
-              <para role="param">env:Sender - ter:InvalidArgVal - ter:SNMPInvalidInitialUser</para>
-              <para role="text">The provided initial user configuration is invalid (username too long, invalid keys, etc.).</para>
+              <para role="param">env:Sender - ter:InvalidArgVal -
+                  ter:SNMPInitialUserIncomplete</para>
+              <para role="text">Initial user configuration is missing or incomplete.
+                  InitialUserName and SecurityLevel are required when enabling the service.
+                  Additional fields (AuthenticationProtocol, AuthPassword, PrivacyProtocol,
+                  PrivacyPassword) are required depending on the chosen SecurityLevel.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal -
+                  ter:SNMPInvalidInitialUser</para>
+              <para role="text">The provided initial user configuration is invalid (e.g. username
+                  too long, password too short).</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -5720,7 +5754,7 @@ onvif://www.onvif.org/name/ARV-453
           </listitem>
         </itemizedlist>
         <para>
-          The corresponding <literal>tt:SNMPAuthenticationProtocol</literal> enumeration values would be <literal>HMAC_SHA_256</literal>, <literal>HMAC_SHA_384</literal>, and <literal>HMAC_SHA_512</literal>.
+          The corresponding <literal>tds:SNMPAuthenticationProtocol</literal> enumeration values are <literal>HMAC_SHA_256</literal>, <literal>HMAC_SHA_384</literal>, and <literal>HMAC_SHA_512</literal>.
         </para>
       </section>
       <section xml:id="s.snmp_priv_protocols">
@@ -5751,7 +5785,7 @@ onvif://www.onvif.org/name/ARV-453
           </listitem>
         </itemizedlist>
         <para>
-          The corresponding <literal>tt:SNMPPrivacyProtocol</literal> enumeration values are <literal>CFB_AES_128</literal>, <literal>CFB_AES_192</literal>, and <literal>CFB_AES_256</literal>.
+          The corresponding <literal>tds:SNMPPrivacyProtocol</literal> enumeration values are <literal>CFB_AES_128</literal>, <literal>CFB_AES_192</literal>, and <literal>CFB_AES_256</literal>.
         </para>
       </section>
     </section>
