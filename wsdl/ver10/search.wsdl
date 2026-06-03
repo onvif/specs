@@ -458,7 +458,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							<xs:annotation><xs:documentation>Start time for the search.</xs:documentation></xs:annotation>
 						</xs:element>
 						<xs:element name="EndPoint" type="xs:dateTime" minOccurs="0">
-							<xs:annotation><xs:documentation>The point of time where the search will stop. This can be a time before the StartPoint, in which case the search is performed backwards in time. If EndPoint is omitted, search will go forward from the StartPoint.</xs:documentation></xs:annotation>
+							<xs:annotation><xs:documentation>The point of time where the search will stop. If EndPoint is omitted, the search will continue up to the latest recorded data available on the device.</xs:documentation></xs:annotation>
 						</xs:element>
 						<xs:element name="RecordingToken" type="tt:RecordingReference" minOccurs="0">
 							<xs:annotation><xs:documentation>Token for the recording to search.</xs:documentation></xs:annotation>
@@ -529,19 +529,17 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							<xs:annotation><xs:documentation>Start time for the search.</xs:documentation></xs:annotation>
 						</xs:element>
 						<xs:element name="EndPoint" type="xs:dateTime" minOccurs="0">
-							<xs:annotation><xs:documentation>The point of time where the search will stop. This can be a time before the StartPoint, in which case the search is performed backwards in time. If EndPoint is omitted, search will go forward from the StartPoint.</xs:documentation></xs:annotation>
+							<xs:annotation><xs:documentation>The point of time where the search will stop. If EndPoint is omitted, the search will continue up to the latest recorded data available on the device.</xs:documentation></xs:annotation>
 						</xs:element>
 						<xs:element name="RecordingToken" type="tt:RecordingReference" minOccurs="0">
 							<xs:annotation><xs:documentation>Token for the recording to search.</xs:documentation></xs:annotation>
 						</xs:element>
-							<xs:choice>
-								<xs:element name="TargetImageURI" type="xs:anyURI">
-									<xs:annotation><xs:documentation>The URI of the detected target object image. This can be either: - a local image stored in the Target Image repository (LocalStorage format), or - an external image provided by the client for image search or feature matching.</xs:documentation></xs:annotation>
-								</xs:element>
-								<xs:element name="TargetImageData" type="xs:base64Binary">
-									<xs:annotation><xs:documentation>Base64-encoded target object image for visual search.</xs:documentation></xs:annotation>
-								</xs:element>
-							</xs:choice>
+						<xs:element name="TargetImageURI" type="xs:anyURI" minOccurs="0">
+							<xs:annotation><xs:documentation>Exactly one of TargetImageURI or TargetImageData shall be provided. If both are provided, the device shall use TargetImageData. If neither is provided, the device shall respond with an InvalidArgVal fault. The URI of the detected target object image stored in the Target Image repository (LocalStorage format).</xs:documentation></xs:annotation>
+						</xs:element>
+						<xs:element name="TargetImageData" type="xs:base64Binary" minOccurs="0">
+							<xs:annotation><xs:documentation>Exactly one of TargetImageURI or TargetImageData shall be provided. If both are provided, the device shall use TargetImageData. If neither is provided, the device shall respond with an InvalidArgVal fault. Base64-encoded target object image used for visual search.</xs:documentation></xs:annotation>
+						</xs:element>
 						<xs:element name="MaxMatches" type="xs:int" minOccurs="0">
 							<xs:annotation><xs:documentation>Maximum number of matches to return in the response.</xs:documentation></xs:annotation>
 						</xs:element>
