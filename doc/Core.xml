@@ -980,7 +980,8 @@
               <entry valign="middle">
                 <para>Simple Network Management Protocol </para>
               </entry>
-            </row>           <row>
+            </row>
+            <row>
               <entry valign="middle">
                 <para>SOAP</para>
               </entry>
@@ -3095,6 +3096,30 @@ onvif://www.onvif.org/name/ARV-453
                   </entry>
                   <entry>
                     <para>Indicates if the device supports SNMP Device Management Extension with service configuration and initial user setup as specified in Section <xref linkend="s.snmp_extension"/>. </para>
+                  </entry>
+                </row>
+                 <row>
+                  <entry>
+                    <para>SNMPSecurityLevels</para>
+                  </entry>
+                  <entry>
+                    <para>Enumerates the supported SNMP security levels.</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>SNMPAuthenticationProtocols</para>
+                  </entry>
+                  <entry>
+                    <para>Enumerates the supported SNMP authentication protocols.</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>SNMPPrivacyProtocols</para>
+                  </entry>
+                  <entry>
+                    <para>Enumerates the supported SNMP privacy protocols.</para>
                   </entry>
                 </row>
                 <row>
@@ -5442,6 +5467,7 @@ onvif://www.onvif.org/name/ARV-453
         <para>This operation allows the client to retrieve the current SNMP service status along
             with its configuration parameters. A device that signals support for SNMP via the SNMP
             capability shall implement this command.</para>
+        <para>Furthermore a device shall not return the authentication or privacy passwords in the reply.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -5453,7 +5479,7 @@ onvif://www.onvif.org/name/ARV-453
             <term>response</term>
             <listitem>
               <para role="param">SNMPConfiguration [tt:SNMPConfiguration]</para>
-              <para role="text">The current SNMP service configuration.</para>
+              <para role="text">The current SNMP service configuration, including service state and, if an initial user has been configured, the associated user name, security level, and active protocol settings. Note, that authentication and privacy passwords shall not be included.</para>
               <informaltable frame="all">
                 <tgroup cols="3">
                   <colspec colname="c1" colwidth="1*"/>
@@ -5475,15 +5501,35 @@ onvif://www.onvif.org/name/ARV-453
                     <row>
                       <entry>EngineID</entry>
                       <entry>xs:hexBinary</entry>
-                      <entry> The SNMP Engine ID of the Device, as defined in [RFC 3411]. This value
+                      <entry>The SNMP Engine ID of the Device, as defined in [RFC 3411]. This value
                           is typically read-only after initial configuration or discovery by the
                           SNMP engine itself. The Device should persist this EngineID across
-                          reboots. </entry>
+                          reboots.</entry>
                     </row>
                     <row>
                       <entry>ListeningPort</entry>
                       <entry>xs:unsignedInt</entry>
                       <entry>The UDP port number on which the SNMP agent is listening. The default SNMP port is 161.</entry>
+                    </row>
+                    <row>
+                      <entry>InitialUserName</entry>
+                      <entry>xs:string</entry>
+                      <entry>The user name of the configured initial SNMP user. Returned only if an initial user has been configured.</entry>
+                    </row>
+                    <row>
+                      <entry>SecurityLevel</entry>
+                      <entry>xs:string</entry>
+                      <entry>The security level of the configured initial user. Returned only if an initial user has been configured. Valid values are defined by <literal>tds:SNMPSecurityLevel</literal>.</entry>
+                    </row>
+                    <row>
+                      <entry>AuthenticationProtocol</entry>
+                      <entry>xs:string</entry>
+                      <entry>The authentication protocol of the configured initial user. Returned only if the security level is authNoPriv or authPriv. Valid values are defined by <literal>tds:SNMPAuthenticationProtocol</literal>.</entry>
+                    </row>
+                    <row>
+                      <entry>PrivacyProtocol</entry>
+                      <entry>xs:string</entry>
+                      <entry>The privacy protocol of the configured initial user. Returned only if the security level is authPriv. Valid values are defined by <literal>tds:SNMPPrivacyProtocol</literal>.
                     </row>
                   </tbody>
                 </tgroup>
@@ -5543,7 +5589,7 @@ onvif://www.onvif.org/name/ARV-453
                     <row>
                       <entry>Enabled</entry>
                       <entry>xs:boolean</entry>
-                      <entry>optional</entry>
+                      <entry></entry>
                       <entry>Enables or disables the SNMP service. If not provided, the current
                           state is maintained.</entry>
                     </row>
@@ -5571,33 +5617,33 @@ onvif://www.onvif.org/name/ARV-453
                     </row>
                     <row>
                       <entry>SecurityLevel</entry>
-                      <entry>tt:SNMPSecurityLevel</entry>
+                      <entry>xs:string</entry>
                       <entry>optional</entry>
-                      <entry>Security level for the initial user (noAuthNoPriv, authNoPriv, authPriv). Required if InitialUserName is provided.</entry>
+                      <entry>Security level for the initial user. Required if InitialUserName is provided. Valid values are defined by <literal>tds:SNMPSecurityLevel</literal>.</entry>
                     </row>
                     <row>
                       <entry>AuthenticationProtocol</entry>
-                      <entry>tt:SNMPAuthenticationProtocol</entry>
+                      <entry>xs:string</entry>
                       <entry>optional</entry>
-                      <entry>Authentication protocol. Required if SecurityLevel is authNoPriv or authPriv.</entry>
+                      <entry>Authentication protocol. Required if SecurityLevel is authNoPriv or authPriv. Valid values are defined by <literal>tds:SNMPAuthenticationProtocol</literal>.</entry>
                     </row>
                     <row>
-                      <entry>AuthenticationKey</entry>
-                      <entry>tt:BinaryData</entry>
+                      <entry>AuthPassword</entry>
+                      <entry>xs:string</entry>
                       <entry>optional</entry>
-                      <entry>Authentication key (base64-encoded). Required if SecurityLevel is authNoPriv or authPriv.</entry>
+                      <entry>Authentication password. Required if SecurityLevel is authNoPriv or authPriv. Minimum 8 characters as required by [RFC 3414] §2.6. The Device shall derive and localize the authentication key from this password as specified in Section <xref linkend="s.snmp_security_parameter_configuration"/>.</entry>
                     </row>
                     <row>
                       <entry>PrivacyProtocol</entry>
-                      <entry>tt:SNMPPrivacyProtocol</entry>
+                      <entry>xs:string</entry>
                       <entry>optional</entry>
-                      <entry>Privacy protocol. Required if SecurityLevel is authPriv.</entry>
+                      <entry>Privacy protocol. Required if SecurityLevel is authPriv. Valid values are defined by <literal>tds:SNMPPrivacyProtocol</literal>.
                     </row>
                     <row>
-                      <entry>PrivacyKey</entry>
-                      <entry>tt:BinaryData</entry>
+                      <entry>PrivacyPassword</entry>
+                      <entry>xs:string</entry>
                       <entry>optional</entry>
-                      <entry>Privacy key (base64-encoded). Required if SecurityLevel is authPriv.</entry>
+                      <entry>Privacy password. Required if SecurityLevel is authPriv. Minimum 8 characters as required by [RFC 3414] §2.6. The Device shall derive and localize the privacy key from this password as specified in Section <xref linkend="s.snmp_security_parameter_configuration"/>.</entry>
                     </row>
                   </tbody>
                 </tgroup>
@@ -5644,7 +5690,7 @@ onvif://www.onvif.org/name/ARV-453
       <para>
         This section details the requirements for authentication and privacy protocols supported by the SNMP extension.
         When an initial user is created via <literal>SetSNMPConfiguration</literal>, the Device shall securely store localized keys and apply them according to the specified security level.
-        Keys for authentication and privacy shall be provided by the Client as base64-encoded binary data using the <literal>tt:BinaryData</literal> type. The Device shall localize these keys using its EngineID as per SNMPv3 USM specifications ([RFC 3414] Appendix A) before storing them internally.
+        Authentication and privacy passwords shall be provided by the Client as plaintext strings. The Device shall derive the corresponding keys from these passwords using the password-to-key algorithm defined in [RFC 3414] §2.6, or as extended by [RFC 7860] §4 for SHA-2 based authentication protocols. The Device shall then localize the derived keys using its EngineID per [RFC 3414] Appendix A.1 before storing them internally. Passwords shall be at minimum 8 characters in length as required by [RFC 3414] §2.6.
       </para>
       <section xml:id="s.snmp_auth_protocols">
         <title>Authentication Protocols</title>
@@ -5689,25 +5735,23 @@ onvif://www.onvif.org/name/ARV-453
             </para>
           </listitem>
         </itemizedlist>
-<!--
         <para>
-          Support for stronger privacy ciphers and modes is <emphasis role="bold">RECOMMENDED</emphasis>:
+          Support for stronger privacy ciphers is RECOMMENDED:
         </para>
         <itemizedlist>
           <listitem>
             <para>
-              <emphasis role="bold">CFB-AES-192 / CFB-AES-256:</emphasis> As specified in [RFC 3826] (OIDs: <literal>usmAesCfb192PrivProtocol</literal>, <literal>usmAesCfb256PrivProtocol</literal>). Key lengths are 24 and 32 octets respectively. Note: [RFC 3826] originally defined these with placeholder OIDs; check for official assignments if implementing.
+              <emphasis role="bold">CFB-AES-192:</emphasis> As specified in [RFC 3826] (OID: <literal>usmAesCfb192PrivProtocol</literal>). The privacy key length is 24 octets. This cipher provides a higher security margin than CFB-AES-128 and is suitable for deployments requiring stronger confidentiality guarantees.
             </para>
           </listitem>
           <listitem>
             <para>
-              <emphasis role="bold">AES-GCM / AES-AEAD:</emphasis> Authenticated Encryption with Associated Data (AEAD) modes like AES-128-GCM, AES-192-GCM, AES-256-GCM as generally referenced by [RFC 5116] and applied to SNMP in documents like [RFCDraftIETFNetmanAESGCM] (if standardized). These modes provide both confidentiality and integrity.
+              <emphasis role="bold">CFB-AES-256:</emphasis> As specified in [RFC 3826] (OID: <literal>usmAesCfb256PrivProtocol</literal>). The privacy key length is 32 octets. This cipher provides the highest key strength among the supported privacy protocols and is RECOMMENDED for security-sensitive deployments.
             </para>
           </listitem>
         </itemizedlist>
--->
         <para>
-          The corresponding <literal>tt:SNMPPrivacyProtocol</literal> enumeration values would include <literal>CFB_AES_128</literal> <!--, and potentially others like <literal>CFB_AES_192</literal>, <literal>CFB_AES_256</literal>, etc.,--> based on Device support.
+          The corresponding <literal>tt:SNMPPrivacyProtocol</literal> enumeration values are <literal>CFB_AES_128</literal>, <literal>CFB_AES_192</literal>, and <literal>CFB_AES_256</literal>.
         </para>
       </section>
     </section>
