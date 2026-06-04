@@ -9,7 +9,7 @@
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>December 2025</pubdate>
+    <pubdate>December, 2025</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
@@ -34,7 +34,7 @@
         RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION,
         MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2)
         SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR
-        DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT
+        DISTRIBUTION OF THIS DOCUMENT. THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT
         APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR
         RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF
         THE CORPORATION.</para>
@@ -150,7 +150,7 @@
         <author>
           <personname>Hans Busch</personname>
         </author>
-        <revremark>Do not require to support multiple identical pathes. Remove CRL requirement on
+        <revremark>Do not require to support multiple identical paths. Remove CRL requirement on
           client authentication.</revremark>
       </revision>
       <revision>
@@ -195,6 +195,14 @@
           <personname>Tomasz Zajac, Tomasz Chmiel</personname>
         </author>
         <revremark>Add custom claims to JWTConfiguration. Add validation policy to Dot1X configuration.</revremark>
+	</revision>
+	<revision>
+        <revnumber>25.12</revnumber>
+        <date>Dec-2025</date>
+        <author>
+          <personname>Ottavio Campana, Hans Busch</personname>
+        </author>
+	      <revremark>Add support for user roles. Remove requirements on integrity password derivation. Move algorithm requirements to Security Baseline. Add AutoDeleteKey. Deprecate PKCS8.</revremark>
       </revision>
     </revhistory>
   </info>
@@ -920,75 +928,54 @@
       <title>JWT-based client authorization</title>
       <section>
         <title>General</title>
-        <para>Unlike with HTTP Digest and WS-UsernameToken authentication, this specification
-          defines how to associate clients with the different User Levels as defined in the ONVIF
-          Core Specification. Devices are not expected to have the user credentials stored in their
-          memory, instead they will verify that the user has been correctly authenticated by a
-          trusted service based on OpenID Connect and authorize accessing different functions, based
-          on the claims presented in the supplied JWT. JWTs can be presented as headers in case of
-          HTTPS or RTSP, or they can be embedded in SOAP messages, in the form of binary security
-          tokens. In case JWTs are embedded in binary security tokens, their content is
-          base64url-encoded according to RFC 7519.</para>
-        <para>JWTs consists of three elements:</para>
-        <para>
-          <itemizedlist>
-            <listitem>
-              <para>JOSE header</para>
-            </listitem>
-            <listitem>
-              <para>Payload</para>
-            </listitem>
-            <listitem>
-              <para>Signature</para>
-            </listitem>
-          </itemizedlist>
-        </para>
-        <para>The JOSE header shall declare that the encoded object is a JSON Web Token by setting
-          the <emphasis>typ</emphasis> parameter to <emphasis>JWT</emphasis>, and the JWT is a JWS
-          that is signed using the algorithm identified by the <emphasis>alg</emphasis> claim with a
-          value defined in RFC7518. Since the keystore does not support symmetric encryption, this
-          specification only mandates asymmetric encryption.</para>
-        <para>The JWT payload shall include the following standard claims:</para>
-        <para>
-          <itemizedlist>
-            <listitem>
-              <para><emphasis>iss</emphasis>: Issuer, the URI of the server that generated the
-                JWT.</para>
-            </listitem>
-            <listitem>
-              <para><emphasis>aud</emphasis>: Audience, a list of strings representing the
-                recipients that the JWT is intended for. Each principal intended to process the JWT
-                shall identify itself with a value in the audience claim. If the principal
-                processing the claim does not identify itself with a value in the audience claim
-                when this claim is present, then the JWT shall be rejected.</para>
-            </listitem>
-            <listitem>
-              <para><emphasis>exp</emphasis>: Expiration Time.</para>
-            </listitem>
-            <listitem>
-              <para><emphasis>nbf</emphasis>: Not before.</para>
-            </listitem>
-          </itemizedlist>
-        </para>
-        <para>For the <emphasis>exp</emphasis>, <emphasis>nbf</emphasis> claims, a device shall
-          reject a token when the current time is not within the range of claims nbf and exp. It
-          shall reject a token when at least one of the claims is missing.</para>
-        <para>The JWT payload shall include the <emphasis>roles</emphasis> claim, as defined within
-          RFC 7643:</para>
-        <para>
-          <itemizedlist>
-            <listitem>
-              <para><emphasis>roles</emphasis>: Access class. One of the authenticated classes of
-                the default access policy prefixed with the string <emphasis>onvif:</emphasis>, i.e.
-                "onvif:Administrator", "onvif:Operator" or "onvif:User" as defined also within the
-                ONVIF Core Specification. This access level will be used to authorize access to the
-                required function.</para>
-            </listitem>
-          </itemizedlist>
-        </para>
-        <para>The signature is evaluated by applying ECDSA using secp256r1 and SHA-256 hashing to
-          the base64url-encoded header and payload, concatenated by a '.'</para>
-        <programlisting>ECDSA-SHA256 (base64UrlEncode(header) + "." +
+      <para>Unlike with HTTP Digest and WS-UsernameToken authentication, this specification defines how to associate clients with the different User Levels as defined in the ONVIF Core Specification. Devices are not expected to have the user credentials stored in their memory, instead they will verify that the user has been correctly authenticated by a trusted service based on OpenID Connect and authorize accessing different functions, based on the claims presented in the supplied JWT. JWTs can be presented as headers in case of HTTPS or RTSP, or they can be embedded in SOAP messages, in the form of binary security tokens. In case JWTs are embedded in binary security tokens, their content is base64url-encoded according to RFC 7519.</para>
+      <para>JWTs consists of three elements:</para>
+      <para>
+        <itemizedlist>
+          <listitem>
+            <para>JOSE header</para>
+          </listitem>
+          <listitem>
+            <para>Payload</para>
+          </listitem>
+          <listitem>
+            <para>Signature</para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>The JOSE header shall declare that the encoded object is a JSON Web Token by setting the <emphasis>typ</emphasis> parameter to <emphasis>JWT</emphasis>, and the JWT is a JWS that is signed using the algorithm identified by the <emphasis>alg</emphasis> claim with a value defined in RFC7518. Since the keystore does not support symmetric encryption, this specification only mandates asymmetric encryption.</para>
+      <para>The JWT payload shall include the following standard claims:</para>
+      <para>
+        <itemizedlist>
+          <listitem>
+            <para><emphasis>iss</emphasis>: Issuer, the URI of the server that generated the JWT.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>aud</emphasis>: Audience, a list of strings representing the recipients that the JWT is intended for. Each principal intended to process the JWT shall identify itself with a value in the audience claim. If the principal processing the claim does not identify itself with a value in the audience claim when this claim is present, then the JWT shall be rejected.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>exp</emphasis>: Expiration Time.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>nbf</emphasis>: Not before.</para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>For the <emphasis>exp</emphasis>, <emphasis>nbf</emphasis> claims, a device shall reject a token when the current time is not within the range of claims nbf and exp. It shall reject a token when at least one of the claims is missing.</para>
+      <para>The JWT payload shall include the <emphasis>roles</emphasis> claim, as defined within RFC 7643:</para>
+      <para>
+        <itemizedlist>
+          <listitem>
+            <para><emphasis>roles</emphasis>: Access role. One or more user roles, either
+              pre-defined ones or prefixed with the string <emphasis>onvif:</emphasis> .i.e.
+              "onvif:Administrator", "onvif:Operator" or "onvif:User" as defined also within the
+              ONVIF Core Specification,  or custom ones defined on the device. These access roles
+              will be used to authorize access to the required function.</para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>The signature is evaluated by applying ECDSA using secp256r1 and SHA-256 hashing to the base64url-encoded header and payload, concatenated by a '.'</para>
+      <programlisting>ECDSA-SHA256 (base64UrlEncode(header) + "." +
               base64UrlEncode(payload),
               secp256r1))</programlisting>
         <para>The evaluated signature is further appended to the encoded header and payload with a
@@ -1155,8 +1142,8 @@
         <table xml:id="table_acv_rzq_swb">
           <title>Authorization server settings</title>
           <tgroup cols="2">
-            <colspec colname="c1" colwidth="20*"/>
-            <colspec colname="c2" colwidth="80*"/>
+            <colspec colname="c1" colwidth="35*"/>
+            <colspec colname="c2" colwidth="65*"/>
             <thead>
               <row>
                 <entry>
@@ -1288,6 +1275,7 @@
                 </entry>
                 <entry>
                   <para>OpenID Connect authorization code flow per Open ID Connect Core.</para>
+                  <para>The ServerUri is used as metadata URI, where you can retrieve the endpoint URIs for authorization, token and JWKS.</para>
                 </entry>
               </row>
             </tbody>
@@ -1369,7 +1357,7 @@
         <para>A device signaling support for self_signed_tls_client_auth shall signal support for
           SelfSignedCertificateCreation.</para>
         <para>A device signaling support for private_key_jwt shall signal support for
-          ECCKeyPairGeneration.</para>
+          KeyPairGeneration for ECC keys.</para>
       </section>
     </section>
   </chapter>
@@ -1447,8 +1435,6 @@
           to be present in the keystore under different IDs, respectively.</para>
         <para>A device shall allow multiple copies of the same IEEE 802.1X configuration to be
           present in the keystore under different IDs simultaneously.</para>
-        <para>A device shall not allow multiple copies of the same key to be present in the keystore
-          simultaneously.</para>
       </section>
       <section>
         <title>Referential Integrity</title>
@@ -1981,14 +1967,15 @@
             <title>DeleteKey</title>
             <para>This operation deletes a key from the device’s keystore. An ONVIF conformant
               device shall support this command.</para>
-            <para>Keys are uniquely identified using key IDs. If no key is stored under the
-              requested key ID in the keystore, a device shall produce an InvalidArgVal fault. If a
-              reference exists for the specified key, a device shall produce the corresponding fault
-              and shall not delete the key. If there is a key under the requested key ID stored in
-              the keystore and the key could not be deleted, a device shall produce a KeyDeletion
-              fault. If the key has the status <emphasis>generating</emphasis>, a device shall abort
-              the generation of the key and delete from the keystore all data generated for this
-              key.</para>
+            <para>If no key is stored under the requested key ID in the keystore and AutoDeleteKey
+              is signaled a device shall signal no fault. Otherwise it may produce an InvalidArgVal
+              fault. </para>
+            <para>If a reference exists for the specified key, a device shall produce the
+              corresponding fault and shall not delete the key. If there is a key under the
+              requested key ID stored in the keystore and the key could not be deleted, a device
+              shall produce a KeyDeletion fault. If the key has the status
+                <emphasis>generating</emphasis>, a device shall abort the generation of the key and
+              delete from the keystore all data generated for this key.</para>
             <para>After a key is successfully deleted, the device may assign its former ID to other
               keys.</para>
             <variablelist role="op">
@@ -2360,10 +2347,6 @@
                     ter:MaximumNumberOfCertificatesReached</para>
                   <para role="text"> The device does not have enough storage space to store the
                     certificate to be uploaded.</para>
-                  <para role="param">ter:Receiver - ter:Action -
-                    ter:MaximumNumberOfKeysReached</para>
-                  <para role="text"> The device does not have enough storage space to store the key
-                    pair to be uploaded.</para>
                   <para role="param">ter:Receiver - ter:Action - ter:NoMatchingPrivateKey </para>
                   <para role="text">The keystore does not contain a key pair with a private key that
                     matches the public key in the uploaded certificate.</para>
@@ -2677,10 +2660,10 @@
           <section>
             <title>DeleteCertificate</title>
             <para>This operation deletes a certificate from the device’s keystore. An ONVIF
-              compliant device shall support this command. An ONVIF compliant device supporting the
-              security service shall support this command.</para>
-            <para>The operation shall not delete the public key that is contained in the certificate
-              from the keystore.</para>
+              compliant device shall support this command.</para>
+            <para>If the device signals AutoDeleteKey the associated key shall be deleted when no
+              more references to it exist. Otherwise the operation shall not delete the associated
+              key.</para>
             <para>Certificates are uniquely identified using certificate IDs. If no certificate is
               stored under the requested certificate ID in the keystore, an InvalidArgVal fault is
               produced. If there is a certificate under the requested certificate ID stored in the
@@ -3330,7 +3313,7 @@
           <section>
             <title>DeleteCertPathValidationPolicy</title>
             <para>This operation deletes a certification path validation policy from the keystore on
-              the device.</para>
+              the device. An ONVIF compliant device shall support this command.</para>
             <para>Certification path validation policies are uniquely identified using certification
               path validation policy IDs. If no certification path validation policy is stored under
               the requested certification path validation policy ID, the device shall produce an
@@ -4392,12 +4375,27 @@
       <title>Media Signing</title>
       <section xml:id="section_cfb_gy4_kwb">
         <title>Overview</title>
-        <para>Signing of media that is generated by the device is described in the [Media Signing
-          Specification]. Media is signed using a private key that is provisioned during factory
-          production that is stored in a specially protected hardware component (e.g., a trusted
-          platform module). This private key is associated with a certificate that holds the public
-          key. In addition to the factory provisioned key one additional private key can be used to
-          sign media. </para>
+        <para>Media authenticity data in the form of signatures is generated by the device and
+          included in the media stream as described in the [Media Signing Specification]. Media is
+          typically signed using a certificate based on the private key provisioned in one of the
+          below listed approaches</para>
+          <variablelist>
+            <varlistentry>
+              <term>Factory Provisioned Key</term>
+              <listitem>
+                <para>Private key provisioned into the device by the manufacturer and that private
+                key is associated with a certificate that holds the public key.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>User Provisioned Key</term>
+              <listitem>
+                <para>User can provision an additional private key and that private key is
+                associated with a certificate that holds the public key. </para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+
       </section>
       <section xml:id="section_dfb_gy4_kwb">
         <title>AddMediaSigningCertificateAssignment</title>
@@ -4406,8 +4404,9 @@
           certificate in the chain and its associated private key shall be used for signing media as
           described in the [Media Signing Specification]. This key and certificate are referred to
           as user provisioned key and certificate in that specification.</para>
-        <para>If this operation is called when there is already a user provisioned certification
-          path configured, the existing certification path shall be replaced with the new
+        <para>If a user-provisioned certification path is configured, it shall be replaced by the
+          new certification path only if it is not in use by an ongoing media streaming session;
+          otherwise, the device shall return a ReferenceExists fault and shall not replace the
           certification path.</para>
         <para>A device shall support this command if the UserMediaSigningKeySupported capability is
           true.</para>
@@ -4415,8 +4414,8 @@
           <varlistentry>
             <term>request</term>
             <listitem>
-              <para role="param">CertificationPathID - [tas:CertificationPathID] The ID of the
-                certification path to assign for media signing.</para>
+              <para role="param">CertificationPathID - [tas:CertificationPathID]</para>
+              <para role="text">The ID of the certification path to assign for media signing.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -4428,11 +4427,12 @@
           <varlistentry>
             <term>faults</term>
             <listitem>
-              <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificationPathID No
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificationPathID </para>
+              <para role="text">No
                 certification path is stored in the keystore under the given certification path
                 ID.</para>
-              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPrivateKey The key pair that
-                is associated with the leaf certificate in the certificate chain does not have an
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPrivateKey </para>
+               <para role="text"> The key pair that is associated with the leaf certificate in the certificate chain does not have an
                 associated private key.</para>
             </listitem>
           </varlistentry>
@@ -4449,16 +4449,17 @@
         <para>This operation removes a certificate assignment (including certification path) on the
           device that has been added by AddMediaSigningCertificateAssignment. The factory
           provisioned certification path cannot be removed.</para>
-        <para>If media signing on the device is enabled, the device shall produce a ReferenceExists
-          fault and shall not remove the certificate assignment.</para>
+        <para>If the assigned certfication path is in use for an ongoing media streaming session,
+          the device shall produce a ReferenceExists fault and shall not remove the certificate
+          assignment.</para>
         <para>A device shall support this command if the UserMediaSigningKeySupported capability is
           true.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
             <listitem>
-              <para role="param">CertificationPathID - [tas:CertificationPathID] The ID of the
-                certification path to remove.</para>
+              <para role="param">CertificationPathID - [tas:CertificationPathID]</para>
+              <para>The ID of the certification path to remove.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -4493,6 +4494,8 @@
           AddMediaSigningCertificateAssignment.</para>
         <para>A device shall support this command if the MediaSigningSupported capability is
           true.</para>
+        <para>Response list shall be ordered with factory-provisioned ID first, followed by
+          user-provisioned ID.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -4505,8 +4508,8 @@
             <listitem>
               <para role="param">CertificationPathID - optional, max 2 [tas:CertificationPathID] </para>
               <para role="text">List of certification path IDs assigned for media signing. At least
-                one certification path will be returned, the factory provisioned one. At most two
-                certification paths will be returned.</para>
+                one certification path that refers to the factory provisioned certificates shall be
+                returned. At most two certification paths shall be returned.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -4522,8 +4525,10 @@
             </listitem>
           </varlistentry>
         </variablelist>
+        <para>As response structure includes just CertificationPathID, the client may retrieve the
+          assigned media signing certificates by invoking GetCertificationPath with the
+          CertificationPathID, followed by GetCertificates.</para>
       </section>
-    </section>
     <section xml:id="section_hd2_5r4_rwb">
       <title>Autorization Server Configuration</title>
       <para>This chapter describes configuration of external authorization servers. For an overview
@@ -4838,7 +4843,7 @@
                   <para>MaximumNumberOfKeys</para>
                 </entry>
                 <entry>
-                  <para>Indicates the maximum number of keys that the device is able store
+                  <para>Indicates the maximum number of private keys that the device is able store
                     simultaneously.</para>
                 </entry>
               </row>
@@ -4990,6 +4995,11 @@
                   <para>Indicates the device requires that each certificate with private key has its
                     own unique key.</para>
                 </entry>
+              </row>
+              <row>
+                <entry><para>AutoDeleteKey</para></entry>
+                <entry><para>DeleteCertificate automatically deletes the referenced key when there are no
+                  more references.</para></entry>
               </row>
               <row>
                 <entry>
@@ -5217,8 +5227,8 @@
         <table xml:id="_Ref406569780">
           <title>Requirements implied by Capabilities</title>
           <tgroup cols="2">
-            <colspec colname="c1" colwidth="32*"/>
-            <colspec colname="c2" colwidth="68*"/>
+            <colspec colname="c1" colwidth="50*"/>
+            <colspec colname="c2" colwidth="50*"/>
             <thead>
               <row>
                 <entry>
@@ -5261,7 +5271,7 @@
                   <para>MaximumNumberOfCertificates</para>
                 </entry>
                 <entry>
-                  <para>Shall be at lest four</para>
+                  <para>Shall be at least four</para>
                 </entry>
               </row>
               <row>
@@ -5273,8 +5283,8 @@
                 </entry>
               </row>
               <row>
-                <entry>MaximumNumberOfCertificationPathValidationPolicies</entry>
-                <entry>Shall be at least two</entry>
+                <entry><para>MaximumNumberOfCertificationPathValidationPolicies</para></entry>
+                <entry><para>Shall be at least two</para></entry>
               </row>
               <row>
                 <entry>
@@ -5341,9 +5351,6 @@
                   <para>If true, the list of supported password-based encryption algorithms as
                     indicated by the PasswordBasedEncryptionAlgorithms capability shall include the
                     baseline specified in the ONVIF Security Baseline.</para>
-                  <para>If true, the list of supported password-based MAC algorithms as indicated by
-                    the PasswordBasedMACAlgorithms capability shall include the baseline specified
-                    in table Key Derivation Functions of the ONVIF Security Baseline.</para>
                   <para>If true, the list of supported X.509 versions as indicated by the
                     X.509Versions capability shall contain at least the value 3.</para>
                 </entry>
@@ -5548,32 +5555,11 @@
                 </entry>
               </row>
               <row>
+                <entry><para>EllipticCurves</para></entry>
                 <entry>
-                  <para>MediaSigningSupported</para>
+                  <para>The list of supported elliptic curves.
+                    If the entry is non-empty it shall contain at least the baseline</para>
                 </entry>
-                <entry>
-                  <para>If true, GetAssignedMediaSigningCertificates shall be supported.</para>
-                </entry>
-              </row>
-              <row>
-                <entry>
-                  <para>UserMediaSigningKeySupported</para>
-                </entry>
-                <entry>
-                  <para>If true, AddMediaSigningCertificateAssignment and
-                    RemoveMediaSigningCertificateAssignment shall be supported.</para>
-                </entry>
-              </row>
-              <row>
-                <entry>EllipticCurves</entry>
-                <entry>
-                  <para>The list of supported elliptic curves. </para>
-                  <para>If the entry is non-empty it shall contain at least the baseline </para>
-                </entry>
-              </row>
-              <row>
-                <entry><para>AuthorizationServer.MaxConfigurations</para></entry>
-                <entry><para>If > 0, MaximumNumberOfCertificationPathValidationPolicies>=2</para></entry>
               </row>
             </tbody>
           </tgroup>
@@ -5605,6 +5591,7 @@
       <title>Service specific data types</title>
       <para>The service specific data types are defined in security.wsdl.</para>
     </section>
+   </section>
   </chapter>
   <chapter>
     <title>Security Considerations</title>
@@ -5939,10 +5926,18 @@ Accept: application/sdp]]></programlisting>
             </row>
             <row>
               <entry>
+                <para>PKCS8</para>
+              </entry>
+              <entry>
+                <para>None</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
                 <para>PKCS8RSAKeyPairUpload</para>
               </entry>
               <entry>
-                <para>deprecated</para>
+                <para>None</para>
               </entry>
             </row>
             <row>
@@ -5971,7 +5966,9 @@ Accept: application/sdp]]></programlisting>
             </row>
             <row>
               <entry><para>PasswordBasedMACAlgorithms</para></entry>
-              <entry/>
+              <entry>
+                <para>None</para>
+              </entry>
             </row>
           </tbody>
         </tgroup>

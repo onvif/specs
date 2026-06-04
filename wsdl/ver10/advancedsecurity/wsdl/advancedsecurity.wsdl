@@ -10,7 +10,7 @@
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tas="http://www.onvif.org/ver10/advancedsecurity/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl">
 	<wsdl:types>
-		<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tt="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl" version="25.06">
+		<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tt="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl" version="25.12">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../schema/onvif.xsd"/>
 			<!--===================================================-->
 			<!-- Data types used by the security configuration features -->
@@ -434,6 +434,11 @@
 							<xs:documentation>The base64-encoded DER representation of the X.509 certificate.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
+					<xs:element name="HasPrivateKey" type="xs:boolean" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The keystore has a matching private key.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 					<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="lax"/>   <!-- first ONVIF then Vendor -->
 				</xs:sequence>
 				<xs:anyAttribute processContents="lax"/>
@@ -720,7 +725,7 @@
 				</xs:sequence>
 				<xs:attribute name="MaximumNumberOfKeys" type="xs:positiveInteger">
 					<xs:annotation>
-						<xs:documentation>Indicates the maximum number of keys that the device can store simultaneously.</xs:documentation>
+						<xs:documentation>Indicates the maximum number of private keys that the device can store simultaneously.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="MaximumNumberOfCertificates" type="xs:positiveInteger">
@@ -750,7 +755,7 @@
 				</xs:attribute>
 				<xs:attribute name="KeyPairGeneration" type="tt:StringList">
 					<xs:annotation>
-						<xs:documentation>List of supported key algorithm like 'RSA' and 'ECC'. For a full list of definitions see tas:KeyAlgorithm.</xs:documentation>
+						<xs:documentation>List of supported key algorithm like 'RSA' and 'ECC'. For a full list of definitions see tas:KeyPairAlgorithm.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="RSAKeyLengths" type="tas:RSAKeyLengths">
@@ -800,7 +805,7 @@
 				</xs:attribute>
 				<xs:attribute name="PKCS8" type="xs:boolean">
 					<xs:annotation>
-						<xs:documentation>Indicates support for uploading a key pair in a PKCS#8 data structure.</xs:documentation>
+						<xs:documentation>Deprecated - Indicates support for uploading a key pair in a PKCS#8 data structure.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="PKCS12CertificateWithRSAPrivateKeyUpload" type="xs:boolean">
@@ -820,7 +825,7 @@
 				</xs:attribute>
 				<xs:attribute name="PasswordBasedMACAlgorithms" type="tas:PasswordBasedMACAlgorithms">
 					<xs:annotation>
-						<xs:documentation>Indicates which password-based MAC algorithms are supported by the device.</xs:documentation>
+						<xs:documentation>Deprecated - Indicates which password-based MAC algorithms are supported by the device.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<!-- ========================================= -->
@@ -2468,7 +2473,8 @@
 					<xs:sequence>
 						<xs:element name="CertificationPathID" type="tas:CertificationPathID" minOccurs="0" maxOccurs="2">
 							<xs:annotation>
-								<xs:documentation>The IDs of all certification paths that are assigned for media signing.</xs:documentation>
+								<xs:documentation>The IDs of all certification paths that are assigned for media signing. Response list shall be ordered with factory-provisioned ID first, followed by user-provisioned ID.
+								As response structure includes just CertificationPathID, the client may retrieve the assigned media signing certificates by invoking GetCertificationPath with the CertificationPathID, followed by GetCertificates</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -3461,49 +3467,78 @@
 		<wsdl:documentation>802.1X configuration.</wsdl:documentation>
 		<wsdl:operation name="AddDot1XConfiguration">
 			<wsdl:documentation>
-				(to be written)
+				This operation adds an IEEE 802.1X configuration to the device.
+        		Configurations are uniquely identified using IEEE 802.1X configuration IDs. The device shall ignore Dot1XID in the request, if present, and shall generate a unique configuration ID for the added configuration.
+        		If the command was successful, the device shall return the ID of the configuration.
+        		If the device does not have capacity for the configuration, the device shall produce a MaximumNumberOfDot1XConfigurationsReached fault and shall not add the configuration.
+        		If Identity is used as an anonymous identity for the corresponding authentication method, the device shall ignore an eventually supplied passphrase ID in the same Dot1XStage. Otherwise, if the device cannot process a passphrase ID included in the configuration to be added, the device shall produce a PassphraseID fault and shall not add the configuration.
+        		If the device cannot process a certification path ID included in the configuration to be added, the device shall produce a CertificationPathID fault and shall not add the configuration.
+        		If no certification path validation policy is stored under the requested certification path validation policy ID, the device shall produce a CertPathValidationPolicyID fault.
+        		If no certification path validation policy configured, authorization server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.
+        		If the device cannot process an authentication method included in the configuration to be added (e.g., unrecognized method or missing configuration parameter), the device shall produce a Dot1XMethod fault and shall not add the configuration.
+        		A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:AddDot1XConfigurationRequest"/>
 			<wsdl:output message="tas:AddDot1XConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="GetAllDot1XConfigurations">
 			<wsdl:documentation>
-				(to be written)
+				This operation returns details of all IEEE 802.1X configurations that are on the device. This operation may be used, e.g., if a client lost track of which IEEE 802.1X configurations are present on the device.
+        		If no IEEE 802.1X configurations exist on the device, an empty list is returned.
+        		A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:GetAllDot1XConfigurationsRequest"/>
 			<wsdl:output message="tas:GetAllDot1XConfigurationsResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="GetDot1XConfiguration">
 			<wsdl:documentation>
-				(to be written)
+				This operation returns details of a specific IEEE 802.1X configuration on the device.
+        		If the device cannot process the provided IEEE 802.1X configuration ID, the device shall produce a Dot1XConfigurationID fault.
+        		A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:GetDot1XConfigurationRequest"/>
 			<wsdl:output message="tas:GetDot1XConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="DeleteDot1XConfiguration">
 			<wsdl:documentation>
-				(to be written)
+				This operation deletes an IEEE 802.1X configuration from the device.
+        		If the device cannot process the provided IEEE 802.1X configuration ID, the device shall produce a Dot1XConfigurationID fault.
+        		If a reference exists for the specified IEEE 802.1X configuration, the device shall  produce a ReferenceExists fault and shall not delete the configuration.
+        		After an IEEE 802.1X configuration has been successfully deleted, the device may assign its former ID to a new configuration.
+        		A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:DeleteDot1XConfigurationRequest"/>
 			<wsdl:output message="tas:DeleteDot1XConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="SetNetworkInterfaceDot1XConfiguration">
 			<wsdl:documentation>
-				(to be written)
+				This operation binds an IEEE 802.1X configuration to a network interface on the device. This operation shall either create a new binding or replace an existing binding. On failure when an existing binding already exists, the existing binding shall remain.
+        		The Device Management SetNetworkInterface operation provides a method of binding an IEEE 802.1X configuration to an IEEE 802.11 (wireless) interface, and that operation may still be used. But there is no ability for SetNetworkInterface to bind an IEEE 802.1X configuration to a hardwired interface. This operation is provided to bind an IEEE 802.1X configuration to either type of interface.
+        		If SetNetworkInterfaceDot1XConfiguration is used to bind an IEEE 802.1X configuration to an IEEE 802.11 (wireless) interface, then the DeviceManagement GetNetworkInterfaces operation shall return the IEEE 802.1X configuration ID along with the rest of that interface's configuration information.
+        		If the device cannot process the provided network interface token, the device shall produce an InvalidNetworkInterface fault.
+        		If the device cannot process the provided IEEE 802.1X configuration ID, the device shall produce a Dot1XConfigurationID fault.
+        		A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:SetNetworkInterfaceDot1XConfigurationRequest"/>
 			<wsdl:output message="tas:SetNetworkInterfaceDot1XConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="GetNetworkInterfaceDot1XConfiguration">
 			<wsdl:documentation>
-				(to be written)
+				This operation returns the IEEE 802.1X ID and configuration associated with a network interface on the device. If there is no IEEE 802.1X configuration associated with the specified network interface, then the response shall be empty.
+        		If the Device Management SetNetworkInterface operation was used to bind an IEEE 802.1X configuration to an IEEE 802.11 (wireless) interface, then this operation shall return the IEEE 802.1X configuration information as if the SetNetworkInterfaceDot1XConfiguration operation had been used.
+        		If the device cannot process the provided network interface token, the device shall produce an InvalidNetworkInterface fault.
+    			A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:GetNetworkInterfaceDot1XConfigurationRequest"/>
 			<wsdl:output message="tas:GetNetworkInterfaceDot1XConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="DeleteNetworkInterfaceDot1XConfiguration">
 			<wsdl:documentation>
-				(to be written)
+				This operation unbinds the IEEE 802.1X configuration associated with a network interface on the device. If there is no IEEE 802.1X configuration associated with the specified network interface, then the operation does nothing.
+        		The Device Management SetNetworkInterface operation provides a method of unbinding an IEEE 802.1X configuration from an IEEE 802.11 (wireless) interface by omitting the configuration ID, and that operation may still be used. But there is no ability for SetNetworkInterface to unbind an IEEE 802.1X configuration from a hardwired interface. This operation is provided to unbind an IEEE 802.1X configuration from either type of interface.
+        		If the Device Management SetNetworkInterface operation was used to bind an IEEE 802.1X configuration to an IEEE 802.11 (wireless) interface, then this operation shall unbind the IEEE 802.1X configuration information as if the SetNetworkInterfaceDot1XConfiguration operation had been used.
+        		If the device cannot process the provided network interface token, the device shall produce an InvalidNetworkInterface fault.
+        		A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:DeleteNetworkInterfaceDot1XConfigurationRequest"/>
 			<wsdl:output message="tas:DeleteNetworkInterfaceDot1XConfigurationResponse"/>
