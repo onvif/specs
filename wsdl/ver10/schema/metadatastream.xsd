@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Copyright (c) 2008-2024 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2025 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
@@ -11,7 +11,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	xmlns:tt="http://www.onvif.org/ver10/schema"
 	xmlns:fc="http://www.onvif.org/ver20/analytics/humanface" 
 	xmlns:bd="http://www.onvif.org/ver20/analytics/humanbody" 
-	xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="24.12">
+	xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" targetNamespace="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" version="25.12">
 	<xs:include schemaLocation="common.xsd"/>
 	<xs:import namespace="http://docs.oasis-open.org/wsn/b-2" schemaLocation="http://docs.oasis-open.org/wsn/b-2.xsd"/>
 	<xs:import namespace="http://www.onvif.org/ver20/analytics/humanface" schemaLocation="../../ver20/analytics/humanface.xsd"/>
@@ -127,7 +127,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<xs:complexType name="LabelInfo">
 		<xs:sequence>
 			<xs:element name="Authority" type="xs:string"/>  <!-- See tt:LabelAuthority for defined values -->
-			<xs:element name="ID"/>
+			<xs:element name="ID" type="xs:string"/>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>      <!-- first ONVIF then vendor --> 
 		</xs:sequence>
 		<xs:attribute name="Likelihood" type="xs:float"/>
@@ -194,6 +194,8 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:enumeration value="LicensePlate"/>
 			<xs:enumeration value="Bike"/>	<!-- any of bicycle, motorcycle, motorbike -->
 			<xs:enumeration value="Barcode"/>
+			<xs:enumeration value="Fire"/>
+			<xs:enumeration value="Smoke"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="ClassType">
@@ -404,10 +406,32 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:attribute>
 		<xs:attribute name="Cells" type="xs:base64Binary" use="required">
 			<xs:annotation>
-				<xs:documentation>A “1” denotes a cell where motion is detected and a “0” an empty cell. The first cell is in the upper left corner. Then the cell order goes first from left to right and then from up to down.  If the number of cells is not a multiple of 8 the last byte is filled with zeros. The information is run length encoded according to Packbit coding in ISO 12369 (TIFF, Revision 6.0).</xs:documentation>
+				<xs:documentation>A "1" denotes a cell where motion is detected and a "0" an empty cell. The first cell is in the upper left corner. Then the cell order goes first from left to right and then from up to down.  If the number of cells is not a multiple of 8 the last byte is filled with zeros. The information is run length encoded according to Packbit coding in ISO 12369 (TIFF, Revision 6.0).</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	
+	<xs:complexType name="ObjectTrack">
+		<xs:annotation>
+			<xs:documentation>An Object track includes a sequence of object states representing how an object's state changes over time.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="ObjectState" type="tt:ObjectState" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	
+	<xs:complexType name="ObjectState">
+		<xs:annotation>
+			<xs:documentation>An object state describes an object's condition, for e.g position, speed and appearance, at a certain time instance.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="tt:Object">
+				<xs:attribute name="CaptureTime" type="xs:dateTime" use="required"/>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 	<!--===============================-->
 	<!--   Metadata Streaming Types    -->
