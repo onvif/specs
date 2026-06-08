@@ -1494,6 +1494,17 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							Note that the streaming behavior is undefined if the list includes items that are not part of the associated AnalyticsConfiguration.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
+					<xs:element name="SensorData" type="tt:SensorDataFilter" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Optional element to configure which sensor data is to include in the metadata stream. A client might be interested in receiving all, 
+								none or some of the sensor data produced by the device:<ul>
+									<li>To get all sensor data: Include the SensorData element but do not include any filter criteria.</li>
+									<li>To get no sensor data: Do not include the SensorData element.</li>
+									<li>To get only some sensor data: Include the SensorData element and specify filter criteria (SensorID list, Type list, etc.).</li>
+								</ul>
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 					<xs:element name="Extension" type="tt:MetadataConfigurationExtension" minOccurs="0"/>
 				</xs:sequence>
 				<xs:attribute name="CompressionType" type="xs:string">
@@ -1548,6 +1559,32 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
+	<xs:complexType name="SensorDataFilter">
+		<xs:annotation>
+			<xs:documentation>Optional element to configure which sensor data is to include in the metadata stream. A client might be interested in receiving all, none or some of the sensor data produced by the device:
+				<ul>
+					<li>To get all sensor data: Include the SensorData element but do not include any filter criteria.</li>
+					<li>To get no sensor data: Do not include the SensorData element.</li>
+					<li>To get only some sensor data: Include the SensorData element and specify filter criteria (SensorID list, Type list, etc.).</li>
+				</ul>
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="SensorID" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>List of SensorID values to include in the metadata stream. If not specified or empty, all sensor IDs are included (unless other filters exclude them).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Type" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>List of sensor Type values to include in the metadata stream. If not specified or empty, all sensor types are included (unless other filters exclude them).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
 	<xs:complexType name="EventSubscription">
 		<xs:annotation>
 			<xs:documentation>Subscription handling in the same way as base notification subscription.</xs:documentation>
@@ -1569,6 +1606,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<xs:complexType name="MetadataConfigurationOptions">
 		<xs:sequence>
 			<xs:element name="PTZStatusFilterOptions" type="tt:PTZStatusFilterOptions"/>
+			<xs:element name="SensorDataFilterOptions" type="tt:SensorDataFilterOptions" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional element indicating the sensor data filtering capabilities of the device.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name ="Extension" type="tt:MetadataConfigurationOptionsExtension" minOccurs="0"/>
 		</xs:sequence>
@@ -1652,6 +1694,23 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<xs:sequence>
 			<xs:any namespace="##targetNamespace" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="SensorDataFilterOptions">
+		<xs:sequence>
+			<xs:element name="SensorIDFilterSupported" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation>True if the device supports filtering sensor data by SensorID.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="TypeFilterSupported" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation>True if the device supports filtering sensor data by Type.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
 	<!--          VideoOutput            -->
