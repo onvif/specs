@@ -261,6 +261,23 @@
   <chapter>
     <title>Export Format</title>
     <section>
+      <title>Requirements to Preserve Media Signing</title>
+      <para>In order to maintain the integrity and authenticity of ONVIF streaming media signed in
+        accordance with the ONVIF Media Signing specification when exporting to an MP4 container,
+        the following prerequisite steps shall be adhered to during the export process to ensure
+        signature verification remains intact and media evidence can be trusted as
+        tamper-proof.</para>
+      <para><emphasis role="bold">Preserve NAL order and bytes</emphasis></para>
+      <para>ONVIF signed media bitstream captured from the device shall not be filtered, rewritten
+        reencoded or normalized, as the raw format and order of NAL units is critical.</para>
+      <para><emphasis role="bold">Keep Media Signing SEI NAL units</emphasis></para>
+      <para>All SEI frames of type user data unregistered with UUID
+          <code>005bc93f-2d71-5e95-ada4-796f90877a6f</code> shall not be stripped.</para>
+      <para><emphasis role="bold">Add Certificate SEI NAL unit if present</emphasis></para>
+      <para>The exported file should contain a certificate SEI at the beginning of a stream. This
+        SEI includes all necessary information to validate subsequent SEIs. </para>
+    </section>
+    <section>
       <title>Required Side Information</title>
       <para>
         <phrase>The SurveillanceExportBox is required</phrase>. It is recommended that the SurveillanceExportBox be placed as early as possible in files, for maximum utility.</para>
@@ -798,7 +815,7 @@ class AdditionalUserInformationBox
                 <emphasis role="bold">cert</emphasis><superscript>2</superscript>       Certificate of the exporter
 <emphasis role="bold">mfra</emphasis><superscript>1</superscript>                       Optional movie fragment random access (must be last in file)
     <emphasis role="bold">tfra</emphasis><superscript>1</superscript>                   Track fragment random access
-    <emphasis role="bold">mfro</emphasis><superscript>1</superscript>                    Movie fragment random access offset
+    <emphasis role="bold">mfro</emphasis><superscript>1</superscript>                   Movie fragment random access offset
 </programlisting>
     <para>The superscripts denotes the specification that defines the box:</para>
     <para>
@@ -807,6 +824,47 @@ class AdditionalUserInformationBox
       <superscript>2</superscript> This specification</para>
     <para>
       <superscript>3</superscript> ETSI TS 126 244</para>
+  </appendix>
+  <appendix>
+    <title>Media Signing Recommendations</title>
+    <para><emphasis role="bold">No re-encoding</emphasis></para>
+    <para>ONVIF signed media stream captured from the device shall not be transcoded or
+      recompressed. Instead Use pure remuxing (<literal>-c copy</literal> in ffmpeg) to change
+      containers.</para>
+    <para>
+      <emphasis role="bold">Treat the video elementary stream as immutable</emphasis>
+    </para>
+    <para>
+      <itemizedlist>
+      <listitem><para>Keep all SPS/PPS/VPS, access unit delimiter (AUD), prefix/suffix SEI and
+        slice NALs in their original order.</para></listitem>
+      <listitem><para>Do not change frame rate, timescale, timebase or GOP structure. Avoid
+        frame duplication, dropping, de‑interlacing or timestamp “cleanup”.</para></listitem>
+      <listitem><para>For SEI preservation: In H.264 the SEI NAL type is 6; in HEVC, SEI
+        prefix/suffix types are 39/40. These must stay attached to the same access units they
+        originally accompanied. Do not convert or regroup SEIs (e.g., never swap HEVC prefix and
+        suffix).</para></listitem>
+      <listitem><para>Avoid bitstream filters. Only use a filter when absolutely certain it will
+        not modify or remove SEIs. Never run “cleaning” filters that remove private SEIs.</para>
+      </listitem>
+      </itemizedlist>
+    </para>
+    <para>
+      Validate before and after File Export. Run Media Signing validation on the original source
+      and again on the exported MP4 to confirm integrity.
+    </para>
+    <para>
+      A simpler test is to only verify that the MP4 file has SEIs present after export. Below is
+      an ffmpeg command for that.
+      <programlisting><![CDATA[ffmpeg -i outSigned.mp4 -c copy -bsf:v trace_headers -f null - 2>&1 | grep -i sei]]></programlisting>
+    </para>
+    <para>
+      <emphasis role="bold">Cut at signature‑safe boundaries</emphasis>
+    </para>
+    <para>Trim at SEIs. There will always be a "dangling end" of the exported file, that is,
+      frames that cannot be validated since the associated SEI is not present in the exported
+      recording. To minimize the "dangling end", trim at frames with a signed SEI (inclusive),
+      that is, a SEI with a signature.</para>
   </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
