@@ -158,6 +158,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>Indicates support for Stateful IPv6 DHCP.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="SNMP" type="xs:boolean">
+				    <xs:annotation>
+        							<xs:documentation>Indicates support for SNMP Device Management Extension. Only SNMPv3 is supported.</xs:documentation>
+    				</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
@@ -2490,6 +2495,85 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>	 		
 			<!--===============================-->
 			<!--===============================-->
+			<!-- SNMP Device Management Extension - Only SNMPv3 is supported -->
+			<xs:element name="GetSNMPConfiguration">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetSNMPConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="SNMPConfiguration" type="tds:SNMPConfiguration" minOccurs="1"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetSNMPConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="SNMPConfiguration" type="tds:SNMPConfiguration" minOccurs="1"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetSNMPConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			
+			<!--=========================================-->
+			<!--  Begin, SNMPConfiguration             -->
+			<!--=========================================-->
+			<xs:simpleType name="SNMPSecurityLevel">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="noAuthNoPriv"/>
+					<xs:enumeration value="authNoPriv"/>
+					<xs:enumeration value="authPriv"/>
+				</xs:restriction>
+			</xs:simpleType>
+			
+			<xs:simpleType name="SNMPAuthenticationProtocol">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="HMAC_SHA_256"/> <!-- usmHMACSHA256AuthProtocol -->
+					<xs:enumeration value="HMAC_SHA_384"/> <!-- usmHMACSHA384AuthProtocol -->
+					<xs:enumeration value="HMAC_SHA_512"/> <!-- usmHMACSHA512AuthProtocol -->
+				</xs:restriction>
+			</xs:simpleType>
+			
+			<xs:simpleType name="SNMPPrivacyProtocol">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="CFB_AES_128"/>  <!-- usmAesCfb128PrivProtocol -->
+					<xs:enumeration value="CFB_AES_192"/>  <!-- usmAesCfb192PrivProtocol (check OID) -->
+					<xs:enumeration value="CFB_AES_256"/>  <!-- usmAesCfb256PrivProtocol (check OID) -->
+				</xs:restriction>
+			</xs:simpleType>
+			
+			<xs:complexType name="SNMPConfiguration">
+				<xs:sequence>
+					<xs:element name="Enabled" type="xs:boolean" minOccurs="0"/>
+					<xs:element name="EngineID" type="xs:hexBinary" minOccurs="0"/>
+					<xs:element name="ListeningPort" type="xs:unsignedInt" minOccurs="0"/>
+					<xs:element name="InitialUserName" type="xs:string" minOccurs="0"/>
+					<xs:element name="SecurityLevel" type="xs:string" minOccurs="0">
+						<xs:annotation><xs:documentation>tds:SNMPSecurityLevel lists the acceptable values.</xs:documentation></xs:annotation>
+					</xs:element>
+					<xs:element name="AuthenticationProtocol" type="xs:string" minOccurs="0">
+						<xs:annotation><xs:documentation>tds:SNMPAuthenticationProtocol lists the acceptable values.</xs:documentation></xs:annotation>
+					</xs:element>
+					<xs:element name="AuthPassword" type="xs:string" minOccurs="0"/>
+					<xs:element name="PrivacyProtocol" type="xs:string" minOccurs="0">
+						<xs:annotation><xs:documentation>tds:SNMPPrivacyProtocol lists the acceptable values.</xs:documentation></xs:annotation>
+					</xs:element>
+					<xs:element name="PrivacyPassword" type="xs:string" minOccurs="0"/>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:sequence>
+				<xs:anyAttribute namespace="##any"/>
+			</xs:complexType>
+			
+			<!--=========================================-->
+			<!--  End, SNMPConfiguration               -->
+			<!--=========================================-->
+			<!--===============================-->
 		</xs:schema>
 	</wsdl:types>
 	<wsdl:message name="GetServicesRequest">
@@ -3110,6 +3194,19 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</wsdl:message>
 	<wsdl:message name="SetHashingAlgorithmResponse">
 		<wsdl:part name="parameters" element="tds:SetHashingAlgorithmResponse"/>
+	</wsdl:message>
+	
+	<wsdl:message name="GetSNMPConfigurationRequest">
+		<wsdl:part name="parameters" element="tds:GetSNMPConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="GetSNMPConfigurationResponse">
+		<wsdl:part name="parameters" element="tds:GetSNMPConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetSNMPConfigurationRequest">
+		<wsdl:part name="parameters" element="tds:SetSNMPConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetSNMPConfigurationResponse">
+		<wsdl:part name="parameters" element="tds:SetSNMPConfigurationResponse"/>
 	</wsdl:message>
 	
 	<wsdl:portType name="Device">
@@ -3760,13 +3857,24 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<wsdl:output message="tds:DeleteGeoLocationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="SetHashingAlgorithm">
-		<wsdl:documentation>
+			<wsdl:documentation>
 				This operation sets the hashing algorithm(s) used in HTTP and RTSP Digest Authentication.
 			</wsdl:documentation>
 			<wsdl:input message="tds:SetHashingAlgorithmRequest"/>
 			<wsdl:output message="tds:SetHashingAlgorithmResponse"/>
 		</wsdl:operation>
 
+		<wsdl:operation name="GetSNMPConfiguration">
+			<wsdl:documentation>Returns the current SNMP service status, engine ID (RFC 3411), and configuration parameters, including supported authentication and privacy protocols as required in core specification. Only SNMPv3 is supported. The response reflects the requirements for HMAC-SHA-256 (RFC 7860) or stronger for authentication, and CFB-AES-128 (RFC 3826) or stronger for privacy.</wsdl:documentation>
+			<wsdl:input message="tds:GetSNMPConfigurationRequest"/>
+			<wsdl:output message="tds:GetSNMPConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetSNMPConfiguration">
+			<wsdl:documentation>Enables or disables the SNMP service and allows configuration of global SNMP parameters such as engine ID and listening port, in accordance with core specification. Only SNMPv3 is supported. Only secure protocols as specified in core specification are accepted.</wsdl:documentation>
+			<wsdl:input message="tds:SetSNMPConfigurationRequest"/>
+			<wsdl:output message="tds:SetSNMPConfigurationResponse"/>
+		</wsdl:operation>
+		
 		<!--===============================-->
 		<!--The definition and interfaces for the Security have been deprecated with release 16.12
 			The Security part was handed over to Security Configuration Service.
@@ -4182,7 +4290,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
-        	<wsdl:operation name="GetAuthFailureWarningOptions">
+		<wsdl:operation name="GetAuthFailureWarningOptions">
 			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetAuthFailureWarningOptions"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
@@ -4771,6 +4879,25 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="SetHashingAlgorithm">
 			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/SetHashingAlgorithm"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+
+		<wsdl:operation name="GetSNMPConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetSNMPConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetSNMPConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/SetSNMPConfiguration"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
