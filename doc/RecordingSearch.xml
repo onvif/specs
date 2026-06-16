@@ -345,7 +345,7 @@ Change Request 1843, 2050, 2053, 2055, 2065</revremark>
     <section>
       <title>Introduction</title>
       <para>The search service provides a number of operations for finding data of interest within a set of recordings. The most common way of doing this would be to search for events that are either included in the metadata track of a recording, or are otherwise associated with a recording in the device (see Recording Events below). </para>
-      <para>GetRecordingSummary returns a summary for all recording, and can be used to provide the scale of a timeline.</para>
+      <para>GetRecordingSummary returns a summary for all recordings, and can be used to provide the scale of a timeline.</para>
       <para>GetRecordingInformation returns information about a single recording, such as start time and current status.</para>
       <para>GetMediaAttributes returns the media attributes of a recording at a specific point in time.</para>
       <para>The actual search is done by coupled find and result operations. Each find operation initiates a search session. The client can then acquire the results from the search session in increments, or all at once, depending on implementation and the scale of the search. There are four pairs of search operations for Recordings, Recording Events, PTZ Positions and Metadata.</para>
@@ -379,14 +379,14 @@ Change Request 1843, 2050, 2053, 2055, 2065</revremark>
             <para>EndSearch – The client explicitly ends a session.</para>
           </listitem>
         </itemizedlist>
-        <para>Ending a session will cancel an ongoing search, immediately return and make further requests to the same session result in an error message. A device shall not reuse search token immediately as it would confuse clients unaware that a session had ended.</para>
+        <para>Ending a session will cancel an ongoing search, immediately return and make further requests to the same session result in an error message. A device shall not reuse a search token immediately as it would confuse clients unaware that a session had ended.</para>
       </section>
       <section xml:id="_Toc247178880">
         <title>Search Scope</title>
         <para>The scope contains a number of optional elements, together limiting the set of data to look into when performing searches.</para>
         <section>
           <title>Included data</title>
-          <para>Optionally, the client can define sources and recordings to search in by specifying lists of tokens for each type. If several types are given, the union of the specified tokens shall be used. If there are no sources or recordings tokens specified, all recordings shall be included. The scope is further refined by the Recording Information Filter. However, if recordings are specified the filters will only be applied to that subset of recordings.</para>
+          <para>Optionally, the client can define sources and recordings to search in by specifying lists of tokens for each type. If several types are given, the union of the specified tokens shall be used. If there are no sources or recording tokens specified, all recordings shall be included. The scope is further refined by the Recording Information Filter. However, if recordings are specified the filters will only be applied to that subset of recordings.</para>
         </section>
         <section>
           <title>Recording Information Filter</title>
@@ -912,7 +912,7 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
     </section>
     <section>
       <title>GetRecordingSearchResults</title>
-      <para>GetRecordingSearchResults acquires the results from a recording search session previously initiated by a FindRecordings operation. The response shall not include results already returned in previous requests for the same session. If <emphasis>MaxResults</emphasis> is specified, the response shall not contain more than <emphasis>MaxResults</emphasis> results. The number of results relates to the number of recordings. For viewing individual recorded data for a signal track use the FindEvents method.</para>
+      <para>GetRecordingSearchResults acquires the results from a recording search session previously initiated by a FindRecordings operation. The response shall not include results already returned in previous requests for the same session. If <emphasis>MaxResults</emphasis> is specified, the response shall not contain more than <emphasis>MaxResults</emphasis> results. The number of results relates to the number of recordings. For viewing individual recorded data for a single track use the FindEvents method.</para>
       <para>GetRecordingSearchResults shall block until:</para>
       <itemizedlist>
         <listitem>
@@ -931,7 +931,7 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
           <para>Search is completed or stopped.</para>
         </listitem>
       </itemizedlist>
-      <para>This operation is mandatory to support for a device implementing the recording search service. If any of the specified parameters MinResults and WaitTime exceed the supported range a device shall adapt them instead of responding an error.</para>
+      <para>This operation is mandatory to support for a device implementing the recording search service. If any of the specified parameters MinResults and WaitTime exceed the supported range a device shall adapt them instead of responding with an error.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -1053,7 +1053,7 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
           <para>Search is completed or stopped.</para>
         </listitem>
       </itemizedlist>
-      <para>This operation is mandatory to support for a device implementing the recording search service. If any of the specified parameters MinResults and WaitTime exceed the supported range a device shall adapt them instead of responding an error.</para>
+      <para>This operation is mandatory to support for a device implementing the recording search service. If any of the specified parameters MinResults and WaitTime exceed the supported range a device shall adapt them instead of responding with an error.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -1061,7 +1061,7 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
             <para role="param">SearchToken [tt:JobToken]</para>
             <para role="text">Specifies the search session.</para>
             <para role="param">MinResults - optional [xs:int]</para>
-            <para role="text">Specifies the minimum number of results that should be returned. If the total number of remaining event is lower than MinResults in a completed search, all remaining events should be returned.</para>
+            <para role="text">Specifies the minimum number of results that should be returned. If the total number of remaining events is lower than MinResults in a completed search, all remaining events should be returned.</para>
             <para role="param">MaxResults – optional [xs:int]</para>
             <para role="text">Specifies the maximum number of results to return.</para>
             <para role="param">WaitTime – optional [xs:duration]</para>
@@ -1092,7 +1092,7 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
     </section>
     <section>
       <title>FindPTZPosition</title>
-      <para>FindPTZPosition starts a search session, looking for ptz positions in the <emphasis>scope</emphasis> (See <xref linkend="_Toc247178880" />)  that matches the search filter defined in the request. Results from the search are acquired using the GetPTZPositionSearchResults request, specifying the search token returned from this request.</para>
+      <para>FindPTZPosition starts a search session, looking for ptz positions in the <emphasis>scope</emphasis> (See <xref linkend="_Toc247178880" />)  that match the search filter defined in the request. Results from the search are acquired using the GetPTZPositionSearchResults request, specifying the search token returned from this request.</para>
       <para>The device shall continue searching until one of the following occurs:</para>
       <itemizedlist>
         <listitem>
@@ -1174,7 +1174,7 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
           <para>Search is completed or stopped.</para>
         </listitem>
       </itemizedlist>
-      <para>This operation is mandatory to support whenever CanContainPTZ is true for any metadata track in any recording on the device. If any of the specified parameters MinResults and WaitTime exceed the supported range a device shall adapt them instead of responding an error.</para>
+      <para>This operation is mandatory to support whenever CanContainPTZ is true for any metadata track in any recording on the device. If any of the specified parameters MinResults and WaitTime exceed the supported range a device shall adapt them instead of responding with an error.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -1229,7 +1229,7 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
           <para>The session has been ended because <emphasis>KeepAliveTime</emphasis> since the last request related to this session has expired.</para>
         </listitem>
       </itemizedlist>
-      <para>This operation is mandatory to support if the MetaDataSearch capability is set to true in the SearchCapabilities structure return by the GetCapabilities command in the Device service.</para>
+      <para>This operation is mandatory to support if the MetaDataSearch capability is set to true in the SearchCapabilities structure returned by the GetCapabilities command in the Device service.</para>
       <para>For the KeepAliveTime a device shall support at least values up to ten seconds. A device may adapt larger values.</para>
       <variablelist role="op">
         <varlistentry>
@@ -1292,7 +1292,7 @@ http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace
           <para>Search is completed or stopped.</para>
         </listitem>
       </itemizedlist>
-      <para>This operation is mandatory to support if the MetaDataSearch capability is set to true in the SearchCapabilities structure return by the GetCapabilities command in the Device service. If any of the specified parameters MinResults and WaitTime exceed the supported range a device shall adapt them instead of responding an error.</para>
+      <para>This operation is mandatory to support if the MetaDataSearch capability is set to true in the SearchCapabilities structure returned by the GetCapabilities command in the Device service. If any of the specified parameters MinResults and WaitTime exceed the supported range a device shall adapt them instead of responding with an error.</para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>

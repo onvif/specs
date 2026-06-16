@@ -409,7 +409,7 @@
   </chapter>
   <chapter>
     <title>Overview</title>
-    <para>Media configurations are handled through the media service. Media configurations are used to determine the streaming properties of requested media streams as defined in this specification. The device provides media configuration through the media service. WSDL for this service is specified in <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver20/media/wsdl/media.wsdl">http://www.onvif.org/ver20/media/wsdl/media.wsdl</link>l.</para>
+    <para>Media configurations are handled through the media service. Media configurations are used to determine the streaming properties of requested media streams as defined in this specification. The device provides media configuration through the media service. WSDL for this service is specified in <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver20/media/wsdl/media.wsdl">http://www.onvif.org/ver20/media/wsdl/media.wsdl</link>.</para>
     <table>
       <title>Referenced namespaces (with prefix)</title>
       <tgroup cols="2">
@@ -595,7 +595,7 @@
     </section>
     <section>
       <title>Video source mode</title>
-      <para>A device can have the capability for changing video source mode which is a setting of video source as exclusion in same time. For example, device’s capability for max resolution (1920x1080@16:9 or 2048x1536@4:3) and frame rate (20fps or 30fps) can be changed by selecting each video source modes.</para>
+      <para>A device can have the capability for changing video source mode which is a setting of video source as an exclusive setting at the same time. For example, device’s capability for max resolution (1920x1080@16:9 or 2048x1536@4:3) and frame rate (20fps or 30fps) can be changed by selecting each video source mode.</para>
       <para>The following commands manage video source mode.</para>
       <itemizedlist>
         <listitem>
@@ -694,7 +694,7 @@
             <term>faults</term>
             <listitem>
               <para role="param">env:Receiver - ter:Action - ter:MaxNVTProfiles</para>
-              <para role="text">The maximum number of supported profiles supported by the device has been reached.</para>
+              <para role="text">The maximum number of supported profiles by the device has been reached.</para>
               <para role="param">env:Receiver - ter:Action - ter:ConfigurationConflict</para>
               <para role="text">Other configurations of the media profile conflicts with the one to add and adding it would cause a conflicting media profile.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoConfig</para>
@@ -1537,7 +1537,7 @@
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
               <para role="text">The requested profile token does not exist.</para>
               <para role="param">env:Receiver - ter:Action - ter:IncompleteConfiguration</para>
-              <para role="text">The specified media profile does not contain either a reference to a video encoder a video source configuration, to a audio source or  to audio encoder configuration or a reference to a metadata configuration</para>
+              <para role="text">The specified media profile does not contain either a reference to a video encoder a video source configuration, to an audio source or  to audio encoder configuration or a reference to a metadata configuration</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -1717,7 +1717,14 @@
       </section>
       <section>
         <title>CreateOSD</title>
-        <para>This operation creates a new OSD configuration with specified values and also makes the association between  the new OSD and an existing VideoSourceConfiguration identified by the VideoSourceConfigurationToken. Any value required by a device for a new OSD configuration that is optional and not present in the CreateOSD message may be adapted to the appropriate value by the device. A device that indicates OSD capability shall support the creation of OSD as long as the number of existing OSDs does not exceed the  value of MaximumNumberOfOSDs in GetOSDOptions. A created OSD configuration shall be deletable.</para>
+        <para>This operation creates a new OSD configuration with specified values and also makes
+          the association between the new OSD and an existing VideoSourceConfiguration identified by
+          the VideoSourceConfigurationToken. Any value required by a device for a new OSD
+          configuration that is optional and not present in the CreateOSD message may be adapted to
+          the appropriate value by the device. A device that indicates OSD capability shall support
+          the creation of OSD as long as the number of existing OSDs does not exceed the value of
+          MaximumNumberOfOSDs in GetOSDOptions. A created OSD configuration shall be
+          deletable.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -2975,7 +2982,11 @@ Topics: tns1:Monitoring/ActiveSessions/VideoEncoder
       </section>
 	    <section>
         <title>Audio Clip State</title>
-        <para>A device that supports AudioClipCapabilities in the GetServiceCapabilities response should generate an audio clip start event when an audio clip starts playing on the device and generate an audio clip stop event when the audio clip stops playing.Token and ClipName parameters can be empty if no audio clip has either started or stopped since the device was last booted.</para>
+        <para>A device that supports AudioClipCapabilities in the GetServiceCapabilities response
+          should generate an audio clip start event when an audio clip starts playing on the device
+          and generate an audio clip stop event when the audio clip stops playing.Token and ClipName
+          parameters can be empty if no audio clip has either started or stopped since the device
+          was last booted.</para>
         <programlisting><![CDATA[Topic: tns1:Media/AudioClip/State
 <tt:MessageDescription  IsProperty="true">
   <tt:Source>	
@@ -3088,7 +3099,10 @@ Topics: tns1:Monitoring/ActiveSessions/VideoEncoder
  <section xml:id="_evtMAD">
   <title>MulticastAudioDecoder State</title>
   <para>Whenever a multicast audio decoder starts or stops receiving an audio stream, the following event should be generated.</para>
-  <para>The <code>ConfigurationToken</code> refers to the multicast audio decoder configuration token. If none of the multicast audio decoder configurations are active at any point, the <code>ConfigurationToken</code> field can be left empty, and the <code>Active</code> field can be set to false.</para>
+  <para>The <code>ConfigurationToken</code> refers to the multicast audio decoder configuration
+          token. If none of the multicast audio decoder configurations are active at any point, the
+            <code>ConfigurationToken</code> field can be left empty, and the <code>Active</code>
+          field can be set to false.</para>
   <programlisting><![CDATA[
     Topic: tns1:Media/MulticastAudioDecoder/State
 
@@ -3107,7 +3121,14 @@ Topics: tns1:Monitoring/ActiveSessions/VideoEncoder
   </chapter>
   <appendix xml:id="_Ref425842742">
     <title>Efficient XML Interchange (EXI) (Normative)</title>
-    <para>EXI encoding allows for a more compact representation of XML metadata. Provision is signaled if the CompressionType returned via GetMetadataConfigurationOptions contains "EXI". <phrase>The ONVIF defined EXI configuration (see </phrase><xref linkend="_exiHdr" /><phrase> and </phrase><xref linkend="_Ref425842707" /><phrase>) shall be supported by all devices signaling support for EXI compression.</phrase>   The EXI header shall only be transmitted if a setting different then the ONVIF defined configuration is used. Except for the setting of the two elements “Presence Bit” and “EXI Options” the ONVIF defined EXI header settings (see <xref linkend="_exiHdr" /><phrase>) shall always be used.</phrase></para>
+    <para>EXI encoding allows for a more compact representation of XML metadata. Provision is
+      signaled if the CompressionType returned via GetMetadataConfigurationOptions contains "EXI".
+        <phrase>The ONVIF defined EXI configuration (see </phrase><xref linkend="_exiHdr"/><phrase>
+        and </phrase><xref linkend="_Ref425842707"/><phrase>) shall be supported by all devices
+        signaling support for EXI compression.</phrase> The EXI header shall only be transmitted if
+      a setting different then the ONVIF defined configuration is used. Except for the setting of
+      the two elements "Presence Bit" and "EXI Options" the ONVIF defined EXI header settings (see
+        <xref linkend="_exiHdr"/><phrase>) shall always be used.</phrase></para>
     <table xml:id="_exiHdr">
       <title>ONVIF defined EXI header settings</title>
       <tgroup cols="2">

@@ -62,7 +62,7 @@
         <author>
           <personname>Björn Völcker</personname>
         </author>
-        <revremark>Add a second timestamp to bitstream and removed specification version.
+        <revremark>Add a second timestamp to bitstream and remove specification version.
           Requires SEIs to be added in sequential order.</revremark>
       </revision>
       <revision>
@@ -115,7 +115,7 @@
               </entry>
               <entry align="left">
                 <para>A document in this specification refers to a codec specific document that
-                  includes hashes of all media frames since previous signing occasion together with
+                  includes hashes of all media frames since the previous signing occasion together with
                   other metadata. For H.264 and H.265 a document is encoded into a SEI frame.</para>
               </entry>
             </row>
@@ -252,7 +252,7 @@
         Therefore, most of the description uses the Network Abstraction Layer (NAL) concept.
         For simplicity, hashing is done on NAL Units
         instead of full frame data. One frame may be split into multiple NAL Units and therefore
-        generating multiple hashes per frame. Note that raw video is not covered, since there are
+                generate multiple hashes per frame. Note that raw video is not covered, since there are
         no means to add signatures within the video format. There exists other codec standards
         where the same technique can be applied though, but the specification considers H.264 and
         H.265.</para>
@@ -324,7 +324,7 @@
     <section xml:id="section_h3s_njq_bwb">
       <title>Detailed description on how the device generates SEI frames including
         signatures</title>
-      <para>The H.264 and H.265 codec formats, as specified in referenced documents, allows the user
+      <para>The H.264 and H.265 codec formats, as specified in referenced documents, allow the user
         to add arbitrary data to a stream through SEI frames of type user data unregistered.
         <emphasis>Signed Video</emphasis> puts the produced signatures and additional metadata in such frames.
         These SEI frames are ignored by the decoder and will therefore not affect the video rendering.
@@ -369,7 +369,7 @@
         </itemizedlist>
       </para>
       <para>Note that these frame types can still affect the visual aspect of a video, but are
-        excluded until a there is a solution for it.</para>
+        excluded until there is a solution for it.</para>
     </section>
     <section xml:id="section_i3s_njq_bwb">
       <title>Signing a GOP</title>
@@ -384,7 +384,7 @@
         I-frame.</para>
       <para>SEI-frames are hashed individually. The benefit is that the hash becomes independent
         of any I-frame. The SEI-frame content may then be verified and trusted even if an I-frame
-        suffer from, for example, packet loss.</para>
+                suffers from, for example, packet loss.</para>
       <para><xref linkend="linkedhashesfig"/> illustrates the linking procedure where a
         frame is encaptured in a single NAL Unit. The hash of the IDR-frame is stored and used to
         generate a second hash together with the hash of each P-frame in the GOP.</para>
@@ -473,7 +473,7 @@
             </imageobject>
           </mediaobject>
         </figure>
-        <para>Signing generally takes time. When ready, the signature is added to the SEI and injected attached to a frame into the stream.</para>
+        <para>Signing generally takes time. When ready, the signature is added to the SEI and attached to a frame and injected into the stream.</para>
         <figure>
           <title>Signature is injected into the stream.</title>
           <mediaobject>
@@ -491,7 +491,7 @@
             </imageobject>
           </mediaobject>
         </figure>
-        <para>When second GOP is signed, the signature is added to the SEI and injected attached to a frame into the stream.</para>
+        <para>When second GOP is signed, the signature is added to the SEI and attached to a frame and injected into the stream.</para>
         <figure>
           <title>Injecting second signed SEI.</title>
           <mediaobject>
@@ -604,8 +604,8 @@
     </section>
     <section xml:id="section_signing_partial_gops">
       <title>Signing partial GOPs</title>
-      <para>As mentioned in the Limitation Section above, very long, or even infinite, GOPs puts the
-        validation side in an unacceptable situation since the duration between signatures is far to
+      <para>As mentioned in the Limitation Section above, very long, or even infinite, GOPs put the
+        validation side in an unacceptable situation since the duration between signatures is far too
         long. The device has an option to decide to force signing if the GOP has not ended in a
         reasonable time. It is recommended to split a GOP into partial GOPs if the GOP duration is
         longer than 5 seconds.</para>
@@ -614,7 +614,7 @@
         hash is only reset upon an IDR, that is, when there is a new GOP.</para>
       <section>
         <title>Example</title>
-        <para>The following example figures shows how long GOPs can be signed by using multiple
+        <para>The following example figures show how long GOPs can be signed by using multiple
           SEIs.</para>
         <para>In <xref linkend="spg01"/> the number of NAL Units since the I-frame reached 7 which generates a first SEI that is hashed and sent to the signing hardware. SEI of partial GOP 1</para>
         <figure xml:id="spg01">
@@ -799,7 +799,7 @@
       </section>
       <section xml:id="section_n3s_njq_bwb">
         <title>TLV tags</title>
-        <para>Following is a list of possible TLV tags that can be part of a SEI payload. The length
+        <para>The following is a list of possible TLV tags that can be part of a SEI payload. The length
           field of some of these tags can be represented with only one byte, but for ease of use all
           tags use 2 bytes for representing the length.</para>
         <para>
@@ -1141,7 +1141,7 @@
       <section xml:id="section_u3s_njq_bwb">
         <title>Arbitrary data</title>
         <para>This optional field contains Abritrary data that a device can add to the stream.
-          The data is not used by Media Signing and interpretations is left to the vendor.</para>
+          The data is not used by Media Signing and interpretation is left to the vendor.</para>
         <para xml:id="para_dv5_1gm_4xb">The data tag shall be added to a separate unsigned SEI,
           that is, there shall be no other tags present in the SEI when this tag is present.
           Validation shall be marked as "Not authentic" if this tag is present together with other
@@ -1173,7 +1173,7 @@
     <section xml:id="section_m3s_njq_bwb">
       <title>Certificate SEI</title>
       <para>Large data blobs like certificates contribute significantly to the increased bitrate.
-        To lower the bitrate, this "only need once" information can be put in a separate
+        To lower the bitrate, this "only needed once" information can be put in a separate
         <emphasis role="bold">certificate SEI</emphasis>, with the corresponding bit in the
         reserved byte set to 1, and signed. This self-signed SEI separates, by design, the
         certificate SEI from the video stream and can be copied and added to any exported
@@ -1309,7 +1309,7 @@
           <code>IPPPPIPPPPIPPPP</code>. The signing information is collected in a SEI frame
         (<code>S</code>).
         The SEI should be added to the video stream such that it follows the Access Unit (AU)
-        format, i.e., it has to prepend all picture NAL Units in an AU. Each I-frame will trigger a
+        format, i.e., it has to be prepended to all picture NAL Units in an AU. Each I-frame will trigger a
         signing procedure and ideally the SEI is generated and available instantaneously and can
         be attached to the stream as <code>SIPPPPSIPPPPSIPPPP</code>.</para>
       <para>In practice signing in secure hardware takes time and blocking the video stream while
@@ -1406,7 +1406,7 @@
       <para>In order to validate the certificate, one follows the certificate chain from the leaf
         certificate to the root certificate according to the x.509 standard. Since Onvif does not
         provide a trusted certificate store the client implementor and/or the end user must install
-        trusted root CA certificates in the client. Typically one also need the intermediate CA
+        trusted root CA certificates in the client. Typically one also needs the intermediate CA
         certificate which is also provided by the device. When verifying old video, it may happen
         that the certificates have expired as compared to the current date. However, the
         verification concerns the date that the video was created as such the date should be
@@ -1417,7 +1417,7 @@
       <para>In order to be able to verify an exported segment of Signed Media, the client must
         include the certificate SEI added in the beginning of the media stream. This can be
         combined with the Onvif Export File Format in order to provide layered video authentication,
-        the media signing covers authenticity in the media layer where as the Export File Format
+        the media signing covers authenticity in the media layer whereas the Export File Format
         provides validity on the container level. Even if this Signed Media specification is used,
         the Onvif Export File Format is still valuable as it provides more information of the
         provenance of the video as it allows the user to tell the story of the path of the video.
