@@ -667,6 +667,8 @@ Change Request 2061, 2063, 2065, 2109</revremark>
             <para role="text">Key/KID and AsymmetricEncryption are mutually exclusive configuration parameters</para>
             <para role="param">env:Receiver - ter:Action - ter:NoLocalRecording</para>
             <para role="text">Local recording not possible due to e.g. missing medium.</para>
+            <para role="param">env:Receiver - ter:Action - ter:UnsupportedStorageStrategy</para>
+            <para role="text">Storage strategy not supported.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -823,7 +825,12 @@ Change Request 2061, 2063, 2065, 2109</revremark>
             <para role="text">The configuration is invalid.</para>
             <para role="param">env:Sender - ter:InvalidArgVal - ter:NoRecording</para>
             <para role="text">The RecordingToken does not reference an existing recording.</para>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:AmbiguousConfiguration</para>
+            <para role="text">Key/KID and AsymmetricEncryption are mutually exclusive configuration parameters</para>
+            <para role="param">env:Receiver - ter:Action - ter:NoLocalRecording</para>
             <para role="text">Local recording not possible due to e.g. missing medium.</para>
+            <para role="text">Storage strategy not supported.</para>
+            <para role="param">env:Receiver - ter:Action - ter:UnsupportedStorageStrategy</para>
             <para role="text">Storage strategy not supported.</para>
           </listitem>
         </varlistentry>
@@ -1762,7 +1769,9 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         When the HasMoreResults field is set to True in the response, the client shall adapt its next query by changing the From field
         to the last EndTime received from the previous request. The client should continue until the HasMoreResults field is set to False.
       </para>
-      <para>The listed segments shall have a stable start and end time as defined in Annex Stable Recordings.</para>
+      <para>The listed segments shall have a stable start and end time as defined in
+        <xref linkend="_refSegmentExportStability"/>.
+      </para>
       <variablelist role="op">
         <varlistentry>
           <term>request</term>
@@ -1813,8 +1822,8 @@ Change Request 2061, 2063, 2065, 2109</revremark>
         A device signaling support for SegmentExport shall support this function.</para>
       <para>An event shall be raised after each segment is uploaded to the Object Storage, which means the 
         ArrayOfFileProgress shall have only a single element each time. The FileProgress element shall 
-        have the FileName element be the path as defined in the Object Storage annex appended to the
-        StorageUri from the StorageConfiguration.</para>
+        have the FileName element be the path as defined in <xref linkend="_refCloudRecordingSegmentObjects"/>
+        appended to the StorageUri from the StorageConfiguration.</para>
       <para>By default the segments are exported to the storage that is configured for the recording. 
         When the parameter StorageToken is provided this target will be used.</para>
       <para>Note that a client may subscribe to tns1:Monitoring/AsynchronousOperationStatus for
