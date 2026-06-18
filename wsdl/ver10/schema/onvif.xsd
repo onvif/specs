@@ -390,8 +390,8 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:documentation>Optional element to configure rotation of captured image.
 						What resolutions a device supports shall be unaffected by the Rotate parameters.<br/>
 						If a device is configured with Rotate=AUTO, the device shall take control over the Degree parameter and automatically update it so that a client can query current rotation.<br/>
-						The device shall automatically apply the same rotation to its pan/tilt control direction depending on the following condition: 
-						if Reverse=AUTO in PTControlDirection or if the device doesn’t support Reverse in PTControlDirection
+						The device shall automatically apply the same rotation to its pan/tilt control direction depending on the following condition:
+						if Reverse=AUTO in PTControlDirection or if the device doesn't support Reverse in PTControlDirection
 					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
@@ -405,7 +405,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:annotation><xs:documentation>Optional element describing the geometric lens distortion. Multiple instances for future variable lens support.</xs:documentation></xs:annotation>
 			</xs:element>
 			<xs:element name="SceneOrientation" type="tt:SceneOrientation" minOccurs="0" maxOccurs="1">
-				<xs:annotation><xs:documentation>Optional element describing the scene orientation in the camera’s field of view.</xs:documentation></xs:annotation>
+				<xs:annotation><xs:documentation>Optional element describing the scene orientation in the camera's field of view.</xs:documentation></xs:annotation>
 			</xs:element>
 			<xs:any namespace="##targetNamespace" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
@@ -427,8 +427,8 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:sequence>
 		<xs:attribute name="Mirror" type="xs:boolean">
 			<xs:annotation>
-				<xs:documentation>When enabled, the video will be flipped horizontally. If applied alongside rotation, the mirror effect shall be executed after the rotation. Additionally,<br/> 
-				when Mirror is enabled and Reverse=Auto is set in PTControlDirection or if the device doesn’t support Reverse in PTControlDirection, the device shall automatically adjust the pan direction. 
+				<xs:documentation>When enabled, the video will be flipped horizontally. If applied alongside rotation, the mirror effect shall be executed after the rotation. Additionally,<br/>
+				when Mirror is enabled and Reverse=Auto is set in PTControlDirection or if the device doesn't support Reverse in PTControlDirection, the device shall automatically adjust the pan direction.
 				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
@@ -487,8 +487,8 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:annotation><xs:documentation>Offset of the lens center to the imager center in normalized coordinates.</xs:documentation></xs:annotation>
 			</xs:element>
 			<xs:element name="Projection" type="tt:LensProjection" maxOccurs="unbounded">
-				<xs:annotation><xs:documentation>Radial description of the projection characteristics. The resulting curve is defined by the B-Spline interpolation 
-					over the given elements. The element for Radius zero shall not be provided. The projection points shall be ordered with ascending Radius. 
+				<xs:annotation><xs:documentation>Radial description of the projection characteristics. The resulting curve is defined by the B-Spline interpolation
+					over the given elements. The element for Radius zero shall not be provided. The projection points shall be ordered with ascending Radius.
 					Items outside the last projection Radius shall be assumed to be invisible (black).</xs:documentation></xs:annotation>
 			</xs:element>
 			<xs:element name="XFactor" type="xs:float">
@@ -615,13 +615,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						Parameter to assign the way the camera determines the scene orientation.
 					</xs:documentation>
 				</xs:annotation>
-			</xs:element>      
+			</xs:element>
 			<xs:element name="Orientation" type="xs:string" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>
-						Assigned or determined scene orientation based on the Mode. When assigning the Mode to AUTO, this field 
-						is optional and will be ignored by the device. When assigning the Mode to MANUAL, this field is required 
-						and the device will return an InvalidArgs fault if missing. 
+						Assigned or determined scene orientation based on the Mode. When assigning the Mode to AUTO, this field
+						is optional and will be ignored by the device. When assigning the Mode to MANUAL, this field is required
+						and the device will return an InvalidArgs fault if missing.
 					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
@@ -1110,6 +1110,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>Indicates if this stream will be signed according to the Media Signing Specification.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="SecureStreamingProtocolAlgorithm" type="xs:string" use="optional">
+					<xs:annotation>
+						<xs:documentation>Defines the cryptographic algorithm to use as defined by tt:SrtpSecurityAlgorithms</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:extension>
 		</xs:complexContent>
@@ -1221,6 +1226,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					Indicates the support for the GuaranteedFrameRate attribute on the VideoEncoder2Configuration element.
 				</xs:documentation>
 			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="SecureStreamingProtocolAlgorithms" type="tt:StringAttrList" use="optional">
+			<xs:annotation>
+				<xs:documentation>If secure RTSP streaming is supported, this shall return the list of supported cryptographic algorithms as defined by tt:SrtpSecurityAlgorithms.</xs:documentation>
+      </xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="SigningSupported" type="xs:boolean">
 			<xs:annotation>
@@ -1387,6 +1397,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 				</xs:sequence>
+				<xs:attribute name="SecureStreamingProtocolAlgorithm" type="xs:string" use="optional">
+					<xs:annotation>
+						<xs:documentation>Defines the cryptographic algorithm to use as defined by tt:SrtpSecurityAlgorithms</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:extension>
 		</xs:complexContent>
@@ -1412,6 +1427,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 		</xs:sequence>
+		<xs:attribute name="SecureStreamingProtocolAlgorithms" type="tt:StringAttrList" use="optional">
+			<xs:annotation>
+				<xs:documentation>If secure RTSP streaming is supported, this shall return the list of supported cryptographic algorithms as defined by tt:SrtpSecurityAlgorithms.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
@@ -1443,7 +1463,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:element>
 					<xs:element name="Events" type="tt:EventSubscription" minOccurs="0">
 						<xs:annotation>
-							<xs:documentation>Optional element to configure the streaming of events. A client might be interested in receiving all, 
+							<xs:documentation>Optional element to configure the streaming of events. A client might be interested in receiving all,
 								none or some of the events produced by the device:<ul>
 									<li>To get all events: Include the Events element but do not include a filter.</li>
 									<li>To get no events: Do not include the Events element.</li>
@@ -1474,6 +1494,17 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							Note that the streaming behavior is undefined if the list includes items that are not part of the associated AnalyticsConfiguration.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
+					<xs:element name="SensorData" type="tt:SensorDataFilter" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Optional element to configure which sensor data is to include in the metadata stream. A client might be interested in receiving all, 
+								none or some of the sensor data produced by the device:<ul>
+									<li>To get all sensor data: Include the SensorData element but do not include any filter criteria.</li>
+									<li>To get no sensor data: Do not include the SensorData element.</li>
+									<li>To get only some sensor data: Include the SensorData element and specify filter criteria (SensorID list, Type list, etc.).</li>
+								</ul>
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 					<xs:element name="Extension" type="tt:MetadataConfigurationExtension" minOccurs="0"/>
 				</xs:sequence>
 				<xs:attribute name="CompressionType" type="xs:string">
@@ -1489,6 +1520,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:attribute name="ShapePolygon" type="xs:boolean">
 					<xs:annotation>
 						<xs:documentation>Optional parameter to configure if the generated metadata stream should contain shape information as polygon.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="SecureStreamingProtocolAlgorithm" type="xs:string" use="optional">
+					<xs:annotation>
+						<xs:documentation>The cryptographic algorithm used as defined by tt:SrtpSecurityAlgorithms</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
@@ -1523,6 +1559,32 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
+	<xs:complexType name="SensorDataFilter">
+		<xs:annotation>
+			<xs:documentation>Optional element to configure which sensor data is to include in the metadata stream. A client might be interested in receiving all, none or some of the sensor data produced by the device:
+				<ul>
+					<li>To get all sensor data: Include the SensorData element but do not include any filter criteria.</li>
+					<li>To get no sensor data: Do not include the SensorData element.</li>
+					<li>To get only some sensor data: Include the SensorData element and specify filter criteria (SensorID list, Type list, etc.).</li>
+				</ul>
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="SensorID" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>List of SensorID values to include in the metadata stream. If not specified or empty, all sensor IDs are included (unless other filters exclude them).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Type" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>List of sensor Type values to include in the metadata stream. If not specified or empty, all sensor types are included (unless other filters exclude them).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<!--===============================-->
 	<xs:complexType name="EventSubscription">
 		<xs:annotation>
 			<xs:documentation>Subscription handling in the same way as base notification subscription.</xs:documentation>
@@ -1544,6 +1606,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<xs:complexType name="MetadataConfigurationOptions">
 		<xs:sequence>
 			<xs:element name="PTZStatusFilterOptions" type="tt:PTZStatusFilterOptions"/>
+			<xs:element name="SensorDataFilterOptions" type="tt:SensorDataFilterOptions" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional element indicating the sensor data filtering capabilities of the device.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name ="Extension" type="tt:MetadataConfigurationOptionsExtension" minOccurs="0"/>
 		</xs:sequence>
@@ -1555,6 +1622,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<xs:attribute name="MaxContentFilterSize" type="xs:int">
 			<xs:annotation>
 				<xs:documentation>A device signalling support for content filtering shall support expressions with the provided expression size.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="SecureStreamingProtocolAlgorithms" type="tt:StringAttrList" use="optional">
+			<xs:annotation>
+				<xs:documentation>If secure RTSP streaming is supported, this shall return the list of supported cryptographic algorithms as defined by tt:SrtpSecurityAlgorithms.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
@@ -1622,6 +1694,23 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<xs:sequence>
 			<xs:any namespace="##targetNamespace" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
+	</xs:complexType>
+	<!--===============================-->
+	<xs:complexType name="SensorDataFilterOptions">
+		<xs:sequence>
+			<xs:element name="SensorIDFilterSupported" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation>True if the device supports filtering sensor data by SensorID.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="TypeFilterSupported" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation>True if the device supports filtering sensor data by Type.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
 	<!--          VideoOutput            -->
@@ -2125,8 +2214,8 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 							<xs:documentation>
 							Defines the RTP payload type used for the audio stream.
 							To ensure compatibility, it is recommended to use dynamic payload types (96 and above), as specified in RFC 3551.
-							Standard payload types (0-95) should only be used for predefined audio formats matching the audio encoding as defined in 
-							<a href="https://www.iana.org/assignments/rtp-parameters/rtp-parameters.xhtml#rtp-parameters-1">IANA RTP Payload Types</a>, 
+							Standard payload types (0-95) should only be used for predefined audio formats matching the audio encoding as defined in
+							<a href="https://www.iana.org/assignments/rtp-parameters/rtp-parameters.xhtml#rtp-parameters-1">IANA RTP Payload Types</a>,
 							as using them for non-standard media may lead to unexpected errors or interoperability issues.
 							</xs:documentation>
 						</xs:annotation>
@@ -2134,7 +2223,7 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 					<xs:element name="Priority" type="xs:int">
 						<xs:annotation>
 							<xs:documentation>
-								Indicates the priority level when multiple configurations are active. 
+								Indicates the priority level when multiple configurations are active.
 								A higher value signifies a higher priority. If several configurations have the same priority value the order between those configurations is undefined.
 							</xs:documentation>
 						</xs:annotation>
@@ -2174,14 +2263,6 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 				</xs:documentation>
 			</xs:annotation>
 			</xs:element>
-			<xs:element name="SecureStreamingProtocolAlgorithm" type="xs:string">
-			<xs:annotation>
-				<xs:documentation>
-				Specifies the cryptographic algorithm when using SRTP,
-				selecting from predefined values provided in the GetMulticastAudioDecoderConfigurationOptions response.
-				</xs:documentation>
-			</xs:annotation>
-			</xs:element>
 			<xs:element name="ROCExtMapID" type="xs:int">
 			<xs:annotation>
 				<xs:documentation>
@@ -2192,6 +2273,14 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/> <!-- first Vendor then ONVIF -->
 		</xs:sequence>
+		<xs:attribute name="SecureStreamingProtocolAlgorithm" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>
+				Specifies the cryptographic algorithm when using SRTP,
+				selecting from predefined values provided in the GetMulticastAudioDecoderConfigurationOptions response.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
@@ -2241,14 +2330,6 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="SecureStreamingProtocolAlgorithms" type="tt:StringList" minOccurs="0">
-						<xs:annotation>
-							<xs:documentation>
-							An optional parameter specifies the list of supported cryptographic algorithms when SRTP support is signaled as 'true' in the GetServiceCapabilitiesResponse.
-							Refer to tt:SrtpSecurityAlgorithms for the acceptable values.
-							</xs:documentation>
-						</xs:annotation>
-			</xs:element>
 			<xs:element name="AudioOutputTokens" type="tt:StringList" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>
@@ -2258,6 +2339,14 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 		</xs:sequence>
+		<xs:attribute name="SecureStreamingProtocolAlgorithms" type="tt:StringList" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+				An optional parameter specifies the list of supported cryptographic algorithms when SRTP support is signaled as 'true' in the GetServiceCapabilitiesResponse.
+				Refer to tt:SrtpSecurityAlgorithms for the acceptable values.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<!--===============================-->
@@ -2281,7 +2370,7 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			<xs:element name="RTPPayloadType" type="xs:int" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>
-						Optional element for specifying the RTP payload type, 
+						Optional element for specifying the RTP payload type,
 						particularly when it is fixed for a specific audio encoding as defined in <a href="https://www.iana.org/assignments/rtp-parameters/rtp-parameters.xhtml#rtp-parameters-1">IANA RTP Payload Types</a>.
 					</xs:documentation>
 				</xs:annotation>
@@ -2347,10 +2436,15 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 					<xs:documentation>Defines the network protocol for streaming, either UDP=RTP/UDP, RTSP=RTP/RTSP/TCP or HTTP=RTP/RTSP/HTTP/TCP.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="Tunnel" type="tt:Transport" minOccurs="0">
+			<xs:element name="Tunnel" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation>Optional element to describe further tunnel options. This element is normally not needed.</xs:documentation>
+					<xs:documentation>Deprecated: optional element to describe further tunnel options.</xs:documentation>
 				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- placeholder for tt:Transport -->
+					</xs:sequence>
+				</xs:complexType>
 			</xs:element>
 		</xs:sequence>
 	</xs:complexType>
@@ -3826,6 +3920,12 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 		<xs:sequence>
 			<xs:element name="XAddr" type="xs:anyURI"/>
 			<xs:element name="MetadataSearch" type="xs:boolean"/>
+			<xs:element name="NLSearch" type="xs:boolean" minOccurs="0">
+				<xs:annotation><xs:documentation>Indicates support for natural language based search.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="ImageSearch" type="xs:boolean" minOccurs="0">
+				<xs:annotation><xs:documentation>Indicates support for image based search.</xs:documentation></xs:annotation>
+			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
@@ -4410,8 +4510,8 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 					<xs:documentation>
 					'Bistable' or 'Monostable'
 					<ul>
-							<li>Bistable – After setting the state, the relay remains in this state.</li>
-							<li>Monostable – After setting the state, the relay returns to its idle state after the specified time.</li>
+							<li>Bistable - After setting the state, the relay remains in this state.</li>
+							<li>Monostable - After setting the state, the relay returns to its idle state after the specified time.</li>
 						</ul>
 					</xs:documentation>
 				</xs:annotation>
@@ -4659,7 +4759,7 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 					<xs:element name="PanTiltLimits" type="tt:PanTiltLimits" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>
-                The Pan/Tilt limits element should be present for a PTZ Node that supports an absolute Pan/Tilt. If the element is present it signals the support for configurable Pan/Tilt limits. If limits are enabled, the Pan/Tilt movements shall always stay within the specified range. The Pan/Tilt limits are disabled by setting the limits to –INF or +INF.
+                The Pan/Tilt limits element should be present for a PTZ Node that supports an absolute Pan/Tilt. If the element is present it signals the support for configurable Pan/Tilt limits. If limits are enabled, the Pan/Tilt movements shall always stay within the specified range. The Pan/Tilt limits are disabled by setting the limits to -INF or +INF.
               </xs:documentation>
 						</xs:annotation>
 					</xs:element>
@@ -4910,7 +5010,7 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			<xs:element name="AbsolutePanTiltPositionSpace" type="tt:Space2DDescription" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation>
-            The Generic Pan/Tilt Position space is provided by every PTZ node that supports absolute Pan/Tilt, since it does not relate to a specific physical range. 
+            The Generic Pan/Tilt Position space is provided by every PTZ node that supports absolute Pan/Tilt, since it does not relate to a specific physical range.
 			Instead, the range should be defined as the full range of the PTZ unit normalized to the range -1 to 1 resulting in the following space description.
           </xs:documentation>
 				</xs:annotation>
@@ -4918,8 +5018,8 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			<xs:element name="AbsoluteZoomPositionSpace" type="tt:Space1DDescription" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation>
-            The Generic Zoom Position Space is provided by every PTZ node that supports absolute Zoom, since it does not relate to a specific physical range. 
-			Instead, the range should be defined as the full range of the Zoom normalized to the range 0 (wide) to 1 (tele). 
+            The Generic Zoom Position Space is provided by every PTZ node that supports absolute Zoom, since it does not relate to a specific physical range.
+			Instead, the range should be defined as the full range of the Zoom normalized to the range 0 (wide) to 1 (tele).
 			There is no assumption about how the generic zoom range is mapped to magnification, FOV or other physical zoom dimension.
           </xs:documentation>
 				</xs:annotation>
@@ -4927,8 +5027,8 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			<xs:element name="RelativePanTiltTranslationSpace" type="tt:Space2DDescription" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation>
-            The Generic Pan/Tilt translation space is provided by every PTZ node that supports relative Pan/Tilt, since it does not relate to a specific physical range. 
-			Instead, the range should be defined as the full positive and negative translation range of the PTZ unit normalized to the range -1 to 1, 
+            The Generic Pan/Tilt translation space is provided by every PTZ node that supports relative Pan/Tilt, since it does not relate to a specific physical range.
+			Instead, the range should be defined as the full positive and negative translation range of the PTZ unit normalized to the range -1 to 1,
 			where positive translation would mean clockwise rotation or movement in right/up direction resulting in the following space description.
           </xs:documentation>
 				</xs:annotation>
@@ -4936,9 +5036,9 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			<xs:element name="RelativeZoomTranslationSpace" type="tt:Space1DDescription" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation>
-            The Generic Zoom Translation Space is provided by every PTZ node that supports relative Zoom, since it does not relate to a specific physical range. 
-			Instead, the corresponding absolute range should be defined as the full positive and negative translation range of the Zoom normalized to the range -1 to1, 
-			where a positive translation maps to a movement in TELE direction. The translation is signed to indicate direction (negative is to wide, positive is to tele). 
+            The Generic Zoom Translation Space is provided by every PTZ node that supports relative Zoom, since it does not relate to a specific physical range.
+			Instead, the corresponding absolute range should be defined as the full positive and negative translation range of the Zoom normalized to the range -1 to1,
+			where a positive translation maps to a movement in TELE direction. The translation is signed to indicate direction (negative is to wide, positive is to tele).
 			There is no assumption about how the generic zoom range is mapped to magnification, FOV or other physical zoom dimension. This results in the following space description.
           </xs:documentation>
 				</xs:annotation>
@@ -4946,8 +5046,8 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			<xs:element name="ContinuousPanTiltVelocitySpace" type="tt:Space2DDescription" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation>
-            The generic Pan/Tilt velocity space shall be provided by every PTZ node, since it does not relate to a specific physical range. 
-			Instead, the range should be defined as a range of the PTZ unit’s speed normalized to the range -1 to 1, where a positive velocity would map to clockwise 
+            The generic Pan/Tilt velocity space shall be provided by every PTZ node, since it does not relate to a specific physical range.
+			Instead, the range should be defined as a range of the PTZ unit's speed normalized to the range -1 to 1, where a positive velocity would map to clockwise
 			rotation or movement in the right/up direction. A signed speed can be independently specified for the pan and tilt component resulting in the following space description.
           </xs:documentation>
 				</xs:annotation>
@@ -4955,7 +5055,7 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			<xs:element name="ContinuousZoomVelocitySpace" type="tt:Space1DDescription" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation>
-            The generic zoom velocity space specifies a zoom factor velocity without knowing the underlying physical model. The range should be normalized from -1 to 1, 
+            The generic zoom velocity space specifies a zoom factor velocity without knowing the underlying physical model. The range should be normalized from -1 to 1,
 			where a positive velocity would map to TELE direction. A generic zoom velocity space description resembles the following.
           </xs:documentation>
 				</xs:annotation>
@@ -4963,8 +5063,8 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			<xs:element name="PanTiltSpeedSpace" type="tt:Space1DDescription" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation>
-            The speed space specifies the speed for a Pan/Tilt movement when moving to an absolute position or to a relative translation. 
-			In contrast to the velocity spaces, speed spaces do not contain any directional information. The speed of a combined Pan/Tilt 
+            The speed space specifies the speed for a Pan/Tilt movement when moving to an absolute position or to a relative translation.
+			In contrast to the velocity spaces, speed spaces do not contain any directional information. The speed of a combined Pan/Tilt
 			movement is represented by a single non-negative scalar value.
           </xs:documentation>
 				</xs:annotation>
@@ -4972,8 +5072,8 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 			<xs:element name="ZoomSpeedSpace" type="tt:Space1DDescription" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation>
-            The speed space specifies the speed for a Zoom movement when moving to an absolute position or to a relative translation. 
-			In contrast to the velocity spaces, speed spaces do not contain any directional information. 
+            The speed space specifies the speed for a Zoom movement when moving to an absolute position or to a relative translation.
+			In contrast to the velocity spaces, speed spaces do not contain any directional information.
           </xs:documentation>
 				</xs:annotation>
 			</xs:element>
@@ -5521,8 +5621,8 @@ If set to 0.0, infinity will be used.</xs:documentation>
 					<xs:documentation>
 					Exposure Mode
 					<ul>
-							<li>Auto – Enabled the exposure algorithm on the NVT.</li>
-							<li>Manual – Disabled exposure algorithm on the NVT.</li>
+							<li>Auto - Enabled the exposure algorithm on the NVT.</li>
+							<li>Manual - Disabled exposure algorithm on the NVT.</li>
 						</ul>
 					</xs:documentation>
 				</xs:annotation>
@@ -6206,8 +6306,8 @@ If set to 0.0, infinity will be used.</xs:documentation>
 					<xs:documentation>
 				Exposure Mode
 				<ul>
-							<li>Auto – Enabled the exposure algorithm on the device.</li>
-							<li>Manual – Disabled exposure algorithm on the device.</li>
+							<li>Auto - Enabled the exposure algorithm on the device.</li>
+							<li>Manual - Disabled exposure algorithm on the device.</li>
 						</ul>
 					</xs:documentation>
 				</xs:annotation>
@@ -6577,8 +6677,8 @@ If set to 0.0, infinity will be used.</xs:documentation>
 					<xs:documentation>
 				Exposure Mode
 				<ul>
-							<li>Auto – Enabled the exposure algorithm on the device.</li>
-							<li>Manual – Disabled exposure algorithm on the device.</li>
+							<li>Auto - Enabled the exposure algorithm on the device.</li>
+							<li>Manual - Disabled exposure algorithm on the device.</li>
 						</ul>
 					</xs:documentation>
 				</xs:annotation>
@@ -7087,21 +7187,21 @@ If set to 0.0, infinity will be used.</xs:documentation>
 		<xs:sequence>
 			<xs:element name="Point" type="tt:Vector" minOccurs="2" maxOccurs="unbounded"/>
 		</xs:sequence>
-<!--		<xs:attribute name='dummy'/> uncomment for compilation with Visual Studio --> 
+<!--		<xs:attribute name='dummy'/> uncomment for compilation with Visual Studio -->
 	</xs:complexType>
 	<xs:element name="Polyline" type="tt:Polyline"/>
 	<!--===============================-->
-	
+
 	<xs:simpleType name="Direction">
 		<xs:union memberTypes="tt:ExtendedDirection"/>
 	</xs:simpleType>
-	
+
 	<xs:simpleType name="ExtendedDirection">
 		<xs:annotation>
 			<xs:documentation>Entering represents object coming into the polygon boundary.</xs:documentation>
 			<xs:documentation>Exiting represents object going out of the polygon boundary.</xs:documentation>
 			<xs:documentation>Approaching represents distance of object to camera sensor decreasing over time.</xs:documentation>
-			<xs:documentation>Departing represents distance of object to camera sensor increasing over time.</xs:documentation>		
+			<xs:documentation>Departing represents distance of object to camera sensor increasing over time.</xs:documentation>
 		</xs:annotation>
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="Left"/>
@@ -7114,7 +7214,7 @@ If set to 0.0, infinity will be used.</xs:documentation>
 			<xs:enumeration value="Departing"/>
 		</xs:restriction>
 	</xs:simpleType>
-	
+
 	<!--    Analytics Configuration    -->
 	<!--===============================-->
 	<xs:complexType name="AnalyticsEngineConfiguration">
@@ -7903,6 +8003,76 @@ and sample rate. </xs:documentation>
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
+	<!-- FindObjectImageResultList -->
+	<xs:complexType name="FindObjectImageResultList">
+		<xs:sequence>
+			<xs:element name="SearchState" type="tt:SearchState">
+				<xs:annotation>
+					<xs:documentation>The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Result" type="tt:FindObjectImageResult" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation><xs:documentation>A FindObjectImageResult structure for each found set of image matching the search.</xs:documentation></xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+
+	<!-- FindObjectImageResult -->
+	<xs:complexType name="FindObjectImageResult">
+		<xs:sequence>
+			<xs:element name="ObjectUUID" type="xs:string">
+				<xs:annotation><xs:documentation>Object unique identifier.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="TargetImageURI" type="xs:anyURI">
+				<xs:annotation><xs:documentation>The URI of the detected target object image stored in the Target Image repository (LocalStorage format).</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="Time" type="xs:dateTime">
+				<xs:annotation><xs:documentation>The time when the target was found. Users can use this as a reference point to search records that occurred before and after this specific time point.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="Similarity" type="xs:float">
+				<xs:annotation><xs:documentation>It represents the similarity between two vectors, which is used to measure the similarity of the directions of the vectors. The closer the value is to 1, the higher the similarity; the closer the value is to 0, the lower the similarity.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="RecordingToken" type="tt:RecordingReference">
+				<xs:annotation><xs:documentation>The recording where this result was found.</xs:documentation></xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>	
+
+	<!-- FindNLSearchResultList -->
+	<xs:complexType name="FindNLSearchResultList">
+		<xs:sequence>
+			<xs:element name="SearchState" type="tt:SearchState">
+				<xs:annotation>
+					<xs:documentation>The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Result" type="tt:FindNLSearchResult" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation><xs:documentation>A FindNLSearchResult structure for each found set of image matching the search.</xs:documentation></xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+
+	<!-- FindNLSearchResult -->
+	<xs:complexType name="FindNLSearchResult">
+		<xs:sequence>
+			<xs:element name="ObjectUUID" type="xs:string">
+				<xs:annotation><xs:documentation>Object unique identifier.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="TargetImageURI" type="xs:anyURI">
+				<xs:annotation><xs:documentation>The URI of the detected target object image stored in the Target Image repository (LocalStorage format).</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="Time" type="xs:dateTime">
+				<xs:annotation><xs:documentation>The time when the target was found. Users can use this as a reference point to search records that occurred before and after this specific time point.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="Similarity" type="xs:float">
+				<xs:annotation><xs:documentation>It represents the similarity between two vectors, which is used to measure the similarity of the directions of the vectors. The closer the value is to 1, the higher the similarity; the closer the value is to 0, the lower the similarity.</xs:documentation></xs:annotation>
+			</xs:element>
+			<xs:element name="RecordingToken" type="tt:RecordingReference">
+				<xs:annotation><xs:documentation>The recording where this result was found.</xs:documentation></xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>	
+
 	<!--===============================-->
 	<xs:simpleType name="SearchState">
 		<xs:restriction base="xs:string">
@@ -7993,6 +8163,11 @@ and sample rate. </xs:documentation>
 					<xs:documentation>URI provided by the service supplying data to be recorded. A device shall support at least 128 characters.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
+			<xs:element name="VideoSourceToken" type="tt:ReferenceToken" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>The video source token of all recordings that will use this configuration.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
@@ -8045,8 +8220,8 @@ and sample rate. </xs:documentation>
 			<xs:element name="KeyRotationDuration" type="xs:duration" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>
-					Frequency at which the device shall generate a new key to encrypt a new segment. 
-					If not specified, key rotation is disabled. 
+					Frequency at which the device shall generate a new key to encrypt a new segment.
+					If not specified, key rotation is disabled.
 					KeyRotationDuration must be a positive duration value.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
@@ -8066,7 +8241,7 @@ and sample rate. </xs:documentation>
 		<xs:sequence>
 			<xs:element name="KID" type="xs:string" minOccurs="0" maxOccurs="1">
 				<xs:annotation>
-					<xs:documentation>Key ID of the associated key for encryption. The client shall omit this parameter when AsymmetricEncryption is configured.</xs:documentation>
+					<xs:documentation>Key ID of the associated key for encryption, formatted as a UUID according to RFC 9562 Section 4. The client shall omit this parameter when AsymmetricEncryption is configured.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Key" type="xs:hexBinary" minOccurs="0" maxOccurs="1">
@@ -8164,10 +8339,40 @@ and sample rate. </xs:documentation>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
+			<xs:element name="StorageStrategy" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Strategy to be used on how to store recordings, see tt:StorageStrategy for allowed values. If undefined, defaults to External.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 		</xs:sequence>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
+	<xs:simpleType name="StorageStrategy">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="External">
+				<xs:annotation>
+					<xs:documentation>Indicates that device must record to the storage defined by the StorageConfiguration token.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="Local">
+				<xs:annotation>
+					<xs:documentation>
+						Indicates that device must record on its local storage and can export recorded data to the external 
+						storage using ExportRecordedSegments.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="Both">
+				<xs:annotation>
+					<xs:documentation>
+						Indicates that device must record on both local storage and external storage and locally recorded data can
+						be exported if connectivity issue prevented export to external storage during normal operation.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
 	<!--===============================-->
 	<xs:simpleType name="RecordingStatus">
 		<xs:restriction base="xs:string">
@@ -8517,8 +8722,8 @@ and sample rate. </xs:documentation>
 		</xs:sequence>
 		<xs:attribute name="ScheduleToken">
 			<xs:annotation>
-				<xs:documentation>This attribute adds an additional requirement for activating the recording job. 
-				If this optional field is provided the job shall only record if the schedule exists and is active. 
+				<xs:documentation>This attribute adds an additional requirement for activating the recording job.
+				If this optional field is provided the job shall only record if the schedule exists and is active.
 				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
@@ -8981,7 +9186,7 @@ and sample rate. </xs:documentation>
 			<xs:annotation>
 			<xs:documentation>Indicates audio class label</xs:documentation>
 			</xs:annotation>
-		</xs:element> 
+		</xs:element>
  		<xs:element name="Likelihood" type="xs:float">
 			<xs:annotation>
 			<xs:documentation>A likelihood/probability that the corresponding audio event belongs to this class. The sum of the likelihoods shall NOT exceed 1</xs:documentation>
@@ -9501,9 +9706,13 @@ and sample rate. </xs:documentation>
 	<!--=========================================-->
 	<!--  End, ExportRecordedDataState           -->
 	<!--=========================================-->
-	
+<xs:element name="FindObjectImageResultList" type="tt:FindObjectImageResultList"/>
+<xs:element name="FindObjectImageResult" type="tt:FindObjectImageResult"/>
+<xs:element name="FindNLSearchResultList" type="tt:FindNLSearchResultList"/>
+<xs:element name="FindNLSearchResult" type="tt:FindNLSearchResult"/>
+
 <xs:element name="PolygonOptions" type="tt:PolygonOptions"/>
- 
+
 <xs:complexType name="PolygonOptions">
 	<xs:sequence>
 		<xs:element name="RectangleOnly" type="xs:boolean" minOccurs="0">

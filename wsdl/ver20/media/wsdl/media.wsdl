@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="../../../ver20/util/onvif-wsdl-viewer.xsl"?>
 <!--
-Copyright (c) 2008-2025 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2026 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
@@ -10,7 +10,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tr2="http://www.onvif.org/ver20/media/wsdl" targetNamespace="http://www.onvif.org/ver20/media/wsdl">
 	<wsdl:types>
-		<xs:schema targetNamespace="http://www.onvif.org/ver20/media/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="25.12">
+		<xs:schema targetNamespace="http://www.onvif.org/ver20/media/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="26.06">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../../ver10/schema/onvif.xsd"/>
 			<!--  Message Request/Responses elements  -->
 			<!--===============================-->
@@ -95,6 +95,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:attribute name="WebRTC" type="xs:int">
 					<xs:annotation>
 						<xs:documentation>Indicates number of supported WebRTC configurations.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="WebRTC_codecs" type="tt:StringList">
+					<xs:annotation>
+						<xs:documentation>List of supported video and audio media types as defined by IANA. E.g. "video/H264 audio/opus".</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
@@ -185,6 +190,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<!--===============================-->
 			<xs:complexType name="AudioClipCapabilities">
 				<xs:sequence>
+                  <!--==============TTS Capability=================-->
+                  <xs:element name="TTSCapabilities" type="tr2:TTSCapabilities" minOccurs="0">
+                     <xs:annotation>
+                        <xs:documentation>Indicates device has TTS capability.</xs:documentation>
+                     </xs:annotation>
+                  </xs:element>
+                 <!--=============================================-->
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 				</xs:sequence>
 				<xs:attribute name="MaxAudioClipLimit" type="xs:int">
@@ -205,6 +217,40 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
+            <!--=============TTS Capability=================-->
+            <xs:complexType name="TTSCapabilities">
+				<xs:sequence>
+                   <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+                </xs:sequence>
+				<xs:attribute name="MaxContentLength" type="xs:int">
+                   <xs:annotation>
+                       <xs:documentation> Indicates the maximum length of content of a text for device to convert to an audio clip.</xs:documentation>
+                   </xs:annotation>
+                 </xs:attribute>
+                 <xs:attribute name="TTSLanguage" type="tt:StringAttrList">
+                    <xs:annotation>
+                        <xs:documentation> 
+                            List of supported languages. Uses ISO 639-1 alpha-2 language codes, such as"en" for English. See <a href="https://www.loc.gov/standards/iso639-2/php/English_list.php">Codes for the Representation of Names of Languages</a>.
+                            Optionally combined with ISO 3166-1 alpha-2 country codes using the "language-country" format to specify regional variations, such as"en-US" for American English. For country codes, see <a href="https://www.iso.org/obp/ui/#search/code/">ISO 3166-1 Country Codes</a>.
+                        </xs:documentation>
+                   </xs:annotation>
+                 </xs:attribute>
+                 <xs:attribute name="TTSVoiceType" type="tt:StringAttrList">
+                   <xs:annotation>
+                        <xs:documentation> List of supported voice types. See tr2: TTSVoiceType.</xs:documentation>     
+                   </xs:annotation>
+                 </xs:attribute>
+                <xs:anyAttribute processContents="lax"/>
+            </xs:complexType>
+          <!--=============TTS Voice Type==================-->
+          <xs:simpleType name="TTSVoiceType">
+              <xs:restriction base="xs:string">
+              <xs:enumeration value="male"/>
+              <xs:enumeration value="female"/>
+              </xs:restriction>
+          </xs:simpleType>
+         <!--==============TTS End===============-->
+         <!--====================================-->
 			<xs:simpleType name="SupportedAudioClipFormat">
 				<xs:restriction base="xs:string">
 					<xs:enumeration value="audio/vnd.wave;codec=1"/>
@@ -787,7 +833,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:enumeration value="RtspMulticast"/>		<!-- RTSP streaming RTP as UDP Multicast. -->
 					<xs:enumeration value="RtspsUnicast"/>		<!-- Secure RTSP streaming SRTP as UDP Unicast. -->
 					<xs:enumeration value="RtspsMulticast"/>	<!-- Secure RTSP streaming SRTP as UDP Multicast. -->
-					<xs:enumeration value="RTSP"/>				<!-- RTSP streaming RTP over TCP. -->
+					<xs:enumeration value="RTSP"/>			<!-- RTSP streaming RTP over TCP. -->
 					<xs:enumeration value="RtspOverHttp"/>		<!-- Tunneling both the RTSP control channel and the RTP stream over HTTP or HTTPS. -->
 				</xs:restriction>
 			</xs:simpleType>
@@ -808,7 +854,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:sequence>
 					<xs:element name="Encoding" type="xs:string">
 						<xs:annotation>
-					<xs:documentation>Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and <a href="https://www.iana.org/assignments/media-types/media-types.xhtml#video"> IANA Media Types</a>.</xs:documentation>
+							<xs:documentation>Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and <a href="https://www.iana.org/assignments/media-types/media-types.xhtml#video"> IANA Media Types</a>.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:element name="Number" type="xs:int">
@@ -1428,8 +1474,34 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:sequence>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
-			
-			<!--===============================-->
+             <!--=========TTS Audio======================-->
+			 <xs:complexType name="TTSAudio">
+				<xs:sequence>					
+				 <xs:element name="Content" type="xs:string">
+                     <xs:annotation>
+                         <xs:documentation>Content of the audio clip.</xs:documentation>
+                     </xs:annotation>
+                 </xs:element>
+                 <xs:element name="Language" type="xs:string">
+                     <xs:annotation>
+                         <xs:documentation>
+                             The language that is supported by the device and used for TTS audio clip playback. 
+                             Uses ISO 639-1 alpha-2 language codes for definition, such as"en" for English. See <a href="https://www.loc.gov/standards/iso639-2/php/English_list.php">Codes for the Representation of Names of Languages</a>.
+                             Optionally combined with ISO 3166-1 alpha-2 country codes using the "language-country" format to specify regional variations, such as"en-US" for American English. For country codes, see <a href="https://www.iso.org/obp/ui/#search/code/">ISO 3166-1 Country Codes</a>.
+                         </xs:documentation>
+                     </xs:annotation>
+                 </xs:element>
+                 <xs:element name="VoiceType" type="xs:string">
+                     <xs:annotation>
+                         <xs:documentation>The voice type that is supported by the device and used for TTS audio clip playback. See tr2: TTSVoiceType.</xs:documentation>
+                     </xs:annotation>
+                 </xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--=========TTS Audio END=======================-->
+            <!--===============================-->
 			<xs:complexType name="GetAudioClipsResponseItem">
 				<xs:sequence>
 					<xs:element name="Token" type="tt:ReferenceToken">
@@ -1562,7 +1634,40 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-				
+        <!--==============TTS=================-->
+         <xs:element name="AddTTSAudioClip">
+				<xs:complexType>				
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken" minOccurs="0">				
+							<xs:annotation>
+								<xs:documentation>Optional token associated with the audio clip.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Configuration" type="tr2:AudioClip">
+							<xs:annotation>
+								<xs:documentation>Audio clip configuration to add.</xs:documentation>
+							</xs:annotation>
+					    </xs:element>
+                        <xs:element name="TTSConfiguration" type="tr2:TTSAudio">
+                        <xs:annotation>
+                        <xs:documentation>The configuration for the TTS audio clip to add.</xs:documentation>
+                        </xs:annotation>
+                       </xs:element>        
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>			
+			<xs:element name="AddTTSAudioClipResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken">						
+							<xs:annotation>
+								<xs:documentation>Unique token assigned by device for the TTS audio clip.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>				
+			</xs:element>
+<!--==============TTS END=================-->
 			<xs:element name="DeleteAudioClip">
 				<xs:complexType>
 					<xs:sequence>
@@ -2001,6 +2106,14 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="AddAudioClipResponse">
 		<wsdl:part name="parameters" element="tr2:AddAudioClipResponse"/>
 	</wsdl:message>
+<!--==============TTS=================--> 
+    <wsdl:message name="AddTTSAudioClipRequest">
+		<wsdl:part name="parameters" element="tr2:AddTTSAudioClip"/>
+	</wsdl:message>
+	<wsdl:message name="AddTTSAudioClipResponse">
+		<wsdl:part name="parameters" element="tr2:AddTTSAudioClipResponse"/>
+	</wsdl:message>
+<!--==============================--> 
 	<wsdl:message name="SetAudioClipRequest">
 		<wsdl:part name="parameters" element="tr2:SetAudioClip"/>
 	</wsdl:message>
@@ -2249,7 +2362,9 @@ support streaming video data of such a profile.<br/>
 				 <ul>
 				 	<li>RtspUnicast		RTSP streaming RTP as UDP Unicast.</li>
 				 	<li>RtspMulticast	RTSP streaming RTP as UDP Multicast.</li>
-				 	<li>RTSP			RTSP streaming RTP over TCP.</li>
+				 	<li>RtspsUnicast	Secure RTSP streaming with SRTP as UDP Unicast.</li>
+				 	<li>RtspsMulticast	Secure RTSP streaming with SRTP as UDP Multicast.</li>
+				 	<li>RTSP		RTSP streaming RTP over TCP.</li>
 				 	<li>RtspOverHttp	Tunneling both the RTSP control channel and the RTP stream over HTTP or HTTPS.</li>
 				 </ul>
 				If a multicast stream is requested at least one of VideoEncoder2Configuration, AudioEncoder2Configuration and MetadataConfiguration shall have a valid multicast setting.<br/>
@@ -2395,6 +2510,13 @@ image will be updated automatically and independent from calls to GetSnapshotUri
 			<wsdl:input message="tr2:AddAudioClipRequest"/>
 			<wsdl:output message="tr2:AddAudioClipResponse"/>
 		</wsdl:operation>
+        <!--==============TTS=================--> 
+        <wsdl:operation name="AddTTSAudioClip">
+			<wsdl:documentation>This operation sends a text and its configuartion to device that supports TTS function, so that device could convert the text into an audio clip and play it according to audio clip Configuration and TTS Configuration.</wsdl:documentation>
+			<wsdl:input message="tr2:AddTTSAudioClipRequest"/>
+			<wsdl:output message="tr2:AddTTSAudioClipResponse"/>
+		</wsdl:operation>
+        <!--=============================--> 
 		<wsdl:operation name="SetAudioClip">
 			<wsdl:documentation>This operation modifies the existing audio clip configuration on the device.</wsdl:documentation>
 			<wsdl:input message="tr2:SetAudioClipRequest"/>
@@ -2923,6 +3045,17 @@ image will be updated automatically and independent from calls to GetSnapshotUri
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
+        <!--==============TTS=================-->
+        <wsdl:operation name="AddTTSAudioClip">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/AddTTSAudioClip"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+       <!--=================================-->
 		<wsdl:operation name="SetAudioClip">
 			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/SetAudioClip"/>
 			<wsdl:input>

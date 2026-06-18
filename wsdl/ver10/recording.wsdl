@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="../ver20/util/onvif-wsdl-viewer.xsl"?>
 <!--
-Copyright (c) 2008-2025 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2026 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
@@ -10,7 +10,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:trc="http://www.onvif.org/ver10/recording/wsdl" targetNamespace="http://www.onvif.org/ver10/recording/wsdl">
 	<wsdl:types>
-		<xs:schema targetNamespace="http://www.onvif.org/ver10/recording/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="25.12">
+		<xs:schema targetNamespace="http://www.onvif.org/ver10/recording/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="26.06">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../ver10/schema/onvif.xsd"/>
 			<!--  Message Request/Responses elements  -->
 			<!--===============================-->
@@ -157,6 +157,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:annotation>
 						<xs:documentation>
 							Indicates if the device supports recording to onboard storage, default value is true. If false, device shall support recording to an external target.
+						</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="SegmentExport" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>
+							Indicates support for ExportRecordedSegments.
 						</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
@@ -608,7 +615,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-
 			<xs:element name="StopExportRecordedData">
 				<xs:complexType>
 					<xs:sequence>
@@ -637,7 +643,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-
 			<xs:element name="GetExportRecordedDataState">
 				<xs:complexType>
 					<xs:sequence>
@@ -664,6 +669,134 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						</xs:element>
 						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first Vendor then ONVIF -->
 					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<!--===============================-->
+			<xs:element name="ListRecordedSegments">
+				<xs:annotation>
+					<xs:documentation>Gets segments available within a time range.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Time" type="tt:DateTimeRange">
+							<xs:annotation>
+								<xs:documentation>The start to end time of the query.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="RecordingToken" type="tt:RecordingReference">
+							<xs:annotation>
+								<xs:documentation>The recording configuration token.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="MaxResults" type="xs:int" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The maximum number of results to return in one response.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="ListRecordedSegmentsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Results" type="trc:SegmentListResult"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:complexType name="SegmentListResult">
+				<xs:sequence>
+					<xs:element name="Segment" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Information about an exportable segment.</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="StartTime" type="xs:dateTime">
+									<xs:annotation>
+										<xs:documentation>Same precision as defined in the Recording Control specification for segment objects.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+								<xs:element name="EndTime" type="xs:dateTime">
+									<xs:annotation>
+										<xs:documentation>Same precision as defined in the Recording Control specification for segment objects.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+								<xs:element name="MediaType" type="xs:string">
+									<xs:annotation>
+										<xs:documentation>As defined in RFC 6381 including section 3 Codecs.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+								<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+							</xs:sequence>
+							<xs:anyAttribute processContents="lax"/>
+						</xs:complexType>
+					</xs:element>
+					<xs:element name="HasMoreResults" type="xs:boolean" minOccurs="1">
+						<xs:annotation>
+							<xs:documentation>A value indicating that the search has reached the maximum count and a new request must be sent to continue the search.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:complexType>
+			<xs:element name="ExportRecordedSegments">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Time" type="tt:DateTimeRange">
+							<xs:annotation>
+								<xs:documentation>The start to end time of the query.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="RecordingToken" type="tt:RecordingReference">
+							<xs:annotation>
+								<xs:documentation>The recording configuration token.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Alias" type="xs:string" minOccurs="0" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>An optional alias that shall be included in the Monitoring/AsynchronousOperationStatus events.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="StorageToken" type="tt:ReferenceToken" minOccurs="0" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>If provided, overrides the Target's storage configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Track" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>An optional track filter for segments to export when in CMAF. For valid definitions see tt:TrackType.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="ExportRecordedSegmentsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="OperationToken" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Unique operation token for client to query the status of the export.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<xs:element name="StopExportRecordedSegments">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="OperationToken" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Unique ExportRecordedSegments operation token</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="StopExportRecordedSegmentsResponse">
+				<xs:complexType>
+					<xs:sequence/>
 				</xs:complexType>
 			</xs:element>
 
@@ -847,12 +980,29 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="GetRecordingJobStateResponse">
 		<wsdl:part name="parameters" element="trc:GetRecordingJobStateResponse"/>
 	</wsdl:message>
-
+	<wsdl:message name="ListRecordedSegments">
+		<wsdl:part name="parameters" element="trc:ListRecordedSegments"/>
+	</wsdl:message>
+	<wsdl:message name="ListRecordedSegmentsResponse">
+		<wsdl:part name="parameters" element="trc:ListRecordedSegmentsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="ExportRecordedSegments">
+		<wsdl:part name="parameters" element="trc:ExportRecordedSegments"/>
+	</wsdl:message>
+	<wsdl:message name="ExportRecordedSegmentsResponse">
+		<wsdl:part name="parameters" element="trc:ExportRecordedSegmentsResponse"/>
+	</wsdl:message>
 	<wsdl:message name="ExportRecordedDataRequest">
 		<wsdl:part name="parameters" element="trc:ExportRecordedData"/>
 	</wsdl:message>
 	<wsdl:message name="ExportRecordedDataResponse">
 		<wsdl:part name="parameters" element="trc:ExportRecordedDataResponse"/>
+	</wsdl:message>
+	<wsdl:message name="StopExportRecordedSegments">
+		<wsdl:part name="parameters" element="trc:StopExportRecordedSegments"/>
+	</wsdl:message>
+	<wsdl:message name="StopExportRecordedSegmentsResponse">
+		<wsdl:part name="parameters" element="trc:StopExportRecordedSegmentsResponse"/>
 	</wsdl:message>
 	<wsdl:message name="StopExportRecordedDataRequest">
 		<wsdl:part name="parameters" element="trc:StopExportRecordedData"/>
@@ -1008,6 +1158,26 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<wsdl:output message="trc:GetRecordingJobStateResponse"/>
 		</wsdl:operation>
 
+		<!--===============================-->
+		<wsdl:operation name="ListRecordedSegments">
+			<wsdl:documentation>Lists available recorded segments related to the specified RecordingToken.</wsdl:documentation>
+			<wsdl:input message="trc:ListRecordedSegments"/>
+			<wsdl:output message="trc:ListRecordedSegmentsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="ExportRecordedSegments">
+			<wsdl:documentation>
+			Exports the selected recorded segments (from existing recorded data) to the storage attached to the given recording configuration.
+			</wsdl:documentation>
+			<wsdl:input message="trc:ExportRecordedSegments"/>
+			<wsdl:output message="trc:ExportRecordedSegmentsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="StopExportRecordedSegments">
+			<wsdl:documentation>
+			Stops the selected ExportRecordedSegments operation.
+			</wsdl:documentation>
+			<wsdl:input message="trc:StopExportRecordedSegments"/>
+			<wsdl:output message="trc:StopExportRecordedSegmentsResponse"/>
+		</wsdl:operation>
 		<wsdl:operation name="ExportRecordedData">
 			<wsdl:documentation>
 			Exports the selected recordings (from existing recorded data) to the given storage target based on the requested file format. 
@@ -1232,6 +1402,33 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="OverrideSegmentDuration">
 			<soap:operation soapAction="http://www.onvif.org/ver10/recording/wsdl/OverrideSegmentDuration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ListRecordedSegments">
+			<soap:operation soapAction="http://www.onvif.org/ver10/recording/wsdl/ListRecordedSegments"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ExportRecordedSegments">
+			<soap:operation soapAction="http://www.onvif.org/ver10/recording/wsdl/ExportRecordedSegments"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="StopExportRecordedSegments">
+			<soap:operation soapAction="http://www.onvif.org/ver10/recording/wsdl/StopExportRecordedSegments"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
