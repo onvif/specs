@@ -70,10 +70,27 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:element>
 				</xs:sequence>
 			</xs:complexType>
+			<xs:complexType name="Registrar">
+				<xs:sequence>
+					<xs:element name="Uri" type="xs:anyURI" minOccurs="1" maxOccurs="1"/>
+					<xs:element name="Transport" type="xs:string" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Transport protocol to use for the registrar. Valid values are defined in tsip:TransportType.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:complexType>
+			<xs:simpleType name="TransportType">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="UDP"/>
+					<xs:enumeration value="TCP"/>
+					<xs:enumeration value="TLS"/>
+				</xs:restriction>
+			</xs:simpleType>
 			<!--===============================-->
 			<xs:complexType name="ServerConfiguration">
 				<xs:sequence>
-					<xs:element name="Registrar" type="xs:anyURI" minOccurs="1" maxOccurs="unbounded"/>
+					<xs:element name="Registrar" type="tsip:Registrar" minOccurs="1" maxOccurs="unbounded"/>
 					<xs:element name="UserId" type="xs:string">
 						<xs:annotation>
 							<xs:documentation>The user info/extension of the Address of Record (AoR) in SIP, identifying the user on the registrar.</xs:documentation>
@@ -91,7 +108,8 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 								<xs:element name="Credential" type="tsip:BasicCredential" minOccurs="0" maxOccurs="1"/>
 								<xs:element name="AuthorizationServer" type="tt:ReferenceToken" minOccurs="0" maxOccurs="1">
 									<xs:annotation>
-										<xs:documentation>AuthorizationServer token referring to the server that provides access tokens to authorize with the renewal endpoint.</xs:documentation>
+										<xs:documentation>AuthorizationServer token referring to the server that provides access tokens to authorize with the
+											renewal endpoint as defined in the Security specification.</xs:documentation>
 									</xs:annotation>
 								</xs:element>
 							</xs:sequence>
@@ -511,7 +529,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<wsdl:output message="tsip:GetStreamingConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="SetStreamingConfiguration">
-			<wsdl:documentation>This operation sets the SIP streaming configuration of the device. If the configuration is absent, the device shall remove the existing SIP streaming configuration.</wsdl:documentation>
+			<wsdl:documentation>This operation sets the SIP streaming configuration of the device.</wsdl:documentation>
 			<wsdl:input message="tsip:SetStreamingConfigurationRequest"/>
 			<wsdl:output message="tsip:SetStreamingConfigurationResponse"/>
 		</wsdl:operation>
