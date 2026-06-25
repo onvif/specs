@@ -21,3 +21,7 @@ This skill relies on the following parameters defined in `./.ai/config.md`:
 ### 3. Whitespace Cleaning
 - Normalize all row endings across the document to match the target environment variable `LINE_ENDINGS` uniformly.
 - Strip trailing whitespaces at the terminal end of lines.
+
+### 4. Data Tracking Requirement
+- For every typo, grammatical error, or lowercase normative keyword detected, you SHALL explicitly log the target `File` name and the 1-based `Line` number.
+- Forward these coordinates directly to the final Summary Table.

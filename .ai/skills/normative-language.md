@@ -15,5 +15,9 @@ This skill operates in direct alignment with the restrictions defined in:
 - You SHALL scan all modified prose clauses for requirement keywords (`shall`, `shall not`, `should`, `should not`, `recommended`, `may`).
 
 ### 2. Imperative Guardrails
-- **No Ambiguity:** Flag phrases like "is required to," "is allowed to," or "it is suggested" and recommend swapping them with their explicit RFC 2119 uppercase equivalents (`SHALL`, `MAY`, `SHOULD`).
+- **No Ambiguity:** Flag phrases like "is required to," "is allowed to," or "it is suggested" and recommend swapping them with their explicit RFC 2119 equivalents (`shall`, `may`, `should`).
 - **Context Protection:** You SHALL NOT alter the specific choice of keyword (e.g., upgrading a `SHOULD` to a `SHALL`) unless explicitly instructed via the user prompt, as keyword level shifting changes the technical compliance boundaries of the ONVIF specification.
+
+### 3. Data Tracking Requirement
+- For every typo, grammatical error, or lowercase normative keyword detected, you SHALL explicitly log the target `File` name and the 1-based `Line` number.
+- Forward these coordinates directly to the final Summary Table.

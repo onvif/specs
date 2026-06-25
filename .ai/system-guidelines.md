@@ -35,6 +35,16 @@ When analyzing, proofreading, or editing specification prose, you SHALL interpre
 
 ---
 
-## 5. Interaction with Repository Skills
-- Specialized task configurations are maintained within the `./.ai/skills/` directory (e.g., `onvif-review.md`).
-- When a user request maps to an established repository skill, you SHALL dynamically load those instructions and execute them as high-priority constraints alongside these global system guidelines.
+## 5. Output Standardization & Reporting Mandate
+At the absolute conclusion of any review or cleanup workflow (including Editorial Cleanup, PR Review, and Release Review), you SHALL append a unified markdown "Summary Table" compiling all identified issues. The table MUST strictly adhere to the following schema:
+
+| # | Severity | Sub-skill | File | Line | Finding |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 🔴 HIGH | [Sub-skill Name] | `filename.xml` | 142 | Detailed description of the defect and required fix. |
+
+### Severity Metrics:
+- **🔴 HIGH:** Structural schema break, severe RFC 2119 keyword mismatch, or breaking backward-compatibility violation.
+- **🟡 MED:** Stylistic keyword inconsistency, formatting deviation, or minor lexical agreement issue.
+- **ℹ️ INFO:** Informational annotations, missing optional documentation references, or cleanups.
+
+You SHALL NOT omit the `File` or `Line` columns. If an issue is document-wide, populate the `Line` column with `N/A`.

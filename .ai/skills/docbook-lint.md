@@ -33,3 +33,7 @@ Reconstruct the file line-by-line using the following conditions:
   1. Retrieve its ideal structural depth calculated from Pass 3.
   2. Compute the exact required indentation prefix: `INDENT_CHAR` multiplied by (`INDENT_SPACES` * `depth`).
   3. Strip existing leading whitespace, apply the new calculated prefix, and wrap content gracefully if it exceeds `MAX_LINE_LENGTH`.
+
+### Pass 5: Data Tracking Requirement
+- When a structural schema validation error occurs or a missing `<para>` tag is injected, you SHALL record the exact `File` and the specific `Line` number where the structural modification took place.
+- If an XML schema error spans a block, log the starting `Line` number.

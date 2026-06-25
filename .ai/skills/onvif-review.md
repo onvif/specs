@@ -29,4 +29,6 @@ Analyze the user prompt or Git execution state to isolate the intent, then execu
 ---
 
 ## Execution Mandate
-Upon activation, you SHALL explicitly state which workflow you are engaging and list the sub-skills being initialized. Execute their rulesets sequentially, focusing audits on changes relative to `BASE_REF`.
+1. Upon activation, you SHALL explicitly state which workflow you are engaging and list the sub-skills being initialized.
+2. Execute their rulesets sequentially, focusing audits on changes relative to `BASE_REF`.
+3. **Final Aggregation:** You SHALL compile the individual logs from every executed sub-skill and output them in the unified markdown **Summary Table** defined in Section 5 of `system-guidelines.md`. Ensure that the `File` and `Line` numbers are captured accurately for every row.

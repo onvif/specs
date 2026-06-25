@@ -17,3 +17,7 @@ This skill operates in conjunction with tracking parameters defined in:
 ### 2. Testability Audits
 - Audit new normative clauses to verify they describe verifiable, deterministic behavior. 
 - If a modified clause introduces a requirement that cannot be programmatically verified by the ONVIF Device or Client Test Tools, flag it as an "untestable requirement assertion" so the committee can adjust the wording.
+
+### 3. Data Tracking Requirement
+- When a structural schema validation error occurs or a missing `<para>` tag is injected, you SHALL record the exact `File` and the specific `Line` number where the structural modification took place.
+- If an XML schema error spans a block, log the starting `Line` number.

@@ -12,7 +12,7 @@ These variables define the global styling, formatting, and workspace parameters 
 - `LINE_ENDINGS`: "LF"          # Options: "LF", "CRLF"
 
 ## Git Control
-- `BASE_REF`: "...development"            # The base branch for targeted git diff evaluations
+- `BASE_REF`: "development"            # The base branch for targeted git diff evaluations
 
 ## Protocol Standards
 - `STRICT_DOCBOOK`: true        # Toggle switch for strict DocBook 5 verification
