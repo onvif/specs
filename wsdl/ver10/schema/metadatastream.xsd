@@ -293,6 +293,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:element name="Extension" type="tt:FrameExtension" minOccurs="0"/>
 			<xs:element name="SceneImageRef" type="xs:anyURI" minOccurs="0"/>
 			<xs:element name="SceneImage" type="xs:base64Binary" minOccurs="0"/>
+			<xs:element name="AspectRatioTransformation" type="tt:AspectRatioTransformation" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
 		</xs:sequence>
 		<xs:attribute name="UtcTime" type="xs:dateTime" use="required"/>
@@ -406,7 +407,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</xs:attribute>
 		<xs:attribute name="Cells" type="xs:base64Binary" use="required">
 			<xs:annotation>
-				<xs:documentation>A “1” denotes a cell where motion is detected and a “0” an empty cell. The first cell is in the upper left corner. Then the cell order goes first from left to right and then from up to down.  If the number of cells is not a multiple of 8 the last byte is filled with zeros. The information is run length encoded according to Packbit coding in ISO 12369 (TIFF, Revision 6.0).</xs:documentation>
+				<xs:documentation>A "1" denotes a cell where motion is detected and a "0" an empty cell. The first cell is in the upper left corner. Then the cell order goes first from left to right and then from up to down.  If the number of cells is not a multiple of 8 the last byte is filled with zeros. The information is run length encoded according to Packbit coding in ISO 12369 (TIFF, Revision 6.0).</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:anyAttribute processContents="lax"/>
@@ -443,6 +444,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:element name="PTZ" type="tt:PTZStream"/>
 				<xs:element name="Event" type="tt:EventStream"/>
 				<xs:element name="Extension" type="tt:MetadataStreamExtension"/>
+				<xs:element name="SensorData" type="tt:SensorData" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	<!-- reserved for ONVIF -->
 			</xs:choice>
 		</xs:sequence>
@@ -459,6 +461,16 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<xs:sequence>
 			<xs:any namespace="##targetNamespace" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
+		<xs:anyAttribute processContents="lax"/>
+	</xs:complexType>
+	<xs:complexType name="SensorData">
+		<xs:sequence>
+			<xs:element name="Type" type="xs:string" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="Value" type="xs:float" minOccurs="1" maxOccurs="1"/>
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/> 
+		</xs:sequence>
+		<xs:attribute name="UtcTime" type="xs:dateTime" use="required"/>
+		<xs:attribute name="SensorID" type="xs:string" use="required"/>
 		<xs:anyAttribute processContents="lax"/>
 	</xs:complexType>
 	<xs:complexType name="AudioAnalyticsStream">

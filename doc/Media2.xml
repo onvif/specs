@@ -4,19 +4,19 @@
   <info>
     <title>Media2 Service Specification</title>
     <titleabbrev>Media2</titleabbrev>
-    <releaseinfo>25.12</releaseinfo>
+    <releaseinfo>26.06</releaseinfo>
     <author>
       <orgname>ONVIF™</orgname>
       <uri>www.onvif.org</uri>
     </author>
-    <pubdate>December, 2025</pubdate>
+    <pubdate>June, 2026</pubdate>
     <mediaobject>
       <imageobject>
         <imagedata fileref="media/logo.png" contentwidth="60mm"/>
       </imageobject>
     </mediaobject>
     <copyright>
-      <year>2008-2025</year>
+      <year>2008-2026</year>
       <holder>ONVIF™ All rights reserved.</holder>
     </copyright>
     <legalnotice>
@@ -231,6 +231,14 @@
         <revremark>Add support for multicast audio decoder. Add mirror feature. Optional Reason
           parameter added in Audio Clip State event.</revremark>
       </revision>
+      <revision>
+        <revnumber>26.06</revnumber>
+        <date>Jun-2026</date>
+        <author>
+          <personname>Ottavio Campana, Sriram Bhetanabottla, Hans Busch, Zheng Yuanyuan</personname>
+        </author>
+	<revremark>Add support for TTS audio clips and webrtc_codecs capability. Make Bounds in VideoSourceConfiguration adaptable. Deprecate redundant Media2 MediaSigningSupported capability.</revremark>
+      </revision>
     </revhistory>
   </info>
   <chapter xml:id="_Toc241999828">
@@ -401,7 +409,7 @@
   </chapter>
   <chapter>
     <title>Overview</title>
-    <para>Media configurations are handled through the media service. Media configurations are used to determine the streaming properties of requested media streams as defined in this specification. The device provides media configuration through the media service. WSDL for this service is specified in <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver20/media/wsdl/media.wsdl">http://www.onvif.org/ver20/media/wsdl/media.wsdl</link>l.</para>
+    <para>Media configurations are handled through the media service. Media configurations are used to determine the streaming properties of requested media streams as defined in this specification. The device provides media configuration through the media service. WSDL for this service is specified in <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/ver20/media/wsdl/media.wsdl">http://www.onvif.org/ver20/media/wsdl/media.wsdl</link>.</para>
     <table>
       <title>Referenced namespaces (with prefix)</title>
       <tgroup cols="2">
@@ -514,7 +522,7 @@
       <para>A profile consists of all or a subset of these configuration entities. Depending on the capabilities of the device, a particular configuration entity can be part of a profile or not. For example, a profile with an audio source and an audio encoder configuration can exist only in a device with audio support. </para>
       <para>An example of a complete profile configuration is illustrated in <xref linkend="_Ref210451597" />.</para>
       <figure xml:id="_Ref210451597">
-        <title>Figure 2: Complete profile configuration </title>
+        <title>Complete profile configuration </title>
         <mediaobject>
           <imageobject>
             <imagedata fileref="media/Media2/mediaProfile.svg" contentwidth="140mm" />
@@ -587,7 +595,7 @@
     </section>
     <section>
       <title>Video source mode</title>
-      <para>A device can have the capability for changing video source mode which is a setting of video source as exclusion in same time. For example, device’s capability for max resolution (1920x1080@16:9 or 2048x1536@4:3) and frame rate (20fps or 30fps) can be changed by selecting each video source modes.</para>
+      <para>A device can have the capability for changing video source mode which is a setting of video source as an exclusive setting at the same time. For example, device’s capability for max resolution (1920x1080@16:9 or 2048x1536@4:3) and frame rate (20fps or 30fps) can be changed by selecting each video source mode.</para>
       <para>The following commands manage video source mode.</para>
       <itemizedlist>
         <listitem>
@@ -686,7 +694,7 @@
             <term>faults</term>
             <listitem>
               <para role="param">env:Receiver - ter:Action - ter:MaxNVTProfiles</para>
-              <para role="text">The maximum number of supported profiles supported by the device has been reached.</para>
+              <para role="text">The maximum number of supported profiles by the device has been reached.</para>
               <para role="param">env:Receiver - ter:Action - ter:ConfigurationConflict</para>
               <para role="text">Other configurations of the media profile conflicts with the one to add and adding it would cause a conflicting media profile.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoConfig</para>
@@ -873,7 +881,10 @@
       <section>
         <title>CreateMultitrackConfiguration</title>
         <para>This operation bundles a set of existing profiles to a so called virtual profile allowing multitrack streaming in a single RTSP session. </para>
-        <para>A device shall except a set of profiles where all VideoSourceConfiguration elements point to different video sources and the device is able to stream the set of video sources as a multitrack stream. If the method succeeds the device shall assign the returned virtual profile token to all profiles associated to the passed list of tokens. </para>
+        <para>A device shall accept a set of profiles where all VideoSourceConfiguration elements
+          point to different video sources and the device is able to stream the set of video sources
+          as a multitrack stream. If the method succeeds the device shall assign the returned
+          virtual profile token to all profiles associated to the passed list of tokens. </para>
         <para>Note that a device supporting multitrack streaming is typically shipped with one or more sets of virtual tokens. A client can use the GetProfiles command to retrieve all pre-configured profiles.</para>
         <para>A device signaling support for MultiTrackStreaming shall support creating virtual profiles via this method. Virtual profiles can be deleted using DeleteProfile.</para>
         <variablelist role="op">
@@ -930,7 +941,12 @@
             <para>UseCount – Read-only property indicating the number of referenced profiles. Deprecated in Media2 – devices may support this value.</para>
           </listitem>
         </itemizedlist>
-        <para>Certain configurations in a media profile are dependent on other configurations. In such cases, a device should not allow adding the dependent configuration if the required configuration isn't present. Similarly, a device should not allow removing the required configuration unless the dependent configuration is removed first. Furthermore a device shall allow adding and removing both configurations in the same AddConfiguration respective RemoveConfiguration command. The dependencies are as follow:</para>
+        <para>Certain configurations in a media profile are dependent on other configurations. In
+          such cases, a device should not allow adding the dependent configuration if the required
+          configuration isn't present. Similarly, a device should not allow removing the required
+          configuration unless the dependent configuration is removed first. Furthermore a device
+          shall allow adding and removing both configurations in the same AddConfiguration
+          respective RemoveConfiguration command. The dependencies are as follows:</para>
         <itemizedlist>
           <listitem>
             <para>VideoEncoderConfiguration depends on VideoSourceConfiguration</para>
@@ -1028,8 +1044,9 @@
             <para>Quality – Determines the quality of the video. A high value within supported quality range means higher quality.</para>
           </listitem>
           <listitem>
-            <para>RateControl – Defines parameters to configure the bitrate [kbps] and a
-              FrameRateLimit [fps] parameter to configure the output framerate.</para>
+            <para>RateControl – Defines parameters to configure the BitrateLimit [kbps],
+              AverageBitRate [kbps] and a FrameRateLimit [fps] parameter to configure the output
+              framerate.</para>
           </listitem>
           <listitem>
             <para>Encoding profile and GOV length [frame].</para>
@@ -1039,7 +1056,7 @@
               Specification.</para>
           </listitem>
         </itemizedlist>
-        <para>TheVideoEncoderConfiguration structure also contains multicast parameters. </para>
+        <para>The VideoEncoderConfiguration structure also contains multicast parameters. </para>
         <para>If the whole RateControl parameter structure is missing the current state of rate control is undefined and vendor specific. A device that supports disabling of the rate control mechanisms shall reflect that by omitting the RateControl element when disabled; otherwise it shall return the current values used for RateControl. If RateControl is missing, the respective options define whether a RateControl element can be (re-)added.</para>
         <para>The resolution's width and height are based on the Bounds field of the VideoSourceConfiguration. Therefore, if there is a 90-degree rotation, the width will represent the height of the encoded video, and the height will represent the width of the encoded video.</para>
       </section>
@@ -1163,7 +1180,7 @@
       <section>
         <title>Receiver configuration</title>
         <para>The Receiver configuration provides an alternate source for video and audio. It allows
-          to pipe encoded media from an external source which than can be processed and forwarded.
+          to pipe encoded media from an external source which then can be processed and forwarded.
           For configuration see the ONVIF Receiver Service Specification.</para>
         <para>A device supporting media profiles with receivers shall allow to add any receiver
           configuration reported by GetReceivers as long as the profile doesn't include any other
@@ -1178,7 +1195,9 @@
       </section>
       <section>
         <title>Get&lt;entity&gt;Configurations</title>
-        <para>The Get&lt;entity&gt;Configurations operation allows to retrieve the actual settings of one ore more configurations. The syntax and semantics of the request message are the same for all configuration entities:</para>
+        <para>The Get&lt;entity&gt;Configurations operation allows to retrieve the actual settings
+          of one or more configurations. The syntax and semantics of the request message are the
+          same for all configuration entities:</para>
         <itemizedlist>
           <listitem>
             <para>If a configuration token is provided the device shall respond with the requested configuration or provide an error if it does not exist.</para>
@@ -1261,7 +1280,7 @@
         </variablelist>
         <para>Note for the VideoEncoderConfiguration: if necessary the device may adapt parameter values for Quality and RateControl elements without returning an error. A device shall adapt an out of range BitrateLimit instead of returning a fault.</para>
         <para>Note for the AudioSourceConfiguration: If the new settings invalidate any parameters already negotiated using RTSP, for example by changing codec type, the device must not apply these settings to existing streams. Instead it must either continue to stream using the old settings or stop sending data on the affected streams.</para>
-        <para>Note for the VideoSourceConfiguration: If a Device supports Rotation and the new settings do not contain Rotate element, a device shall keep current rotation state.</para>
+        <para>Note for the VideoSourceConfiguration: If a Device supports Rotation and the new settings do not contain Rotate element, a device shall keep current rotation state. Moreover, if necessary the device may adapt parameter values for the Bounds element without returning an error. In case of adaptation of the parameter values, the device shall return the adapted values upon the client's request.</para>
       </section>
       <section>
         <title>Get&lt;entity&gt;ConfigurationOptions</title>
@@ -1486,7 +1505,12 @@
     </section>
     <section>
       <title>Multicast</title>
-      <para>This specification defines two mechanisms for controlling multicast streams. In addition to setting up multicast sessions via RTSP sessions as defined in section <xref linkend="_Ref500832237" /> this chapter defines a multicast streaming mechanism were the actual streaming is controlled via IGMP. Use this method with caution, since an incorrect network configuration may result in flooding the network with Audio and Video packets.</para>
+      <para>This specification defines two mechanisms for controlling multicast streams. In addition
+        to setting up multicast sessions via RTSP sessions as defined in section <xref
+          linkend="_Ref500832237"/> this chapter defines a multicast streaming mechanism where the
+        actual streaming is controlled via IGMP. Use this method with caution, since an incorrect
+        network configuration may result in flooding the network with Audio and Video
+        packets.</para>
       <para>A device that signals support for non-RTSP controlled multicast streaming by the AutoStartMulticast capability shall support the methods defined in this chapter.</para>
       <section>
         <title>StartMulticastStreaming</title>
@@ -1513,7 +1537,7 @@
               <para role="param">env:Sender - ter:InvalidArgVal - ter:NoProfile</para>
               <para role="text">The requested profile token does not exist.</para>
               <para role="param">env:Receiver - ter:Action - ter:IncompleteConfiguration</para>
-              <para role="text">The specified media profile does not contain either a reference to a video encoder a video source configuration, to a audio source or  to audio encoder configuration or a reference to a metadata configuration</para>
+              <para role="text">The specified media profile does not contain either a reference to a video encoder a video source configuration, to an audio source or  to audio encoder configuration or a reference to a metadata configuration</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -1685,12 +1709,22 @@
             </imageobject>
           </mediaobject>
         </figure>
-        <para>This chapter defines methods to create and delete OSD configurations as well as gettıng, settıng and querying the options. A device that signals support for OSD via the OSD capability shall support all OSD methods defined in section <xref linkend="_Ref411240748" />.</para>
+        <para>This chapter defines methods to create and delete OSD configurations as well as
+          getting, setting and querying the options. A device that signals support for OSD via the
+          OSD capability shall support all OSD methods defined in section <xref
+            linkend="_Ref411240748"/>.</para>
         <para>Device supporting temporary OSDTextConfiguration, shall notify TemporaryOSDText capability as defined in section <xref linkend="_Ref484170228" />. Device shall by default make all OSDTextConfigurations as persistent across reboot, but when IsPersistentText attribute in OSDTextConfiguration is set as false, OSD text content shall be cleared after reboot. OSDConfiguration shall still be valid after reboot.</para>
       </section>
       <section>
         <title>CreateOSD</title>
-        <para>This operation creates a new OSD configuration with specified values and also makes the association between  the new OSD and an existing VideoSourceConfiguration identified by the VideoSourceConfigurationToken. Any value required by a device for a new OSD configuration that is optional and not present in the CreateOSD message may be adapted to the appropriate value by the device. A device that indicates OSD capability shall support the creation of OSD as long as the number of existing OSDs does not exceed the  value of MaximumNumberOfOSDs in GetOSDOptions. A created OSD configuration shall be deletable.</para>
+        <para>This operation creates a new OSD configuration with specified values and also makes
+          the association between the new OSD and an existing VideoSourceConfiguration identified by
+          the VideoSourceConfigurationToken. Any value required by a device for a new OSD
+          configuration that is optional and not present in the CreateOSD message may be adapted to
+          the appropriate value by the device. A device that indicates OSD capability shall support
+          the creation of OSD as long as the number of existing OSDs does not exceed the value of
+          MaximumNumberOfOSDs in GetOSDOptions. A created OSD configuration shall be
+          deletable.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -2132,7 +2166,7 @@
         <title>WebRTC configuration</title>
         <para>This section is about configuring one or more WebRTC signaling servers that a device
           should connect to, in order to be able to receive requests from clients and establish peer-to-peer
-          WebRTC connections. The signaling protocol that is used for this is descibed in the [ONVIF
+          WebRTC connections. The signaling protocol that is used for this is described in the [ONVIF
           WebRTC Specification]. A WebRTC configuration has the following parameters:</para>
         <itemizedlist>
           <listitem>
@@ -2364,8 +2398,53 @@
           <listitem>
             <para>When the size of the audio clip upload exceeds the MaxAudioClipSize parameter in KB, the device should return an HTTP 413, Request Entity Too Large error to the client.</para>
           </listitem>
-        </itemizedlist>
-      </section>
+        </itemizedlist>              
+      </section>  
+	  <section xml:id="section_AddTTSAudioClip">
+        <title>AddTTSAudioClip</title>
+        <para>This operation adds a text, audio clip configuration and TTS configuration to the device, for device converting the text to an audio clip based on the TTS configuration. 
+			The response to the command includes a unique token for this converted audio clip. 
+			If the device is unable to support language specified in the TTS configuration, the associated configuration will be deleted from the device.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+      <para role="param">Token - optional[tt:ReferenceToken]</para>
+              <para role="text"> Optional token associated with the audio clip.</para>
+              <para role="param">Configuration - 
+                [tr2:AudioClip]</para>
+              <para role="text"> Audio clip configuration to add.</para>
+      <para role="param">TTSConfiguration - 
+                [tr2:TTSAudio]</para>
+              <para role="text"> TTS configuration for converting a text to an audio clip.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Token - [tt:ReferenceToken]</para>
+              <para role="text">Unique token assigned by device for the TTS audio clip.</para>             
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Receiver - ter:Action - ter:MaxAudioClipLimit</para>
+              <para role="text">The maximum number of audio clip configurations supported by the device has been reached.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidConfig</para>
+              <para role="text">The configuration parameters are not possible to set.</para>  
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidLanguage</para>
+              <para role="text">The language is not supported.</para>  
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>          
+      </section>       
 	  <section xml:id="section_wvd_dzg_rye">
         <title>SetAudioClip</title>
         <para>This operation modifies the existing audio clip configuration on the device.</para>
@@ -2656,7 +2735,7 @@
           </listitem>
         </varlistentry>
       </variablelist>
-      <para>The following profile capabilites are available:</para>
+      <para>The following profile capabilities are available:</para>
       <variablelist>
         <varlistentry>
           <term>MaximumNumberOfProfiles</term>
@@ -2706,7 +2785,7 @@
           </listitem>
         </varlistentry>
       </variablelist>
-      <para>The following streaming capabilites are available:</para>
+      <para>The following streaming capabilities are available:</para>
       <variablelist>
         <varlistentry>
           <term>RTSPStreaming</term>
@@ -2749,17 +2828,15 @@
             <para>Indicates the supported number of WebRTC configurations.</para>
           </listitem>
         </varlistentry>
-         <varlistentry>
+        <varlistentry>
+          <term>WebRTC_codecs</term>
+          <listitem>
+            <para>List of supported video and audio media types as defined by IANA. E.g. "video/H264 audio/opus".</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
           <term>MulticastAudioDecoder</term>
           <listitem><para>Indicates support for multicast audio decoder. </para></listitem>
-        </varlistentry>
-      </variablelist>
-      <para>The following media signing capabilites are available:</para>
-      <variablelist>
-        <varlistentry>
-          <term>MediaSigningSupported</term>
-          <listitem><para>Indicates whether the device supports signing of media according to the Media Signing
-              Specification.</para></listitem>
         </varlistentry>
       </variablelist>
     <para>The following audio clip Capabilities are available:</para>
@@ -2775,6 +2852,10 @@
 		<varlistentry>
           <term>SupportedAudioClipFormat</term>
           <listitem><para>Enumerates the supported audio clip formats. See tr2: SupportedAudioClipFormat.</para></listitem>
+        </varlistentry>
+		<varlistentry>
+          <term>TTSCapabilities</term>
+          <listitem><para>Indicates device supports TTS function and TTS configuration. See tr2: TTSCapabilities.</para></listitem>
         </varlistentry>
 	</variablelist>
 	</section>
@@ -2901,7 +2982,11 @@ Topics: tns1:Monitoring/ActiveSessions/VideoEncoder
       </section>
 	    <section>
         <title>Audio Clip State</title>
-        <para>A device that supports AudioClipCapabilities in the GetServiceCapabilities response should generate an audio clip start event when an audio clip starts playing on the device and generate an audio clip stop event when the audio clip stops playing.Token and ClipName parameters can be empty if no audio clip has either started or stopped since the device was last booted.</para>
+        <para>A device that supports AudioClipCapabilities in the GetServiceCapabilities response
+          should generate an audio clip start event when an audio clip starts playing on the device
+          and generate an audio clip stop event when the audio clip stops playing.Token and ClipName
+          parameters can be empty if no audio clip has either started or stopped since the device
+          was last booted.</para>
         <programlisting><![CDATA[Topic: tns1:Media/AudioClip/State
 <tt:MessageDescription  IsProperty="true">
   <tt:Source>	
@@ -3014,7 +3099,10 @@ Topics: tns1:Monitoring/ActiveSessions/VideoEncoder
  <section xml:id="_evtMAD">
   <title>MulticastAudioDecoder State</title>
   <para>Whenever a multicast audio decoder starts or stops receiving an audio stream, the following event should be generated.</para>
-  <para>The <code>ConfigurationToken</code> refers to the multicast audio decoder configuration token. If none of the multicast audio decoder configurations are active at any point, the <code>ConfigurationToken</code> field can be left empty, and the <code>Active</code> field can be set to false.</para>
+  <para>The <code>ConfigurationToken</code> refers to the multicast audio decoder configuration
+          token. If none of the multicast audio decoder configurations are active at any point, the
+            <code>ConfigurationToken</code> field can be left empty, and the <code>Active</code>
+          field can be set to false.</para>
   <programlisting><![CDATA[
     Topic: tns1:Media/MulticastAudioDecoder/State
 
@@ -3033,7 +3121,14 @@ Topics: tns1:Monitoring/ActiveSessions/VideoEncoder
   </chapter>
   <appendix xml:id="_Ref425842742">
     <title>Efficient XML Interchange (EXI) (Normative)</title>
-    <para>EXI encoding allows for a more compact representation of XML metadata. Provision is signaled if the CompressionType returned via GetMetadataConfigurationOptions contains "EXI". <phrase>The ONVIF defined EXI configuration (see </phrase><xref linkend="_exiHdr" /><phrase> and </phrase><xref linkend="_Ref425842707" /><phrase>) shall be supported by all devices signaling support for EXI compression.</phrase>   The EXI header shall only be transmitted if a setting different then the ONVIF defined configuration is used. Except for the setting of the two elements “Presence Bit” and “EXI Options” the ONVIF defined EXI header settings (see <xref linkend="_exiHdr" /><phrase>) shall always be used.</phrase></para>
+    <para>EXI encoding allows for a more compact representation of XML metadata. Provision is
+      signaled if the CompressionType returned via GetMetadataConfigurationOptions contains "EXI".
+        <phrase>The ONVIF defined EXI configuration (see </phrase><xref linkend="_exiHdr"/><phrase>
+        and </phrase><xref linkend="_Ref425842707"/><phrase>) shall be supported by all devices
+        signaling support for EXI compression.</phrase> The EXI header shall only be transmitted if
+      a setting different then the ONVIF defined configuration is used. Except for the setting of
+      the two elements "Presence Bit" and "EXI Options" the ONVIF defined EXI header settings (see
+        <xref linkend="_exiHdr"/><phrase>) shall always be used.</phrase></para>
     <table xml:id="_exiHdr">
       <title>ONVIF defined EXI header settings</title>
       <tgroup cols="2">
