@@ -2350,7 +2350,7 @@ h3 {
 	     	<table>
 	     		<tr valign="middle">
 	     			<td><a href="http://www.onvif.org"><img align="left" src="/logo.gif" style="border-width: 0px;" alt="ONVIF" height="60" /></a></td> 
-	     			<td width="100%" align="center"><xsl:value-of select="$consolidated-wsdl/@targetNamespace"/><br /></td>
+	     			<td width="100%" align="center"><a id='filepath'><xsl:value-of select="$consolidated-wsdl/@targetNamespace"/></a><br /></td>
 	     			<td width="100%" align="right"><xsl:value-of select="$consolidated-wsdl/ws:types/xsd:schema/@version"/></td>
 	     		</tr>
 	     	</table>
