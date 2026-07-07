@@ -1320,10 +1320,11 @@
           stage process; first the client sends the StartFirmwareUpgrade command to instruct the
           device to prepare for upgrade, then it sends the firmware image using HTTP POST.</para>
         <para>The HTTP method is designed for resource-limited devices that may not be capable of receiving a new firmware image in its normal operating state.</para>
-        <para>The second method applies to cloud connected devices and involves an interaction
-          between the Operational Cloud Service (OCS), the Manufacturer Cloud Service (MCS) and the
-          device, in order to trigger the firmware upgrade. For the complete description of the
-          roles of the cloud clients, please refer to the Cloud Integration Specification.</para>
+        <para>The second method applies to cloud connected devices. A simple interface allows
+          upgrading firmware by providing a requested version. The device interacts via propriatary
+          means with its manufacturer cloud to perform the requested update. Available options can
+          be retrieved via the method GetAvailableFirmwares or the Manufacturer Cloud Service
+          (MCS).</para>
       </section>
       <section>
         <title>System Restore</title>
@@ -3173,6 +3174,14 @@ onvif://www.onvif.org/name/ARV-453
                 </row>
                 <row>
                   <entry>
+                    <para>AvailableFirmwareListing</para>
+                  </entry>
+                  <entry>
+                    <para>Indication if the device supports firmware listing as specified in Section <xref linkend="_Ref276040130" />.</para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
                     <para>SystemLogging</para>
                   </entry>
                   <entry>
@@ -4949,7 +4958,8 @@ onvif://www.onvif.org/name/ARV-453
         <para>Cloud firmware upgrade  may be achieved using the following steps:</para>
         <orderedlist>
           <listitem>
-            <para>Client retrieves the list of available firmware versions from the MCS.</para>
+            <para>Client retrieves the list of available firmware versions via GetAvailableFirmwares
+              or from the MCS.</para>
           </listitem>
           <listitem>
             <para>Client calls StartCloudFirmwareUpgrade, selecting the desired FW version.</para>
@@ -5000,6 +5010,46 @@ onvif://www.onvif.org/name/ARV-453
         </variablelist>
         <para xml:id="_Ref276040030">In case it is not possible to provide exact figures for
           ExpectedDownTime, the device shall provide best-effort estimates.</para>
+      </section>
+      <section xml:id="_Ref276040130">
+        <title>GetAvailableFirmwares</title>
+        <para>This operation retrieves a list of available firmware versions for the device.</para>
+          <para>The returned list contains firmware information including the firmware version string, description, and optional information about the release date, release information URI, and whether it is a beta version. The firmware version strings returned shall be valid values for the Version parameter of the <emphasis role="bold">UpgradeFirmware</emphasis> operation.</para>
+          <para>The device shall list only firmware versions that are valid upgrade or downgrade targets from the current firmware version. If no such firmware version exists, the response shall contain an empty list. If none of the returned firmware versions have the IsLatest flag set, the client may call this operation again after completing a firmware upgrade to obtain an updated list of available versions.</para>
+        <para>When requesting for old firmware using IncludePreviousVersions, listing old firmware versions is up to the device implementation; not all devices may support this.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">IncludeBeta - optional [xs:boolean]</para>
+              <para role="text">Optional flag to include beta firmware versions in the response. If not specified or set to false, only stable firmware versions are returned. Note that beta versions may not be available for devices via this channel.</para>
+            </listitem>
+            <listitem>
+              <para role="param">IncludePreviousVersions - optional [xs:boolean]</para>
+              <para role="text">Optional flag to include previous firmware versions in the response. If not specified or set to false, only newer firmware versions are returned.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">FirmwareInfo [tds:FirmwareInfo] optional unbounded</para>
+              <para role="text">List of available firmware versions.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param" />
+              <para role="text">No command-specific faults.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
       </section>
       <section xml:id="_Ref482093370">
         <title>GetSystemLog</title>
