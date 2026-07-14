@@ -14,11 +14,41 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				   xmlns:tsip="http://www.onvif.org/ver10/sip/wsdl" elementFormDefault="qualified" version="26.12">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../../ver10/schema/onvif.xsd"/>
 			<!--===============================-->
+			<xs:complexType name="Capabilities">
+				<xs:attribute name="MaximumServerConfigurations" type="xs:int" use="required">
+					<xs:annotation>
+						<xs:documentation>Indicates the maximum number of server configurations supported.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="MaximumRegistrars" type="xs:int" use="required">
+					<xs:annotation>
+						<xs:documentation>Indicates the maximum number of SIP registrars supported per server configurations.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="MaximumStunServers" type="xs:int" use="required">
+					<xs:annotation>
+						<xs:documentation>Indicates the maximum number of STUN server URIs supported per server configurations.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="MaximumTurnServers" type="xs:int" use="required">
+					<xs:annotation>
+						<xs:documentation>Indicates the maximum number of TURN servers supported per server configurations.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="CallButtons" type="xs:boolean" use="required">
+					<xs:annotation>
+						<xs:documentation>Indicates if the device supports call buttons.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			
 			<xs:element name="GetServiceCapabilities">
 				<xs:complexType>
 					<xs:sequence/>
 				</xs:complexType>
 			</xs:element>
+
 			<xs:element name="GetServiceCapabilitiesResponse">
 				<xs:complexType>
 					<xs:sequence>
@@ -30,31 +60,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-			<!--===============================-->
-			<xs:complexType name="Capabilities">
-				<xs:attribute name="MaximumRecipients" type="xs:int" use="required">
-					<xs:annotation>
-						<xs:documentation>Indicates the maximum number of call recipients supported.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute name="MaximumRegistrars" type="xs:int" use="required">
-					<xs:annotation>
-						<xs:documentation>Indicates the maximum number of SIP registrars supported.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute name="MaximumStunServers" type="xs:int" use="required">
-					<xs:annotation>
-						<xs:documentation>Indicates the maximum number of STUN server URIs supported.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:attribute name="MaximumTurnServers" type="xs:int" use="required">
-					<xs:annotation>
-						<xs:documentation>Indicates the maximum number of TURN servers supported.</xs:documentation>
-					</xs:annotation>
-				</xs:attribute>
-				<xs:anyAttribute processContents="lax"/>
-			</xs:complexType>
-			<xs:element name="Capabilities" type="tsip:Capabilities"/>
+
 			<!--===============================-->
 			<xs:complexType name="BasicCredential">
 				<xs:sequence>
@@ -70,6 +76,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:element>
 				</xs:sequence>
 			</xs:complexType>
+			
 			<xs:complexType name="Registrar">
 				<xs:sequence>
 					<xs:element name="Uri" type="xs:anyURI" minOccurs="1" maxOccurs="1"/>
@@ -80,6 +87,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:element>
 				</xs:sequence>
 			</xs:complexType>
+			
 			<xs:simpleType name="TransportType">
 				<xs:restriction base="xs:string">
 					<xs:enumeration value="UDP"/>
@@ -87,7 +95,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:enumeration value="TLS"/>
 				</xs:restriction>
 			</xs:simpleType>
-			<!--===============================-->
+
 			<xs:complexType name="ServerConfiguration">
 				<xs:sequence>
 					<xs:element name="Registrar" type="tsip:Registrar" minOccurs="1" maxOccurs="unbounded"/>
@@ -115,33 +123,89 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							</xs:sequence>
 						</xs:complexType>
 					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 				</xs:sequence>
 			</xs:complexType>
-
-			<!--===============================-->
-			<xs:element name="GetServerConfiguration">
-				<xs:complexType>
-					<xs:sequence/>
-				</xs:complexType>
-			</xs:element>
-			<xs:element name="GetServerConfigurationResponse">
+			
+			<xs:element name="CreateServerConfiguration">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="ServerConfiguration" type="tsip:ServerConfiguration" minOccurs="0">
+						<xs:element name="ServerConfiguration" type="tsip:ServerConfiguration" minOccurs="1" maxOccurs="1">
 							<xs:annotation>
-								<xs:documentation>The current SIP server configuration of the device. Absent if no SIP server configuration has been set.</xs:documentation>
+								<xs:documentation>The new server configuration to be added on the device.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-			<!--===============================-->
+			<xs:element name="CreateServerConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken" minOccurs="1" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>Token of the created server configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<xs:element name="DeleteServerConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken" minOccurs="1" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>Token of the server configuration to delete.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="DeleteServerConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			
+			<xs:element name="GetServerConfigurations">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Optional token of the requested server configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetServerConfigurationsResponse">
+				<xs:complexType>
+					<xs:sequence minOccurs="0" maxOccurs="unbounded">
+						<xs:element name="Token" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Token of the server configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Configuration" type="tsip:ServerConfiguration">
+							<xs:annotation>
+								<xs:documentation>A SIP server configuration of the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			
 			<xs:element name="SetServerConfiguration">
 				<xs:complexType>
 					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Token of the server configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element name="ServerConfiguration" type="tsip:ServerConfiguration" minOccurs="0">
 							<xs:annotation>
-								<xs:documentation>The SIP server configuration to set on the device. Only one SIP server configuration is supported. If absent, the device shall remove the existing SIP server configuration.</xs:documentation>
+								<xs:documentation>The SIP server configuration to update on the device.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -155,6 +219,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<!--===============================-->
 			<xs:complexType name="NatConfiguration">
 				<xs:sequence>
+					<xs:element name="ServerConfiguration" type="tt:ReferenceToken">
+						<xs:annotation>
+							<xs:documentation>Token of the server configuration.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 					<xs:element name="Stun" minOccurs="0" maxOccurs="1">
 						<xs:annotation>
 							<xs:documentation>Collection of STUN server URIs used for NAT traversal.</xs:documentation>
@@ -188,32 +257,74 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							</xs:sequence>
 						</xs:complexType>
 					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 				</xs:sequence>
 			</xs:complexType>
-			<!--===============================-->
-			<xs:element name="GetNatConfiguration">
-				<xs:complexType>
-					<xs:sequence/>
-				</xs:complexType>
-			</xs:element>
-			<xs:element name="GetNatConfigurationResponse">
+
+			<xs:element name="AddNatConfiguration">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="NatConfiguration" type="tsip:NatConfiguration" minOccurs="0">
 							<xs:annotation>
-								<xs:documentation>The current NAT configuration of the device. Absent if no NAT configuration has been set.</xs:documentation>
+								<xs:documentation>The NAT configuration to be added to device. Maximum 1 per ServerConfiguration token.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-			<!--===============================-->
+			<xs:element name="AddNatConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			
+			<xs:element name="GetNatConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ServerConfiguration" type="tt:ReferenceToken" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Optional token to filter configurations based on server configuration token.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			
+			<xs:element name="GetNatConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="NatConfiguration" type="tsip:NatConfiguration" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>The NAT configurations of the device. Maximum 1 per ServerConfiguration token.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<xs:element name="RemoveNatConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ServerConfiguration" type="tt:ReferenceToken" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The matching ServerConfiguration token for the NAT configuration to removed.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="RemoveNatConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+
 			<xs:element name="SetNatConfiguration">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="NatConfiguration" type="tsip:NatConfiguration" minOccurs="0">
 							<xs:annotation>
-								<xs:documentation>The NAT configuration to set on the device. Only one NAT configuration is supported. If absent, the device shall remove the existing NAT configuration.</xs:documentation>
+								<xs:documentation>The NAT configuration to set.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -224,74 +335,63 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:sequence/>
 				</xs:complexType>
 			</xs:element>
+			
 			<!--===============================-->
-			<xs:complexType name="CallRecipient">
-				<xs:sequence>
-					<xs:element name="Name" type="xs:string" minOccurs="1">
-						<xs:annotation>
-							<xs:documentation>Display name of the call recipient.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:element name="UserId" type="xs:string" minOccurs="1">
-						<xs:annotation>
-							<xs:documentation>The user info/extension of the Address of Record (AoR) in SIP, identifying the recipient on the registrar.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:element name="Order" minOccurs="1">
-						<xs:annotation>
-							<xs:documentation>Order of the recipient, starting at 1 up to and including the value of the MaximumRecipients capability. This order determines in which order the contact is displayed or assigned to physical buttons.</xs:documentation>
-						</xs:annotation>
-						<xs:simpleType>
-							<xs:restriction base="xs:int">
-								<xs:minInclusive value="1"/>
-							</xs:restriction>
-						</xs:simpleType>
-					</xs:element>
-				</xs:sequence>
-			</xs:complexType>
 			<xs:complexType name="CallConfiguration">
 				<xs:sequence>
-					<xs:element name="AllowIncomingCalls" type="xs:boolean" minOccurs="1">
+					<xs:element name="ServerConfiguration" type="tt:ReferenceToken">
+						<xs:annotation>
+							<xs:documentation>Token of the server configuration.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AllowIncomingCalls" type="xs:boolean">
 						<xs:annotation>
 							<xs:documentation>Indicates whether the device shall allow incoming calls.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element name="AutoAnswer" type="xs:boolean" minOccurs="1">
+					<xs:element name="AutoAnswer" type="xs:boolean">
 						<xs:annotation>
 							<xs:documentation>Indicates whether the device shall automatically answer incoming calls.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element name="Recipient" type="tsip:CallRecipient" minOccurs="0" maxOccurs="unbounded">
-						<xs:annotation>
-							<xs:documentation>List of call recipients.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 				</xs:sequence>
 			</xs:complexType>
-			<!--===============================-->
-			<xs:element name="GetCallConfiguration">
-				<xs:complexType>
-					<xs:sequence/>
-				</xs:complexType>
-			</xs:element>
-			<xs:element name="GetCallConfigurationResponse">
+
+			<xs:element name="GetCallConfigurations">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="CallConfiguration" type="tsip:CallConfiguration" minOccurs="1" maxOccurs="1">
+						<xs:element name="ServerConfiguration" type="tt:ReferenceToken" minOccurs="0">
 							<xs:annotation>
-								<xs:documentation>The current call configuration of the device.</xs:documentation>
+								<xs:documentation>The matching ServerConfiguration token for the call configuration.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-			<!--===============================-->
+			<xs:element name="GetCallConfigurationsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CallConfiguration" type="tsip:CallConfiguration" minOccurs="1" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>One or all call configurations of the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
 			<xs:element name="SetCallConfiguration">
 				<xs:complexType>
 					<xs:sequence>
+						<xs:element name="ServerConfiguration" type="tt:ReferenceToken" minOccurs="1">
+							<xs:annotation>
+								<xs:documentation>The ServerConfiguration token for the call configuration to be modified.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element name="CallConfiguration" type="tsip:CallConfiguration" minOccurs="1" maxOccurs="1">
 							<xs:annotation>
-								<xs:documentation>The call configuration to set on the device. Only one call configuration is supported.</xs:documentation>
+								<xs:documentation>The call configuration to set on the device. Shall have 1 configuration per ServerConfiguration.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -302,6 +402,94 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:sequence/>
 				</xs:complexType>
 			</xs:element>
+
+			<!--===============================-->
+			<xs:complexType name="CallButton">
+				<xs:sequence>
+					<xs:element name="ButtonId" type="tt:ReferenceToken" minOccurs="1">
+						<xs:annotation>
+							<xs:documentation>The button's reference token.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Name" type="xs:string" minOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Display name of the call recipient.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="UserId" type="xs:string" minOccurs="1">
+						<xs:annotation>
+							<xs:documentation>The user info/extension of the Address of Record (AoR) in SIP, identifying the recipient on the registrar.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+				<xs:attribute name="Enabled" type="xs:boolean" use="optional" default="true">
+					<xs:annotation>
+						<xs:documentation>Boolean flag indicating whether this button is enabled or not.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:complexType>
+
+			<xs:complexType name="ButtonConfiguration">
+				<xs:sequence>
+					<xs:element name="ServerConfiguration" type="tt:ReferenceToken">
+						<xs:annotation>
+							<xs:documentation>Token of the server configuration.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Button" minOccurs="0" maxOccurs="unbounded" type="tsip:CallButton">
+						<xs:annotation>
+							<xs:documentation>List of configured call buttons for the matching server configuration.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+			</xs:complexType>
+
+			<xs:element name="GetCallButtons">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ServerConfiguration" type="tt:ReferenceToken" minOccurs="0" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>The matching ServerConfiguration token for the button configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetCallButtonsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ButtonConfiguration" type="tsip:ButtonConfiguration" minOccurs="1" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>A button configuration of the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<xs:element name="SetCallButtons">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ServerConfiguration" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>The ServerConfiguration token for the button configuration to be modified.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="ButtonConfiguration" type="tsip:ButtonConfiguration">
+							<xs:annotation>
+								<xs:documentation>The button configuration to set on the device. Shall have 1 configuration per ServerConfiguration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetCallButtonsResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+
 			<!--===============================-->
 			<xs:complexType name="StreamingConfiguration">
 				<xs:sequence>
@@ -433,11 +621,23 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="GetServiceCapabilitiesResponse">
 		<wsdl:part name="parameters" element="tsip:GetServiceCapabilitiesResponse"/>
 	</wsdl:message>
-	<wsdl:message name="GetServerConfigurationRequest">
-		<wsdl:part name="parameters" element="tsip:GetServerConfiguration"/>
+	<wsdl:message name="CreateServerConfigurationRequest">
+		<wsdl:part name="parameters" element="tsip:CreateServerConfiguration"/>
 	</wsdl:message>
-	<wsdl:message name="GetServerConfigurationResponse">
-		<wsdl:part name="parameters" element="tsip:GetServerConfigurationResponse"/>
+	<wsdl:message name="CreateServerConfigurationResponse">
+		<wsdl:part name="parameters" element="tsip:CreateServerConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteServerConfigurationRequest">
+		<wsdl:part name="parameters" element="tsip:DeleteServerConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteServerConfigurationResponse">
+		<wsdl:part name="parameters" element="tsip:DeleteServerConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetServerConfigurationsRequest">
+		<wsdl:part name="parameters" element="tsip:GetServerConfigurations"/>
+	</wsdl:message>
+	<wsdl:message name="GetServerConfigurationsResponse">
+		<wsdl:part name="parameters" element="tsip:GetServerConfigurationsResponse"/>
 	</wsdl:message>
 	<wsdl:message name="SetServerConfigurationRequest">
 		<wsdl:part name="parameters" element="tsip:SetServerConfiguration"/>
@@ -445,11 +645,23 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="SetServerConfigurationResponse">
 		<wsdl:part name="parameters" element="tsip:SetServerConfigurationResponse"/>
 	</wsdl:message>
+	<wsdl:message name="AddNatConfigurationRequest">
+		<wsdl:part name="parameters" element="tsip:AddNatConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="AddNatConfigurationResponse">
+		<wsdl:part name="parameters" element="tsip:AddNatConfigurationResponse"/>
+	</wsdl:message>
 	<wsdl:message name="GetNatConfigurationRequest">
 		<wsdl:part name="parameters" element="tsip:GetNatConfiguration"/>
 	</wsdl:message>
 	<wsdl:message name="GetNatConfigurationResponse">
 		<wsdl:part name="parameters" element="tsip:GetNatConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="RemoveNatConfigurationRequest">
+		<wsdl:part name="parameters" element="tsip:RemoveNatConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="RemoveNatConfigurationResponse">
+		<wsdl:part name="parameters" element="tsip:RemoveNatConfigurationResponse"/>
 	</wsdl:message>
 	<wsdl:message name="SetNatConfigurationRequest">
 		<wsdl:part name="parameters" element="tsip:SetNatConfiguration"/>
@@ -457,17 +669,29 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="SetNatConfigurationResponse">
 		<wsdl:part name="parameters" element="tsip:SetNatConfigurationResponse"/>
 	</wsdl:message>
-	<wsdl:message name="GetCallConfigurationRequest">
-		<wsdl:part name="parameters" element="tsip:GetCallConfiguration"/>
+	<wsdl:message name="GetCallConfigurationsRequest">
+		<wsdl:part name="parameters" element="tsip:GetCallConfigurations"/>
 	</wsdl:message>
-	<wsdl:message name="GetCallConfigurationResponse">
-		<wsdl:part name="parameters" element="tsip:GetCallConfigurationResponse"/>
+	<wsdl:message name="GetCallConfigurationsResponse">
+		<wsdl:part name="parameters" element="tsip:GetCallConfigurationsResponse"/>
 	</wsdl:message>
 	<wsdl:message name="SetCallConfigurationRequest">
 		<wsdl:part name="parameters" element="tsip:SetCallConfiguration"/>
 	</wsdl:message>
 	<wsdl:message name="SetCallConfigurationResponse">
 		<wsdl:part name="parameters" element="tsip:SetCallConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetCallButtonsRequest">
+		<wsdl:part name="parameters" element="tsip:GetCallButtons"/>
+	</wsdl:message>
+	<wsdl:message name="GetCallButtonsResponse">
+		<wsdl:part name="parameters" element="tsip:GetCallButtonsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetCallButtonsRequest">
+		<wsdl:part name="parameters" element="tsip:SetCallButtons"/>
+	</wsdl:message>
+	<wsdl:message name="SetCallButtonsResponse">
+		<wsdl:part name="parameters" element="tsip:SetCallButtonsResponse"/>
 	</wsdl:message>
 	<wsdl:message name="GetStreamingConfigurationRequest">
 		<wsdl:part name="parameters" element="tsip:GetStreamingConfiguration"/>
@@ -493,35 +717,72 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<wsdl:input message="tsip:GetServiceCapabilitiesRequest"/>
 			<wsdl:output message="tsip:GetServiceCapabilitiesResponse"/>
 		</wsdl:operation>
-		<wsdl:operation name="GetServerConfiguration">
+		<wsdl:operation name="CreateServerConfiguration">
+			<wsdl:documentation>This operation creates a new SIP server configuration on the device.</wsdl:documentation>
+			<wsdl:input message="tsip:CreateServerConfigurationRequest"/>
+			<wsdl:output message="tsip:CreateServerConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteServerConfiguration">
+			<wsdl:documentation>This operation deletes an existing SIP server configuration from the device. Deleting a server 
+				configuration removes all other configuration types that reference this configuration.</wsdl:documentation>
+			<wsdl:input message="tsip:DeleteServerConfigurationRequest"/>
+			<wsdl:output message="tsip:DeleteServerConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetServerConfigurations">
 			<wsdl:documentation>This operation gets the SIP server configuration of the device. The device shall support this command. Only one SIP server configuration is supported.</wsdl:documentation>
-			<wsdl:input message="tsip:GetServerConfigurationRequest"/>
-			<wsdl:output message="tsip:GetServerConfigurationResponse"/>
+			<wsdl:input message="tsip:GetServerConfigurationsRequest"/>
+			<wsdl:output message="tsip:GetServerConfigurationsResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="SetServerConfiguration">
 			<wsdl:documentation>This operation sets the SIP server configuration of the device. The device shall support this command. Only one SIP server configuration is supported. If the configuration is absent, the device shall remove the existing SIP server configuration.</wsdl:documentation>
 			<wsdl:input message="tsip:SetServerConfigurationRequest"/>
 			<wsdl:output message="tsip:SetServerConfigurationResponse"/>
 		</wsdl:operation>
+		<wsdl:operation name="AddNatConfiguration">
+			<wsdl:documentation>This operation adds a NAT configuration to the device. Shall support a maximum of 1 configuration per ServerConfiguration token.</wsdl:documentation>
+			<wsdl:input message="tsip:AddNatConfigurationRequest"/>
+			<wsdl:output message="tsip:AddNatConfigurationResponse"/>
+		</wsdl:operation>
 		<wsdl:operation name="GetNatConfiguration">
-			<wsdl:documentation>This operation gets the NAT configuration of the device. Only one NAT configuration is supported.</wsdl:documentation>
+			<wsdl:documentation>This operation gets the NAT configurations of the device. Shall support a maximum of 1 configuration per ServerConfiguration token.</wsdl:documentation>
 			<wsdl:input message="tsip:GetNatConfigurationRequest"/>
 			<wsdl:output message="tsip:GetNatConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="RemoveNatConfiguration">
+			<wsdl:documentation>This operation removes the NAT configuration matching the given ServerConfiguration token from the device.</wsdl:documentation>
+			<wsdl:input message="tsip:RemoveNatConfigurationRequest"/>
+			<wsdl:output message="tsip:RemoveNatConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="SetNatConfiguration">
 			<wsdl:documentation>This operation sets the NAT configuration of the device. Only one NAT configuration is supported. If the configuration is absent, the device shall remove the existing NAT configuration.</wsdl:documentation>
 			<wsdl:input message="tsip:SetNatConfigurationRequest"/>
 			<wsdl:output message="tsip:SetNatConfigurationResponse"/>
 		</wsdl:operation>
-		<wsdl:operation name="GetCallConfiguration">
-			<wsdl:documentation>This operation gets the call configuration of the device. Only one call configuration is supported.</wsdl:documentation>
-			<wsdl:input message="tsip:GetCallConfigurationRequest"/>
-			<wsdl:output message="tsip:GetCallConfigurationResponse"/>
+		<wsdl:operation name="GetCallConfigurations">
+			<wsdl:documentation>This operation gets the call configurations of the device. Shall contain 1 configuration per ServerConfiguration.</wsdl:documentation>
+			<wsdl:input message="tsip:GetCallConfigurationsRequest"/>
+			<wsdl:output message="tsip:GetCallConfigurationsResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="SetCallConfiguration">
-			<wsdl:documentation>This operation sets the call configuration of the device. Only one call configuration is supported. If the configuration is absent, the device shall remove the existing call configuration.</wsdl:documentation>
+			<wsdl:documentation>This operation sets the call configuration of the device.</wsdl:documentation>
 			<wsdl:input message="tsip:SetCallConfigurationRequest"/>
 			<wsdl:output message="tsip:SetCallConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetCallButtons">
+			<wsdl:documentation>
+				This operation gets the call button configurations of the device. Shall contain 1 configuration per ServerConfiguration.
+				This method is optional. It shall be available if the CallButtons capability is TRUE.
+			</wsdl:documentation>
+			<wsdl:input message="tsip:GetCallButtonsRequest"/>
+			<wsdl:output message="tsip:GetCallButtonsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetCallButtons">
+			<wsdl:documentation>
+				This operation sets the call button configuration of the device.
+				This method is optional. It shall be available if the CallButtons capability is TRUE.
+			</wsdl:documentation>
+			<wsdl:input message="tsip:SetCallButtonsRequest"/>
+			<wsdl:output message="tsip:SetCallButtonsResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="GetStreamingConfiguration">
 			<wsdl:documentation>This operation gets the SIP streaming configuration of the device.</wsdl:documentation>
@@ -550,8 +811,26 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
-		<wsdl:operation name="GetServerConfiguration">
-			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/GetServerConfiguration"/>
+		<wsdl:operation name="CreateServerConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/CreateServerConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteServerConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/DeleteServerConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetServerConfigurations">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/GetServerConfigurations"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
@@ -568,8 +847,26 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
+		<wsdl:operation name="AddNatConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/AddNatConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
 		<wsdl:operation name="GetNatConfiguration">
 			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/GetNatConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="RemoveNatConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/RemoveNatConfiguration"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
@@ -586,8 +883,8 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
-		<wsdl:operation name="GetCallConfiguration">
-			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/GetCallConfiguration"/>
+		<wsdl:operation name="GetCallConfigurations">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/GetCallConfigurations"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
@@ -597,6 +894,24 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="SetCallConfiguration">
 			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/SetCallConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetCallButtons">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/GetCallButtons"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetCallButtons">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/SetCallButtons"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
