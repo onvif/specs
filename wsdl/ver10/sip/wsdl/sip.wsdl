@@ -404,6 +404,33 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>
 
 			<!--===============================-->
+			<xs:complexType name="CallButtonOptions">
+				<xs:sequence>
+					<xs:element name="Physical" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>List of physical button ids.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Relay" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>List of relay button ids.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Virtual" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>List of virtual button ids. Example for a touchscreen interface.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:complexType>
+
+			<xs:element name="GetCallButtonOptions">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetCallButtonOptionsResponse" type="tsip:CallButtonOptions"/>
+			
 			<xs:complexType name="CallButton">
 				<xs:sequence>
 					<xs:element name="ButtonId" type="tt:ReferenceToken" minOccurs="1">
@@ -693,6 +720,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="SetCallButtonsResponse">
 		<wsdl:part name="parameters" element="tsip:SetCallButtonsResponse"/>
 	</wsdl:message>
+	<wsdl:message name="GetCallButtonOptionsRequest">
+		<wsdl:part name="parameters" element="tsip:GetCallButtonOptions"/>
+	</wsdl:message>
+	<wsdl:message name="GetCallButtonOptionsResponse">
+		<wsdl:part name="parameters" element="tsip:GetCallButtonOptionsResponse"/>
+	</wsdl:message>
 	<wsdl:message name="GetStreamingConfigurationRequest">
 		<wsdl:part name="parameters" element="tsip:GetStreamingConfiguration"/>
 	</wsdl:message>
@@ -783,6 +816,14 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</wsdl:documentation>
 			<wsdl:input message="tsip:SetCallButtonsRequest"/>
 			<wsdl:output message="tsip:SetCallButtonsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetCallButtonOptions">
+			<wsdl:documentation>
+				This operation gets the list of supported physical, relay and virtual call button identifiers of the device.
+				This method is optional. It shall be available if the CallButtons capability is TRUE.
+			</wsdl:documentation>
+			<wsdl:input message="tsip:GetCallButtonOptionsRequest"/>
+			<wsdl:output message="tsip:GetCallButtonOptionsResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="GetStreamingConfiguration">
 			<wsdl:documentation>This operation gets the SIP streaming configuration of the device.</wsdl:documentation>
@@ -912,6 +953,15 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="SetCallButtons">
 			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/SetCallButtons"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetCallButtonOptions">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/GetCallButtonOptions"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
