@@ -404,19 +404,33 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>
 
 			<!--===============================-->
+			<xs:complexType name="ButtonDescription">
+				<xs:sequence>
+					<xs:element name="Token" type="tt:ReferenceToken">
+						<xs:annotation>
+							<xs:documentation>A button's id.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Description" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>A button's description.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:complexType>
 			<xs:complexType name="CallButtonOptions">
 				<xs:sequence>
-					<xs:element name="Physical" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="Physical" type="tsip:ButtonDescription" minOccurs="0" maxOccurs="unbounded">
 						<xs:annotation>
 							<xs:documentation>List of physical button ids.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element name="Relay" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="Relay" type="tsip:ButtonDescription" minOccurs="0" maxOccurs="unbounded">
 						<xs:annotation>
 							<xs:documentation>List of relay button ids.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element name="Virtual" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="Virtual" type="tsip:ButtonDescription" minOccurs="0" maxOccurs="unbounded">
 						<xs:annotation>
 							<xs:documentation>List of virtual button ids. Example for a touchscreen interface.</xs:documentation>
 						</xs:annotation>
@@ -520,6 +534,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<!--===============================-->
 			<xs:complexType name="StreamingConfiguration">
 				<xs:sequence>
+					<xs:element name="ServerConfiguration" type="tt:ReferenceToken">
+						<xs:annotation>
+							<xs:documentation>The ServerConfiguration token for the button configuration to be modified.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 					<xs:element name="VideoSource" type="tt:VideoSourceConfiguration" minOccurs="0" maxOccurs="1">
 						<xs:annotation>
 							<xs:documentation></xs:documentation>
@@ -589,15 +608,21 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:sequence>
 			</xs:complexType>
 			<!--===============================-->
-			<xs:element name="GetStreamingConfiguration">
-				<xs:complexType>
-					<xs:sequence/>
-				</xs:complexType>
-			</xs:element>
-			<xs:element name="GetStreamingConfigurationResponse">
+			<xs:element name="GetStreamingConfigurations">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="StreamingConfiguration" type="tsip:StreamingConfiguration" minOccurs="1" maxOccurs="1">
+						<xs:element name="ServerConfiguration" type="tt:ReferenceToken" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The matching ServerConfiguration token for the streaming configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetStreamingConfigurationsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="StreamingConfiguration" type="tsip:StreamingConfiguration" minOccurs="0" maxOccurs="unbounded">
 							<xs:annotation>
 								<xs:documentation>The current SIP streaming configuration of the device.</xs:documentation>
 							</xs:annotation>
@@ -726,11 +751,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="GetCallButtonOptionsResponse">
 		<wsdl:part name="parameters" element="tsip:GetCallButtonOptionsResponse"/>
 	</wsdl:message>
-	<wsdl:message name="GetStreamingConfigurationRequest">
-		<wsdl:part name="parameters" element="tsip:GetStreamingConfiguration"/>
+	<wsdl:message name="GetStreamingConfigurationsRequest">
+		<wsdl:part name="parameters" element="tsip:GetStreamingConfigurations"/>
 	</wsdl:message>
-	<wsdl:message name="GetStreamingConfigurationResponse">
-		<wsdl:part name="parameters" element="tsip:GetStreamingConfigurationResponse"/>
+	<wsdl:message name="GetStreamingConfigurationsResponse">
+		<wsdl:part name="parameters" element="tsip:GetStreamingConfigurationsResponse"/>
 	</wsdl:message>
 	<wsdl:message name="SetStreamingConfigurationRequest">
 		<wsdl:part name="parameters" element="tsip:SetStreamingConfiguration"/>
@@ -825,10 +850,10 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<wsdl:input message="tsip:GetCallButtonOptionsRequest"/>
 			<wsdl:output message="tsip:GetCallButtonOptionsResponse"/>
 		</wsdl:operation>
-		<wsdl:operation name="GetStreamingConfiguration">
-			<wsdl:documentation>This operation gets the SIP streaming configuration of the device.</wsdl:documentation>
-			<wsdl:input message="tsip:GetStreamingConfigurationRequest"/>
-			<wsdl:output message="tsip:GetStreamingConfigurationResponse"/>
+		<wsdl:operation name="GetStreamingConfigurations">
+			<wsdl:documentation>This operation gets the SIP streaming configurations of the device.</wsdl:documentation>
+			<wsdl:input message="tsip:GetStreamingConfigurationsRequest"/>
+			<wsdl:output message="tsip:GetStreamingConfigurationsResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="SetStreamingConfiguration">
 			<wsdl:documentation>This operation sets the SIP streaming configuration of the device.</wsdl:documentation>
