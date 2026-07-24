@@ -1083,7 +1083,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:sequence>
 				<xs:attribute name="GovLength" type="xs:int">
 					<xs:annotation>
-						<xs:documentation>Group of Video frames length. Determines typically the interval in which the I-Frames will be coded. An entry of 1 indicates I-Frames are continuously generated. An entry of 2 indicates that every 2nd image is an I-Frame, and 3 only every 3rd frame, etc. The frames in between are coded as P or B Frames.</xs:documentation>
+						<xs:documentation>Group of Video frames length. Determines typically the interval in which the I-Frames will be coded. An entry of 1 indicates I-Frames are continuously generated. An entry of 2 indicates that every 2nd image is an I-Frame, and 3 only every 3rd frame, etc. The frames in between are coded as P or B Frames. The actual interval may be higher due to e.g. dynamic encoding.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="AnchorFrameDistance" type="xs:int">
@@ -1154,6 +1154,31 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:documentation>The target average output bitrate in kbps. If this parameter is set to 0, AverageBitRate shall be ignored.</xs:documentation>
 					<xs:documentation>If this parameter is configured beyond BitrateLimit, device adapts to BitrateLimit.</xs:documentation>
 					<xs:documentation>When this parameter is set to a non-zero value, ConstantBitRate shall be ignored.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="DynamicGov" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional - Indicates if the device is allowed to dynamically change the GovLength. The GovLength is the minimum interval rather than a fixed value. The MaxGovLength is the upper bound.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="MaxGovLength" type="xs:int" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional - Indicates the maximum interval in which the I-Frames will be coded.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="DynamicFPS" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional - Indicates that device is allowed to skip unnecessary P-frames when there is no motion. To ensure a minimum framerate, set MinFrameRate. The FrameRateLimit is the upper bound. GuaranteedFrameRate should be disabled automatically when DynamicFps is enabled.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="MinFrameRate" type="xs:int" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional - Indicates the minimum framerate.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="EncodingStrategy" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional - Indicates the encoding strategy for reducing detail in regions of lower interest. It affects performance of DynamicGov and DynamicFPS.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
@@ -1227,6 +1252,24 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
+		<xs:attribute name="DynamicGovSupported" type="xs:boolean">
+			<xs:annotation>
+				<xs:documentation>Indicates the support for enabling DynamicGOV and configuring MaxGovLength.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="MaxGovLengthRange" type="tt:IntList">
+			<xs:annotation>
+				<xs:documentation>Exactly two values, which define the Lower and Upper bounds for the supported maximum group of Video frames length used for DynamicGov. These values typically correspond to the I-Frame distance.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="DynamicFpsSupported" type="xs:boolean">
+			<xs:annotation>
+				<xs:documentation>Indicates the support for enabling DynamicFPS and configuring MinFrameRate.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="EncodingStrategiesSupported" type="tt:StringAttrList">
+			<xs:annotation>
+				<xs:documentation>List of supported strategy for bitrate reduction encoding defined by the device.</xs:documentation>
 		<xs:attribute name="SecureStreamingProtocolAlgorithms" type="tt:StringAttrList" use="optional">
 			<xs:annotation>
 				<xs:documentation>If secure RTSP streaming is supported, this shall return the list of supported cryptographic algorithms as defined by tt:SrtpSecurityAlgorithms.</xs:documentation>
