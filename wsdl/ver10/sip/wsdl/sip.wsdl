@@ -1,0 +1,636 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../ver20/util/onvif-wsdl-viewer.xsl"?>
+<!--
+Copyright (c) 2008-2025 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+
+Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
+
+THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION, MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2) SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF THE CORPORATION.
+-->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tsip="http://www.onvif.org/ver10/sip/wsdl" targetNamespace="http://www.onvif.org/ver10/sip/wsdl">
+	<wsdl:types>
+		<xs:schema targetNamespace="http://www.onvif.org/ver10/sip/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" 
+				   xmlns:tsip="http://www.onvif.org/ver10/sip/wsdl" elementFormDefault="qualified" version="26.12">
+			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../../ver10/schema/onvif.xsd"/>
+			<!--===============================-->
+			<xs:element name="GetServiceCapabilities">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetServiceCapabilitiesResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Capabilities" type="tsip:Capabilities">
+							<xs:annotation>
+								<xs:documentation>The capabilities of the SIP service are returned in the Capabilities element.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:complexType name="Capabilities">
+				<xs:attribute name="MaximumRecipients" type="xs:int" use="required">
+					<xs:annotation>
+						<xs:documentation>Indicates the maximum number of call recipients supported.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="MaximumRegistrars" type="xs:int" use="required">
+					<xs:annotation>
+						<xs:documentation>Indicates the maximum number of SIP registrars supported.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="MaximumStunServers" type="xs:int" use="required">
+					<xs:annotation>
+						<xs:documentation>Indicates the maximum number of STUN server URIs supported.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="MaximumTurnServers" type="xs:int" use="required">
+					<xs:annotation>
+						<xs:documentation>Indicates the maximum number of TURN servers supported.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<xs:element name="Capabilities" type="tsip:Capabilities"/>
+			<!--===============================-->
+			<xs:complexType name="BasicCredential">
+				<xs:sequence>
+					<xs:element name="UserName" type="xs:string" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>User name.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Password" type="xs:string" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Password. Device shall not return the password in the reply.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:complexType>
+			<xs:complexType name="Registrar">
+				<xs:sequence>
+					<xs:element name="Uri" type="xs:anyURI" minOccurs="1" maxOccurs="1"/>
+					<xs:element name="Transport" type="xs:string" minOccurs="1" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Transport protocol to use for the registrar. Valid values are defined in tsip:TransportType.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:complexType>
+			<xs:simpleType name="TransportType">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="UDP"/>
+					<xs:enumeration value="TCP"/>
+					<xs:enumeration value="TLS"/>
+				</xs:restriction>
+			</xs:simpleType>
+			<!--===============================-->
+			<xs:complexType name="ServerConfiguration">
+				<xs:sequence>
+					<xs:element name="Registrar" type="tsip:Registrar" minOccurs="1" maxOccurs="unbounded"/>
+					<xs:element name="UserId" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>The user info/extension of the Address of Record (AoR) in SIP, identifying the user on the registrar.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="CertPathValidationPolicyID" type="xs:string" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>The unique identifier of the certification path validation policy to be used for validating the server certificate as declared in the security service.</xs:documentation>
+							<xs:documentation>If not configured, server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Authentication" minOccurs="1">
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="Credential" type="tsip:BasicCredential" minOccurs="0" maxOccurs="1"/>
+								<xs:element name="AuthorizationServer" type="tt:ReferenceToken" minOccurs="0" maxOccurs="1">
+									<xs:annotation>
+										<xs:documentation>AuthorizationServer token referring to the server that provides access tokens to authorize with the
+											renewal endpoint as defined in the Security specification.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+							</xs:sequence>
+						</xs:complexType>
+					</xs:element>
+				</xs:sequence>
+			</xs:complexType>
+
+			<!--===============================-->
+			<xs:element name="GetServerConfiguration">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetServerConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ServerConfiguration" type="tsip:ServerConfiguration" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The current SIP server configuration of the device. Absent if no SIP server configuration has been set.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetServerConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ServerConfiguration" type="tsip:ServerConfiguration" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The SIP server configuration to set on the device. Only one SIP server configuration is supported. If absent, the device shall remove the existing SIP server configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetServerConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:complexType name="NatConfiguration">
+				<xs:sequence>
+					<xs:element name="Stun" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Collection of STUN server URIs used for NAT traversal.</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="Uri" type="xs:anyURI" minOccurs="1" maxOccurs="unbounded">
+									<xs:annotation>
+										<xs:documentation>List of STUN server URI.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+							</xs:sequence>
+						</xs:complexType>
+					</xs:element>
+					<xs:element name="Turn" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Collection of TURN servers used for NAT traversal.</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="Uri" type="xs:anyURI" minOccurs="1" maxOccurs="unbounded">
+									<xs:annotation>
+										<xs:documentation>List of TURN server URI.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+								<xs:element name="Credentials" type="tsip:BasicCredential" minOccurs="0" maxOccurs="1">
+									<xs:annotation>
+										<xs:documentation>Credentials used to authenticate with the TURN server.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+							</xs:sequence>
+						</xs:complexType>
+					</xs:element>
+				</xs:sequence>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:element name="GetNatConfiguration">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetNatConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="NatConfiguration" type="tsip:NatConfiguration" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The current NAT configuration of the device. Absent if no NAT configuration has been set.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetNatConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="NatConfiguration" type="tsip:NatConfiguration" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The NAT configuration to set on the device. Only one NAT configuration is supported. If absent, the device shall remove the existing NAT configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetNatConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:complexType name="CallRecipient">
+				<xs:sequence>
+					<xs:element name="Name" type="xs:string" minOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Display name of the call recipient.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="UserId" type="xs:string" minOccurs="1">
+						<xs:annotation>
+							<xs:documentation>The user info/extension of the Address of Record (AoR) in SIP, identifying the recipient on the registrar.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Order" minOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Order of the recipient, starting at 1 up to and including the value of the MaximumRecipients capability. This order determines in which order the contact is displayed or assigned to physical buttons.</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:int">
+								<xs:minInclusive value="1"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:element>
+				</xs:sequence>
+			</xs:complexType>
+			<xs:complexType name="CallConfiguration">
+				<xs:sequence>
+					<xs:element name="AllowIncomingCalls" type="xs:boolean" minOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Indicates whether the device shall allow incoming calls.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AutoAnswer" type="xs:boolean" minOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Indicates whether the device shall automatically answer incoming calls.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Recipient" type="tsip:CallRecipient" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>List of call recipients.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:element name="GetCallConfiguration">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetCallConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CallConfiguration" type="tsip:CallConfiguration" minOccurs="1" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>The current call configuration of the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetCallConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CallConfiguration" type="tsip:CallConfiguration" minOccurs="1" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>The call configuration to set on the device. Only one call configuration is supported.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetCallConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:complexType name="StreamingConfiguration">
+				<xs:sequence>
+					<xs:element name="VideoSource" type="tt:VideoSourceConfiguration" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation></xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="VideoEncoder" type="tt:VideoEncoder2Configuration" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation></xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioSource" type="tt:AudioSourceConfiguration" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation></xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioEncoder" type="tt:AudioEncoder2Configuration" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation></xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioOutput" type="tt:AudioOutputConfiguration" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation></xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioDecoder" type="tt:AudioDecoderConfiguration" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation></xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+			</xs:complexType>
+			<xs:complexType name="StreamingConfigurationOptions">
+				<xs:sequence>
+					<xs:element name="VideoSource" type="tt:VideoSourceConfigurationOptions" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation></xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="VideoEncoder" type="tt:VideoEncoder2ConfigurationOptions" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation></xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioSource" type="tt:AudioSourceConfigurationOptions" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation></xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioEncoder" type="tt:AudioEncoder2ConfigurationOptions" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation></xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioOutput" type="tt:AudioOutputConfigurationOptions" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation></xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioDecoder" type="tt:AudioDecoder2Options" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation></xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:element name="GetStreamingConfiguration">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetStreamingConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="StreamingConfiguration" type="tsip:StreamingConfiguration" minOccurs="1" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>The current SIP streaming configuration of the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetStreamingConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="StreamingConfiguration" type="tsip:StreamingConfiguration" minOccurs="1" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>The SIP streaming configuration to set on the device. Only one SIP streaming configuration is supported.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetStreamingConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetStreamingConfigurationOptions">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetStreamingConfigurationOptionsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="StreamingConfigurationOptions" type="tsip:StreamingConfigurationOptions" minOccurs="1" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>The supported options for SIP streaming configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+		</xs:schema>
+	</wsdl:types>
+	<wsdl:message name="GetServiceCapabilitiesRequest">
+		<wsdl:part name="parameters" element="tsip:GetServiceCapabilities"/>
+	</wsdl:message>
+	<wsdl:message name="GetServiceCapabilitiesResponse">
+		<wsdl:part name="parameters" element="tsip:GetServiceCapabilitiesResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetServerConfigurationRequest">
+		<wsdl:part name="parameters" element="tsip:GetServerConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="GetServerConfigurationResponse">
+		<wsdl:part name="parameters" element="tsip:GetServerConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetServerConfigurationRequest">
+		<wsdl:part name="parameters" element="tsip:SetServerConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetServerConfigurationResponse">
+		<wsdl:part name="parameters" element="tsip:SetServerConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetNatConfigurationRequest">
+		<wsdl:part name="parameters" element="tsip:GetNatConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="GetNatConfigurationResponse">
+		<wsdl:part name="parameters" element="tsip:GetNatConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetNatConfigurationRequest">
+		<wsdl:part name="parameters" element="tsip:SetNatConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetNatConfigurationResponse">
+		<wsdl:part name="parameters" element="tsip:SetNatConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetCallConfigurationRequest">
+		<wsdl:part name="parameters" element="tsip:GetCallConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="GetCallConfigurationResponse">
+		<wsdl:part name="parameters" element="tsip:GetCallConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetCallConfigurationRequest">
+		<wsdl:part name="parameters" element="tsip:SetCallConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetCallConfigurationResponse">
+		<wsdl:part name="parameters" element="tsip:SetCallConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetStreamingConfigurationRequest">
+		<wsdl:part name="parameters" element="tsip:GetStreamingConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="GetStreamingConfigurationResponse">
+		<wsdl:part name="parameters" element="tsip:GetStreamingConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetStreamingConfigurationRequest">
+		<wsdl:part name="parameters" element="tsip:SetStreamingConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetStreamingConfigurationResponse">
+		<wsdl:part name="parameters" element="tsip:SetStreamingConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetStreamingConfigurationOptionsRequest">
+		<wsdl:part name="parameters" element="tsip:GetStreamingConfigurationOptions"/>
+	</wsdl:message>
+	<wsdl:message name="GetStreamingConfigurationOptionsResponse">
+		<wsdl:part name="parameters" element="tsip:GetStreamingConfigurationOptionsResponse"/>
+	</wsdl:message>
+	<wsdl:portType name="SipPort">
+		<wsdl:operation name="GetServiceCapabilities">
+			<wsdl:documentation>Returns the capabilities of the SIP service. The result is returned in a typed answer.</wsdl:documentation>
+			<wsdl:input message="tsip:GetServiceCapabilitiesRequest"/>
+			<wsdl:output message="tsip:GetServiceCapabilitiesResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetServerConfiguration">
+			<wsdl:documentation>This operation gets the SIP server configuration of the device. The device shall support this command. Only one SIP server configuration is supported.</wsdl:documentation>
+			<wsdl:input message="tsip:GetServerConfigurationRequest"/>
+			<wsdl:output message="tsip:GetServerConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetServerConfiguration">
+			<wsdl:documentation>This operation sets the SIP server configuration of the device. The device shall support this command. Only one SIP server configuration is supported. If the configuration is absent, the device shall remove the existing SIP server configuration.</wsdl:documentation>
+			<wsdl:input message="tsip:SetServerConfigurationRequest"/>
+			<wsdl:output message="tsip:SetServerConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetNatConfiguration">
+			<wsdl:documentation>This operation gets the NAT configuration of the device. Only one NAT configuration is supported.</wsdl:documentation>
+			<wsdl:input message="tsip:GetNatConfigurationRequest"/>
+			<wsdl:output message="tsip:GetNatConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetNatConfiguration">
+			<wsdl:documentation>This operation sets the NAT configuration of the device. Only one NAT configuration is supported. If the configuration is absent, the device shall remove the existing NAT configuration.</wsdl:documentation>
+			<wsdl:input message="tsip:SetNatConfigurationRequest"/>
+			<wsdl:output message="tsip:SetNatConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetCallConfiguration">
+			<wsdl:documentation>This operation gets the call configuration of the device. Only one call configuration is supported.</wsdl:documentation>
+			<wsdl:input message="tsip:GetCallConfigurationRequest"/>
+			<wsdl:output message="tsip:GetCallConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetCallConfiguration">
+			<wsdl:documentation>This operation sets the call configuration of the device. Only one call configuration is supported. If the configuration is absent, the device shall remove the existing call configuration.</wsdl:documentation>
+			<wsdl:input message="tsip:SetCallConfigurationRequest"/>
+			<wsdl:output message="tsip:SetCallConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetStreamingConfiguration">
+			<wsdl:documentation>This operation gets the SIP streaming configuration of the device.</wsdl:documentation>
+			<wsdl:input message="tsip:GetStreamingConfigurationRequest"/>
+			<wsdl:output message="tsip:GetStreamingConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetStreamingConfiguration">
+			<wsdl:documentation>This operation sets the SIP streaming configuration of the device.</wsdl:documentation>
+			<wsdl:input message="tsip:SetStreamingConfigurationRequest"/>
+			<wsdl:output message="tsip:SetStreamingConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetStreamingConfigurationOptions">
+			<wsdl:documentation>This operation gets the supported options for SIP streaming configuration of the device.</wsdl:documentation>
+			<wsdl:input message="tsip:GetStreamingConfigurationOptionsRequest"/>
+			<wsdl:output message="tsip:GetStreamingConfigurationOptionsResponse"/>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="SipBinding" type="tsip:SipPort">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="GetServiceCapabilities">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/GetServiceCapabilities"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetServerConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/GetServerConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetServerConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/SetServerConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetNatConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/GetNatConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetNatConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/SetNatConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetCallConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/GetCallConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetCallConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/SetCallConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetStreamingConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/GetStreamingConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetStreamingConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/SetStreamingConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetStreamingConfigurationOptions">
+			<soap:operation soapAction="http://www.onvif.org/ver10/sip/wsdl/GetStreamingConfigurationOptions"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<!--===============================-->
+</wsdl:definitions>

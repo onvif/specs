@@ -1,0 +1,567 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="docbook.xsl" type="text/xsl" ?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <info>
+    <title>ONVIF SIP Specification</title>
+    <titleabbrev>ONVIF SIP Spec</titleabbrev>
+    <releaseinfo>26.12</releaseinfo>
+    <author>
+      <orgname>ONVIF™</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate>December, 2026</pubdate>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="media/logo.png" contentwidth="60mm"/>
+      </imageobject>
+    </mediaobject>
+    <copyright>
+      <year>2008-2026</year>
+      <holder>ONVIF™ All rights reserved.</holder>
+    </copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so
+        long as this copyright notice, license and disclaimer are retained with all copies of the
+        document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR
+        AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+        LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+        NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE;
+        OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS,
+        TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY
+        DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR
+        RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT, WHETHER OR NOT (1) THE CORPORATION,
+        MEMBERS OR THEIR AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES, OR (2)
+        SUCH DAMAGES WERE REASONABLY FORESEEABLE, AND ARISING OUT OF OR RELATING TO ANY USE OR
+        DISTRIBUTION OF THIS DOCUMENT.  THE FOREGOING DISCLAIMER AND LIMITATION ON LIABILITY DO NOT
+        APPLY TO, INVALIDATE, OR LIMIT REPRESENTATIONS AND WARRANTIES MADE BY THE MEMBERS AND THEIR
+        RESPECTIVE AFFILIATES TO THE CORPORATION AND OTHER MEMBERS IN CERTAIN WRITTEN POLICIES OF
+        THE CORPORATION.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>26.12</revnumber>
+        <date>Dec-2026</date>
+        <revremark>Initial version. Introduction of SIP specification.</revremark>
+      </revision>
+    </revhistory>
+  </info>
+  <chapter xml:id="_Toc_SipOverview">
+    <title>Overview</title>
+    <para>This specification defines the SIP-related operations for ONVIF compliant devices. It covers SIP server configuration, NAT traversal configuration, and call management.</para>
+    <para>The WSDL for this service is defined at: http://www.onvif.org/ver10/sip/wsdl</para>
+    <table>
+      <title>Referenced namespaces</title>
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="11*"/>
+        <colspec colname="c2" colwidth="11*"/>
+        <thead>
+          <row>
+            <entry>
+              <para>Prefix</para>
+            </entry>
+            <entry>
+              <para>Namespace URI</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>env</para>
+            </entry>
+            <entry>
+              <para>http://www.w3.org/2003/05/soap-envelope</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>ter</para>
+            </entry>
+            <entry>
+              <para>http://www.onvif.org/ver10/error</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>xs</para>
+            </entry>
+            <entry>
+              <para>http://www.w3.org/2001/XMLSchema</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>tt</para>
+            </entry>
+            <entry>
+              <para>http://www.onvif.org/ver10/schema</para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>tsip</para>
+            </entry>
+            <entry>
+              <para>http://www.onvif.org/ver10/sip/wsdl</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </chapter>
+  <chapter xml:id="_Toc_SipService">
+    <title>SIP Service</title>
+    <section xml:id="_Toc_SipGetServiceCapabilities">
+      <title>GetServiceCapabilities</title>
+      <para>This command returns the capabilities of the SIP service.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="text">This is an empty message.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">Capabilities [tsip:Capabilities]</para>
+            <para role="text">The capability response message contains the requested SIP service capabilities.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="text">No command specific faults defined.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem>
+            <para role="access">PRE_AUTH</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table xml:id="_Toc_SipCapabilitiesTable">
+        <title>The capabilities in the GetServiceCapabilities command</title>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="33*"/>
+          <colspec colname="c2" colwidth="67*"/>
+          <thead>
+            <row>
+              <entry>
+                <para>Capability</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody valign="top">
+            <row>
+              <entry>
+                <para>MaximumRecipients</para>
+              </entry>
+              <entry>
+                <para>Indicates the maximum number of call recipients supported. Also defines the maximum value for the Order field of a call recipient.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>MaximumStunServers</para>
+              </entry>
+              <entry>
+                <para>Indicates the maximum number of STUN server URIs supported.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>MaximumTurnServers</para>
+              </entry>
+              <entry>
+                <para>Indicates the maximum number of TURN servers supported.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>MaximumRegistrars</para>
+              </entry>
+              <entry>
+                <para>Indicates the maximum number of SIP registrars supported.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section xml:id="_Toc_ServerConfiguration">
+      <title>SIP Server Configuration</title>
+      <para>A device indicating SIP capabilities shall support the GetServerConfiguration and SetServerConfiguration commands. Only one SIP server configuration is supported per device. The maximum number of registrars is indicated by the MaximumRegistrars SIP capability.</para>
+      <para>The SIP server configuration consists of the following fields:</para>
+      <variablelist>
+        <varlistentry>
+          <term>Registrar</term>
+          <listitem><para>One or more SIP registrar entries. Each entry contains a Uri and a Transport field. The Uri shall be an absolute URI without scheme, such as: my.domain:port/p/a/t/h?query. The Transport field specifies the transport protocol to use for the registrar and shall be one of: UDP, TCP, or TLS.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>UserId</term>
+          <listitem><para>The user info/extension of the Address of Record (AoR) in SIP, identifying the device on the registrar.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>CertPathValidationPolicyID</term>
+          <listitem><para>Optional. The unique identifier of the certification path validation policy to be used for validating the server certificate as declared in the security service. If not configured, server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Authentication</term>
+          <listitem><para>Authentication configuration. Either Credential (UserName and Password) or AuthorizationServer shall be provided. Credential contains the username and password used to authenticate with the SIP server. AuthorizationServer is a reference token referring to the server that provides access tokens to authorize with the SIP server.</para></listitem>
+        </varlistentry>
+      </variablelist>
+      <section xml:id="_Toc_GetServerConfiguration">
+        <title>GetServerConfiguration</title>
+        <para>This operation gets the SIP server configuration of the device. The device shall not return the password in the response.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">ServerConfiguration - optional [tsip:ServerConfiguration]</para>
+              <para role="text">The current SIP server configuration of the device. Absent if no SIP server configuration has been set.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Toc_SetServerConfiguration">
+        <title>SetServerConfiguration</title>
+        <para>This operation sets the SIP server configuration of the device. Only one SIP server configuration is supported. The number of registrars shall not exceed the value indicated by the MaximumRegistrars SIP capability. If the configuration is absent, the device shall remove the existing SIP server configuration.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ServerConfiguration - optional [tsip:ServerConfiguration]</para>
+              <para role="text">The SIP server configuration to set on the device. If absent, the device shall remove the existing SIP server configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Receiver - ter:OperationProhibited - ter:MaximumRegistrars</para>
+              <para role="text">The number of registrars exceeds the maximum number supported by the device.</para>
+              <para role="param">env:Sender - ter:InvalidArgs - ter:MissingRegistrar</para>
+              <para role="text">No registrar URI has been specified.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidRegistrar</para>
+              <para role="text">The URI set in the registrar is not valid.</para>
+              <para role="param">env:Sender - ter:InvalidArgs - ter:MissingAuthentication</para>
+              <para role="text">Both AuthorizationServer and Credential are missing. One must be provided.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:AuthorizationServer</para>
+              <para role="text">No AuthorizationServer exists for the specified token.</para>
+              <para role="param">env:Sender - ter:OperationProhibited - ter:ConfigurationConflict</para>
+              <para role="text">Cannot have both AuthorizationServer and Credential configured at the same time. Only one may be provided.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:CertPathValidationPolicyID</para>
+              <para role="text">No certification path validation policy exists under the requested CertPathValidationPolicyID.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
+    <section xml:id="_Toc_NatConfiguration">
+      <title>NAT Configuration</title>
+      <para>A device indicating MaximumStunServers > 0 or MaximumTurnServers > 0 in the SIP capabilities shall support the GetNatConfiguration and 
+        SetNatConfiguration commands. Only one NAT configuration is supported per device. The maximum number of STUN server URIs is indicated by the 
+        MaximumStunServers SIP capability and the maximum number of TURN servers is indicated by the MaximumTurnServers SIP capability. URIs provided 
+        in this context shall be an absolute URI without scheme, such as: stun.domain:port or turn.domain:port</para>
+      <para>The NAT configuration consists of the following fields:</para>
+      <variablelist>
+        <varlistentry>
+          <term>Stun</term>
+          <listitem><para>Optional. Contains one or more STUN server URIs used for NAT traversal.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Turn</term>
+          <listitem><para>Optional, unbounded. Each entry contains one or more TURN server URIs and optional credentials (Username and Password) used to authenticate with the TURN server. The device shall not return the password in the response.</para></listitem>
+        </varlistentry>
+      </variablelist>
+      <section xml:id="_Toc_GetNatConfiguration">
+        <title>GetNatConfiguration</title>
+        <para>This operation gets the NAT configuration of the device. The device shall not return TURN server passwords in the response.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">NatConfiguration - optional [tsip:NatConfiguration]</para>
+              <para role="text">The current NAT configuration of the device. Absent if no NAT configuration has been set.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Toc_SetNatConfiguration">
+        <title>SetNatConfiguration</title>
+        <para>This operation sets the NAT configuration of the device. Only one NAT configuration is supported. The number of STUN server URIs shall not exceed the value indicated by the MaximumStunServers SIP capability. The number of TURN servers shall not exceed the value indicated by the MaximumTurnServers SIP capability. If the configuration is absent, the device shall remove the existing NAT configuration.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">NatConfiguration - optional [tsip:NatConfiguration]</para>
+              <para role="text">The NAT configuration to set on the device. If absent, the device shall remove the existing NAT configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Receiver - ter:OperationProhibited - ter:MaximumStunServers</para>
+              <para role="text">The number of STUN server URIs exceeds the maximum number supported by the device.</para>
+              <para role="param">env:Receiver - ter:OperationProhibited - ter:MaximumTurnServers</para>
+              <para role="text">The number of TURN servers exceeds the maximum number supported by the device.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
+    <section xml:id="_Toc_CallConfiguration">
+      <title>Call Configuration</title>
+      <para>A device indicating SIP capabilities shall support the GetCallConfiguration and SetCallConfiguration commands. The maximum number of call recipients is indicated by the MaximumRecipients SIP capability. Only one call configuration is supported per device.</para>
+      <para>Each recipient has an Order field that determines in which order the contact is displayed or assigned to physical buttons. The Order value shall start at 1 and shall not exceed the value of the MaximumRecipients capability.</para>
+      <section xml:id="_Toc_GetCallConfiguration">
+        <title>GetCallConfiguration</title>
+        <para>This operation gets the call configuration of the device.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">CallConfiguration [tsip:CallConfiguration]</para>
+              <para role="text">The current call configuration of the device.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Toc_SetCallConfiguration">
+        <title>SetCallConfiguration</title>
+        <para>This operation sets the call configuration of the device. The number of recipients shall not exceed the value indicated by the MaximumRecipients SIP capability. The Order field of each recipient shall be between 1 and the MaximumRecipients capability value, inclusive.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">CallConfiguration [tsip:CallConfiguration]</para>
+              <para role="text">The call configuration to set on the device. Only one call configuration is supported.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Receiver - ter:OperationProhibited - ter:MaximumRecipients</para>
+              <para role="text">The number of recipients exceeds the maximum number of call recipients supported by the device.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
+    <section xml:id="_Toc_StreamingConfiguration">
+      <title>SIP Streaming Configuration</title>
+      <para>
+        The SIP streaming configuration defines the media configurations used during SIP-based streaming sessions.
+        It allows a client to update the provided configurations used when the device participates in a SIP call.
+      </para>
+      <para>
+        Only a single SIP streaming configuration is supported per device. If the device has a SIP server configuration,
+        the SIP streaming configuration determines the media parameters applied during incoming or outgoing SIP sessions.
+        A configuration shall be provided per configuration type that the device supports for SIP streaming. For example,
+        if the device supports both video and audio streaming over SIP, the SIP streaming configuration shall include a
+        video source configuration, a video encoder configuration, an audio source configuration and an audio encoder
+        configuration. If the device supports only audio output (such as a speaker device), then the configuration shall
+        only include the audio output configuration and audio decoder configuration.
+      </para>
+      <para>
+        Note: The configuration listed as part of the SIP streaming configuration are not expected to be used by the device
+        for non-SIP streaming sessions. This means that the configurations needs not to be returned in GetXConfigurations,
+        nor to be configured through SetXConfiguration.
+      </para>
+      <section xml:id="_Toc_GetStreamingConfiguration">
+        <title>GetStreamingConfiguration</title>
+        <para>This operation retrieves the current SIP streaming configuration of the device.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">StreamingConfiguration [tsip:StreamingConfiguration]</para>
+              <para role="text">The current SIP streaming configuration of the device.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Toc_SetStreamingConfiguration">
+        <title>SetStreamingConfiguration</title>
+        <para>This operation sets the SIP streaming configuration of the device.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">StreamingConfiguration [tsip:StreamingConfiguration]</para>
+              <para role="text">The SIP streaming configuration to set on the device. Only one SIP streaming configuration is supported.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">ACTUATE</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Toc_GetStreamingConfigurationOptions">
+        <title>GetStreamingConfigurationOptions</title>
+        <para>This operation retrieves the supported options for the SIP streaming configuration of the device.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">StreamingConfigurationOptions [tsip:StreamingConfigurationOptions]</para>
+              <para role="text">The supported options for SIP streaming configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">No command specific faults defined.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_MEDIA</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
+  </chapter>
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para/>
+  </appendix>
+</book>
+
