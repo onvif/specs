@@ -2240,6 +2240,8 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 						<xs:annotation>
 							<xs:documentation>
 								 Optional configuration parameters for SRTP pre-shared key usage, applicable when SRTP is supported. When this configuration is present, RTP packets shall be encrypted.
+								 When this configuration is absent, RTP packets shall not be encrypted. 
+								On GetMulticastAudioDecoderConfiguration, this element shall be present only if encryption is enabled; it shall be absent if encryption is disabled.
 							</xs:documentation>
 						</xs:annotation>
 					</xs:element>
@@ -2258,8 +2260,10 @@ decoding .A decoder shall decode every data it receives (according to its capabi
 				SRTP Pre-Shared Key (PSK) represented as a hexadecimal string.
 				This includes both the SRTP master key, followed by the master salt.
 				The sizes of the key and salt depend on the specified SecureStreamingProtocolAlgorithm.
-				When this element contains a non-empty value, RTP packets shall be encrypted.
 				The SRTPPSK shall be returned as an empty string on a get method.
+				In SetMulticastAudioDecoderConfiguration requests, if SRTPPreSharedParameters is present but 
+				SRTPPSK is empty, the device shall retain the previously configured pre-shared key.
+				To update the PSK, a valid non-empty hexadecimal value must be provided.
 				</xs:documentation>
 			</xs:annotation>
 			</xs:element>
