@@ -489,9 +489,11 @@
         <para>Service discovery uses the <code>server/discover</code> JSON-RPC method, which
           replaces the <code>initialize</code> / <code>initialized</code> handshake of earlier
           versions. The response carries the server's capability flags (tools, resources, prompts)
-          and its human-readable identity. The ONVIF Client shall call <code>server/discover</code>
-          as the first request on any new connection before issuing <code>resources/list</code>,
-            <code>tools/list</code>, or any <code>tools/call</code>.</para>
+          and its human-readable identity. As required by MCP 2026-07-28, the ONVIF Device shall
+          implement <code>server/discover</code>. The ONVIF Client may call
+            <code>server/discover</code> before issuing other requests to learn supported versions
+          and capabilities, but it is not required to call it first and may invoke any operation
+          directly and handle <code>UnsupportedProtocolVersionError</code>.</para>
         <para>The stateless model is the correct choice for the ONVIF AI use case: ONVIF Devices
           are deployed as horizontally-scalable endpoints behind load balancers, and pinning a
           ONVIF Client to a specific server instance via a session identifier would prevent transparent
@@ -820,24 +822,32 @@
 
     <section>
       <title>Network Discovery</title>
-      <para/>
-      <!-- Content to be added. -->
-      <!--
-        How the ONVIF Client locates ONVIF Devices on the network.
-        Candidates: mDNS service type _onvif-ai._tcp, ONVIF DeviceMgmt extension,
-        static URL configuration.
-        Status: open item (see Section 10.3).
-      -->
+      <para>MCP 2026-07-28 does not define network-level device discovery. Therefore, ONVIF Device
+        discovery remains dependent on the mechanisms specified by [ONVIF Core]. An ONVIF Client
+        shall discover ONVIF Devices and obtain their service endpoint using the ONVIF Core
+        discovery procedures before initiating MCP requests.</para>
+    </section>
+
+    <section>
+      <title>Service Discovery</title>
+      <para>An ONVIF Device that supports the AI Service shall advertise the MCP service endpoint
+        URL through the ONVIF Core service discovery mechanism. In the ONVIF Core
+          <code>GetServices</code> response, the corresponding AI Service entry
+          (<code>tds:GetServiceResponse</code>) shall contain the service address used by the ONVIF
+        Client for MCP requests.</para>
     </section>
 
     <section>
       <title>Capability Discovery</title>
-      <para/>
-      <!-- Content to be added. -->
-      <!--
-        Once connected, how the ONVIF Client learns what tools and schemas a service exposes.
-        Overview of the complete message sequence (diagram).
-      -->
+      <para>Capability discovery shall be performed through the MCP
+          <code>resources/read</code> operation using the resource URI
+          <code>capabilities://onvif/ai</code>.</para>
+      <para>An ONVIF Device implementing the AI Service shall expose
+          <code>capabilities://onvif/ai</code> and shall return the AI Service capabilities through
+          <code>resources/read</code>. Exposing capabilities for other ONVIF services is optional;
+        when provided, the same URI pattern shall be used by replacing
+          <code>ai</code> with the service name (for example,
+          <code>capabilities://onvif/&lt;service-name&gt;</code>).</para>
       <section>
         <title>Session Initialization</title>
         <para/>
@@ -1014,5 +1024,161 @@
       </table>
     </section>
   </chapter>
+
+  <appendix>
+    <title>Example Call Sequence (informative)</title>
+    <para>This annex is informative and provides an example end-to-end sequence with sample
+      values.</para>
+
+    <section>
+      <title>Network discovery (ONVIF Core)</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends ONVIF Core
+        discovery requests (for example WS-Discovery Probe) to locate devices on the network.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns discovery
+        responses (for example ProbeMatches) with the Device Service endpoint.</para>
+    </section>
+    <section>
+      <title>Service discovery (ONVIF Core GetServices)</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls ONVIF Core
+          <code>GetServices</code> on the Device Service endpoint.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns
+          <code>GetServiceResponse</code> including the AI Service entry with MCP endpoint URL
+        (example: <code>https://192.0.2.10/mcp</code>).</para>
+    </section>
+    <section>
+      <title>A.3 Optional protocol preflight</title>
+      <para><emphasis>Request (Client to Device):</emphasis> For MCP 2026-07-28, the ONVIF Client
+        may call <code>server/discover</code> before other requests.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "server/discover",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "MyAIClient",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns service
+        identity, supported protocol versions, and capability flags, or
+          <code>UnsupportedProtocolVersionError</code> with the supported versions list.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "resultType": "complete",
+    "identity": {
+      "name": "ONVIF AI Service",
+      "version": "1.0.0"
+    },
+    "protocolVersions": ["2026-07-28"],
+    "capabilities": {
+      "resources": {},
+      "tools": {}
+    }
+  }
+}</programlisting>
+      <para><emphasis>Legacy example (informative only):</emphasis> For legacy MCP clients, an
+        <code>initialize</code> request may be used.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {},
+    "clientInfo": {
+      "name": "MyAIClient",
+      "version": "1.0.0"
+    }
+  }
+}</programlisting>
+      <para><emphasis>Legacy response (Device to Client, informative only):</emphasis></para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {
+      "resources": {},
+      "tools": {}
+    },
+    "serverInfo": {
+      "name": "ONVIF AI Service",
+      "version": "1.0.0"
+    }
+  }
+}</programlisting>
+    </section>
+    <section>
+      <title>AI capability discovery</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
+          <code>resources/read</code> with URI <code>capabilities://onvif/ai</code>.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns the AI
+        Service capabilities document.</para>
+    </section>
+    <section>
+      <title>Optional non-AI capability discovery</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
+          <code>resources/read</code> with URI
+          <code>capabilities://onvif/&lt;service-name&gt;</code> (example:
+          <code>capabilities://onvif/media</code>).</para>
+      <para><emphasis>Response (Device to Client):</emphasis> If supported, the ONVIF Device
+        returns capabilities for the requested service; otherwise it returns a resource-not-found
+        error.</para>
+    </section>
+    <section>
+      <title>Schema resource inventory</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
+          <code>resources/list</code>.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns available
+        schema resources (example URIs: <code>linkml://onvif/ai/events/v1</code>,
+          <code>linkml://onvif/ai/skills/v1</code>).</para>
+    </section>
+    <section>
+      <title>Schema retrieval</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
+          <code>resources/read</code> for each schema URI from <code>resources/list</code>
+        (example: <code>linkml://onvif/ai/events/v1</code>).</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns schema
+        content for each requested resource.</para>
+    </section>
+    <section>
+      <title>Tool discovery</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
+          <code>tools/list</code>.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns Skill
+        definitions and input schemas (for example <code>get_status</code>,
+          <code>set_detection_region</code>, <code>set_sensitivity</code>).</para>
+    </section>
+    <section>
+      <title>Skill invocation (read)</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
+          <code>tools/call</code> with <code>name: "get_status"</code> and arguments
+          <code>{}</code>.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns current
+        status as structured result content.</para>
+    </section>
+    <section>
+      <title>Skill invocation (actuate)</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
+          <code>tools/call</code> with <code>name: "set_sensitivity"</code> and sample arguments
+          <code>{"channel":"ch1","value":0.70}</code>.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns operation
+        outcome (success or authorization/validation error).</para>
+    </section>
+    <section>
+      <title>Metadata stream subscription</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client opens the persistent
+        Streamable HTTP channel (<code>GET https://192.0.2.10/mcp</code>).</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device streams
+        server-initiated notifications and JSON-LD metadata events on that channel.</para>
+    </section>
+  </appendix>
 
 </book>
