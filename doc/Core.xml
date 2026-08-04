@@ -553,6 +553,8 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc2617.txt"></link>&gt;</para>
     <para>RFC 7616, HTTP Digest Access Authentication</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7616.txt"></link>&gt;</para>
+    <para>RFC 7617, The 'Basic' HTTP Authentication Scheme</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7617.txt"></link>&gt;</para>
     <para>RFC 3315, Dynamic Host Configuration Protocol for IPv6 (DHCPv6)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc3315.txt"></link>&gt;</para>
     <para>RFC 3548, The Base16, Base32, and Base64 Data Encodings</para>
@@ -2271,10 +2273,14 @@ DATE: when response was generated
             <para>TLS client authorization and</para>
           </listitem>
           <listitem>
+            <para>Devices supporting HTTP Basic authentication according to [RFC 7617], only over HTTPS, and</para>
+          </listitem>
+          <listitem>
             <para>Devices supporting JWT client authorization based on [RFC 6750], only over
               HTTPS.</para>
           </listitem>
         </itemizedlist>
+        <para>A device that supports HTTP Basic authentication over HTTPS shall signal the HttpBasic capability as true.</para>
         <para>If server supports both digest authentication as specified in [RFC 2617] and the user name token profile as specified in WS-Security the following behavior shall be adapted: a web service request can be authenticated on the HTTP level via digest authentication [RFC 2617] or on the web service level via the WS-Security (WSS) framework. If a client does not supply authentication credentials along with a web service request, the server shall assume that the client intends to use digest authentication [RFC 2617], if required. Hence, if a client does not provide authentication credentials when requesting a service that requires authentication, it will receive an HTTP 401 error according to [RFC 2617]. Note that this behaviour on the server’s side differs from the case of supporting only username token profile, which requires for this case an HTTP 400 error on the HTTP level and a SOAP:Fault env:Sender ter:NotAuthorized error on the WS level.</para>
         <para>A client should not simultaneously supply authentication credentials on both the HTTP level and the WS level. If a server receives a web service request that contains authentication credentials on both the HTTP level and the WS level, it shall first validate the credentials provided on the HTTP layer. If this validation was successful, the server shall finally validate the authentication credentials provided on the WS layer.</para>
         <para><xref linkend="AuthenticationFlow"/> summarizes the authentication of a web service request by a server over HTTP and HTTPS.</para>
@@ -2290,7 +2296,7 @@ DATE: when response was generated
         <para>JWT client authorization should only be used over TLS secured connections, in order to
           protect bearer tokens against replay attacks.</para>
         <para>An ONVIF compliant device should authenticate an RTSP request at the RTSP level. If HTTP is used to tunnel the RTSP request the device shall not authenticate on the HTTP level.</para>
-        <para>When authenticating RTSP or HTTP methods, an ONVIF compliant device shall use digest authentication [RFC 2617] or JWT-based authorization. The credentials shall be managed with the GetUsers, CreateUsers, DeleteUsers and SetUser methods. If the device also supports WS-Security, the same set of credentials shall be used.</para>
+        <para>When authenticating RTSP or HTTP methods, an ONVIF compliant device shall use digest authentication [RFC 2617], HTTP Basic authentication [RFC 7617] or JWT-based authorization. The credentials shall be managed with the GetUsers, CreateUsers, DeleteUsers and SetUser methods. If the device also supports WS-Security, the same set of credentials shall be used.</para>
       </section>
       <section>
         <title>Authentication over SCTP</title>
@@ -3262,7 +3268,7 @@ onvif://www.onvif.org/name/ARV-453
                   </entry>
                 </row>
                 <row>
-                  <entry morerows="17">
+                  <entry morerows="18">
                     <para>Security</para>
                   </entry>
                   <entry>
@@ -3294,6 +3300,16 @@ onvif://www.onvif.org/name/ARV-453
                   </entry>
                   <entry>
                     <para>Indication if the device supports the HTTP digest authentication. </para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>HttpBasic</para>
+                  </entry>
+                  <entry>
+                    <para>Indication if the device supports HTTP Basic authentication according to
+                      [RFC 7617], only over HTTPS. For backward compatibility this feature is
+                      disabled by default.</para>
                   </entry>
                 </row>
                 <row>
