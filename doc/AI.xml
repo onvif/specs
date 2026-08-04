@@ -51,7 +51,7 @@
     </revhistory>
   </info>
 
-  <chapter>
+  <chapter xml:id="ch_scope">
     <title>Scope</title>
     <para>This specification defines a layered protocol stack that enables any ONVIF-compliant
       client to discover, configure, and consume data from any AI-enabled ONVIF-compliant device.
@@ -81,7 +81,7 @@
       mapping, and TLS requirements.</para>
   </chapter>
 
-  <chapter>
+  <chapter xml:id="ch_normative_references">
     <title>Normative references</title>
     <para>[ONVIF Core] ONVIF Core Specification</para>
     <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"/>]</para>
@@ -121,9 +121,9 @@
     <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://github.com/onvif/specs/pull/2"/>]</para>
   </chapter>
 
-  <chapter>
+  <chapter xml:id="ch_terms_and_definitions">
     <title>Terms and Definitions</title>
-    <section>
+    <section xml:id="sec_definitions">
       <title>Definitions</title>
       <informaltable>
         <tgroup cols="2">
@@ -256,7 +256,7 @@
         </tgroup>
       </informaltable>
     </section>
-    <section>
+    <section xml:id="sec_abbreviations">
       <title>Abbreviations</title>
       <informaltable>
         <tgroup cols="2">
@@ -357,7 +357,7 @@
     </section>
   </chapter>
 
-  <chapter>
+  <chapter xml:id="ch_overview">
     <title>Overview</title>
     <para>AI configurations are handled through the ai service. AI configurations are used to
       configure and control the intelligent functions as defined in this specification. The device
@@ -435,10 +435,10 @@
     </table>
   </chapter>
 
-  <chapter>
+  <chapter xml:id="ch_building_blocks">
     <title>Building Blocks</title>
 
-    <section>
+    <section xml:id="sec_mcp_tool_interface">
       <title>MCP — The AI Tool Interface</title>
       <para>The Model Context Protocol (MCP) is an open, JSON-RPC 2.0 based protocol designed to
         connect AI language models and agents to external tools and data sources. In the ONVIF AI
@@ -446,7 +446,7 @@
         Host) and each ONVIF Device (acting as an MCP Server). Adopting MCP means that any ONVIF Client
         can invoke any compliant ONVIF Device without requiring a vendor-specific driver.</para>
 
-      <section>
+      <section xml:id="sec_protocol_primitives">
         <title>Protocol Primitives</title>
         <para>MCP defines three categories of server-side object that a host may discover and
           use:</para>
@@ -474,17 +474,18 @@
         </itemizedlist>
       </section>
 
-      <section>
+      <section xml:id="sec_transport_modes">
         <title>Transport Modes</title>
         <para>This specification normatively uses the Streamable HTTP transport. The ONVIF Client
           sends JSON-RPC requests as HTTP POST to the ONVIF Device's <code>/mcp</code> endpoint. For
           server-initiated messages (schema update notifications, metadata events) the ONVIF Client
-          also opens a long-lived HTTP GET on <code>/mcp</code>; the ONVIF Device sends
-          newline-delimited JSON-RPC notifications over this persistent channel. An ONVIF Device
+          also opens a Streamable HTTP channel on <code>/mcp</code>; the ONVIF Device sends
+          server-initiated messages over that channel as defined by the Streamable HTTP transport
+          in MCP 2026-07-28. An ONVIF Device
           conforming to this specification shall support the Streamable HTTP transport.</para>
       </section>
 
-      <section>
+      <section xml:id="sec_protocol_version">
         <title>Protocol Version</title>
         <para>This specification normatively requires MCP 2026-07-28. Implementations conforming to
           this specification shall not use the session-era MCP 2025-11-25 protocol.</para>
@@ -510,7 +511,7 @@
       </section>
     </section>
 
-    <section>
+    <section xml:id="sec_linkml_schema_definition">
       <title>LinkML — Schema Definition Language</title>
       <para>LinkML (Linked data Modeling Language) is an open schema definition language that
         describes data structures in YAML. In the ONVIF AI stack, LinkML is the normative language
@@ -519,7 +520,7 @@
         <xref linkend="sec-jsonld"/>) is the runtime wire format that carries instances of that
         schema.</para>
 
-      <section>
+      <section xml:id="sec_schema_structure">
         <title>Schema Structure</title>
         <para>A LinkML schema document is a YAML file with the following top-level keys:</para>
         <itemizedlist>
@@ -549,7 +550,7 @@
         </itemizedlist>
       </section>
 
-      <section>
+      <section xml:id="sec_dual_role_schema">
         <title>Dual Role: Event Schema and Skill Input Schema</title>
         <para>The same LinkML model serves two distinct purposes within the stack:</para>
         <itemizedlist>
@@ -571,7 +572,7 @@
         </itemizedlist>
       </section>
 
-      <section>
+      <section xml:id="sec_compilation_to_json_schema">
         <title>Compilation to JSON Schema</title>
         <para>The LinkML toolchain provides a generator that produces a JSON Schema document from a
           LinkML YAML source. This compiled JSON Schema is used in two places:</para>
@@ -596,7 +597,7 @@
           independently.</para>
       </section>
 
-      <section>
+      <section xml:id="sec_onvif_common_type_library">
         <title>ONVIF Common Type Library</title>
         <para>The ONVIF AI Working Group maintains a shared LinkML type library
           (<code>ver10_schema_common_linkml</code>) that defines base classes and enumerations
@@ -622,7 +623,7 @@
         complementary: LinkML declares what data looks like; JSON-LD is the payload that
         conforms to that declaration.</para>
 
-      <section>
+      <section xml:id="sec_context_and_type_annotations">
         <title>Context and Type Annotations</title>
         <para>Every metadata event emitted by an ONVIF Device shall include two mandatory JSON-LD
           keywords:</para>
@@ -640,7 +641,7 @@
           and validate the event.</para>
       </section>
 
-      <section>
+      <section xml:id="sec_self_describing_events">
         <title>Self-Describing Events and Dynamic Schema Registration</title>
         <para>The self-describing nature of JSON-LD enables a dynamic schema registration workflow.
           When the ONVIF Client Schema
@@ -659,7 +660,7 @@
           pre-coordinated ONVIF Client update. The ONVIF Client self-heals its schema knowledge at runtime.</para>
       </section>
 
-      <section>
+      <section xml:id="sec_relationship_to_linked_data">
         <title>Relationship to Linked Data</title>
         <para>Although full JSON-LD processing (graph expansion, context dereferencing, SPARQL
           querying) is not required by this specification, the use of JSON-LD framing ensures
@@ -672,10 +673,10 @@
     </section>
   </chapter>
 
-  <chapter>
+  <chapter xml:id="ch_protocol_stack_architecture">
     <title>Protocol Stack Architecture</title>
 
-    <section>
+    <section xml:id="sec_architecture_overview">
       <title>Architecture Overview</title>
       <para>The ONVIF AI Protocol Stack is structured around the standard ONVIF roles of an ONVIF
         Client and an ONVIF Device, with an OIDC Authorization Server acting as the shared trust
@@ -709,14 +710,14 @@
         to the ONVIF Client, delivered as MCP <code>notifications/message</code> frames.</para>
     </section>
     
-    <section>
+    <section xml:id="sec_protocol_stack">
       <title>Protocol Stack</title>
       <para>The ONVIF AI protocol stack uses two independent communication buses, both protected by
         TLS and bearer tokens issued by the OIDC Authorization Server. The <emphasis>Control Bus</emphasis>
         carries client-initiated MCP requests, while the <emphasis>Data Bus</emphasis> carries
         server-pushed metadata events. The detailed behavior of each bus is defined in the following
         sections.</para>
-      <section>
+      <section xml:id="sec_control_bus">
         <title>Control Bus</title>
         <para>The <emphasis>Control Bus</emphasis> is the command path used by the ONVIF Client to
           discover and invoke Skills exposed by an ONVIF Device. It is request/response oriented and
@@ -762,7 +763,7 @@
           error indicating why the operation could not be completed.</para>
       </section>
 
-      <section>
+      <section xml:id="sec_metadata_data_bus">
         <title>Metadata Data Bus</title>
         <para>The <emphasis>Metadata Data Bus</emphasis> is the event path used by the ONVIF Device to
           publish AI analytics results to the ONVIF Client. It is server-initiated, asynchronous, and
@@ -782,7 +783,7 @@
               </row>
               <row>
                 <entry align="left"><para><emphasis role="bold">Protocol</emphasis></para></entry>
-                <entry align="left"><para>MCP 2026-07-28 over Streamable HTTP persistent GET.</para></entry>
+                <entry align="left"><para>MCP 2026-07-28 Streamable HTTP.</para></entry>
               </row>
               <row>
                 <entry align="left"><para><emphasis role="bold">Message pattern</emphasis></para></entry>
@@ -790,7 +791,7 @@
               </row>
               <row>
                 <entry align="left"><para><emphasis role="bold">Transport</emphasis></para></entry>
-                <entry align="left"><para>HTTP GET to <code>/mcp</code> over HTTP/1.1 or HTTP/2.</para></entry>
+                <entry align="left"><para>Streamable HTTP to <code>/mcp</code> endpoint, as defined by MCP 2026-07-28.</para></entry>
               </row>
               <row>
                 <entry align="left"><para><emphasis role="bold">Payload</emphasis></para></entry>
@@ -809,7 +810,7 @@
       </section>
     </section>
 
-    <section>
+    <section xml:id="sec_identity_and_authorization_server">
       <title>Identity and Authorization Server</title>
       <para>The ONVIF AI protocol stack requires an OAuth 2.1 Authorization Server, as specified in
         the ONVIF Security Service Specification.</para>
@@ -823,12 +824,12 @@
     </section>
   </chapter>
 
-  <chapter>
+  <chapter xml:id="ch_data_exchange">
     <title>Service Discovery and Data Exchange</title>
     <para/>
     <!-- Content to be added. -->
 
-    <section>
+    <section xml:id="sec_network_discovery">
       <title>Network Discovery</title>
       <para>MCP 2026-07-28 does not define network-level device discovery. Therefore, ONVIF Device
         discovery remains dependent on the mechanisms specified by [ONVIF Core]. An ONVIF Client
@@ -836,7 +837,7 @@
         discovery procedures before initiating MCP requests.</para>
     </section>
 
-    <section>
+    <section xml:id="sec_service_discovery">
       <title>Service Discovery</title>
       <para>An ONVIF Device that supports the AI Service shall advertise the MCP service endpoint
         URL through the ONVIF Core service discovery mechanism. In the ONVIF Core
@@ -845,105 +846,338 @@
         Client for MCP requests.</para>
     </section>
 
-    <section>
-      <title>Capability Discovery</title>
-      <para>Capability discovery shall be performed through the MCP
-          <code>resources/read</code> operation using the resource URI
-          <code>capabilities://onvif/ai</code>.</para>
-      <para>An ONVIF Device implementing the AI Service shall expose
-          <code>capabilities://onvif/ai</code> and shall return the AI Service capabilities through
-          <code>resources/read</code>. Exposing capabilities for other ONVIF services is optional;
-        when provided, the same URI pattern shall be used by replacing
-          <code>ai</code> with the service name (for example,
-          <code>capabilities://onvif/&lt;service-name&gt;</code>).</para>
-      <section>
+    <section xml:id="sec_feature_discovery">
+      <title>Feature Discovery</title>
+      <section xml:id="sec_session_initialization">
         <title>Session Initialization</title>
-        <para/>
-        <!-- Content to be added. -->
-        <!--
-          - initialize request/response: protocol version negotiation, capability flags
-            (tools, resources, prompts).
-          - notifications/initialized acknowledgement.
-          - GET /mcp persistent notification channel.
-          - Session ID header (session-era mode only).
-          - Forward-looking note: MCP 2026-07-28 RC replaces initialize with
-            server/discover.
-        -->
+        <para>An ONVIF Device implementing the AI Service shall implement the
+          <code>server/discover</code> JSON-RPC method as required by MCP 2026-07-28. The ONVIF
+          Client MAY call <code>server/discover</code> as its first request on a new connection to
+          obtain the device's protocol version, server identity, and capability flags.
+          Alternatively, the ONVIF Client MAY call any other operation directly and handle
+          <code>UnsupportedProtocolVersionError</code> (JSON-RPC error code
+          <code>-32022</code>) if the protocol version is not supported. In that case the ONVIF
+          Device shall include a <code>supported</code> list in the error response and the ONVIF
+          Client shall retry using one of the listed versions.</para>
+        <para>The <code>server/discover</code> response shall contain:
+          <code>protocolVersions</code> — the list of MCP protocol versions supported by the
+          device; <code>identity</code> — the server <code>name</code> and
+          <code>version</code>; <code>capabilities</code> — the declared capability flags
+          (<code>tools</code>, <code>resources</code>, <code>prompts</code>). The ONVIF Client
+          shall use the returned <code>capabilities</code> flags to determine which subsequent
+          operations are available before invoking them.</para>
+        <para>The ONVIF Client shall open the Streamable HTTP channel as defined by MCP
+          2026-07-28 before it expects to receive <code>notifications/message</code> frames from
+          the ONVIF Device. This channel shall remain open for the duration of the session. See
+          <xref linkend="sec_annex_session_initialization"/> for wire format examples.</para>
       </section>
-      <section>
+      <section xml:id="sec_schema_retrieval">
         <title>Schema Retrieval</title>
-        <para/>
-        <!-- Content to be added. -->
-        <!--
-          - Step 1: resources/list — discover all LinkML schema resources.
-          - Step 2: resources/read for each resource with mimeType
-            application/linkml+yaml.
-          - Step 3: register_schema_bundle in Layer 2 Validator.
-          - Wire format examples for both request and response.
-          - Rationale for multi-resource schema bundles (primary + imported types).
-        -->
+        <para>The ONVIF AI Service exposes its LinkML metadata schema as one or more MCP
+          Resources. An ONVIF Client shall retrieve the schema bundle before processing any
+          <code>notifications/message</code> frame that carries metadata events.</para>
+        <para>The schema retrieval procedure is:
+          <orderedlist>
+            <listitem><para>The ONVIF Client calls <code>resources/list</code>. The response
+              includes one or more resources with <code>mimeType: application/linkml+yaml</code>
+              identifying the schema files.</para></listitem>
+            <listitem><para>The ONVIF Client calls <code>resources/read</code> for each schema
+              resource URI returned in step 1, in the order listed. A schema bundle may span
+              multiple resources when imported type definitions are split across files.</para></listitem>
+            <listitem><para>The ONVIF Client registers the complete schema bundle in its
+              validator.</para></listitem>
+          </orderedlist>
+        </para>
+        <para>An ONVIF Device shall advertise at least one resource with
+          <code>mimeType: application/linkml+yaml</code> describing the structure of every event
+          type it emits. The schema shall be self-contained — it shall not require the ONVIF
+          Client to resolve external URIs to validate event payloads.</para>
+        <para>See <xref linkend="sec_annex_schema_inventory"/> and <xref linkend="sec_annex_schema_retrieval"/> for wire format examples.</para>
       </section>
-      <section>
+      <section xml:id="sec_capability_discovery">
+        <title>Capability Discovery</title>
+        <para>Capability discovery shall be performed through the MCP
+          <code>resources/read</code> operation using the reserved URI
+          <code>capabilities://onvif/ai</code>.</para>
+        <para>An ONVIF Device implementing the AI Service shall expose
+          <code>capabilities://onvif/ai</code> and shall return the AI Service capabilities
+          document when that URI is requested via <code>resources/read</code>. The capabilities
+          document describes the features supported by the device, such as supported analytics
+          types, event classes, and optional extensions.</para>
+        <para>Exposing capabilities for other ONVIF services is optional. When provided, the
+          same URI pattern shall be used, replacing <code>ai</code> with the service name:
+          <code>capabilities://onvif/&lt;service-name&gt;</code>.</para>
+        <para>See <xref linkend="sec_annex_ai_capability_discovery"/> and <xref linkend="sec_annex_optional_capability_discovery"/> for wire format examples.</para>
+      </section>
+      <section xml:id="sec_tool_discovery">
         <title>Tool Discovery</title>
-        <para/>
-        <!-- Content to be added. -->
-        <!--
-          - tools/list request and response.
-          - inputSchema derivation from LinkML (normative link to Section 7.4).
-          - What the ONVIF Client knows after tool discovery: skill names, argument types,
-            valid ranges, human-readable descriptions.
-          - Wire format example.
-        -->
+        <para>The ONVIF Device exposes its Skills — callable operations — as MCP Tools. The
+          ONVIF Client discovers the available Skills by calling <code>tools/list</code>.</para>
+        <para>Each Tool entry in the <code>tools/list</code> response shall contain: <itemizedlist>
+            <listitem>
+              <para><code>name</code> — the Skill identifier used in subsequent
+                  <code>tools/call</code> requests.</para>
+            </listitem>
+            <listitem>
+              <para><code>description</code> — a human-readable description of the Skill's
+                function.</para>
+            </listitem>
+            <listitem>
+              <para><code>inputSchema</code> — a JSON Schema object that fully describes the
+                expected arguments. This JSON Schema is compiled from the LinkML model retrieved in
+                <xref linkend="sec_schema_retrieval"/> and shall use the same coordinate spaces, unit definitions, and
+                vocabulary as the event payloads delivered over the Data Bus.</para>
+            </listitem>
+          </itemizedlist></para>
+        <para>The ONVIF Client shall validate Skill arguments against the
+          <code>inputSchema</code> before sending a <code>tools/call</code> request. After
+          completing tool discovery the ONVIF Client has obtained, without any out-of-band
+          documentation: the complete catalogue of Skills supported by this device instance; the
+          argument types, valid ranges, and required/optional fields for each Skill; and
+          human-readable descriptions suitable for display or automated orchestration.</para>
+        <para>See <xref linkend="sec_annex_tool_discovery"/> for a wire format example.</para>
       </section>
     </section>
 
-    <section>
+    <section xml:id="sec_skill_invocation">
       <title>Skill Invocation</title>
-      <para/>
-      <!-- Content to be added. -->
-      <!--
-        - tools/call request over the Control Bus.
-        - Argument validation at the service side before handler execution.
-        - Structured response format (content + structuredContent).
-        - Error response for access-denied and invalid-argument cases.
-        - Wire format examples: set_detection_region, set_sensitivity, get_status.
-      -->
+      <para>ONVIF AI Skills are invoked via the MCP <code>tools/call</code> JSON-RPC method over
+        the Control Bus. The ONVIF Device shall validate the <code>arguments</code> object against
+        the <code>inputSchema</code> of the named Skill before executing it. If validation fails,
+        the ONVIF Device shall return a structured error response without executing the Skill.</para>
+
+      <para>This specification defines three mandatory Skills that every ONVIF AI Device shall
+        implement regardless of device type (camera, NVR, access control, or other). Additional
+        device-type-specific Skills may be defined in ONVIF profiles or vendor extensions.</para>
+
+      <section xml:id="sec_skill_get_status">
+        <title>get_status</title>
+        <para>The <code>get_status</code> Skill returns the current operational status of the AI
+          analytics engine. It takes no arguments. The ONVIF Device shall always respond
+          successfully to this Skill unless the device is unreachable.</para>
+        <para>The response <code>structuredContent</code> shall include: <itemizedlist>
+            <listitem>
+              <para><code>state</code> — one of <code>running</code>, <code>stopped</code>,
+                  <code>degraded</code>, or <code>error</code>.</para>
+            </listitem>
+            <listitem>
+              <para><code>activeAnalytics</code> — list of analytics type identifiers currently
+                active on the device.</para>
+            </listitem>
+            <listitem>
+              <para><code>engineVersion</code> — version string of the AI engine firmware.</para>
+            </listitem>
+          </itemizedlist></para>
+        <para>See <xref linkend="sec_annex_skill_get_status"/> for a wire format example.</para>
+      </section>
+
+      <section xml:id="sec_skill_list_analytics">
+        <title>list_analytics</title>
+        <para>The <code>list_analytics</code> Skill returns the set of analytics types supported
+          by this device instance, together with their current enabled/disabled state. It takes no
+          arguments. This is the authoritative machine-readable catalogue of what this device can
+          do; the ONVIF Client shall call <code>list_analytics</code> before calling
+          <code>configure_analytics</code>.</para>
+        <para>Each entry in the response <code>structuredContent.analytics</code> array shall
+          include: <itemizedlist>
+            <listitem>
+              <para><code>type</code> — analytics type identifier drawn from the ONVIF AI analytics
+                type vocabulary (for example <code>fire_detection</code>,
+                  <code>face_recognition</code>, <code>license_plate_recognition</code>,
+                  <code>tailgating_detection</code>).</para>
+            </listitem>
+            <listitem>
+              <para><code>enabled</code> — boolean indicating whether this analytics type is
+                currently active.</para>
+            </listitem>
+            <listitem>
+              <para><code>configSchema</code> — URI of the LinkML class in the schema bundle
+                (retrieved in <xref linkend="sec_schema_retrieval"/>) that defines the structure of the <code>config</code>
+                argument accepted by <code>configure_analytics</code> for this type.</para>
+            </listitem>
+          </itemizedlist></para>
+        <para>An ONVIF Device that executes no analytics locally (for example a pure RFID access
+          control reader) shall return an empty <code>analytics</code> array.</para>
+        <para>See <xref linkend="sec_annex_skill_list_analytics"/> for a wire format example.</para>
+      </section>
+
+      <section xml:id="sec_skill_configure_analytics">
+        <title>configure_analytics</title>
+        <para>The <code>configure_analytics</code> Skill applies a configuration to a named
+          analytics type. It is a generic wrapper: the structure of the <code>config</code>
+          argument is defined by the LinkML schema class identified by the
+          <code>configSchema</code> URI returned by <code>list_analytics</code> for that type.
+          The ONVIF Client shall validate <code>config</code> against the compiled JSON Schema
+          (the <code>inputSchema</code> of the Skill) before sending the request.</para>
+        <para>The <code>configure_analytics</code> Skill arguments are: <itemizedlist>
+            <listitem>
+              <para><code>analytics_type</code> (string, required) — the analytics type identifier,
+                as returned by <code>list_analytics</code>.</para>
+            </listitem>
+            <listitem>
+              <para><code>config</code> (object, required) — the configuration object whose
+                structure is specific to <code>analytics_type</code> and defined by the
+                corresponding LinkML schema class.</para>
+            </listitem>
+          </itemizedlist></para>
+        <para>On success the ONVIF Device shall confirm the applied configuration. On failure it
+          shall return a structured error identifying the failing field and the violated
+          constraint.</para>
+        <para>See <xref linkend="sec_annex_skill_configure_analytics"/> for a wire format example.</para>
+      </section>
     </section>
 
-    <section>
+    <section xml:id="sec_metadata_event_delivery">
       <title>Metadata Event Delivery</title>
-      <para/>
-      <!-- Content to be added. -->
-      <!--
-        - Delivery: notifications/message on the persistent GET /mcp channel (Streamable HTTP).
-        - Full JSON-LD event example (FireDetectionEvent).
-        - Validation table: mandatory fields, range checks, enum checks.
-        - Why JSON-LD: self-describing, linked-data compatible, context-URI driven
-          schema re-registration.
-      -->
-      <section>
+      <section xml:id="sec_streamable_http_delivery">
         <title>Streamable HTTP Delivery Mode</title>
-        <para/>
+        <para>The ONVIF Device delivers metadata events as MCP
+          <code>notifications/message</code> frames over the Streamable HTTP channel established
+          during session initialization (<xref linkend="sec_session_initialization"/>). Event delivery is push-only: the ONVIF
+          Device sends frames autonomously as observations are produced; the ONVIF Client does not
+          poll.</para>
+        <para>The ONVIF Client shall open the Streamable HTTP channel before invoking
+          <code>configure_analytics</code> to enable an analytics type. Each
+          <code>notifications/message</code> frame shall carry exactly one metadata event. Batch
+          delivery of multiple events in a single frame is not permitted.</para>
+        <para>When the Streamable HTTP channel is closed, the ONVIF Device shall retain pending
+          metadata events in a FIFO buffer until the buffer capacity is exhausted. When the buffer
+          is full, the oldest event shall be discarded to make room for the newest. If the ONVIF
+          Client reopens the Streamable HTTP channel before the buffer is exhausted, the ONVIF
+          Device shall deliver all buffered events in FIFO order before resuming live delivery. If
+          the buffer is exhausted before the client reconnects, delivery continuity is lost and the
+          ONVIF Client shall treat the gap as a potential loss of events.</para>
+        <para>The buffer capacity of the device is advertised in the
+          <code>capabilities://onvif/ai</code> document via the <code>eventBufferCapacity</code>
+          field (integer, number of events). A value of <code>0</code> indicates that the device
+          does not support buffering; events produced while the channel is closed are discarded
+          immediately.</para>
       </section>
-      <section>
+      <section xml:id="sec_event_payload_structure">
         <title>Event Payload Structure</title>
-        <para/>
+        <para>Each <code>notifications/message</code> frame carries a JSON-LD document in its
+            <code>params.message</code> field. Every event document shall include: <itemizedlist>
+            <listitem>
+              <para><code>@context</code> — a URI pointing to the canonical LinkML schema for this
+                event type. The ONVIF Client shall use this URI for schema lookup and for dynamic
+                schema re-registration (see <xref linkend="sec_dynamic_schema_reregistration"/>).</para>
+            </listitem>
+            <listitem>
+              <para><code>@type</code> — the event class name as defined in the registered schema
+                (for example <code>FireDetectionEvent</code>). The ONVIF Client shall use this field
+                for event routing.</para>
+            </listitem>
+            <listitem>
+              <para>All mandatory fields of the concrete <code>Observation</code> subclass
+                identified by <code>@type</code>, as defined in the registered LinkML schema.
+                For example, a <code>SOSAObservation</code> (<xref linkend="sec_sosa_observation"/>) requires
+                <code>sosa:madeBySensor</code>, <code>sosa:observedProperty</code>,
+                <code>sosa:hasFeatureOfInterest</code>, <code>sosa:hasResult</code>,
+                <code>sosa:phenomenonTime</code>, and <code>sosa:resultTime</code>. Other
+                <code>Observation</code> subclasses shall populate their own mandatory fields as
+                declared in their respective schema class.</para>
+            </listitem>
+          </itemizedlist></para>
+        <para>See <xref linkend="sec_annex_metadata_stream"/> for a complete wire format example.</para>
+      </section>
+      <section xml:id="sec_dynamic_schema_reregistration">
+        <title>Dynamic Schema Re-registration</title>
+        <para>The <code>@context</code> URI in each event is a live pointer to the schema that
+          defines it. If the ONVIF Client receives a <code>notifications/message</code> frame whose
+            <code>@context</code> URI is not already registered in its schema bundle, it shall: <orderedlist>
+            <listitem>
+              <para>Suspend validation of that event without discarding it.</para>
+            </listitem>
+            <listitem>
+              <para>Call <code>resources/read</code> with the <code>@context</code> URI to fetch the
+                LinkML schema YAML from the ONVIF Device.</para>
+            </listitem>
+            <listitem>
+              <para>Register the retrieved schema in its validator.</para>
+            </listitem>
+            <listitem>
+              <para>Resume validation of the suspended event and all subsequent events of that
+                type.</para>
+            </listitem>
+          </orderedlist></para>
+        <para>This mechanism allows the ONVIF Device to introduce new event types — for example
+          after a firmware update — without requiring the ONVIF Client to have prior knowledge of
+          the new schema. The ONVIF Device shall ensure that the <code>@context</code> URI is
+          always resolvable via <code>resources/read</code> for as long as the device emits events
+          of that type.</para>
+        <para>See <xref linkend="sec_annex_dynamic_schema_reregistration"/> for a wire format example.</para>
       </section>
     </section>
 
-    <section>
+    <section xml:id="sec_post_handshake_knowledge">
       <title>Post-Handshake ONVIF Client Knowledge</title>
-      <para/>
-      <!-- Content to be added. -->
-      <!--
-        Summary of what the ONVIF Client has learned entirely from the service itself, with no
-        out-of-band documentation: service identity, protocol version, schema URI,
-        skill catalogue, expected event structure.
-      -->
+      <para>An ONVIF AI Service is self-describing: an ONVIF Client that has completed the
+        sequence defined in Sections 7.3 through 7.5 is fully operational without any out-of-band
+        documentation, SDK, or static configuration. The table below summarises the knowledge
+        accumulated at each step.</para>
+      <informaltable>
+        <tgroup cols="3">
+          <colspec colwidth="1*"/>
+          <colspec colwidth="2*"/>
+          <colspec colwidth="4*"/>
+          <thead>
+            <row>
+              <entry><para>Section</para></entry>
+              <entry><para>Operation</para></entry>
+              <entry><para>Knowledge acquired</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para>7.3.1</para></entry>
+              <entry><para><code>server/discover</code></para></entry>
+              <entry><para>Device identity, supported protocol versions, declared capability
+                flags (<code>resources</code>, <code>tools</code>).</para></entry>
+            </row>
+            <row>
+              <entry><para>7.3.2</para></entry>
+              <entry><para><code>resources/list</code> +
+                <code>resources/read</code></para></entry>
+              <entry><para>Complete LinkML schema bundle; JSON Schema for event validation and
+                skill argument validation.</para></entry>
+            </row>
+            <row>
+              <entry><para>7.3.3</para></entry>
+              <entry><para><code>resources/read</code>
+                (<code>capabilities://onvif/ai</code>)</para></entry>
+              <entry><para>Device feature set, supported analytics types,
+                <code>eventBufferCapacity</code>.</para></entry>
+            </row>
+            <row>
+              <entry><para>7.3.4</para></entry>
+              <entry><para><code>tools/list</code></para></entry>
+              <entry><para>Skill catalogue: name, human-readable description, and
+                <code>inputSchema</code> for each skill.</para></entry>
+            </row>
+            <row>
+              <entry><para>7.4.2</para></entry>
+              <entry><para><code>list_analytics</code></para></entry>
+              <entry><para>Which analytics types are currently enabled;
+                <code>configSchema</code> URI per analytics type.</para></entry>
+            </row>
+            <row>
+              <entry><para>7.5</para></entry>
+              <entry><para>Streamable HTTP channel</para></entry>
+              <entry><para>Live metadata events; <code>@type</code> for routing;
+                <code>@context</code> for dynamic schema re-registration.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+      <para>An ONVIF Device implementing this specification shall ensure that an ONVIF Client
+        completing the above sequence is able to: validate all incoming event payloads against the
+        registered schema; invoke any available Skill with correctly structured arguments; and
+        interpret the full feature set of the device — all without consulting any resource external
+        to the ONVIF Device.</para>
     </section>
   </chapter>
 
-  <chapter>
+  <chapter xml:id="ch_authentication_and_authorization">
     <title>Authentication and Authorization</title>
     <para>The ONVIF AI protocol stack delegates all authentication and token management to the
       mechanisms defined in the ONVIF Core Specification and the ONVIF Security Service
@@ -955,7 +1189,7 @@
       defines only the ONVIF AI-specific normative mapping of MCP operations to ONVIF access
       classes.</para>
 
-    <section>
+    <section xml:id="sec_role_to_mcp_operation_mapping">
       <title>Role-to-MCP Operation Mapping</title>
       <para>The ONVIF Security Service Specification defines three predefined JWT role values
         carried in the <code>roles</code> claim of every access token: <code>onvif:User</code>,
@@ -1033,14 +1267,14 @@
     </section>
   </chapter>
 
-  <chapter>
+  <chapter xml:id="ch_metadata">
     <title>Metadata</title>
     <para>This chapter defines the data model for structured metadata produced and consumed by
       ONVIF AI-enabled devices. All metadata payloads are instances of, or derived from, the
       abstract classes defined here. The normative schema is expressed in LinkML; JSON-LD is the
       wire format (see <xref linkend="sec-jsonld"/>).</para>
 
-    <section>
+    <section xml:id="sec_observation">
       <title>Observation</title>
       <para><code>Observation</code> is the top-level abstract container for every piece of
         information emitted by an ONVIF AI Device. Because AI services produce heterogeneous
@@ -1054,7 +1288,7 @@
         authenticity, spatial origin, and temporal reference respectively. Each is defined by an
         abstract class; concrete implementations are described in the following sections.</para>
 
-      <section>
+      <section xml:id="sec_sosa_observation">
         <title>SOSAObservation</title>
         <para><code>SOSAObservation</code> is the first concrete subclass of <code>Observation</code>
           defined by this specification. It aligns the ONVIF AI metadata model with the W3C
@@ -1085,9 +1319,9 @@
               Corresponds to <code>sosa:hasFeatureOfInterest</code>.</para>
           </listitem>
           <listitem>
-            <para><emphasis>hasResult</emphasis> — the value or structured object that is the
-              outcome of the observation (for example a count, a bounding box, or a probability
-              score). Corresponds to <code>sosa:hasResult</code>.</para>
+            <para><emphasis>hasResult</emphasis> — the structured result object that is the
+              outcome of the observation. Shall be an instance of a concrete subclass of
+              <code>ObservationResult</code>. Corresponds to <code>sosa:hasResult</code>.</para>
           </listitem>
           <listitem>
             <para><emphasis>phenomenonTime</emphasis> — the time interval or instant during
@@ -1112,10 +1346,15 @@
           <code>SOSAObservation</code> instance. The ONVIF AI Device shall use
           <code>sosa:</code> URIs as JSON-LD property keys to ensure full alignment with the SOSA
           ontology.</para>
+        <para><code>sosa:hasResult</code> shall be an instance of a concrete subclass of
+          <code>ObservationResult</code> appropriate for the event type. The
+          <code>provenance</code> field is optional. When present it shall be an instance of a
+          concrete subclass of <code>Provenance</code> (<xref linkend="sec_provenance"/>). For deployments requiring
+          integrity protection, <code>JLDSProvenance</code> (<xref linkend="sec_jlds_provenance"/>) shall be used.</para>
       </section>
     </section>
 
-    <section>
+    <section xml:id="sec_provenance">
       <title>Provenance</title>
       <para><code>Provenance</code> is an abstract class nested within <code>Observation</code>
         that describes the authenticity and chain-of-custody of the observation. Because different
@@ -1126,7 +1365,7 @@
       <para>The presence of a <code>Provenance</code> object is optional. When omitted, no
         authenticity claim is made for the observation.</para>
 
-      <section>
+      <section xml:id="sec_jlds_provenance">
         <title>JLDSProvenance</title>
         <para><code>JLDSProvenance</code> is the first concrete subclass of
           <code>Provenance</code>. It attests the integrity of an <code>Observation</code> by
@@ -1134,7 +1373,7 @@
           algorithm and key parameters shall conform to the ONVIF Security Baseline
           [ONVIF-SecurityBaseline].</para>
 
-        <section>
+        <section xml:id="sec_signing_procedure">
           <title>Signing procedure</title>
           <para>The ONVIF Device shall compute the proof using the <code>Add Proof</code>
             algorithm defined in [VC-DATA-INTEGRITY] with RDFC-1.0 [RDFC-1.0] as the
@@ -1142,7 +1381,7 @@
             mandated by the current version of [ONVIF-SecurityBaseline].</para>
         </section>
 
-        <section>
+        <section xml:id="sec_proof_fields">
           <title>Proof fields</title>
           <para><code>JLDSProvenance</code> carries the following fields, aligned with the
             <code>DataIntegrityProof</code> structure defined in [VC-DATA-INTEGRITY]:</para>
@@ -1178,12 +1417,12 @@
       </section>
     </section>
 
-    <section>
+    <section xml:id="sec_location">
       <title>Location</title>
       <para><code>Location</code> is an abstract class nested within <code>Observation</code> that
         represents the spatial origin of the observation. It is optional; when present it shall be
         an instance of a concrete subclass.</para>
-      <section>
+      <section xml:id="sec_geolocation">
         <title>GeoLocation</title>
         <para><code>GeoLocation</code> is the first concrete subclass of <code>Location</code>. It
           expresses geographic position using WGS 84 coordinates obtained from a GPS receiver
@@ -1192,13 +1431,13 @@
       </section>
     </section>
 
-    <section>
+    <section xml:id="sec_timing">
       <title>Timing</title>
       <para><code>Timing</code> is an abstract class nested within <code>Observation</code> that
         provides an authoritative time reference for the observation, independent of the device
         system clock. It is optional; when present it shall be an instance of a concrete
         subclass.</para>
-      <section>
+      <section xml:id="sec_gpstiming">
         <title>GPSTiming</title>
         <para><code>GPSTiming</code> is the first concrete subclass of <code>Timing</code>. It
           carries the UTC timestamp extracted directly from the GPS signal, giving a traceable,
@@ -1207,7 +1446,26 @@
       </section>
     </section>
 
-    <section>
+    <section xml:id="sec_observation_result">
+      <title>Observation Result</title>
+      <para><code>ObservationResult</code> is an abstract class that represents the outcome
+        produced by an <code>Observation</code>. It corresponds to <code>sosa:Result</code> in
+        the SOSA ontology and serves as the mandatory base type for the <code>hasResult</code>
+        slot of <code>SOSAObservation</code>.</para>
+      <para>SOSA deliberately leaves the internal structure of a Result undefined, delegating
+        its specification to the domain of application. In this specification
+        <code>ObservationResult</code> plays that role: it is abstract and carries no fields of
+        its own. All concrete AI result payloads shall be instances of a class that directly or
+        transitively extends <code>ObservationResult</code>.</para>
+      <para>Concrete subclasses shall set the JSON-LD <code>@type</code> field to an
+        unambiguous URI so that receivers can determine the result type without out-of-band
+        knowledge. Future revisions of this specification, or vendor-specific extensions via the
+        <code>Extensible</code> mixin, shall introduce concrete subclasses for specific AI
+        output types (for example object detection bounding boxes, classification scores, or
+        people counts).</para>
+    </section>
+
+    <section xml:id="sec_vendor_extensions">
       <title>Vendor Extensions</title>
       <para>ONVIF follows the convention, established in its WSDL-based specifications, of
         providing a generic extension point in every data structure to allow implementers to
@@ -1230,7 +1488,7 @@
         <code>Timing</code>) may also include the mixin in future revisions as needed.</para>
     </section>
 
-    <section>
+    <section xml:id="sec_normative_linkml_schema">
       <title>Normative LinkML Schema</title>
       <para><?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?>This section is here
         just because it is handy now, it will be removed before releasing the
@@ -1430,6 +1688,16 @@ classes:
             provenance removed, proofConfig is the proof object without proofValue, and
             H and the signing algorithm are mandated by [ONVIF-SecurityBaseline].
 
+  ObservationResult:
+    abstract: true
+    class_uri: sosa:Result
+    description: >-
+      Abstract base class for all AI observation result payloads. Corresponds
+      to sosa:Result in the SOSA ontology. Concrete subclasses shall define
+      the domain-specific fields (e.g. bounding boxes, classification scores,
+      counts) and shall set @type to an unambiguous URI so that receivers can
+      determine the result type without out-of-band knowledge.
+
   SOSAObservation:
     is_a: Observation
     description: >-
@@ -1461,11 +1729,11 @@ classes:
           is made (e.g. a scene, a detection zone, or a specific object).
       hasResult:
         slot_uri: sosa:hasResult
-        range: Any
+        range: ObservationResult
         required: true
         description: >-
-          The result value or structured object produced by the observation
-          (e.g. a count, a bounding box, or a probability score).
+          The structured result object produced by the observation. Shall be
+          an instance of a concrete subclass of ObservationResult.
       phenomenonTime:
         slot_uri: sosa:phenomenonTime
         range: datetime
@@ -1491,19 +1759,19 @@ classes:
     </section>
   </chapter>
 
-  <appendix>
+  <appendix xml:id="app_example_call_sequence">
     <title>Example Call Sequence (informative)</title>
     <para>This annex is informative and provides an example end-to-end sequence with sample
       values.</para>
 
-    <section>
+    <section xml:id="sec_annex_network_discovery">
       <title>Network discovery (ONVIF Core)</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends ONVIF Core
         discovery requests (for example WS-Discovery Probe) to locate devices on the network.</para>
       <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns discovery
         responses (for example ProbeMatches) with the Device Service endpoint.</para>
     </section>
-    <section>
+    <section xml:id="sec_annex_service_discovery">
       <title>Service discovery (ONVIF Core GetServices)</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls ONVIF Core
           <code>GetServices</code> on the Device Service endpoint.</para>
@@ -1511,10 +1779,11 @@ classes:
           <code>GetServiceResponse</code> including the AI Service entry with MCP endpoint URL
         (example: <code>https://192.0.2.10/mcp</code>).</para>
     </section>
-    <section>
-      <title>Optional protocol preflight</title>
-      <para><emphasis>Request (Client to Device):</emphasis> For MCP 2026-07-28, the ONVIF Client
-        may call <code>server/discover</code> before other requests.</para>
+    <section xml:id="sec_annex_session_initialization">
+      <title>Session initialization</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
+        <code>server/discover</code> to obtain the device identity, supported protocol versions,
+        and capability flags.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 1,
@@ -1530,9 +1799,8 @@ classes:
     }
   }
 }</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns service
-        identity, supported protocol versions, and capability flags, or
-          <code>UnsupportedProtocolVersionError</code> with the supported versions list.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns its
+        identity, the list of supported protocol versions, and its capability flags.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 1,
@@ -1549,8 +1817,12 @@ classes:
     }
   }
 }</programlisting>
-      <para><emphasis>Legacy example (informative only):</emphasis> For legacy MCP clients, an
-        <code>initialize</code> request may be used.</para>
+      <para><emphasis>Legacy client rejection (informative):</emphasis> A legacy client
+        connecting with a pre-2026-07-28 protocol version (for example via an
+        <code>initialize</code> request) will receive an
+        <code>UnsupportedProtocolVersionError</code>. The ONVIF Device shall not support
+        protocol versions prior to 2026-07-28 and shall always include the
+        <code>supported</code> list so that the client can retry.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 1,
@@ -1558,93 +1830,418 @@ classes:
   "params": {
     "protocolVersion": "2024-11-05",
     "capabilities": {},
-    "clientInfo": {
-      "name": "MyAIClient",
-      "version": "1.0.0"
-    }
+    "clientInfo": { "name": "LegacyClient", "version": "0.9.0" }
   }
 }</programlisting>
-      <para><emphasis><?oxy_comment_start author="Ottavio Campana" timestamp="20260804T090712+0200" comment="Shall the device support 2025 or can it return an error? We should try to minimize the protocol stack and number of versions."?>Legacy
-          response (Device to Client, informative only)<?oxy_comment_end?>:</emphasis></para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 1,
-  "result": {
-    "protocolVersion": "2024-11-05",
-    "capabilities": {
-      "resources": {},
-      "tools": {}
-    },
-    "serverInfo": {
-      "name": "ONVIF AI Service",
-      "version": "1.0.0"
+  "error": {
+    "code": -32022,
+    "message": "UnsupportedProtocolVersionError",
+    "data": {
+      "supported": ["2026-07-28"]
     }
   }
 }</programlisting>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client opens the
+        Streamable HTTP channel to <code>https://192.0.2.10/mcp</code> as defined by MCP
+        2026-07-28.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device confirms the
+        channel. No JSON-RPC response body is returned for channel establishment; the device
+        will send <code>notifications/message</code> frames over this channel as events
+        occur.</para>
     </section>
-    <section>
+    <section xml:id="sec_annex_ai_capability_discovery">
       <title>AI capability discovery</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
           <code>resources/read</code> with URI <code>capabilities://onvif/ai</code>.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "method": "resources/read",
+  "params": {
+    "uri": "capabilities://onvif/ai",
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns the AI
         Service capabilities document.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "result": {
+    "resultType": "complete",
+    "contents": [{
+      "uri": "capabilities://onvif/ai",
+      "mimeType": "application/json",
+      "text": "{...}"
+    }]
+  }
+}</programlisting>
     </section>
-    <section>
+    <section xml:id="sec_annex_optional_capability_discovery">
       <title>Optional non-AI capability discovery</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
           <code>resources/read</code> with URI
           <code>capabilities://onvif/&lt;service-name&gt;</code> (example:
           <code>capabilities://onvif/media</code>).</para>
-      <para><emphasis>Response (Device to Client):</emphasis> If supported, the ONVIF Device
-        returns capabilities for the requested service; otherwise it returns a resource-not-found
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "method": "resources/read",
+  "params": {
+    "uri": "capabilities://onvif/media",
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client — not supported):</emphasis> If the requested
+        service capability is not exposed, the ONVIF Device returns a resource-not-found
         error.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "error": {
+    "code": -32002,
+    "message": "ResourceNotFound",
+    "data": { "uri": "capabilities://onvif/media" }
+  }
+}</programlisting>
     </section>
-    <section>
+    <section xml:id="sec_annex_schema_inventory">
       <title>Schema resource inventory</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
-          <code>resources/list</code>.</para>
+          <code>resources/list</code> to enumerate all resources, including LinkML schema
+        resources.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "method": "resources/list",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns available
-        schema resources (example URIs: <code>linkml://onvif/ai/events/v1</code>,
-          <code>linkml://onvif/ai/skills/v1</code>).</para>
+        resources. Resources with <code>mimeType: application/linkml+yaml</code> are the schema
+        files to be retrieved in <xref linkend="sec_annex_schema_retrieval"/> (example URIs:
+          <code>linkml://onvif/ai/events/v1</code>).</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "result": {
+    "resultType": "complete",
+    "resources": [
+      {
+        "uri": "linkml://onvif/ai/events/v1",
+        "name": "ONVIF AI Events Schema",
+        "mimeType": "application/linkml+yaml"
+      },
+      {
+        "uri": "capabilities://onvif/ai",
+        "name": "ONVIF AI Capabilities",
+        "mimeType": "application/json"
+      }
+    ]
+  }
+}</programlisting>
     </section>
-    <section>
+    <section xml:id="sec_annex_schema_retrieval">
       <title>Schema retrieval</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
-          <code>resources/read</code> for each schema URI from <code>resources/list</code>
-        (example: <code>linkml://onvif/ai/events/v1</code>).</para>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns schema
-        content for each requested resource.</para>
+          <code>resources/read</code> for each <code>application/linkml+yaml</code> resource URI
+        obtained from <xref linkend="sec_annex_schema_inventory"/> (example: <code>linkml://onvif/ai/events/v1</code>).</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "resources/read",
+  "params": {
+    "uri": "linkml://onvif/ai/events/v1",
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns the
+        LinkML schema as a YAML string in the <code>text</code> field. The ONVIF Client
+        registers this schema in its validator. If multiple schema resources were listed in
+        <xref linkend="sec_annex_schema_inventory"/>, this request is repeated for each URI.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": {
+    "resultType": "complete",
+    "contents": [{
+      "uri": "linkml://onvif/ai/events/v1",
+      "mimeType": "application/linkml+yaml",
+      "text": "..."
+    }]
+  }
+}</programlisting>
     </section>
-    <section>
+    <section xml:id="sec_annex_tool_discovery">
       <title>Tool discovery</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
-          <code>tools/list</code>.</para>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns Skill
-        definitions and input schemas (for example <code>get_status</code>,
-          <code>set_detection_region</code>, <code>set_sensitivity</code>).</para>
+          <code>tools/list</code> to obtain the catalogue of available Skills.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 8,
+  "method": "tools/list",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns one Tool
+        entry per supported Skill, each with a compiled <code>inputSchema</code> derived from the
+        LinkML model. The example shows <code>get_status</code> only.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 8,
+  "result": {
+    "resultType": "complete",
+    "tools": [
+      {
+        "name": "get_status",
+        "description": "Returns the operational status of the AI engine.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      }
+    ]
+  }
+}</programlisting>
     </section>
-    <section>
-      <title>Skill invocation (read)</title>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
-          <code>tools/call</code> with <code>name: "get_status"</code> and arguments
-          <code>{}</code>.</para>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns current
-        status as structured result content.</para>
+    <section xml:id="sec_annex_skill_get_status">
+      <title>Skill invocation — get_status</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
+        <code>get_status</code> with no arguments.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 9,
+  "method": "tools/call",
+  "params": {
+    "name": "get_status",
+    "arguments": {},
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns the
+        current state of the AI engine, the list of active analytics types, and the engine
+        firmware version.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 9,
+  "result": {
+    "resultType": "complete",
+    "content": [{ "type": "text", "text": "AI engine running." }],
+    "structuredContent": {
+      "state": "running",
+      "activeAnalytics": ["fire_detection", "smoke_detection"],
+      "engineVersion": "2.1.4"
+    }
+  }
+}</programlisting>
     </section>
-    <section>
-      <title>Skill invocation (actuate)</title>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
-          <code>tools/call</code> with <code>name: "set_sensitivity"</code> and sample arguments
-          <code>{"channel":"ch1","value":0.70}</code>.</para>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns operation
-        outcome (success or authorization/validation error).</para>
+    <section xml:id="sec_annex_skill_list_analytics">
+      <title>Skill invocation — list_analytics</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
+        <code>list_analytics</code> with no arguments.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 10,
+  "method": "tools/call",
+  "params": {
+    "name": "list_analytics",
+    "arguments": {},
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns all
+        analytics types it supports, their enabled state, and the LinkML schema URI that governs
+        the <code>configure_analytics</code> call for each type.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 10,
+  "result": {
+    "resultType": "complete",
+    "content": [{ "type": "text", "text": "2 analytics type(s) available." }],
+    "structuredContent": {
+      "analytics": [
+        {
+          "type": "fire_detection",
+          "enabled": true,
+          "configSchema": "linkml://onvif/ai/events/v1#FireDetectionConfig"
+        },
+        {
+          "type": "smoke_detection",
+          "enabled": false,
+          "configSchema": "linkml://onvif/ai/events/v1#SmokeDetectionConfig"
+        }
+      ]
+    }
+  }
+}</programlisting>
     </section>
-    <section>
-      <title>Metadata stream subscription</title>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client opens the persistent
-        Streamable HTTP channel (<code>GET https://192.0.2.10/mcp</code>).</para>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device streams
-        server-initiated notifications and JSON-LD metadata events on that channel.</para>
+    <section xml:id="sec_annex_skill_configure_analytics">
+      <title>Skill invocation — configure_analytics</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
+        <code>configure_analytics</code> specifying the analytics type and a
+        <code>config</code> object whose structure matches the LinkML class identified by
+        <code>configSchema</code> (obtained from <code>list_analytics</code>).</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 11,
+  "method": "tools/call",
+  "params": {
+    "name": "configure_analytics",
+    "arguments": {
+      "analytics_type": "fire_detection",
+      "config": {
+        "sensitivity": 0.80,
+        "channel": "ch1",
+        "region": [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]]
+      }
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client — success):</emphasis></para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 11,
+  "result": {
+    "resultType": "complete",
+    "content": [{ "type": "text", "text": "fire_detection configured successfully." }],
+    "structuredContent": {
+      "analytics_type": "fire_detection",
+      "applied": {
+        "sensitivity": 0.80,
+        "channel": "ch1",
+        "region": [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]]
+      }
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client — validation error):</emphasis> If the
+        <code>config</code> object violates a schema constraint, the ONVIF Device returns a
+        structured error identifying the failing field.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 11,
+  "error": {
+    "code": -32602,
+    "message": "InvalidParams",
+    "data": {
+      "field": "config.sensitivity",
+      "violation": "value 1.5 exceeds maximum 1.0"
+    }
+  }
+}</programlisting>
+    </section>
+    <section xml:id="sec_annex_metadata_stream">
+      <title>Metadata stream — channel opening and event frame</title>
+      <para><emphasis>Channel opening (Client to Device):</emphasis> The ONVIF Client opens the
+        Streamable HTTP channel to <code>https://192.0.2.10/mcp</code> as defined by MCP
+        2026-07-28. No JSON-RPC request/response exchange occurs for channel establishment; the
+        ONVIF Device will push <code>notifications/message</code> frames over this channel as
+        events are produced.</para>
+      <para><emphasis>Event frame (Device to Client):</emphasis> The ONVIF Device sends a
+        <code>notifications/message</code> frame for each metadata event. The example below shows
+        a <code>FireDetectionEvent</code> carrying a <code>SOSAObservation</code> payload.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "method": "notifications/message",
+  "params": {
+    "message": {
+      "@context": "linkml://onvif/ai/events/v1",
+      "@type": "FireDetectionEvent",
+      "sosa:madeBySensor": "urn:onvif:device:192.0.2.10:camera:ch1",
+      "sosa:observedProperty": "onvif:FlamePresence",
+      "sosa:hasFeatureOfInterest": "urn:onvif:scene:ch1:zone:north",
+      "sosa:phenomenonTime": "2026-08-04T13:05:00.000Z",
+      "sosa:resultTime":     "2026-08-04T13:05:00.120Z",
+      "sosa:hasResult": {
+        "@type": "FireDetectionResult",
+        "detected": true,
+        "confidence": 0.94,
+        "boundingBox": {
+          "x": 0.22, "y": 0.31, "width": 0.18, "height": 0.24
+        }
+      }
+    }
+  }
+}</programlisting>
+    </section>
+    <section xml:id="sec_annex_dynamic_schema_reregistration">
+      <title>Dynamic schema re-registration</title>
+      <para>This example shows the procedure triggered when the ONVIF Client receives a
+        <code>notifications/message</code> frame whose <code>@context</code> URI
+        (<code>linkml://onvif/ai/events/v2</code>) is not yet registered in its schema bundle.
+        The client suspends validation, fetches the schema, and registers it before resuming.</para>
+      <para><emphasis>Incoming frame with unknown context (Device to Client):</emphasis></para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "method": "notifications/message",
+  "params": {
+    "message": {
+      "@context": "linkml://onvif/ai/events/v2",
+      "@type": "PersonCrossingEvent",
+      "sosa:madeBySensor": "urn:onvif:device:192.0.2.10:camera:ch1",
+      "sosa:observedProperty": "onvif:PersonPresence",
+      "sosa:hasFeatureOfInterest": "urn:onvif:scene:ch1:zone:entrance",
+      "sosa:phenomenonTime": "2026-08-04T13:10:00.000Z",
+      "sosa:resultTime":     "2026-08-04T13:10:00.085Z",
+      "sosa:hasResult": {
+        "@type": "PersonCrossingResult",
+        "direction": "entering",
+        "confidence": 0.91
+      }
+    }
+  }
+}</programlisting>
+      <para><emphasis>Schema fetch request (Client to Device):</emphasis> The ONVIF Client calls
+        <code>resources/read</code> with the unknown <code>@context</code> URI.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 13,
+  "method": "resources/read",
+  "params": {
+    "uri": "linkml://onvif/ai/events/v2",
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns the new
+        schema. After registration the client validates the suspended event and resumes normal
+        processing.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 13,
+  "result": {
+    "resultType": "complete",
+    "contents": [{
+      "uri": "linkml://onvif/ai/events/v2",
+      "mimeType": "application/linkml+yaml",
+      "text": "id: https://onvif.org/ai/events/v2\nname: onvif-ai-events-v2\n..."
+    }]
+  }
+}</programlisting>
     </section>
   </appendix>
 
