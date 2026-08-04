@@ -9744,6 +9744,53 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
         better understanding.</para>
       </section>
   </appendix>
+  <appendix xml:id="basic_auth_https_example">
+    <title>HTTP Basic authentication over HTTPS example</title>
+    <para>The following exchange between client and device over HTTPS demonstrates a device
+      supporting HTTP Basic authentication according to [RFC 7617] in addition to digest
+      authentication. HTTP Basic authentication shall only be used over HTTPS.</para>
+    <para>Unauthenticated request from the client:</para>
+    <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
+Host: 10.XX.XX.XX
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: 299
+
+<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>
+</s:Body></s:Envelope>]]></programlisting>
+    <para>Response from the device challenging for authentication</para>
+    <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Basic realm="onvif"
+WWW-Authenticate: Digest algorithm=MD5, realm="onvif", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+WWW-Authenticate: Digest algorithm=SHA-256, realm="onvif", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+X-Frame-Options: SAMEORIGIN]]></programlisting>
+    <para>Authenticated request from the client, using HTTP Basic authentication</para>
+    <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
+Host: 10.XX.XX.XX
+Authorization: Basic dXNlcjpwYXNzd29yZA==
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: 299
+
+<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>
+</s:Body></s:Envelope>]]></programlisting>
+    <para>Response from the device, rejecting invalid credentials</para>
+    <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Basic realm="onvif"
+WWW-Authenticate: Digest algorithm=MD5, realm="onvif", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+WWW-Authenticate: Digest algorithm=SHA-256, realm="onvif", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+X-Frame-Options: SAMEORIGIN]]></programlisting>
+  </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
     <para/>
