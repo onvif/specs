@@ -73,7 +73,7 @@
     <para>Scope: Defines the applicability and boundaries of this specification.</para>
     <para>Building Blocks: Introduces the four constituent technologies — ONVIF, MCP, LinkML, and
       JSON-LD — and their individual roles in the stack.</para>
-    <para>Protocol Stack Architecture: Describes the overall layered architecture, the two buses,
+    <para>Protocol Stack Architecture: Describes the overall layered architecture, the two planes,
       and the shared identity authority.</para>
     <para>Service Discovery and Data Exchange: Defines the message sequences for connection
       establishment, schema retrieval, skill invocation, and metadata event delivery.</para>
@@ -142,7 +142,7 @@
             </row>
             <row>
               <entry align="left">
-                <para><emphasis role="bold">Control Bus (Bus A)</emphasis></para>
+                <para><emphasis role="bold">Control Plane (Bus A)</emphasis></para>
               </entry>
               <entry align="left">
                 <para>The MCP channel over which the ONVIF Client sends commands to an AI Service
@@ -151,7 +151,7 @@
             </row>
             <row>
               <entry align="left">
-                <para><emphasis role="bold">Data Bus (Bus B)</emphasis></para>
+                <para><emphasis role="bold">Event Plane (Bus B)</emphasis></para>
               </entry>
               <entry align="left">
                 <para>The channel over which an ONVIF Device streams LinkML-structured detection
@@ -199,7 +199,7 @@
               </entry>
               <entry align="left">
                 <para>A JSON-LD payload, conforming to a registered LinkML schema, that an ONVIF
-                  Device emits on the Data Bus each time a detection occurs.</para>
+                  Device emits on the Event Plane each time a detection occurs.</para>
               </entry>
             </row>
             <row>
@@ -457,7 +457,7 @@
               expected arguments. In the ONVIF AI stack, Tools are called
                 <emphasis>Skills</emphasis> and represent ONVIF Device capabilities such as
               configuring a detection region or querying service status. The ONVIF Client invokes a Skill by
-              sending a <code>tools/call</code> JSON-RPC request over the Control Bus.</para>
+              sending a <code>tools/call</code> JSON-RPC request over the Control Plane.</para>
           </listitem>
           <listitem>
             <para>Resources are read-only data objects accessible via <code>resources/list</code>
@@ -515,8 +515,8 @@
       <title>LinkML — Schema Definition Language</title>
       <para>LinkML (Linked data Modeling Language) is an open schema definition language that
         describes data structures in YAML. In the ONVIF AI stack, LinkML is the normative language
-        for defining both the structure of metadata events (Data Bus payloads) and the argument
-        shapes of Skills (Control Bus inputs). LinkML defines the schema; JSON-LD (see
+        for defining both the structure of metadata events (Event Plane payloads) and the argument
+        shapes of Skills (Control Plane inputs). LinkML defines the schema; JSON-LD (see
         <xref linkend="sec-jsonld"/>) is the runtime wire format that carries instances of that
         schema.</para>
 
@@ -555,14 +555,12 @@
         <para>The same LinkML model serves two distinct purposes within the stack:</para>
         <itemizedlist>
           <listitem>
-            <para>On the Data Bus, the compiled JSON Schema derived from the LinkML model is used by
-              the ONVIF Client LinkML
-              Validator<?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?> (Layer
-              2)<?oxy_custom_end?> to check every incoming metadata event for structural correctness
-              — required fields, numeric ranges, and valid enum values.</para>
+            <para>On the Event Plane, the compiled JSON Schema derived from the LinkML model is used by
+              the ONVIF Client LinkML Validator to check every incoming metadata event for
+              structural correctness — required fields, numeric ranges, and valid enum values.</para>
           </listitem>
           <listitem>
-            <para>On the Control Bus, the <code>inputSchema</code> field of each MCP Tool (Skill)
+            <para>On the Control Plane, the <code>inputSchema</code> field of each MCP Tool (Skill)
               definition is also derived from the same LinkML model. This guarantees that the
               coordinate spaces, unit definitions, and vocabulary used to configure the ONVIF Device
               (e.g., a detection region polygon) are identical to those used to report events,
@@ -585,10 +583,9 @@
           </listitem>
           <listitem>
             <para>Second, a copy of the compiled schema is stored in the ONVIF Client Schema
-              Registry <?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?>(Layer
-              2)<?oxy_custom_end?> after schema discovery. The registry uses the compiled schema to
-              validate every incoming metadata event on the Data Bus before the ONVIF Client
-              processes it.</para>
+              Registry after schema discovery. The registry uses the compiled schema to validate
+              every incoming metadata event on the Event Plane before the ONVIF Client processes
+              it.</para>
           </listitem>
         </itemizedlist>
         <para>ONVIF Devices shall pre-compile their LinkML schemas at build time and include the
@@ -618,7 +615,7 @@
     <section xml:id="sec-jsonld">
       <title>JSON-LD — Wire Format for Metadata Events</title>
       <para>JSON-LD (JSON-based Linked Data) is the serialisation format used for all metadata
-        events transmitted on the Data Bus. Where LinkML defines the schema at design time,
+        events transmitted on the Event Plane. Where LinkML defines the schema at design time,
         JSON-LD carries instances of that schema at runtime. The two technologies are
         complementary: LinkML declares what data looks like; JSON-LD is the payload that
         conforms to that declaration.</para>
@@ -681,7 +678,7 @@
       <para>The ONVIF AI Protocol Stack is structured around the standard ONVIF roles of an ONVIF
         Client and an ONVIF Device, with an OIDC Authorization Server acting as the shared trust
         anchor that issues the tokens consumed by both. The figure below shows the top-level
-        relationships between these three components and the two communication buses.</para>
+        relationships between these three components and the two communication planes.</para>
       <figure xml:id="fig-stack-overview">
         <title>ONVIF AI Protocol Stack — Top-Level Architecture</title>
         <mediaobject>
@@ -704,22 +701,22 @@
         endpoint, it exposes skills in the form of MCP Tools and publishes JSON-LD metadata events.
         Moreover, it announces the LinkML schema via MCP Resources.</para>
       <para>All communication between the ONVIF Client and the ONVIF Device is bearer-token
-        authenticated. The <emphasis>Control Bus (A)</emphasis> carries MCP
+        authenticated. The <emphasis>Control Plane (A)</emphasis> carries MCP
           <code>tools/call</code> requests from the ONVIF Client to the ONVIF Device. The
-          <emphasis>Data Bus (B)</emphasis> carries JSON-LD metadata events from the ONVIF Device
+          <emphasis>Event Plane (B)</emphasis> carries JSON-LD metadata events from the ONVIF Device
         to the ONVIF Client, delivered as MCP <code>notifications/message</code> frames.</para>
     </section>
     
     <section xml:id="sec_protocol_stack">
       <title>Protocol Stack</title>
-      <para>The ONVIF AI protocol stack uses two independent communication buses, both protected by
-        TLS and bearer tokens issued by the OIDC Authorization Server. The <emphasis>Control Bus</emphasis>
-        carries client-initiated MCP requests, while the <emphasis>Data Bus</emphasis> carries
-        server-pushed metadata events. The detailed behavior of each bus is defined in the following
+      <para>The ONVIF AI protocol stack uses two independent communication planes, both protected by
+        TLS and bearer tokens issued by the OIDC Authorization Server. The <emphasis>Control Plane</emphasis>
+        carries client-initiated MCP requests, while the <emphasis>Event Plane</emphasis> carries
+        server-pushed metadata events. The detailed behavior of each plane is defined in the following
         sections.</para>
-      <section xml:id="sec_control_bus">
-        <title>Control Bus</title>
-        <para>The <emphasis>Control Bus</emphasis> is the command path used by the ONVIF Client to
+      <section xml:id="sec_control_plane">
+        <title>Control Plane</title>
+        <para>The <emphasis>Control Plane</emphasis> is the command path used by the ONVIF Client to
           discover and invoke Skills exposed by an ONVIF Device. It is request/response oriented and
           carries only client-initiated MCP operations.</para>
         <informaltable>
@@ -759,13 +756,13 @@
           </tgroup>
         </informaltable>
         <para>Each request is self-contained and shall be validated independently by the ONVIF Device
-          before execution. A Control Bus response shall report either the requested result or an MCP
+          before execution. A Control Plane response shall report either the requested result or an MCP
           error indicating why the operation could not be completed.</para>
       </section>
 
-      <section xml:id="sec_metadata_data_bus">
-        <title>Metadata Data Bus</title>
-        <para>The <emphasis>Metadata Data Bus</emphasis> is the event path used by the ONVIF Device to
+      <section xml:id="sec_event_plane">
+        <title>Metadata Event Plane</title>
+        <para>The <emphasis>Metadata Event Plane</emphasis> is the event path used by the ONVIF Device to
           publish AI analytics results to the ONVIF Client. It is server-initiated, asynchronous, and
           optimized for continuous delivery of structured metadata events.</para>
         <informaltable>
@@ -804,7 +801,7 @@
             </tbody>
           </tgroup>
         </informaltable>
-        <para>The Data Bus shall preserve event ordering per stream, and each event shall remain
+        <para>The Event Plane shall preserve event ordering per stream, and each event shall remain
           self-describing through its JSON-LD <code>@context</code> and <code>@type</code>
           annotations.</para>
       </section>
@@ -818,8 +815,8 @@
         issues bearer access tokens, and exposes the metadata and key material needed by ONVIF
         Devices to validate tokens before processing MCP requests.</para>
       <para>In practice, the Authorization Server provides centralized identity and access control for
-        both buses. It ensures that only authorized ONVIF Clients can invoke Skills on the Control
-        Bus and receive protected metadata on the Data Bus, according to the roles and claims
+        both planes. It ensures that only authorized ONVIF Clients can invoke Skills on the Control
+        Plane and receive protected metadata on the Event Plane, according to the roles and claims
         contained in the issued token.</para>
     </section>
   </chapter>
@@ -926,7 +923,7 @@
               <para><code>inputSchema</code> — a JSON Schema object that fully describes the
                 expected arguments. This JSON Schema is compiled from the LinkML model retrieved in
                 <xref linkend="sec_schema_retrieval"/> and shall use the same coordinate spaces, unit definitions, and
-                vocabulary as the event payloads delivered over the Data Bus.</para>
+                vocabulary as the event payloads delivered over the Event Plane.</para>
             </listitem>
           </itemizedlist></para>
         <para>The ONVIF Client shall validate Skill arguments against the
@@ -942,7 +939,7 @@
     <section xml:id="sec_skill_invocation">
       <title>Skill Invocation</title>
       <para>ONVIF AI Skills are invoked via the MCP <code>tools/call</code> JSON-RPC method over
-        the Control Bus. The ONVIF Device shall validate the <code>arguments</code> object against
+        the Control Plane. The ONVIF Device shall validate the <code>arguments</code> object against
         the <code>inputSchema</code> of the named Skill before executing it. If validation fails,
         the ONVIF Device shall return a structured error response without executing the Skill.</para>
 
