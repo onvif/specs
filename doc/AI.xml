@@ -1208,6 +1208,29 @@
     </section>
 
     <section>
+      <title>Vendor Extensions</title>
+      <para>ONVIF follows the convention, established in its WSDL-based specifications, of
+        providing a generic extension point in every data structure to allow implementers to
+        carry vendor-specific information without breaking interoperability. This specification
+        carries that convention into the LinkML metadata model through the
+        <code>Extensible</code> mixin.</para>
+      <para>The <code>Extensible</code> mixin adds a single optional, repeatable slot named
+        <code>extension</code> to any class that includes it. Each entry in the slot is an
+        instance of <code>VendorExtension</code>, which pairs a mandatory vendor namespace URI
+        with a locally named, arbitrarily typed value. The namespace URI uniquely identifies the
+        vendor and prevents naming collisions between different implementers.</para>
+      <para>An ONVIF Client that encounters an <code>extension</code> entry whose
+        <code>vendor_namespace</code> it does not recognise shall ignore that entry and shall not
+        treat its presence as an error. An ONVIF Device shall not use the extension slot to carry
+        information that is required for correct interpretation of the normative fields of the
+        enclosing class.</para>
+      <para>The <code>Extensible</code> mixin is applied to <code>Observation</code>, making the
+        extension point available on every concrete observation class derived from it. Other
+        abstract classes in this chapter (<code>Provenance</code>, <code>Location</code>,
+        <code>Timing</code>) may also include the mixin in future revisions as needed.</para>
+    </section>
+
+    <section>
       <title>Normative LinkML Schema</title>
       <para><?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?>This section is here
         just because it is handy now, it will be removed before releasing the
@@ -1230,8 +1253,49 @@ imports:
 
 classes:
 
+  VendorExtension:
+    description: >-
+      Container for a single vendor-specific extension entry. Analogous to
+      xs:any in ONVIF WSDL extension elements. The vendor_namespace URI
+      uniquely identifies the vendor and prevents naming collisions.
+    attributes:
+      vendor_namespace:
+        range: uri
+        required: true
+        description: >-
+          URI namespace that uniquely identifies the vendor
+          (e.g. "https://acme.com/onvif/ext/v1").
+      name:
+        range: string
+        required: true
+        description: >-
+          Local name of the extension element within the vendor namespace.
+      value:
+        range: Any
+        required: false
+        description: >-
+          Vendor-specific payload. May be a JSON object, string, or numeric
+          value. ONVIF Clients shall ignore entries with unknown namespaces.
+
+  Extensible:
+    mixin: true
+    description: >-
+      Mixin that adds a standard vendor extension point to any ONVIF class,
+      following the xs:any convention of ONVIF WSDL specifications.
+    attributes:
+      extension:
+        range: VendorExtension
+        multivalued: true
+        inlined_as_list: true
+        required: false
+        description: >-
+          Zero or more vendor-specific extension entries. Clients shall
+          ignore entries with unrecognised vendor_namespace values.
+
   Observation:
     abstract: true
+    mixins:
+      - Extensible
     description: >-
       Top-level abstract container for every AI metadata payload emitted by
       an ONVIF Device. Domain-specific event classes shall extend this class.
