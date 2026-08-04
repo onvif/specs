@@ -95,6 +95,14 @@
     <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://modelcontextprotocol.io/specification/2026-07-28"/>]</para>
     <para>[LinkML] LinkML Specification</para>
     <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://linkml.io/linkml/"/>]</para>
+    <para>[SSN/SOSA] W3C Semantic Sensor Network Ontology — Sensor, Observation, Sample, and Actuator (SOSA)</para>
+    <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.w3.org/TR/vocab-ssn/"/>]</para>
+    <para>[ONVIF-SecurityBaseline] ONVIF Security Baseline Specification</para>
+    <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/srv/security/ONVIF-SecurityBaseline-Spec.pdf"/>]</para>
+    <para>[VC-DATA-INTEGRITY] W3C Verifiable Credential Data Integrity 1.0</para>
+    <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.w3.org/TR/vc-data-integrity/"/>]</para>
+    <para>[RDFC-1.0] W3C RDF Dataset Canonicalization</para>
+    <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.w3.org/TR/rdf-canon/"/>]</para>
     <para>RFC 7519, JSON Web Token (JWT)</para>
     <para role="reference">[<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7519.txt"/>]</para>
     <para>RFC 6750, Bearer Token Usage</para>
@@ -1025,6 +1033,400 @@
     </section>
   </chapter>
 
+  <chapter>
+    <title>Metadata</title>
+    <para>This chapter defines the data model for structured metadata produced and consumed by
+      ONVIF AI-enabled devices. All metadata payloads are instances of, or derived from, the
+      abstract classes defined here. The normative schema is expressed in LinkML; JSON-LD is the
+      wire format (see <xref linkend="sec-jsonld"/>).</para>
+
+    <section>
+      <title>Observation</title>
+      <para><code>Observation</code> is the top-level abstract container for every piece of
+        information emitted by an ONVIF AI Device. Because AI services produce heterogeneous
+        outputs — object detection results, fire alerts, people counts, anomaly reports — the class
+        is intentionally abstract: domain-specific event classes derive from it and add their own
+        semantic fields. An ONVIF Device shall serialise every AI metadata payload as an instance
+        of a class that directly or transitively extends <code>Observation</code>.</para>
+      <para>Every <code>Observation</code> instance carries a mandatory unique identifier and a
+        creation timestamp. Three optional nested objects — <code>Provenance</code>,
+        <code>Location</code>, and <code>Timing</code> — provide contextual metadata about
+        authenticity, spatial origin, and temporal reference respectively. Each is defined by an
+        abstract class; concrete implementations are described in the following sections.</para>
+
+      <section>
+        <title>SOSAObservation</title>
+        <para><code>SOSAObservation</code> is the first concrete subclass of <code>Observation</code>
+          defined by this specification. It aligns the ONVIF AI metadata model with the W3C
+          Semantic Sensor Network (SSN) / SOSA ontology
+          (<link xmlns:xlink="http://www.w3.org/1999/xlink"
+            xlink:href="https://www.w3.org/TR/vocab-ssn/">https://www.w3.org/TR/vocab-ssn/</link>),
+          enabling interoperability with the broader Linked Data and IoT ecosystem.</para>
+        <para>SOSA defines an <code>Observation</code> as an act carried out by a
+          <code>Sensor</code> that produces a <code>Result</code> whose value estimates or
+          calculates a value of an <code>ObservableProperty</code> of a
+          <code>FeatureOfInterest</code>. The <code>SOSAObservation</code> class maps these
+          four SOSA roles directly to ONVIF AI Device semantics:</para>
+        <itemizedlist>
+          <listitem>
+            <para><emphasis>madeBySensor</emphasis> — the ONVIF AI component (camera, analytics
+              module, or AI inference engine) that produced the observation. Corresponds to
+              <code>sosa:madeBySensor</code>.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>observedProperty</emphasis> — the physical or logical property being
+              measured or inferred (for example <code>onvif:PersonCount</code>,
+              <code>onvif:FlamePresence</code>). Corresponds to
+              <code>sosa:observedProperty</code>.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>hasFeatureOfInterest</emphasis> — the real-world entity about which
+              the observation is made (for example a scene, a zone, or a specific object).
+              Corresponds to <code>sosa:hasFeatureOfInterest</code>.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>hasResult</emphasis> — the value or structured object that is the
+              outcome of the observation (for example a count, a bounding box, or a probability
+              score). Corresponds to <code>sosa:hasResult</code>.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>phenomenonTime</emphasis> — the time interval or instant during
+              which the observed property held the reported value. Distinct from the observation
+              creation timestamp inherited from <code>Observation</code>. Corresponds to
+              <code>sosa:phenomenonTime</code>.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>resultTime</emphasis> — the instant at which the result became
+              available (the observation was completed). Corresponds to
+              <code>sosa:resultTime</code>.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>usedProcedure</emphasis> — the AI algorithm or procedure applied
+              by the sensor to produce the result (optional). Corresponds to
+              <code>sosa:usedProcedure</code>.</para>
+          </listitem>
+        </itemizedlist>
+        <para>All four mandatory fields (<code>madeBySensor</code>,
+          <code>observedProperty</code>, <code>hasFeatureOfInterest</code>, and
+          <code>hasResult</code>) shall be present in every serialised
+          <code>SOSAObservation</code> instance. The ONVIF AI Device shall use
+          <code>sosa:</code> URIs as JSON-LD property keys to ensure full alignment with the SOSA
+          ontology.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Provenance</title>
+      <para><code>Provenance</code> is an abstract class nested within <code>Observation</code>
+        that describes the authenticity and chain-of-custody of the observation. Because different
+        deployment environments require different attestation mechanisms — cryptographic signatures,
+        hash-of-source-frame, hardware attestation tokens, or simple device identity — the class
+        is abstract and shall be specialised for each mechanism. Concrete subclasses add the fields
+        specific to their attestation method.</para>
+      <para>The presence of a <code>Provenance</code> object is optional. When omitted, no
+        authenticity claim is made for the observation.</para>
+
+      <section>
+        <title>JLDSProvenance</title>
+        <para><code>JLDSProvenance</code> is the first concrete subclass of
+          <code>Provenance</code>. It attests the integrity of an <code>Observation</code> by
+          means of a JSON-LD Data Integrity proof [VC-DATA-INTEGRITY]. The ECC signature
+          algorithm and key parameters shall conform to the ONVIF Security Baseline
+          [ONVIF-SecurityBaseline].</para>
+
+        <section>
+          <title>Signing procedure</title>
+          <para>The ONVIF Device shall compute the proof using the <code>Add Proof</code>
+            algorithm defined in [VC-DATA-INTEGRITY] with RDFC-1.0 [RDFC-1.0] as the
+            canonicalization algorithm. The digest and signing algorithms shall be those
+            mandated by the current version of [ONVIF-SecurityBaseline].</para>
+        </section>
+
+        <section>
+          <title>Proof fields</title>
+          <para><code>JLDSProvenance</code> carries the following fields, aligned with the
+            <code>DataIntegrityProof</code> structure defined in [VC-DATA-INTEGRITY]:</para>
+          <itemizedlist>
+            <listitem>
+              <para><emphasis>type</emphasis> (mandatory) — fixed string
+                <code>"DataIntegrityProof"</code>.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>cryptosuite</emphasis> (mandatory) — identifies the cryptosuite
+                used. The value shall correspond to the algorithm profile mandated by the current
+                version of [ONVIF-SecurityBaseline]. It is included in the proof configuration
+                and therefore covered by the signature.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>created</emphasis> (mandatory) — ISO 8601 UTC datetime at which
+                the proof was created.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>verificationMethod</emphasis> (mandatory) — URI of the public key
+                or verification method that can be used to verify the proof.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>proofPurpose</emphasis> (mandatory) — fixed string
+                <code>"assertionMethod"</code>.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>proofValue</emphasis> (mandatory) — the encoded digital signature
+                over <code>hashData</code> as defined in the signing procedure above.</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+      </section>
+    </section>
+
+    <section>
+      <title>Location</title>
+      <para><code>Location</code> is an abstract class nested within <code>Observation</code> that
+        represents the spatial origin of the observation. It is optional; when present it shall be
+        an instance of a concrete subclass.</para>
+      <section>
+        <title>GeoLocation</title>
+        <para><code>GeoLocation</code> is the first concrete subclass of <code>Location</code>. It
+          expresses geographic position using WGS 84 coordinates obtained from a GPS receiver
+          integrated in, or connected to, the ONVIF Device. It carries latitude and longitude as
+          mandatory fields and an optional altitude above mean sea level.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Timing</title>
+      <para><code>Timing</code> is an abstract class nested within <code>Observation</code> that
+        provides an authoritative time reference for the observation, independent of the device
+        system clock. It is optional; when present it shall be an instance of a concrete
+        subclass.</para>
+      <section>
+        <title>GPSTiming</title>
+        <para><code>GPSTiming</code> is the first concrete subclass of <code>Timing</code>. It
+          carries the UTC timestamp extracted directly from the GPS signal, giving a traceable,
+          drift-free time reference. An optional UTC offset field allows representation of local
+          time where required.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Normative LinkML Schema</title>
+      <para><?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?>This section is here
+        just because it is handy now, it will be removed before releasing the
+        specs.<?oxy_custom_end?></para>
+      <para>The following LinkML YAML fragment is normative. All abstract classes are marked
+        <code>abstract: true</code>; concrete subclasses set <code>is_a</code> to their parent.
+        Fields marked <code>required: true</code> shall be present in every serialised instance;
+        all other fields are optional.</para>
+      <programlisting>
+id: https://www.onvif.org/ver10/ai/linkml/metadata
+name: onvif-ai-metadata
+description: ONVIF AI Metadata base schema
+prefixes:
+  linkml: https://w3id.org/linkml/
+  sosa: http://www.w3.org/ns/sosa/
+  ssn: http://www.w3.org/ns/ssn/
+  onvif: https://www.onvif.org/ver10/ai/linkml/metadata/
+imports:
+  - linkml:types
+
+classes:
+
+  Observation:
+    abstract: true
+    description: >-
+      Top-level abstract container for every AI metadata payload emitted by
+      an ONVIF Device. Domain-specific event classes shall extend this class.
+    attributes:
+      id:
+        range: uriorcurie
+        required: true
+        description: Globally unique identifier for this observation instance.
+      timestamp:
+        range: datetime
+        required: true
+        description: >-
+          Creation time of the observation, expressed as an ISO 8601 datetime
+          in UTC.
+      provenance:
+        range: Provenance
+        required: false
+        description: >-
+          Authenticity and chain-of-custody descriptor. Omitted when no
+          attestation claim is made.
+      location:
+        range: Location
+        required: false
+        description: Spatial origin of the observation.
+      timing:
+        range: Timing
+        required: false
+        description: Authoritative time reference for the observation.
+
+  Provenance:
+    abstract: true
+    description: >-
+      Abstract descriptor for the authenticity and chain-of-custody of an
+      Observation. Concrete subclasses add attestation-method-specific fields.
+
+  Location:
+    abstract: true
+    description: >-
+      Abstract spatial descriptor for an Observation. Concrete subclasses
+      supply the coordinate system and position fields.
+
+  GeoLocation:
+    is_a: Location
+    description: >-
+      WGS 84 geographic position obtained from a GPS receiver attached to or
+      integrated in the ONVIF Device.
+    attributes:
+      latitude:
+        range: double
+        required: true
+        minimum_value: -90.0
+        maximum_value: 90.0
+        description: Geodetic latitude in decimal degrees (WGS 84).
+      longitude:
+        range: double
+        required: true
+        minimum_value: -180.0
+        maximum_value: 180.0
+        description: Geodetic longitude in decimal degrees (WGS 84).
+      altitude:
+        range: double
+        required: false
+        description: Altitude above mean sea level in metres (WGS 84).
+
+  Timing:
+    abstract: true
+    description: >-
+      Abstract authoritative time reference for an Observation, independent
+      of the device system clock. Concrete subclasses specify the time source.
+
+  GPSTiming:
+    is_a: Timing
+    description: >-
+      UTC timestamp extracted directly from the GPS signal, providing a
+      traceable, drift-free time reference.
+    attributes:
+      gps_timestamp:
+        range: datetime
+        required: true
+        description: UTC time extracted from the GPS signal (ISO 8601).
+      utc_offset:
+        range: string
+        required: false
+        description: >-
+          UTC offset of the local time zone at the observation site,
+          expressed as ±HH:MM (e.g. "+02:00"). Informative only.
+
+  JLDSProvenance:
+    is_a: Provenance
+    description: >-
+      Concrete Provenance subclass that attests Observation integrity using a
+      JSON-LD Data Integrity proof [VC-DATA-INTEGRITY]. The ECC signature
+      algorithm and key parameters shall conform to [ONVIF-SecurityBaseline].
+      The proof is computed over the RDFC-1.0 canonical form of the
+      Observation with the provenance field excluded.
+    attributes:
+      type:
+        range: string
+        required: true
+        equals_string: "DataIntegrityProof"
+        description: >-
+          Fixed value "DataIntegrityProof" as defined in [VC-DATA-INTEGRITY].
+      cryptosuite:
+        range: string
+        required: true
+        description: >-
+          Identifies the cryptosuite used. The value shall be consistent with
+          the ECC algorithm mandated by [ONVIF-SecurityBaseline].
+      created:
+        range: datetime
+        required: true
+        description: ISO 8601 UTC datetime at which the proof was created.
+      verificationMethod:
+        range: uriorcurie
+        required: true
+        description: >-
+          URI of the public key or verification method used to verify the
+          proof.
+      proofPurpose:
+        range: string
+        required: true
+        equals_string: "assertionMethod"
+        description: >-
+          Fixed value "assertionMethod", indicating the proof asserts the
+          content of the observation.
+      proofValue:
+        range: string
+        required: true
+        description: >-
+            Encoded digital signature over hashData = H(canonical(unsecuredDocument)) ||
+            H(canonical(proofConfig)), where unsecuredDocument is the Observation with
+            provenance removed, proofConfig is the proof object without proofValue, and
+            H and the signing algorithm are mandated by [ONVIF-SecurityBaseline].
+
+  SOSAObservation:
+    is_a: Observation
+    description: >-
+      Concrete Observation subclass aligned with the W3C SOSA ontology
+      (https://www.w3.org/TR/vocab-ssn/). Instances shall be serialised
+      using sosa: property URIs as JSON-LD keys.
+    class_uri: sosa:Observation
+    attributes:
+      madeBySensor:
+        slot_uri: sosa:madeBySensor
+        range: uriorcurie
+        required: true
+        description: >-
+          URI identifying the ONVIF AI component (camera, analytics module,
+          or inference engine) that produced this observation.
+      observedProperty:
+        slot_uri: sosa:observedProperty
+        range: uriorcurie
+        required: true
+        description: >-
+          URI identifying the physical or logical property being measured or
+          inferred (e.g. onvif:PersonCount, onvif:FlamePresence).
+      hasFeatureOfInterest:
+        slot_uri: sosa:hasFeatureOfInterest
+        range: uriorcurie
+        required: true
+        description: >-
+          URI identifying the real-world entity about which the observation
+          is made (e.g. a scene, a detection zone, or a specific object).
+      hasResult:
+        slot_uri: sosa:hasResult
+        range: Any
+        required: true
+        description: >-
+          The result value or structured object produced by the observation
+          (e.g. a count, a bounding box, or a probability score).
+      phenomenonTime:
+        slot_uri: sosa:phenomenonTime
+        range: datetime
+        required: false
+        description: >-
+          The time instant or interval during which the observed property
+          held the reported value. May differ from the Observation timestamp.
+      resultTime:
+        slot_uri: sosa:resultTime
+        range: datetime
+        required: false
+        description: >-
+          The instant at which the result became available (observation
+          completed). Corresponds to sosa:resultTime.
+      usedProcedure:
+        slot_uri: sosa:usedProcedure
+        range: uriorcurie
+        required: false
+        description: >-
+          URI identifying the AI algorithm or procedure applied by the sensor
+          to produce the result.
+      </programlisting>
+    </section>
+  </chapter>
+
   <appendix>
     <title>Example Call Sequence (informative)</title>
     <para>This annex is informative and provides an example end-to-end sequence with sample
@@ -1046,7 +1448,7 @@
         (example: <code>https://192.0.2.10/mcp</code>).</para>
     </section>
     <section>
-      <title>A.3 Optional protocol preflight</title>
+      <title>Optional protocol preflight</title>
       <para><emphasis>Request (Client to Device):</emphasis> For MCP 2026-07-28, the ONVIF Client
         may call <code>server/discover</code> before other requests.</para>
       <programlisting>{
@@ -1098,7 +1500,8 @@
     }
   }
 }</programlisting>
-      <para><emphasis>Legacy response (Device to Client, informative only):</emphasis></para>
+      <para><emphasis><?oxy_comment_start author="Ottavio Campana" timestamp="20260804T090712+0200" comment="Shall the device support 2025 or can it return an error? We should try to minimize the protocol stack and number of versions."?>Legacy
+          response (Device to Client, informative only)<?oxy_comment_end?>:</emphasis></para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 1,
