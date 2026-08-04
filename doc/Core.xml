@@ -2280,7 +2280,8 @@ DATE: when response was generated
               HTTPS.</para>
           </listitem>
         </itemizedlist>
-        <para>A device that supports HTTP Basic authentication over HTTPS shall signal the HttpBasic capability as true.</para>
+        <para>A device that supports HTTP Basic authentication over TLS-protected connections shall
+          signal the HttpBasic capability as true.</para>
         <para>If server supports both digest authentication as specified in [RFC 2617] and the user name token profile as specified in WS-Security the following behavior shall be adapted: a web service request can be authenticated on the HTTP level via digest authentication [RFC 2617] or on the web service level via the WS-Security (WSS) framework. If a client does not supply authentication credentials along with a web service request, the server shall assume that the client intends to use digest authentication [RFC 2617], if required. Hence, if a client does not provide authentication credentials when requesting a service that requires authentication, it will receive an HTTP 401 error according to [RFC 2617]. Note that this behaviour on the server’s side differs from the case of supporting only username token profile, which requires for this case an HTTP 400 error on the HTTP level and a SOAP:Fault env:Sender ter:NotAuthorized error on the WS level.</para>
         <para>A client should not simultaneously supply authentication credentials on both the HTTP level and the WS level. If a server receives a web service request that contains authentication credentials on both the HTTP level and the WS level, it shall first validate the credentials provided on the HTTP layer. If this validation was successful, the server shall finally validate the authentication credentials provided on the WS layer.</para>
         <para><xref linkend="AuthenticationFlow"/> summarizes the authentication of a web service request by a server over HTTP and HTTPS.</para>
@@ -3308,7 +3309,7 @@ onvif://www.onvif.org/name/ARV-453
                   </entry>
                   <entry>
                     <para>Indication if the device supports HTTP Basic authentication according to
-                      [RFC 7617], only over HTTPS.</para>
+                      [RFC 7617], only over TLS-protected connections.</para>
                   </entry>
                 </row>
                 <row>
@@ -9745,10 +9746,11 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
       </section>
   </appendix>
   <appendix xml:id="basic_auth_https_example">
-    <title>HTTP Basic authentication over HTTPS example</title>
-    <para>The following exchange between client and device over HTTPS demonstrates a device
-      supporting HTTP Basic authentication according to [RFC 7617] in addition to digest
-      authentication. HTTP Basic authentication shall only be used over HTTPS.</para>
+    <title>HTTP Basic authentication over TLS-protected connection</title>
+    <para>The following exchange between client and device over TLS-protected connection
+      demonstrates a device supporting HTTP Basic authentication according to [RFC 7617] in addition
+      to digest authentication. A device shall accept the request from the client that includes an
+      Authorization header using the Basic scheme without having received a prior challenge.</para>
     <para>Unauthenticated request from the client:</para>
     <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
 Host: 10.XX.XX.XX
@@ -9767,8 +9769,7 @@ WWW-Authenticate: Basic realm="onvif"
 WWW-Authenticate: Digest algorithm=MD5, realm="onvif", qop="auth",
 nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
 WWW-Authenticate: Digest algorithm=SHA-256, realm="onvif", qop="auth",
-nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
-X-Frame-Options: SAMEORIGIN]]></programlisting>
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"]]></programlisting>
     <para>Authenticated request from the client, using HTTP Basic authentication</para>
     <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
 Host: 10.XX.XX.XX
@@ -9788,8 +9789,7 @@ WWW-Authenticate: Basic realm="onvif"
 WWW-Authenticate: Digest algorithm=MD5, realm="onvif", qop="auth",
 nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
 WWW-Authenticate: Digest algorithm=SHA-256, realm="onvif", qop="auth",
-nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
-X-Frame-Options: SAMEORIGIN]]></programlisting>
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"]]></programlisting>
   </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
