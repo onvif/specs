@@ -449,7 +449,7 @@
               <para>tai</para>
             </entry>
             <entry>
-              <para><?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?>???<?oxy_custom_end?></para>
+              <para>http://www.onvif.org/ver10/ai</para>
             </entry>
           </row>
           <row>
@@ -671,10 +671,8 @@
       <section xml:id="sec_self_describing_events">
         <title>Self-Describing Events and Dynamic Schema Registration</title>
         <para>The self-describing nature of JSON-LD enables a dynamic schema registration workflow.
-          When the ONVIF Client Schema
-          Registry<?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?> (Layer
-          2)<?oxy_custom_end?> receives a metadata event whose <code>@context</code> URI does not
-          match any registered schema, it SHOULD:</para>
+          When the ONVIF Client Schema Registry receives a metadata event whose
+            <code>@context</code> URI does not match any registered schema, it shall:</para>
         <para>1. Suspend validation of the triggering event.</para>
         <para>2. Fetch the LinkML schema YAML from the URI identified by <code>@context</code>,
           or issue an MCP <code>resources/read</code> request to the originating ONVIF Device to
@@ -923,14 +921,14 @@
       </section>
       <section xml:id="sec_capability_discovery">
         <title>Capability Discovery</title>
-        <para>Capability discovery shall be performed through the MCP
-          <code>resources/read</code> operation using the reserved URI
-          <code>capabilities://onvif/ai</code>.</para>
+        <para>Capability discovery shall be performed through the MCP <code>resources/read</code>
+          operation using the reserved URI
+          <code>capabilities://www.onvif.org/ver10/ai</code>.</para>
         <para>An ONVIF Device implementing the AI Service shall expose
-          <code>capabilities://onvif/ai</code> and shall return the AI Service capabilities
-          document when that URI is requested via <code>resources/read</code>. The capabilities
-          document describes the features supported by the device, such as supported analytics
-          types, event classes, and optional extensions.</para>
+            <code>capabilities://www.onvif.org/ver10/ai</code> and shall return the AI Service
+          capabilities document when that URI is requested via <code>resources/read</code>. The
+          capabilities document describes the features supported by the device, such as supported
+          analytics types, event classes, and optional extensions.</para>
         <para>Exposing capabilities for other ONVIF services is optional. When provided, the
           same URI pattern shall be used, replacing <code>ai</code> with the service name:
           <code>capabilities://onvif/&lt;service-name&gt;</code>.</para>
@@ -1075,10 +1073,10 @@
           the buffer is exhausted before the client reconnects, delivery continuity is lost and the
           ONVIF Client shall treat the gap as a potential loss of events.</para>
         <para>The buffer capacity of the device is advertised in the
-          <code>capabilities://onvif/ai</code> document via the <code>eventBufferCapacity</code>
-          field (integer, number of events). A value of <code>0</code> indicates that the device
-          does not support buffering; events produced while the channel is closed are discarded
-          immediately.</para>
+            <code>capabilities://www.onvif.org/ver10/ai</code> document via the
+            <code>eventBufferCapacity</code> field (integer, number of events). A value of
+            <code>0</code> indicates that the device does not support buffering; events produced
+          while the channel is closed are discarded immediately.</para>
       </section>
       <section xml:id="sec_event_payload_structure">
         <title>Event Payload Structure</title>
@@ -1170,8 +1168,7 @@
             </row>
             <row>
               <entry><para>7.3.3</para></entry>
-              <entry><para><code>resources/read</code>
-                (<code>capabilities://onvif/ai</code>)</para></entry>
+              <entry><para><code>resources/read</code> (<code>capabilities://www.onvif.org/ver10/ai</code>)</para></entry>
               <entry><para>Device feature set, supported analytics types,
                 <code>eventBufferCapacity</code>.</para></entry>
             </row>
@@ -1882,13 +1879,14 @@ classes:
     <section xml:id="sec_annex_ai_capability_discovery">
       <title>AI capability discovery</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
-          <code>resources/read</code> with URI <code>capabilities://onvif/ai</code>.</para>
+          <code>resources/read</code> with URI
+        <code>capabilities://www.onvif.org/ver10/ai</code>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 4,
   "method": "resources/read",
   "params": {
-    "uri": "capabilities://onvif/ai",
+    "uri": "capabilities://www.onvif.org/ver10/ai",
     "_meta": {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28"
     }
@@ -1902,7 +1900,7 @@ classes:
   "result": {
     "resultType": "complete",
     "contents": [{
-      "uri": "capabilities://onvif/ai",
+      "uri": "capabilities://www.onvif.org/ver10/ai",
       "mimeType": "application/json",
       "text": "{...}"
     }]
@@ -1957,7 +1955,7 @@ classes:
       <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns available
         resources. Resources with <code>mimeType: application/linkml+yaml</code> are the schema
         files to be retrieved in <xref linkend="sec_annex_schema_retrieval"/> (example URIs:
-          <code>linkml://onvif/ai/events/v1</code>).</para>
+          <code>linkml://www.onvif.org/ver10/ai/events</code>).</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 6,
@@ -1965,12 +1963,12 @@ classes:
     "resultType": "complete",
     "resources": [
       {
-        "uri": "linkml://onvif/ai/events/v1",
+        "uri": "linkml://www.onvif.org/ver10/ai/events",
         "name": "ONVIF AI Events Schema",
         "mimeType": "application/linkml+yaml"
       },
       {
-        "uri": "capabilities://onvif/ai",
+        "uri": "capabilities://www.onvif.org/ver10/ai",
         "name": "ONVIF AI Capabilities",
         "mimeType": "application/json"
       }
@@ -1982,13 +1980,14 @@ classes:
       <title>Schema retrieval</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
           <code>resources/read</code> for each <code>application/linkml+yaml</code> resource URI
-        obtained from <xref linkend="sec_annex_schema_inventory"/> (example: <code>linkml://onvif/ai/events/v1</code>).</para>
+        obtained from <xref linkend="sec_annex_schema_inventory"/> (example:
+          <code>linkml://www.onvif.org/ver10/ai/events</code>).</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 7,
   "method": "resources/read",
   "params": {
-    "uri": "linkml://onvif/ai/events/v1",
+    "uri": "linkml://www.onvif.org/ver10/ai/events",
     "_meta": {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28"
     }
@@ -2004,7 +2003,7 @@ classes:
   "result": {
     "resultType": "complete",
     "contents": [{
-      "uri": "linkml://onvif/ai/events/v1",
+      "uri": "linkml://www.onvif.org/ver10/ai/events",
       "mimeType": "application/linkml+yaml",
       "text": "..."
     }]
@@ -2110,12 +2109,12 @@ classes:
         {
           "type": "fire_detection",
           "enabled": true,
-          "configSchema": "linkml://onvif/ai/events/v1#FireDetectionConfig"
+          "configSchema": "linkml://www.onvif.org/ver10/ai/events#FireDetectionConfig"
         },
         {
           "type": "smoke_detection",
           "enabled": false,
-          "configSchema": "linkml://onvif/ai/events/v1#SmokeDetectionConfig"
+          "configSchema": "linkml://www.onvif.org/ver10/ai/events#SmokeDetectionConfig"
         }
       ]
     }
@@ -2195,7 +2194,7 @@ classes:
   "method": "notifications/message",
   "params": {
     "message": {
-      "@context": "linkml://onvif/ai/events/v1",
+      "@context": "linkml://www.onvif.org/ver10/ai/events",
       "@type": "FireDetectionEvent",
       "sosa:madeBySensor": "urn:onvif:device:192.0.2.10:camera:ch1",
       "sosa:observedProperty": "onvif:FlamePresence",
