@@ -55,7 +55,7 @@
     <title>Scope</title>
     <para>This specification defines a layered protocol stack that enables any ONVIF-compliant
       client to discover, configure, and consume data from any AI-enabled ONVIF-compliant device.
-      The stack combines three open technologies:</para>
+      The stack combines four open technologies:</para>
     <itemizedlist>
       <listitem>
         <para>ONVIF, for standardised device control;</para>
@@ -68,12 +68,15 @@
         <para>LinkML, for defining, validating, and sharing
           structured metadata schemas.</para>
       </listitem>
+      <listitem>
+        <para>JSON-LD, for serializing semantically rich metadata payloads.</para>
+      </listitem>
     </itemizedlist>
-    <para>The document is divided into the following sections:</para>
+    <para>After introducing the stack, this specification is organised as follows:</para>
     <para>Scope: Defines the applicability and boundaries of this specification.</para>
-    <para>Building Blocks: Introduces the four constituent technologies — ONVIF, MCP, LinkML, and
-      JSON-LD — and their individual roles in the stack.</para>
-    <para>Protocol Stack Architecture: Describes the overall layered architecture, the two planes,
+    <para>Building Blocks: Introduces each constituent technology and clarifies its role in the
+      stack.</para>
+    <para>Protocol Architecture: Describes the overall layered architecture, the two planes,
       and the shared identity authority.</para>
     <para>Service Discovery and Data Exchange: Defines the message sequences for connection
       establishment, schema retrieval, skill invocation, and metadata event delivery.</para>
@@ -699,16 +702,18 @@
   </chapter>
 
   <chapter xml:id="ch_protocol_stack_architecture">
-    <title>Protocol Stack Architecture</title>
+    <title>Protocol Architecture</title>
 
     <section xml:id="sec_architecture_overview">
       <title>Architecture Overview</title>
-      <para>The ONVIF AI Protocol Stack is structured around the standard ONVIF roles of an ONVIF
+      <para>The ONVIF AI protocol architecture is structured around the standard ONVIF roles of an ONVIF
         Client and an ONVIF Device, with an OIDC Authorization Server acting as the shared trust
         anchor that issues the tokens consumed by both. The figure below shows the top-level
         relationships between these three components and the two communication planes.</para>
+      <para>The client and device expose peer functional layers across the two planes; they are not
+        modeled as a single end-to-end sequential layer numbering.</para>
       <figure xml:id="fig-stack-overview">
-        <title>ONVIF AI Protocol Stack — Top-Level Architecture</title>
+        <title>ONVIF AI Protocol Architecture — Top-Level View</title>
         <mediaobject>
           <imageobject>
             <?oxy_comment_start author="Ottavio Campana" timestamp="20260729T095751+0200" comment="Image to be redone from scratch"?>
@@ -736,8 +741,8 @@
     </section>
     
     <section xml:id="sec_protocol_stack">
-      <title>Protocol Stack</title>
-      <para>The ONVIF AI protocol stack uses two independent communication planes, both protected by
+      <title>Communication Planes</title>
+      <para>The ONVIF AI protocol architecture uses two independent communication planes, both protected by
         TLS and bearer tokens issued by the OIDC Authorization Server. The <emphasis>Control Plane</emphasis>
         carries client-initiated MCP requests, while the <emphasis>Event Plane</emphasis> carries
         server-pushed metadata events. The detailed behavior of each plane is defined in the following
