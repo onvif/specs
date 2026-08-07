@@ -74,12 +74,14 @@
     </itemizedlist>
     <para>After introducing the stack, this specification is organised as follows:</para>
     <para>Scope: Defines the applicability and boundaries of this specification.</para>
-    <para>Building Blocks: Introduces each constituent technology and clarifies its role in the
-      stack.</para>
-    <para>Protocol Architecture: Describes the overall layered architecture, the two planes,
-      and the shared identity authority.</para>
-    <para>Service Discovery and Data Exchange: Defines the message sequences for connection
-      establishment, schema retrieval, skill invocation, and metadata event delivery.</para>
+    <para>Protocol Architecture: Defines the overall layered architecture, the two communication
+      planes, and the shared identity authority. Concepts introduced here are used throughout
+      subsequent chapters.</para>
+    <para>Building Blocks: Introduces each constituent technology and clarifies its role within
+      the architecture defined above.</para>
+    <para>Service Discovery and Data Exchange: Defines the interaction sequences — client-initiated
+      requests for connection establishment, schema retrieval, and skill invocation, as well as
+      server-pushed metadata event delivery.</para>
     <para>Authentication and Authorization: Specifies the JWT-based security model, ONVIF role
       mapping, and TLS requirements.</para>
   </chapter>
@@ -172,9 +174,10 @@
                 <para><emphasis role="bold">ONVIF Device</emphasis></para>
               </entry>
               <entry align="left">
-                <para>An MCP Server that wraps one or more AI analytics models and exposes them as
-                  Skills (MCP Tools), together with a schema announcement and a metadata
-                  publisher.</para>
+                <para>An ONVIF-compliant device that exposes one or more MCP Server endpoints,
+                  publishing its capabilities as Skills (MCP Tools), schema announcements, and
+                  metadata events. Capabilities may include AI analytics models, bridging of
+                  existing ONVIF services, or other device functions.</para>
               </entry>
             </row>
             <row>
@@ -217,8 +220,9 @@
                 <para><emphasis role="bold">MCP Host / Client</emphasis></para>
               </entry>
               <entry align="left">
-                <para>An ONVIF Client or other orchestrator that connects to one or more MCP Servers
-                  to discover and invoke tools.</para>
+                <para>The MCP Host is the application (e.g., VMS) that creates and manages one or
+                  more MCP Clients. Each MCP Client is the protocol-level peer that connects to an
+                  MCP Server to discover and invoke tools.</para>
               </entry>
             </row>
             <row>
@@ -263,7 +267,11 @@
               </entry>
               <entry align="left">
                 <para>An MCP Tool exposed by an ONVIF Device, representing a single callable
-                  operation (e.g. set detection region, adjust sensitivity).</para>
+                  operation (e.g. set detection region, adjust sensitivity). Note: in this
+                  specification, "Skill" is an ONVIF term mapped to the MCP Tool primitive. It is
+                  distinct from the experimental MCP Skills extension (<code>skills/list</code>,
+                  <code>skills/get</code>) which is under development and not yet part of the MCP
+                  core specification.</para>
               </entry>
             </row>
             <row>
@@ -271,8 +279,10 @@
                 <para><emphasis role="bold">ONVIF Client (Video Management System)</emphasis></para>
               </entry>
               <entry align="left">
-                <para>An ONVIF client that also acts as an MCP Host, managing cameras and consuming
-                  AI analytics events.</para>
+                <para>An ONVIF-compliant client that also acts as an MCP Host. It discovers and
+                  connects to one or more ONVIF Devices, invokes Skills, and consumes metadata
+                  events. Use cases include video management systems, AI-native applications, and
+                  other orchestrators that leverage device capabilities exposed via MCP.</para>
               </entry>
             </row>
             <row>
@@ -392,13 +402,12 @@
 
   <chapter xml:id="ch_overview">
     <title>Overview</title>
-    <para>AI configurations are handled through the ai service. AI configurations are used to
-      configure and control the intelligent functions as defined in this specification. The device
-      provides AI configuration through the AI service.
-      <?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?>WSDL for this service is
-      specified in <link xmlns:xlink="http://www.w3.org/1999/xlink"
-        xlink:href="http://www.onvif.org/ver20/media/wsdl/media.wsdl"
-        >http://www.onvif.org/ver20/media/wsdl/media.wsdl</link>l<?oxy_custom_end?>.</para>
+    <para>The AI Service allows an ONVIF Device to expose, and an ONVIF Client to discover and
+      configure, device capabilities that involve AI-driven processing. In this specification,
+      AI functionality refers to capabilities such as analytics model selection and parameterisation,
+      detection region and sensitivity configuration, metadata schema announcement, and skill
+      (MCP Tool) lifecycle management. The scope of AI functionality may be extended in future
+      revisions of this specification.</para>
     <table>
       <title>Referenced namespaces (with prefix)</title>
       <tgroup cols="2">
@@ -468,20 +477,228 @@
     </table>
   </chapter>
 
+
+  <chapter xml:id="ch_protocol_stack_architecture">
+    <title>Protocol Architecture</title>
+
+    <section xml:id="sec_architecture_overview">
+      <title>Architecture Overview</title>
+      <para>The ONVIF AI protocol architecture is structured around the standard ONVIF roles of an ONVIF
+        Client and an ONVIF Device, with an OIDC Authorization Server acting as the shared trust
+        anchor that issues the tokens consumed by both. The figure below shows the top-level
+        relationships between these three components and the two communication planes.</para>
+      <para>The architecture is realised by four open technologies — MCP (Model Context Protocol)
+        for tool invocation and event delivery, LinkML for schema definition, JSON-LD for metadata
+        serialisation, and OAuth 2.1 / JWT for security. Their precise roles are summarised in the
+        Technology Mapping (<xref linkend="sec_technology_mapping"/>) and detailed in the Building
+        Blocks chapter (<xref linkend="ch_building_blocks"/>).</para>
+      <para>The client and device expose matching functional layers that communicate as peers
+        across the two planes.</para>
+      <figure xml:id="fig-stack-overview">
+        <title>ONVIF AI Protocol Architecture — Top-Level View</title>
+        <mediaobject>
+          <imageobject>
+            <?oxy_comment_start author="Ottavio Campana" timestamp="20260729T095751+0200" comment="Image to be redone from scratch"?>
+            <imagedata fileref="media/AI/stack_overview.svg" contentwidth="140mm"
+            /><?oxy_comment_end?>
+          </imageobject>
+        </mediaobject>
+      </figure>
+      <para>The <emphasis>OIDC Authorization Server</emphasis> is the trust anchor for the entire
+        stack. It issues signed ES256 JWTs to the ONVIF Client via the OAuth2 Client Credentials
+        grant, and exposes a JWKS endpoint that the ONVIF Device uses to validate every token it
+        receives.</para>
+      <para>The <emphasis>ONVIF Client</emphasis> acts as the MCP Host: it creates one or more
+        MCP Clients that connect to ONVIF Devices, invoke skills, and subscribe to metadata
+        events. It also maintains the LinkML Schema Registry and validates every incoming event
+        before it is passed to business logic.</para>
+      <para>The <emphasis>ONVIF Device</emphasis> provides an MCP Server endpoint. Through this
+        endpoint, it exposes skills in the form of MCP Tools and publishes JSON-LD metadata events.
+        Moreover, it announces the LinkML schema via MCP Resources.</para>
+      <para>All communication between the ONVIF Client and the ONVIF Device is bearer-token
+        authenticated. The <emphasis>Control Plane (A)</emphasis> carries MCP
+          <code>tools/call</code> requests from the ONVIF Client to the ONVIF Device. The
+          <emphasis>Event Plane (B)</emphasis> carries JSON-LD metadata events from the ONVIF Device
+        to the ONVIF Client, delivered as MCP <code>notifications/message</code> frames.</para>
+    </section>
+    
+    <section xml:id="sec_protocol_stack">
+      <title>Communication Planes</title>
+      <para>The ONVIF AI protocol architecture uses two independent communication planes, both
+        protected by TLS and bearer tokens issued by the OIDC Authorization Server:</para>
+      <itemizedlist>
+        <listitem>
+          <para>The <emphasis>Control Plane</emphasis> carries client-initiated
+            <emphasis>requests</emphasis> — synchronous JSON-RPC calls that discover capabilities,
+            invoke skills, and retrieve resources.</para>
+        </listitem>
+        <listitem>
+          <para>The <emphasis>Event Plane</emphasis> carries server-pushed
+            <emphasis>metadata events</emphasis> — asynchronous notification frames that the ONVIF
+            Device emits as observations are produced, without client polling.</para>
+        </listitem>
+      </itemizedlist>
+      <para>The two planes are independent: a request on the Control Plane never produces a
+        metadata event as its direct response, and an event on the Event Plane is never a reply
+        to a specific request. The detailed behavior of each plane is defined in the following
+        sections.</para>
+      <section xml:id="sec_control_plane">
+        <title>Control Plane</title>
+        <para>The <emphasis>Control Plane</emphasis> is the command path used by the ONVIF Client to
+          discover and invoke Skills exposed by an ONVIF Device. It is request/response oriented and
+          carries only client-initiated MCP operations.</para>
+        <informaltable>
+          <tgroup cols="2">
+            <colspec colname="c1" colwidth="24*" />
+            <colspec colname="c2" colwidth="76*" />
+            <tbody valign="top">
+              <row>
+                <entry align="left"><para><emphasis role="bold">Direction</emphasis></para></entry>
+                <entry align="left"><para>Client-initiated; ONVIF Client sends requests, ONVIF Device returns responses.</para></entry>
+              </row>
+              <row>
+                <entry align="left"><para><emphasis role="bold">Purpose</emphasis></para></entry>
+                <entry align="left"><para>Discover capabilities, list skills, and invoke device actions.</para></entry>
+              </row>
+              <row>
+                <entry align="left"><para><emphasis role="bold">Protocol</emphasis></para></entry>
+                <entry align="left"><para>MCP 2026-07-28 over Streamable HTTP.</para></entry>
+              </row>
+              <row>
+                <entry align="left"><para><emphasis role="bold">Message pattern</emphasis></para></entry>
+                <entry align="left"><para>JSON-RPC 2.0 request/response.</para></entry>
+              </row>
+              <row>
+                <entry align="left"><para><emphasis role="bold">Transport</emphasis></para></entry>
+                <entry align="left"><para>HTTP POST to <code>/mcp</code> over HTTP/1.1 or HTTP/2.</para></entry>
+              </row>
+              <row>
+                <entry align="left"><para><emphasis role="bold">Operations</emphasis></para></entry>
+                <entry align="left"><para><code>server/discover</code>, <code>tools/list</code>, <code>tools/call</code>, <code>resources/list</code>, and <code>resources/read</code>.</para></entry>
+              </row>
+              <row>
+                <entry align="left"><para><emphasis role="bold">Security</emphasis></para></entry>
+                <entry align="left"><para>TLS 1.3 with an <code>Authorization: Bearer</code> ES256 JWT on every request.</para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>
+        <para>Each request is self-contained and shall be validated independently by the ONVIF Device
+          before execution. A Control Plane response shall report either the requested result or an MCP
+          error indicating why the operation could not be completed.</para>
+      </section>
+
+      <section xml:id="sec_event_plane">
+        <title>Metadata Event Plane</title>
+        <para>The <emphasis>Metadata Event Plane</emphasis> is the event path used by the ONVIF Device to
+          publish AI analytics results to the ONVIF Client. It is server-initiated, asynchronous, and
+          optimized for continuous delivery of structured metadata events.</para>
+        <informaltable>
+          <tgroup cols="2">
+            <colspec colname="c1" colwidth="24*" />
+            <colspec colname="c2" colwidth="76*" />
+            <tbody valign="top">
+              <row>
+                <entry align="left"><para><emphasis role="bold">Direction</emphasis></para></entry>
+                <entry align="left"><para>Server-initiated; ONVIF Device pushes events to the ONVIF Client without polling.</para></entry>
+              </row>
+              <row>
+                <entry align="left"><para><emphasis role="bold">Purpose</emphasis></para></entry>
+                <entry align="left"><para>Deliver detection and analytics events as they occur.</para></entry>
+              </row>
+              <row>
+                <entry align="left"><para><emphasis role="bold">Protocol</emphasis></para></entry>
+                <entry align="left"><para>MCP 2026-07-28 Streamable HTTP.</para></entry>
+              </row>
+              <row>
+                <entry align="left"><para><emphasis role="bold">Message pattern</emphasis></para></entry>
+                <entry align="left"><para>MCP <code>notifications/message</code> frames.</para></entry>
+              </row>
+              <row>
+                <entry align="left"><para><emphasis role="bold">Transport</emphasis></para></entry>
+                <entry align="left"><para>Streamable HTTP to <code>/mcp</code> endpoint, as defined by MCP 2026-07-28.</para></entry>
+              </row>
+              <row>
+                <entry align="left"><para><emphasis role="bold">Payload</emphasis></para></entry>
+                <entry align="left"><para>JSON-LD events conforming to the registered LinkML schema.</para></entry>
+              </row>
+              <row>
+                <entry align="left"><para><emphasis role="bold">Security</emphasis></para></entry>
+                <entry align="left"><para>TLS 1.3; the channel is established using an <code>Authorization: Bearer</code> ES256 JWT.</para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>
+        <para>The Event Plane shall preserve event ordering per stream, and each event shall remain
+          self-describing through its JSON-LD <code>@context</code> and <code>@type</code>
+          annotations.</para>
+      </section>
+    </section>
+
+    <section xml:id="sec_identity_and_authorization_server">
+      <title>Identity and Authorization Server</title>
+      <para>The ONVIF AI protocol stack requires an OAuth 2.1 Authorization Server, as specified in
+        the ONVIF Security Service Specification.</para>
+      <para>This server acts as the trust anchor for the complete stack: it authenticates clients,
+        issues bearer access tokens, and exposes authorization server metadata (token endpoint URI,
+        supported signing algorithms, and JWKS endpoint) needed by ONVIF Devices to validate
+        tokens before processing MCP requests.</para>
+      <para>In practice, the Authorization Server provides centralized identity and access control for
+        both planes. It ensures that only authorized ONVIF Clients can invoke Skills on the Control
+        Plane and receive protected metadata on the Event Plane, according to the roles and claims
+        contained in the issued token.</para>
+    </section>
+
+    <section xml:id="sec_technology_mapping">
+      <title>Technology Mapping</title>
+      <para>The architecture described above is realised by four open technologies, each filling a
+        specific role. The next chapter (<xref linkend="ch_building_blocks"/>) defines each in
+        detail; the mapping below shows where each technology operates within the
+        architecture:</para>
+      <itemizedlist>
+        <listitem>
+          <para><emphasis>MCP</emphasis> — implements the Control Plane (requests) and the Event
+            Plane (notifications). Provides the JSON-RPC transport, the Tool/Resource/Prompt
+            primitives, and the Streamable HTTP channel.</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>LinkML</emphasis> — defines the data model layer shared by both planes.
+            Schemas describe event payloads (Event Plane) and skill input parameters (Control
+            Plane).</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>JSON-LD</emphasis> — the wire-format serialisation for metadata events on
+            the Event Plane. Carries runtime instances of the LinkML-defined schemas.</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>OAuth 2.1 / JWT</emphasis> — secures the security and transport layer for
+            both planes via the Identity and Authorization Server described above.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+  </chapter>
+
+
   <chapter xml:id="ch_building_blocks">
     <title>Building Blocks</title>
+    <para>This chapter describes each technology introduced in the technology mapping
+      (<xref linkend="sec_technology_mapping"/>). For each building block, the sections below
+      explain its purpose, its protocol-level details, and how it fulfils its role within the
+      Control Plane, Event Plane, and data model layer defined in the preceding Protocol
+      Architecture chapter.</para>
 
     <section xml:id="sec_mcp_tool_interface">
       <title>MCP — The AI Tool Interface</title>
       <para>The Model Context Protocol (MCP) is an open, JSON-RPC 2.0 based protocol designed to
-        connect AI language models and agents to external tools and data sources. In the ONVIF AI
-        stack, MCP serves as the standardised interface layer between the ONVIF Client (acting as an MCP
-        Host) and each ONVIF Device (acting as an MCP Server). Adopting MCP means that any ONVIF Client
-        can invoke any compliant ONVIF Device without requiring a vendor-specific driver.</para>
+        connect AI agents to external tools and data sources. In the ONVIF AI
+        stack, MCP serves as the standardised interface layer between the ONVIF Client (an MCP
+        Host that manages one or more MCP Clients) and each ONVIF Device (acting as an MCP Server).
+        Adopting MCP means that any ONVIF Client can invoke any compliant ONVIF Device without
+        requiring a vendor-specific driver.</para>
 
       <section xml:id="sec_protocol_primitives">
         <title>Protocol Primitives</title>
-        <para>MCP defines three categories of server-side object that a host may discover and
+        <para>MCP defines three categories of server-side primitive that a host may discover and
           use:</para>
         <itemizedlist>
           <listitem>
@@ -505,42 +722,32 @@
               workflows.</para>
           </listitem>
         </itemizedlist>
+        <para>In addition to these primitives, MCP defines the <code>server/discover</code>
+          lifecycle method. This is a protocol-level operation — not a primitive — that returns the
+          server's identity, supported protocol versions, and capability flags indicating which
+          primitives (tools, resources, prompts) are available. See
+          <xref linkend="sec_transport_modes"/> for details.</para>
       </section>
 
       <section xml:id="sec_transport_modes">
-        <title>Transport Modes</title>
-        <para>This specification normatively uses the Streamable HTTP transport. The ONVIF Client
-          sends JSON-RPC requests as HTTP POST to the ONVIF Device's <code>/mcp</code> endpoint. For
-          server-initiated messages (schema update notifications, metadata events) the ONVIF Client
-          also opens a Streamable HTTP channel on <code>/mcp</code>; the ONVIF Device sends
-          server-initiated messages over that channel as defined by the Streamable HTTP transport
-          in MCP 2026-07-28. An ONVIF Device
-          conforming to this specification shall support the Streamable HTTP transport.</para>
-      </section>
-
-      <section xml:id="sec_protocol_version">
-        <title>Protocol Version</title>
-        <para>This specification normatively requires MCP 2026-07-28. Implementations conforming to
-          this specification shall not use the session-era MCP 2025-11-25 protocol.</para>
-        <para>MCP 2026-07-28 is a fully stateless protocol. There is no session establishment
-          handshake and no <code>Mcp-Session-Id</code> header. Every HTTP request is self-contained:
-          the ONVIF Client includes the <code>MCP-Protocol-Version: 2026-07-28</code> request header
-          on each call, together with the <code>Authorization: Bearer</code> JWT header. The ONVIF
-          Device shall reject requests that carry a protocol version other than
-            <code>2026-07-28</code> with HTTP 400.</para>
-        <para>Service discovery uses the <code>server/discover</code> JSON-RPC method, which
-          replaces the <code>initialize</code> / <code>initialized</code> handshake of earlier
-          versions. The response carries the server's capability flags (tools, resources, prompts)
-          and its human-readable identity. As required by MCP 2026-07-28, the ONVIF Device shall
-          implement <code>server/discover</code>. The ONVIF Client may call
-            <code>server/discover</code> before issuing other requests to learn supported versions
-          and capabilities, but it is not required to call it first and may invoke any operation
-          directly and handle <code>UnsupportedProtocolVersionError</code>.</para>
-        <para>The stateless model is the correct choice for the ONVIF AI use case: ONVIF Devices
-          are deployed as horizontally-scalable endpoints behind load balancers, and pinning a
-          ONVIF Client to a specific server instance via a session identifier would prevent transparent
-          failover and scaling. With MCP 2026-07-28, every request can be routed to any
-          instance of the ONVIF Device without loss of state.</para>
+        <title>Transport and Connectivity</title>
+        <para>An ONVIF Device conforming to this specification shall support the Streamable HTTP
+          transport defined in MCP 2026-07-28. The ONVIF Client sends JSON-RPC requests via
+          HTTP POST to the device's <code>/mcp</code> endpoint and opens a Streamable HTTP
+          channel on the same endpoint for server-initiated messages such as metadata events.</para>
+        <para>This specification normatively requires MCP 2026-07-28. Every HTTP request is
+          self-contained: the ONVIF Client includes the
+          <code>MCP-Protocol-Version: 2026-07-28</code> request header on each call together
+          with the <code>Authorization: Bearer</code> JWT header. The ONVIF Device shall reject
+          requests that carry a different protocol version with HTTP 400.</para>
+        <para>The ONVIF Device shall implement the <code>server/discover</code> JSON-RPC method.
+          The response carries the supported protocol version, the server's capability flags
+          (tools, resources, prompts), and its identity. The ONVIF Client MAY call
+          <code>server/discover</code> before issuing other requests, but it is not required to
+          do so and may invoke any operation directly.</para>
+        <para>The stateless request model enables horizontal scaling and transparent failover:
+          every request can be routed to any instance of the ONVIF Device without loss of
+          state.</para>
       </section>
     </section>
 
@@ -700,180 +907,33 @@
       </section>
     </section>
   </chapter>
-
-  <chapter xml:id="ch_protocol_stack_architecture">
-    <title>Protocol Architecture</title>
-
-    <section xml:id="sec_architecture_overview">
-      <title>Architecture Overview</title>
-      <para>The ONVIF AI protocol architecture is structured around the standard ONVIF roles of an ONVIF
-        Client and an ONVIF Device, with an OIDC Authorization Server acting as the shared trust
-        anchor that issues the tokens consumed by both. The figure below shows the top-level
-        relationships between these three components and the two communication planes.</para>
-      <para>The client and device expose peer functional layers across the two planes; they are not
-        modeled as a single end-to-end sequential layer numbering.</para>
-      <figure xml:id="fig-stack-overview">
-        <title>ONVIF AI Protocol Architecture — Top-Level View</title>
-        <mediaobject>
-          <imageobject>
-            <?oxy_comment_start author="Ottavio Campana" timestamp="20260729T095751+0200" comment="Image to be redone from scratch"?>
-            <imagedata fileref="media/AI/stack_overview.svg" contentwidth="140mm"
-            /><?oxy_comment_end?>
-          </imageobject>
-        </mediaobject>
-      </figure>
-      <para>The <emphasis>OIDC Authorization Server</emphasis> is the trust anchor for the entire
-        stack. It issues signed ES256 JWTs to the ONVIF Client via the OAuth2 Client Credentials
-        grant, and exposes a JWKS endpoint that the ONVIF Device uses to validate every token it
-        receives.</para>
-      <para>The <emphasis>ONVIF Client</emphasis> combines the ONVIF Client role with the MCP Host
-        role. It manages connections to ONVIF Devices, invokes skills, and subscribes to metadata
-        events. It also maintains the LinkML Schema Registry and validates every incoming event
-        before it is passed to business logic.</para>
-      <para>The <emphasis>ONVIF Device</emphasis> provides an MCP Server endpoint. Through this
-        endpoint, it exposes skills in the form of MCP Tools and publishes JSON-LD metadata events.
-        Moreover, it announces the LinkML schema via MCP Resources.</para>
-      <para>All communication between the ONVIF Client and the ONVIF Device is bearer-token
-        authenticated. The <emphasis>Control Plane (A)</emphasis> carries MCP
-          <code>tools/call</code> requests from the ONVIF Client to the ONVIF Device. The
-          <emphasis>Event Plane (B)</emphasis> carries JSON-LD metadata events from the ONVIF Device
-        to the ONVIF Client, delivered as MCP <code>notifications/message</code> frames.</para>
-    </section>
-    
-    <section xml:id="sec_protocol_stack">
-      <title>Communication Planes</title>
-      <para>The ONVIF AI protocol architecture uses two independent communication planes, both protected by
-        TLS and bearer tokens issued by the OIDC Authorization Server. The <emphasis>Control Plane</emphasis>
-        carries client-initiated MCP requests, while the <emphasis>Event Plane</emphasis> carries
-        server-pushed metadata events. The detailed behavior of each plane is defined in the following
-        sections.</para>
-      <section xml:id="sec_control_plane">
-        <title>Control Plane</title>
-        <para>The <emphasis>Control Plane</emphasis> is the command path used by the ONVIF Client to
-          discover and invoke Skills exposed by an ONVIF Device. It is request/response oriented and
-          carries only client-initiated MCP operations.</para>
-        <informaltable>
-          <tgroup cols="2">
-            <colspec colname="c1" colwidth="24*" />
-            <colspec colname="c2" colwidth="76*" />
-            <tbody valign="top">
-              <row>
-                <entry align="left"><para><emphasis role="bold">Direction</emphasis></para></entry>
-                <entry align="left"><para>ONVIF Client to ONVIF Device.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Purpose</emphasis></para></entry>
-                <entry align="left"><para>Discover capabilities, list skills, and invoke device actions.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Protocol</emphasis></para></entry>
-                <entry align="left"><para>MCP 2026-07-28 over Streamable HTTP.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Message pattern</emphasis></para></entry>
-                <entry align="left"><para>JSON-RPC 2.0 request/response.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Transport</emphasis></para></entry>
-                <entry align="left"><para>HTTP POST to <code>/mcp</code> over HTTP/1.1 or HTTP/2.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Operations</emphasis></para></entry>
-                <entry align="left"><para><code>server/discover</code>, <code>tools/list</code>, <code>tools/call</code>, <code>resources/list</code>, and <code>resources/read</code>.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Security</emphasis></para></entry>
-                <entry align="left"><para>TLS 1.3 with an <code>Authorization: Bearer</code> ES256 JWT on every request.</para></entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </informaltable>
-        <para>Each request is self-contained and shall be validated independently by the ONVIF Device
-          before execution. A Control Plane response shall report either the requested result or an MCP
-          error indicating why the operation could not be completed.</para>
-      </section>
-
-      <section xml:id="sec_event_plane">
-        <title>Metadata Event Plane</title>
-        <para>The <emphasis>Metadata Event Plane</emphasis> is the event path used by the ONVIF Device to
-          publish AI analytics results to the ONVIF Client. It is server-initiated, asynchronous, and
-          optimized for continuous delivery of structured metadata events.</para>
-        <informaltable>
-          <tgroup cols="2">
-            <colspec colname="c1" colwidth="24*" />
-            <colspec colname="c2" colwidth="76*" />
-            <tbody valign="top">
-              <row>
-                <entry align="left"><para><emphasis role="bold">Direction</emphasis></para></entry>
-                <entry align="left"><para>ONVIF Device to ONVIF Client.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Purpose</emphasis></para></entry>
-                <entry align="left"><para>Deliver detection and analytics events as they occur.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Protocol</emphasis></para></entry>
-                <entry align="left"><para>MCP 2026-07-28 Streamable HTTP.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Message pattern</emphasis></para></entry>
-                <entry align="left"><para>MCP <code>notifications/message</code> frames.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Transport</emphasis></para></entry>
-                <entry align="left"><para>Streamable HTTP to <code>/mcp</code> endpoint, as defined by MCP 2026-07-28.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Payload</emphasis></para></entry>
-                <entry align="left"><para>JSON-LD events conforming to the registered LinkML schema.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Security</emphasis></para></entry>
-                <entry align="left"><para>TLS 1.3 with an <code>Authorization: Bearer</code> ES256 JWT on every request.</para></entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </informaltable>
-        <para>The Event Plane shall preserve event ordering per stream, and each event shall remain
-          self-describing through its JSON-LD <code>@context</code> and <code>@type</code>
-          annotations.</para>
-      </section>
-    </section>
-
-    <section xml:id="sec_identity_and_authorization_server">
-      <title>Identity and Authorization Server</title>
-      <para>The ONVIF AI protocol stack requires an OAuth 2.1 Authorization Server, as specified in
-        the ONVIF Security Service Specification.</para>
-      <para>This server acts as the trust anchor for the complete stack: it authenticates clients,
-        issues bearer access tokens, and exposes the metadata and key material needed by ONVIF
-        Devices to validate tokens before processing MCP requests.</para>
-      <para>In practice, the Authorization Server provides centralized identity and access control for
-        both planes. It ensures that only authorized ONVIF Clients can invoke Skills on the Control
-        Plane and receive protected metadata on the Event Plane, according to the roles and claims
-        contained in the issued token.</para>
-    </section>
-  </chapter>
-
   <chapter xml:id="ch_data_exchange">
     <title>Service Discovery and Data Exchange</title>
     <para/>
     <!-- Content to be added. -->
 
-    <section xml:id="sec_network_discovery">
-      <title>Network Discovery</title>
-      <para>MCP 2026-07-28 does not define network-level device discovery. Therefore, ONVIF Device
-        discovery remains dependent on the mechanisms specified by [ONVIF Core]. An ONVIF Client
-        shall discover ONVIF Devices and obtain their service endpoint using the ONVIF Core
-        discovery procedures before initiating MCP requests.</para>
-    </section>
-
     <section xml:id="sec_service_discovery">
       <title>Service Discovery</title>
-      <para>An ONVIF Device that supports the AI Service shall advertise the MCP service endpoint
-        URL through the ONVIF Core service discovery mechanism. In the ONVIF Core
-          <code>GetServices</code> response, the corresponding AI Service entry
-          (<code>tds:GetServiceResponse</code>) shall contain the service address used by the ONVIF
-        Client for MCP requests.</para>
+      <para>Service discovery follows the standard ONVIF Core two-step procedure; MCP is not
+        involved until after the AI Service endpoint has been resolved:</para>
+      <orderedlist>
+        <listitem>
+          <para><emphasis>Device discovery (WS-Discovery):</emphasis> The ONVIF Client locates
+            ONVIF Devices on the local network or subnet and obtains each device's Device Service
+            entry point (commonly <code>/onvif/device_service</code>) using the procedures
+            specified in [ONVIF Core].</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>Service enumeration (GetServices):</emphasis> The ONVIF Client calls
+            <code>GetServices</code> on the Device Service endpoint. An ONVIF Device that
+            supports the AI Service shall include an AI Service entry
+            (<code>tds:GetServiceResponse</code>) whose service address is the MCP endpoint URL
+            used for all subsequent MCP communication.</para>
+        </listitem>
+      </orderedlist>
+      <para>This mechanism preserves interoperability with existing ONVIF deployments: WS-Discovery
+        and ONVIF Core remain authoritative for device and service discovery, while MCP defines
+        feature discovery and data exchange once the AI Service endpoint has been resolved.</para>
     </section>
 
     <section xml:id="sec_feature_discovery">
@@ -1794,11 +1854,12 @@ classes:
       values.</para>
 
     <section xml:id="sec_annex_network_discovery">
-      <title>Network discovery (ONVIF Core)</title>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends ONVIF Core
-        discovery requests (for example WS-Discovery Probe) to locate devices on the network.</para>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns discovery
-        responses (for example ProbeMatches) with the Device Service endpoint.</para>
+      <title>Device discovery (ONVIF Core WS-Discovery)</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends a WS-Discovery
+        Probe to locate ONVIF Devices on the local network or subnet.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns a
+        ProbeMatch containing its Device Service endpoint
+        (commonly <code>/onvif/device_service</code>).</para>
     </section>
     <section xml:id="sec_annex_service_discovery">
       <title>Service discovery (ONVIF Core GetServices)</title>
