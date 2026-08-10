@@ -182,7 +182,7 @@
             </row>
             <row>
               <entry align="left">
-                <para><emphasis role="bold">Control Plane (Bus A)</emphasis></para>
+                <para><emphasis role="bold">Control Plane</emphasis></para>
               </entry>
               <entry align="left">
                 <para>The MCP channel over which the ONVIF Client sends commands to an AI Service
@@ -191,7 +191,7 @@
             </row>
             <row>
               <entry align="left">
-                <para><emphasis role="bold">Event Plane (Bus B)</emphasis></para>
+                <para><emphasis role="bold">Event Plane</emphasis></para>
               </entry>
               <entry align="left">
                 <para>The channel over which an ONVIF Device streams LinkML-structured detection
@@ -217,12 +217,20 @@
             </row>
             <row>
               <entry align="left">
-                <para><emphasis role="bold">MCP Host / Client</emphasis></para>
+                <para><emphasis role="bold">MCP Host</emphasis></para>
               </entry>
               <entry align="left">
-                <para>The MCP Host is the application (e.g., VMS) that creates and manages one or
-                  more MCP Clients. Each MCP Client is the protocol-level peer that connects to an
-                  MCP Server to discover and invoke tools.</para>
+                <para>The application (e.g., VMS) that creates and manages one or more MCP
+                  Clients.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para><emphasis role="bold">MCP Client</emphasis></para>
+              </entry>
+              <entry align="left">
+                <para>The protocol-level peer that connects to an MCP Server on behalf of the
+                  MCP Host to discover and invoke tools.</para>
               </entry>
             </row>
             <row>
@@ -489,9 +497,8 @@
         relationships between these three components and the two communication planes.</para>
       <para>The architecture is realised by four open technologies — MCP (Model Context Protocol)
         for tool invocation and event delivery, LinkML for schema definition, JSON-LD for metadata
-        serialisation, and OAuth 2.1 / JWT for security. Their precise roles are summarised in the
-        Technology Mapping (<xref linkend="sec_technology_mapping"/>) and detailed in the Building
-        Blocks chapter (<xref linkend="ch_building_blocks"/>).</para>
+        serialisation, and OAuth 2.1 / JWT for security. Their precise roles are detailed in the
+        Building Blocks chapter (<xref linkend="ch_building_blocks"/>).</para>
       <para>The client and device expose matching functional layers that communicate as peers
         across the two planes.</para>
       <figure xml:id="fig-stack-overview">
@@ -649,43 +656,15 @@
         contained in the issued token.</para>
     </section>
 
-    <section xml:id="sec_technology_mapping">
-      <title>Technology Mapping</title>
-      <para>The architecture described above is realised by four open technologies, each filling a
-        specific role. The next chapter (<xref linkend="ch_building_blocks"/>) defines each in
-        detail; the mapping below shows where each technology operates within the
-        architecture:</para>
-      <itemizedlist>
-        <listitem>
-          <para><emphasis>MCP</emphasis> — implements the Control Plane (requests) and the Event
-            Plane (notifications). Provides the JSON-RPC transport, the Tool/Resource/Prompt
-            primitives, and the Streamable HTTP channel.</para>
-        </listitem>
-        <listitem>
-          <para><emphasis>LinkML</emphasis> — defines the data model layer shared by both planes.
-            Schemas describe event payloads (Event Plane) and skill input parameters (Control
-            Plane).</para>
-        </listitem>
-        <listitem>
-          <para><emphasis>JSON-LD</emphasis> — the wire-format serialisation for metadata events on
-            the Event Plane. Carries runtime instances of the LinkML-defined schemas.</para>
-        </listitem>
-        <listitem>
-          <para><emphasis>OAuth 2.1 / JWT</emphasis> — secures the security and transport layer for
-            both planes via the Identity and Authorization Server described above.</para>
-        </listitem>
-      </itemizedlist>
-    </section>
   </chapter>
 
 
   <chapter xml:id="ch_building_blocks">
     <title>Building Blocks</title>
-    <para>This chapter describes each technology introduced in the technology mapping
-      (<xref linkend="sec_technology_mapping"/>). For each building block, the sections below
-      explain its purpose, its protocol-level details, and how it fulfils its role within the
-      Control Plane, Event Plane, and data model layer defined in the preceding Protocol
-      Architecture chapter.</para>
+    <para>This chapter describes each building block technology used in the ONVIF AI protocol
+      architecture. For each one, the sections below explain its purpose, its protocol-level
+      details, and how it fulfils its role within the Control Plane, Event Plane, and data model
+      layer defined in the preceding Protocol Architecture chapter.</para>
 
     <section xml:id="sec_mcp_tool_interface">
       <title>MCP — The AI Tool Interface</title>
