@@ -1092,16 +1092,6 @@
                 (for example <code>FireDetectionEvent</code>). The ONVIF Client shall use this field
                 for event routing.</para>
             </listitem>
-            <listitem>
-              <para>All mandatory fields of the concrete <code>Observation</code> subclass
-                identified by <code>@type</code>, as defined in the registered LinkML schema.
-                For example, a <code>SOSAObservation</code> (<xref linkend="sec_sosa_observation"/>) requires
-                <code>sosa:madeBySensor</code>, <code>sosa:observedProperty</code>,
-                <code>sosa:hasFeatureOfInterest</code>, <code>sosa:hasResult</code>,
-                <code>sosa:phenomenonTime</code>, and <code>sosa:resultTime</code>. Other
-                <code>Observation</code> subclasses shall populate their own mandatory fields as
-                declared in their respective schema class.</para>
-            </listitem>
           </itemizedlist></para>
         <para>See <xref linkend="sec_annex_metadata_stream"/> for a complete wire format example.</para>
       </section>
@@ -1297,105 +1287,104 @@
       ONVIF AI-enabled devices. All metadata payloads are instances of, or derived from, the
       abstract classes defined here. The normative schema is expressed in LinkML; JSON-LD is the
       wire format (see <xref linkend="sec-jsonld"/>).</para>
+    <para>The following figure shows the class hierarchy structure from which specialised metadata
+      classes are derived. The remainder of this chapter defines and details the classes shown in
+      the figure.</para>
+    <figure xml:id="fig-metadata-class-hierarchy">
+      <title>Metadata class hierarchy overview</title>
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="media/AI/classes.svg" contentwidth="140mm"/>
+        </imageobject>
+      </mediaobject>
+    </figure>
+
+    <section xml:id="sec_information_item">
+      <title>10.1 InformationItem</title>
+      <para><code>InformationItem</code> is the abstract base container for any single unit of
+        information exchanged in the metadata model. It is intentionally generic so that different
+        semantic categories can reuse the same trust and context fields. In this specification,
+        <code>InformationItem</code> is specialised by <code>Observation</code> and
+        <code>Assertion</code>.</para>
+      <para>Each <code>InformationItem</code> carries the following fields: a
+        <code>confidence</code> value expressing the confidence level of the contained
+        information; a generation timestamp; a <code>provenance</code> field describing the origin
+        or producer of the information; and an optional <code>signature</code> field that can be
+        used to guarantee integrity, authenticity, and non-repudiation of the content. The
+        <code>signature</code> field is optional because equivalent protection can be provided at
+        envelope level, as specified in <xref linkend="sec_information_envelope"/>.</para>
+    </section>
+
+    <section xml:id="sec_information_envelope">
+      <title>10.2 InformationEnvelope</title>
+      <para><code>InformationEnvelope</code> is an optional container used to group one or more
+        <code>InformationItem</code> instances and apply a single signature to the grouped
+        content. This enables a producer to protect multiple information elements with one
+        cryptographic operation instead of signing each item independently.</para>
+      <para>The envelope-level signature is optional and is intended for deployments where
+        cryptographic acceleration resources on the device are constrained. In such environments,
+        signing one envelope can reduce signing workload while still providing integrity,
+        authenticity, and non-repudiation coverage for all enclosed
+        <code>InformationItem</code> instances.</para>
+    </section>
 
     <section xml:id="sec_observation">
-      <title>Observation</title>
-      <para><code>Observation</code> is the top-level abstract container for every piece of
-        information emitted by an ONVIF AI Device. Because AI services produce heterogeneous
-        outputs — object detection results, fire alerts, people counts, anomaly reports — the class
-        is intentionally abstract: domain-specific event classes derive from it and add their own
-        semantic fields. An ONVIF Device shall serialise every AI metadata payload as an instance
-        of a class that directly or transitively extends <code>Observation</code>.</para>
-      <para>Every <code>Observation</code> instance carries a mandatory unique identifier and a
-        creation timestamp. Three optional nested objects — <code>Provenance</code>,
-        <code>Location</code>, and <code>Timing</code> — provide contextual metadata about
-        authenticity, spatial origin, and temporal reference respectively. Each is defined by an
-        abstract class; concrete implementations are described in the following sections.</para>
+      <title>10.3 Observation</title>
+      <para><code>Observation</code> is a concrete <code>InformationItem</code> representing a
+        measurement generated internally by an ONVIF Device. It captures directly observed or
+        computed device outputs as information items that can be consumed by downstream systems.</para>
+    </section>
 
-      <section xml:id="sec_sosa_observation">
-        <title>SOSAObservation</title>
-        <para><code>SOSAObservation</code> is the first concrete subclass of <code>Observation</code>
-          defined by this specification. It aligns the ONVIF AI metadata model with the W3C
-          Semantic Sensor Network (SSN) / SOSA ontology
-          (<link xmlns:xlink="http://www.w3.org/1999/xlink"
-            xlink:href="https://www.w3.org/TR/vocab-ssn/">https://www.w3.org/TR/vocab-ssn/</link>),
-          enabling interoperability with the broader Linked Data and IoT ecosystem.</para>
-        <para>SOSA defines an <code>Observation</code> as an act carried out by a
-          <code>Sensor</code> that produces a <code>Result</code> whose value estimates or
-          calculates a value of an <code>ObservableProperty</code> of a
-          <code>FeatureOfInterest</code>. The <code>SOSAObservation</code> class maps these
-          four SOSA roles directly to ONVIF AI Device semantics:</para>
-        <itemizedlist>
+    <section xml:id="sec_assertion">
+      <title>10.4 Assertion</title>
+      <para><code>Assertion</code> is a statement supported by one or more
+        <code>InformationItem</code> elements. Therefore, a statement can be supported directly by
+        <code>Observation</code> instances, by other <code>Assertion</code> instances, or by a
+        combination of both.</para>
+
+      <section xml:id="sec_assertion_sanity_checks">
+        <title>10.4.1 Assertion sanity checks</title>
+        <para>To achieve robust and reliable parsers, the following sanity checks are required for
+          assertions:</para>
+        <orderedlist>
           <listitem>
-            <para><emphasis>madeBySensor</emphasis> — the ONVIF AI component (camera, analytics
-              module, or AI inference engine) that produced the observation. Corresponds to
-              <code>sosa:madeBySensor</code>.</para>
+            <para>Supporting <code>InformationItem</code> elements shall be resolvable, i.e.,
+              they shall have been received previously.</para>
           </listitem>
           <listitem>
-            <para><emphasis>observedProperty</emphasis> — the physical or logical property being
-              measured or inferred (for example <code>onvif:PersonCount</code>,
-              <code>onvif:FlamePresence</code>). Corresponds to
-              <code>sosa:observedProperty</code>.</para>
+            <para>The assertion timestamp shall be more recent than the timestamps of all
+              supporting elements.</para>
           </listitem>
           <listitem>
-            <para><emphasis>hasFeatureOfInterest</emphasis> — the real-world entity about which
-              the observation is made (for example a scene, a zone, or a specific object).
-              Corresponds to <code>sosa:hasFeatureOfInterest</code>.</para>
+            <para>The resulting dependency graph shall be directed and acyclic.</para>
           </listitem>
           <listitem>
-            <para><emphasis>hasResult</emphasis> — the structured result object that is the
-              outcome of the observation. Shall be an instance of a concrete subclass of
-              <code>ObservationResult</code>. Corresponds to <code>sosa:hasResult</code>.</para>
+            <para>By traversing the directed acyclic graph, each assertion shall be traceable back
+              to one or more initial observations.</para>
           </listitem>
-          <listitem>
-            <para><emphasis>phenomenonTime</emphasis> — the time interval or instant during
-              which the observed property held the reported value. Distinct from the observation
-              creation timestamp inherited from <code>Observation</code>. Corresponds to
-              <code>sosa:phenomenonTime</code>.</para>
-          </listitem>
-          <listitem>
-            <para><emphasis>resultTime</emphasis> — the instant at which the result became
-              available (the observation was completed). Corresponds to
-              <code>sosa:resultTime</code>.</para>
-          </listitem>
-          <listitem>
-            <para><emphasis>usedProcedure</emphasis> — the AI algorithm or procedure applied
-              by the sensor to produce the result (optional). Corresponds to
-              <code>sosa:usedProcedure</code>.</para>
-          </listitem>
-        </itemizedlist>
-        <para>All four mandatory fields (<code>madeBySensor</code>,
-          <code>observedProperty</code>, <code>hasFeatureOfInterest</code>, and
-          <code>hasResult</code>) shall be present in every serialised
-          <code>SOSAObservation</code> instance. The ONVIF AI Device shall use
-          <code>sosa:</code> URIs as JSON-LD property keys to ensure full alignment with the SOSA
-          ontology.</para>
-        <para><code>sosa:hasResult</code> shall be an instance of a concrete subclass of
-          <code>ObservationResult</code> appropriate for the event type. The
-          <code>provenance</code> field is optional. When present it shall be an instance of a
-          concrete subclass of <code>Provenance</code> (<xref linkend="sec_provenance"/>). For deployments requiring
-          integrity protection, <code>JLDSProvenance</code> (<xref linkend="sec_jlds_provenance"/>) shall be used.</para>
+        </orderedlist>
       </section>
     </section>
 
-    <section xml:id="sec_provenance">
-      <title>Provenance</title>
-      <para><code>Provenance</code> is an abstract class nested within <code>Observation</code>
-        that describes the authenticity and chain-of-custody of the observation. Because different
-        deployment environments require different attestation mechanisms — cryptographic signatures,
-        hash-of-source-frame, hardware attestation tokens, or simple device identity — the class
-        is abstract and shall be specialised for each mechanism. Concrete subclasses add the fields
-        specific to their attestation method.</para>
-      <para>The presence of a <code>Provenance</code> object is optional. When omitted, no
-        authenticity claim is made for the observation.</para>
+    <section xml:id="sec_signature">
+      <title>10.5 Signature</title>
+      <para><code>Signature</code> is an abstract class nested within
+        <code>InformationItem</code> that describes a cryptographic attestation bound to the
+        item content. Different deployments can require different signature formats and trust
+        frameworks; for this reason, the class is abstract and shall be specialised by concrete
+        signature profiles.</para>
+      <para>The presence of a <code>Signature</code> object at item level is optional. When
+        omitted, integrity, authenticity, and non-repudiation claims can still be provided by an
+        enclosing <code>InformationEnvelope</code> as defined in
+        <xref linkend="sec_information_envelope"/>.</para>
 
-      <section xml:id="sec_jlds_provenance">
-        <title>JLDSProvenance</title>
-        <para><code>JLDSProvenance</code> is the first concrete subclass of
-          <code>Provenance</code>. It attests the integrity of an <code>Observation</code> by
-          means of a JSON-LD Data Integrity proof [VC-DATA-INTEGRITY]. The ECC signature
-          algorithm and key parameters shall conform to the ONVIF Security Baseline
-          [ONVIF-SecurityBaseline].</para>
+      <section xml:id="sec_jsonld_signature">
+        <title>JsonLDSignature</title>
+        <para><code>JsonLDSignature</code> is the first concrete subclass of
+          <code>Signature</code>. It attests the integrity of an
+          <code>InformationItem</code> by means of a JSON-LD Data Integrity proof
+          [VC-DATA-INTEGRITY]. The ECC signature algorithm and key parameters shall conform to
+          the ONVIF Security Baseline [ONVIF-SecurityBaseline].</para>
 
         <section xml:id="sec_signing_procedure">
           <title>Signing procedure</title>
@@ -1407,7 +1396,7 @@
 
         <section xml:id="sec_proof_fields">
           <title>Proof fields</title>
-          <para><code>JLDSProvenance</code> carries the following fields, aligned with the
+          <para><code>JsonLDSignature</code> carries the following fields, aligned with the
             <code>DataIntegrityProof</code> structure defined in [VC-DATA-INTEGRITY]:</para>
           <itemizedlist>
             <listitem>
@@ -1442,51 +1431,19 @@
     </section>
 
     <section xml:id="sec_location">
-      <title>Location</title>
-      <para><code>Location</code> is an abstract class nested within <code>Observation</code> that
-        represents the spatial origin of the observation. It is optional; when present it shall be
-        an instance of a concrete subclass.</para>
-      <section xml:id="sec_geolocation">
-        <title>GeoLocation</title>
-        <para><code>GeoLocation</code> is the first concrete subclass of <code>Location</code>. It
-          expresses geographic position using WGS 84 coordinates obtained from a GPS receiver
-          integrated in, or connected to, the ONVIF Device. It carries latitude and longitude as
-          mandatory fields and an optional altitude above mean sea level.</para>
-      </section>
+      <title>10.6 Location</title>
+      <para><code>Location</code> is an abstract class nested within
+        <code>InformationItem</code> that represents the spatial origin of the information item.
+        It is optional; when present it shall be an instance of a concrete subclass.</para>
     </section>
 
     <section xml:id="sec_timing">
-      <title>Timing</title>
-      <para><code>Timing</code> is an abstract class nested within <code>Observation</code> that
-        provides an authoritative time reference for the observation, independent of the device
-        system clock. It is optional; when present it shall be an instance of a concrete
+      <title>10.7 Timing</title>
+      <para><code>Timing</code> is an abstract class nested within
+        <code>InformationItem</code> that provides an authoritative time reference for the
+        information item, independent of the device system clock. It is optional; when present it
+        shall be an instance of a concrete
         subclass.</para>
-      <section xml:id="sec_gpstiming">
-        <title>GPSTiming</title>
-        <para><code>GPSTiming</code> is the first concrete subclass of <code>Timing</code>. It
-          carries the UTC timestamp extracted directly from the GPS signal, giving a traceable,
-          drift-free time reference. An optional UTC offset field allows representation of local
-          time where required.</para>
-      </section>
-    </section>
-
-    <section xml:id="sec_observation_result">
-      <title>Observation Result</title>
-      <para><code>ObservationResult</code> is an abstract class that represents the outcome
-        produced by an <code>Observation</code>. It corresponds to <code>sosa:Result</code> in
-        the SOSA ontology and serves as the mandatory base type for the <code>hasResult</code>
-        slot of <code>SOSAObservation</code>.</para>
-      <para>SOSA deliberately leaves the internal structure of a Result undefined, delegating
-        its specification to the domain of application. In this specification
-        <code>ObservationResult</code> plays that role: it is abstract and carries no fields of
-        its own. All concrete AI result payloads shall be instances of a class that directly or
-        transitively extends <code>ObservationResult</code>.</para>
-      <para>Concrete subclasses shall set the JSON-LD <code>@type</code> field to an
-        unambiguous URI so that receivers can determine the result type without out-of-band
-        knowledge. Future revisions of this specification, or vendor-specific extensions via the
-        <code>Extensible</code> mixin, shall introduce concrete subclasses for specific AI
-        output types (for example object detection bounding boxes, classification scores, or
-        people counts).</para>
     </section>
 
     <section xml:id="sec_vendor_extensions">
@@ -1508,7 +1465,7 @@
         enclosing class.</para>
       <para>The <code>Extensible</code> mixin is applied to <code>Observation</code>, making the
         extension point available on every concrete observation class derived from it. Other
-        abstract classes in this chapter (<code>Provenance</code>, <code>Location</code>,
+        abstract classes in this chapter (<code>Signature</code>, <code>Location</code>,
         <code>Timing</code>) may also include the mixin in future revisions as needed.</para>
     </section>
 
@@ -1527,8 +1484,6 @@ name: onvif-ai-metadata
 description: ONVIF AI Metadata base schema
 prefixes:
   linkml: https://w3id.org/linkml/
-  sosa: http://www.w3.org/ns/sosa/
-  ssn: http://www.w3.org/ns/ssn/
   onvif: https://www.onvif.org/ver10/ai/linkml/metadata/
 imports:
   - linkml:types
@@ -1537,248 +1492,172 @@ classes:
 
   VendorExtension:
     description: >-
-      Container for a single vendor-specific extension entry. Analogous to
-      xs:any in ONVIF WSDL extension elements. The vendor_namespace URI
-      uniquely identifies the vendor and prevents naming collisions.
+      Container for a single vendor-specific extension entry.
     attributes:
       vendor_namespace:
         range: uri
         required: true
-        description: >-
-          URI namespace that uniquely identifies the vendor
-          (e.g. "https://acme.com/onvif/ext/v1").
+        description: URI namespace that uniquely identifies the vendor.
       name:
         range: string
         required: true
-        description: >-
-          Local name of the extension element within the vendor namespace.
+        description: Local name of the extension element within the vendor namespace.
       value:
         range: Any
         required: false
-        description: >-
-          Vendor-specific payload. May be a JSON object, string, or numeric
-          value. ONVIF Clients shall ignore entries with unknown namespaces.
+        description: Vendor-specific payload.
 
   Extensible:
-    mixin: true
+    abstract: true
     description: >-
-      Mixin that adds a standard vendor extension point to any ONVIF class,
-      following the xs:any convention of ONVIF WSDL specifications.
+      Abstract class carrying vendor-specific extensions.
     attributes:
-      extension:
+      vendorExtensions:
         range: VendorExtension
         multivalued: true
         inlined_as_list: true
         required: false
-        description: >-
-          Zero or more vendor-specific extension entries. Clients shall
-          ignore entries with unrecognised vendor_namespace values.
+        description: Zero or more vendor-specific extension entries.
 
-  Observation:
+  InformationItem:
     abstract: true
-    mixins:
-      - Extensible
     description: >-
-      Top-level abstract container for every AI metadata payload emitted by
-      an ONVIF Device. Domain-specific event classes shall extend this class.
+      Abstract base container for a single unit of information.
     attributes:
-      id:
-        range: uriorcurie
+      confidence:
+        range: float
         required: true
-        description: Globally unique identifier for this observation instance.
-      timestamp:
-        range: datetime
+        description: Confidence level associated with the information.
+      productionTime:
+        range: Timestamp
         required: true
-        description: >-
-          Creation time of the observation, expressed as an ISO 8601 datetime
-          in UTC.
+        description: Production timestamp of the information item.
       provenance:
         range: Provenance
+        required: true
+        description: Provenance of the information item.
+      signature:
+        range: Signature
         required: false
-        description: >-
-          Authenticity and chain-of-custody descriptor. Omitted when no
-          attestation claim is made.
-      location:
-        range: Location
+        description: Optional item-level signature.
+      extensible:
+        range: Extensible
         required: false
-        description: Spatial origin of the observation.
-      timing:
-        range: Timing
-        required: false
-        description: Authoritative time reference for the observation.
+        description: Optional vendor extension container.
 
-  Provenance:
-    abstract: true
+  InformationEnvelope:
     description: >-
-      Abstract descriptor for the authenticity and chain-of-custody of an
-      Observation. Concrete subclasses add attestation-method-specific fields.
-
-  Location:
-    abstract: true
-    description: >-
-      Abstract spatial descriptor for an Observation. Concrete subclasses
-      supply the coordinate system and position fields.
-
-  GeoLocation:
-    is_a: Location
-    description: >-
-      WGS 84 geographic position obtained from a GPS receiver attached to or
-      integrated in the ONVIF Device.
+      Optional container that groups one or more information items and may
+      carry a single envelope-level signature.
     attributes:
-      latitude:
-        range: double
+      items:
+        range: InformationItem
+        multivalued: true
+        inlined_as_list: true
         required: true
-        minimum_value: -90.0
-        maximum_value: 90.0
-        description: Geodetic latitude in decimal degrees (WGS 84).
-      longitude:
-        range: double
+        description: One or more enclosed information items.
+      signature:
+        range: Signature
         required: true
-        minimum_value: -180.0
-        maximum_value: 180.0
-        description: Geodetic longitude in decimal degrees (WGS 84).
-      altitude:
-        range: double
-        required: false
-        description: Altitude above mean sea level in metres (WGS 84).
+        description: Optional envelope-level signature.
 
-  Timing:
+  Signature:
     abstract: true
     description: >-
-      Abstract authoritative time reference for an Observation, independent
-      of the device system clock. Concrete subclasses specify the time source.
-
-  GPSTiming:
-    is_a: Timing
-    description: >-
-      UTC timestamp extracted directly from the GPS signal, providing a
-      traceable, drift-free time reference.
+      Abstract cryptographic attestation descriptor.
     attributes:
-      gps_timestamp:
-        range: datetime
-        required: true
-        description: UTC time extracted from the GPS signal (ISO 8601).
-      utc_offset:
-        range: string
+      extensible:
+        range: Extensible
         required: false
-        description: >-
-          UTC offset of the local time zone at the observation site,
-          expressed as ±HH:MM (e.g. "+02:00"). Informative only.
+        description: Optional vendor extension container.
 
-  JLDSProvenance:
-    is_a: Provenance
+  JsonLDSignature:
+    is_a: Signature
     description: >-
-      Concrete Provenance subclass that attests Observation integrity using a
-      JSON-LD Data Integrity proof [VC-DATA-INTEGRITY]. The ECC signature
-      algorithm and key parameters shall conform to [ONVIF-SecurityBaseline].
-      The proof is computed over the RDFC-1.0 canonical form of the
-      Observation with the provenance field excluded.
+      Concrete Signature profile based on JSON-LD Data Integrity proofs.
     attributes:
       type:
         range: string
         required: true
         equals_string: "DataIntegrityProof"
-        description: >-
-          Fixed value "DataIntegrityProof" as defined in [VC-DATA-INTEGRITY].
+        description: Data Integrity proof type.
       cryptosuite:
         range: string
         required: true
-        description: >-
-          Identifies the cryptosuite used. The value shall be consistent with
-          the ECC algorithm mandated by [ONVIF-SecurityBaseline].
+        description: Cryptographic suite identifier.
       created:
         range: datetime
         required: true
-        description: ISO 8601 UTC datetime at which the proof was created.
+        description: Proof creation time in ISO 8601 UTC.
       verificationMethod:
         range: uriorcurie
         required: true
-        description: >-
-          URI of the public key or verification method used to verify the
-          proof.
+        description: Verification method URI.
       proofPurpose:
         range: string
         required: true
         equals_string: "assertionMethod"
-        description: >-
-          Fixed value "assertionMethod", indicating the proof asserts the
-          content of the observation.
+        description: Proof purpose value.
       proofValue:
         range: string
         required: true
-        description: >-
-            Encoded digital signature over hashData = H(canonical(unsecuredDocument)) ||
-            H(canonical(proofConfig)), where unsecuredDocument is the Observation with
-            provenance removed, proofConfig is the proof object without proofValue, and
-            H and the signing algorithm are mandated by [ONVIF-SecurityBaseline].
+        description: Encoded digital signature value.
 
-  ObservationResult:
+  Timestamp:
     abstract: true
-    class_uri: sosa:Result
     description: >-
-      Abstract base class for all AI observation result payloads. Corresponds
-      to sosa:Result in the SOSA ontology. Concrete subclasses shall define
-      the domain-specific fields (e.g. bounding boxes, classification scores,
-      counts) and shall set @type to an unambiguous URI so that receivers can
-      determine the result type without out-of-band knowledge.
-
-  SOSAObservation:
-    is_a: Observation
-    description: >-
-      Concrete Observation subclass aligned with the W3C SOSA ontology
-      (https://www.w3.org/TR/vocab-ssn/). Instances shall be serialised
-      using sosa: property URIs as JSON-LD keys.
-    class_uri: sosa:Observation
+      Abstract production-time descriptor for an InformationItem.
     attributes:
-      madeBySensor:
-        slot_uri: sosa:madeBySensor
-        range: uriorcurie
-        required: true
-        description: >-
-          URI identifying the ONVIF AI component (camera, analytics module,
-          or inference engine) that produced this observation.
-      observedProperty:
-        slot_uri: sosa:observedProperty
-        range: uriorcurie
-        required: true
-        description: >-
-          URI identifying the physical or logical property being measured or
-          inferred (e.g. onvif:PersonCount, onvif:FlamePresence).
-      hasFeatureOfInterest:
-        slot_uri: sosa:hasFeatureOfInterest
-        range: uriorcurie
-        required: true
-        description: >-
-          URI identifying the real-world entity about which the observation
-          is made (e.g. a scene, a detection zone, or a specific object).
-      hasResult:
-        slot_uri: sosa:hasResult
-        range: ObservationResult
-        required: true
-        description: >-
-          The structured result object produced by the observation. Shall be
-          an instance of a concrete subclass of ObservationResult.
-      phenomenonTime:
-        slot_uri: sosa:phenomenonTime
-        range: datetime
+      extensible:
+        range: Extensible
         required: false
-        description: >-
-          The time instant or interval during which the observed property
-          held the reported value. May differ from the Observation timestamp.
-      resultTime:
-        slot_uri: sosa:resultTime
-        range: datetime
+        description: Optional vendor extension container.
+
+  Provenance:
+    abstract: true
+    description: >-
+      Abstract provenance descriptor for an InformationItem.
+    attributes:
+      extensible:
+        range: Extensible
         required: false
-        description: >-
-          The instant at which the result became available (observation
-          completed). Corresponds to sosa:resultTime.
-      usedProcedure:
-        slot_uri: sosa:usedProcedure
-        range: uriorcurie
+        description: Optional vendor extension container.
+
+  Location:
+    abstract: true
+    description: >-
+      Abstract spatial descriptor for an InformationItem.
+    attributes:
+      extensible:
+        range: Extensible
         required: false
-        description: >-
-          URI identifying the AI algorithm or procedure applied by the sensor
-          to produce the result.
+        description: Optional vendor extension container.
+
+  Observation:
+    abstract: true
+    is_a: InformationItem
+    description: >-
+      Abstract InformationItem representing a measurement generated by an
+      ONVIF Device.
+    attributes:
+      observedSpace:
+        range: Location
+        required: true
+        description: Spatial context observed by this observation.
+
+  Assertion:
+    abstract: true
+    is_a: InformationItem
+    description: >-
+      Abstract InformationItem representing a statement supported by one or
+      more information items.
+    attributes:
+      supportedBy:
+        range: InformationItem
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: One or more supporting information items.
       </programlisting>
     </section>
   </chapter>
