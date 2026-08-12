@@ -392,10 +392,10 @@
     <para>Agentic configurations are handled through the Agentic Service. Agentic configurations are
       used to configure and control the intelligent functions as defined in this specification. The
       device provides agentic configuration through the Agentic Service.
-      <?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?>WSDL for this service is
+      YAML for this service is
       specified in <link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.onvif.org/ver20/media/wsdl/media.wsdl"
-        >http://www.onvif.org/ver20/media/wsdl/media.wsdl</link>l<?oxy_custom_end?>.</para>
+        >http://www.onvif.org/yaml/agentic.yaml</link>.</para>
     <table>
       <title>Referenced namespaces (with prefix)</title>
       <tgroup cols="2">
@@ -446,10 +446,10 @@
           </row>
           <row>
             <entry>
-              <para>tai</para>
+              <para>tag</para>
             </entry>
             <entry>
-              <para>http://www.onvif.org/ver10/ai</para>
+              <para>http://www.onvif.org/yaml/agentic</para>
             </entry>
           </row>
           <row>
@@ -1474,198 +1474,6 @@
         extension point available on every concrete observation class derived from it. Other
         abstract classes in this chapter (<code>Signature</code>, <code>Location</code>,
         <code>Timing</code>) may also include the mixin in future revisions as needed.</para>
-    </section>
-
-    <section xml:id="sec_normative_linkml_schema">
-      <title>Normative LinkML Schema</title>
-      <para><?oxy_custom_start type="oxy_content_highlight" color="255,255,0"?>This section is here
-        just because it is handy now, it will be removed before releasing the
-        specs.<?oxy_custom_end?></para>
-      <para>The following LinkML YAML fragment is normative. All abstract classes are marked
-        <code>abstract: true</code>; concrete subclasses set <code>is_a</code> to their parent.
-        Fields marked <code>required: true</code> shall be present in every serialised instance;
-        all other fields are optional.</para>
-      <programlisting>
-id: https://www.onvif.org/ver10/ai/linkml/metadata
-name: onvif-ai-metadata
-description: ONVIF Agentic Metadata base schema
-prefixes:
-  linkml: https://w3id.org/linkml/
-  onvif: https://www.onvif.org/ver10/ai/linkml/metadata/
-imports:
-  - linkml:types
-
-classes:
-
-  VendorExtension:
-    description: >-
-      Container for a single vendor-specific extension entry.
-    attributes:
-      vendor_namespace:
-        range: uri
-        required: true
-        description: URI namespace that uniquely identifies the vendor.
-      name:
-        range: string
-        required: true
-        description: Local name of the extension element within the vendor namespace.
-      value:
-        range: Any
-        required: false
-        description: Vendor-specific payload.
-
-  Extensible:
-    abstract: true
-    description: >-
-      Abstract class carrying vendor-specific extensions.
-    attributes:
-      vendorExtensions:
-        range: VendorExtension
-        multivalued: true
-        inlined_as_list: true
-        required: false
-        description: Zero or more vendor-specific extension entries.
-
-  InformationItem:
-    abstract: true
-    description: >-
-      Abstract base container for a single unit of information.
-    attributes:
-      confidence:
-        range: float
-        required: true
-        description: Confidence level associated with the information.
-      productionTime:
-        range: Timestamp
-        required: true
-        description: Production timestamp of the information item.
-      provenance:
-        range: Provenance
-        required: true
-        description: Provenance of the information item.
-      signature:
-        range: Signature
-        required: false
-        description: Optional item-level signature.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
-
-  InformationEnvelope:
-    description: >-
-      Optional container that groups one or more information items and may
-      carry a single envelope-level signature.
-    attributes:
-      items:
-        range: InformationItem
-        multivalued: true
-        inlined_as_list: true
-        required: true
-        description: One or more enclosed information items.
-      signature:
-        range: Signature
-        required: true
-        description: Optional envelope-level signature.
-
-  Signature:
-    abstract: true
-    description: >-
-      Abstract cryptographic attestation descriptor.
-    attributes:
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
-
-  JsonLDSignature:
-    is_a: Signature
-    description: >-
-      Concrete Signature profile based on JSON-LD Data Integrity proofs.
-    attributes:
-      type:
-        range: string
-        required: true
-        equals_string: "DataIntegrityProof"
-        description: Data Integrity proof type.
-      cryptosuite:
-        range: string
-        required: true
-        description: Cryptographic suite identifier.
-      created:
-        range: datetime
-        required: true
-        description: Proof creation time in ISO 8601 UTC.
-      verificationMethod:
-        range: uriorcurie
-        required: true
-        description: Verification method URI.
-      proofPurpose:
-        range: string
-        required: true
-        equals_string: "assertionMethod"
-        description: Proof purpose value.
-      proofValue:
-        range: string
-        required: true
-        description: Encoded digital signature value.
-
-  Timestamp:
-    abstract: true
-    description: >-
-      Abstract production-time descriptor for an InformationItem.
-    attributes:
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
-
-  Provenance:
-    abstract: true
-    description: >-
-      Abstract provenance descriptor for an InformationItem.
-    attributes:
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
-
-  Location:
-    abstract: true
-    description: >-
-      Abstract spatial descriptor for an InformationItem.
-    attributes:
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
-
-  Observation:
-    abstract: true
-    is_a: InformationItem
-    description: >-
-      Abstract InformationItem representing a measurement generated by an
-      ONVIF Device.
-    attributes:
-      observedSpace:
-        range: Location
-        required: true
-        description: Spatial context observed by this observation.
-
-  Assertion:
-    abstract: true
-    is_a: InformationItem
-    description: >-
-      Abstract InformationItem representing a statement supported by one or
-      more information items.
-    attributes:
-      supportedBy:
-        range: InformationItem
-        multivalued: true
-        inlined_as_list: true
-        required: true
-        description: One or more supporting information items.
-      </programlisting>
     </section>
   </chapter>
 
