@@ -390,10 +390,8 @@
   <chapter xml:id="ch_overview">
     <title>Overview</title>
     <para>Agentic configurations are handled through the Agentic Service. Agentic configurations are
-      used to configure and control the intelligent functions as defined in this specification. The
-      device provides agentic configuration through the Agentic Service.
-      YAML for this service is
-      specified in <link xmlns:xlink="http://www.w3.org/1999/xlink"
+      used to configure and control the intelligent functions as defined in this specification. YAML
+      for this service is specified in <link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.onvif.org/ver20/media/wsdl/media.wsdl"
         >http://www.onvif.org/yaml/agentic.yaml</link>.</para>
     <table>
@@ -1205,9 +1203,9 @@
       Specification. Those documents govern JWT token format and required claims (<code>iss</code>,
         <code>aud</code>, <code>exp</code>, <code>nbf</code>, <code>roles</code>), the mandatory
       ES256 signing algorithm, token validation rules, the OAuth2 Client Credentials flow,
-      authorization server configuration, and TLS transport requirements. Implementations not comply
-      with the ONVIF Core Specification and the ONVIF Security Service Specification. This chapter
-      defines only the ONVIF AI-specific normative mapping of MCP operations to ONVIF access
+      authorization server configuration, and TLS transport requirements. Implementations shall
+      comply with the ONVIF Core Specification and the ONVIF Security Service Specification. This
+      chapter defines only the ONVIF AI-specific normative mapping of MCP operations to ONVIF access
       classes.</para>
 
     <section xml:id="sec_role_to_mcp_operation_mapping">
@@ -1387,34 +1385,36 @@
 
       <section xml:id="sec_jsonld_signature">
         <title>JsonLDSignature</title>
-        <para><code>JsonLDSignature</code> is the first concrete subclass of
-          <code>Signature</code>. It attests the integrity of an
-          <code>InformationItem</code> by means of a JSON-LD Data Integrity proof
-          [VC-DATA-INTEGRITY]. The ECC signature algorithm and key parameters shall conform to
-          the ONVIF Security Baseline [ONVIF-SecurityBaseline].</para>
+        <para><code>JsonLDSignature</code> is the first concrete subclass of <code>Signature</code>.
+          It attests the integrity of an <code>InformationItem</code> by means of a JSON-LD Data
+          Integrity proof , as defined in W3C Verifiable Credential Data Integrity 1.0. The ECC
+          signature algorithm and key parameters shall conform to the ONVIF Security
+          Baseline.</para>
 
         <section xml:id="sec_signing_procedure">
           <title>Signing procedure</title>
-          <para>The ONVIF Device shall compute the proof using the <code>Add Proof</code>
-            algorithm defined in [VC-DATA-INTEGRITY] with RDFC-1.0 [RDFC-1.0] as the
-            canonicalization algorithm. The digest and signing algorithms shall be those
-            mandated by the current version of [ONVIF-SecurityBaseline].</para>
+          <para>The ONVIF Device shall compute the proof using the <code>Add Proof</code> algorithm
+            defined in W3C Verifiable Credential Data Integrity 1.0 with W3C RDF Dataset
+            Canonicalization 1.0 (RDFC-1.0) as the canonicalization algorithm. The digest and
+            signing algorithms shall be those mandated by the current version of the ONVIF Security
+            Baseline.</para>
         </section>
 
         <section xml:id="sec_proof_fields">
           <title>Proof fields</title>
           <para><code>JsonLDSignature</code> carries the following fields, aligned with the
-            <code>DataIntegrityProof</code> structure defined in [VC-DATA-INTEGRITY]:</para>
+              <code>DataIntegrityProof</code> structure defined in W3C Verifiable Credential Data
+            Integrity 1.0:</para>
           <itemizedlist>
             <listitem>
               <para><emphasis>type</emphasis> (mandatory) — fixed string
                 <code>"DataIntegrityProof"</code>.</para>
             </listitem>
             <listitem>
-              <para><emphasis>cryptosuite</emphasis> (mandatory) — identifies the cryptosuite
-                used. The value shall correspond to the algorithm profile mandated by the current
-                version of [ONVIF-SecurityBaseline]. It is included in the proof configuration
-                and therefore covered by the signature.</para>
+              <para><emphasis>cryptosuite</emphasis> (mandatory) — identifies the cryptosuite used.
+                The value shall correspond to the algorithm profile mandated by the current version
+                of the ONVIF Security Baseline. It is included in the proof configuration and
+                therefore covered by the signature.</para>
             </listitem>
             <listitem>
               <para><emphasis>created</emphasis> (mandatory) — ISO 8601 UTC datetime at which
