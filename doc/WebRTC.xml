@@ -770,6 +770,18 @@
         signaling server shall return a successful response rather than 404, so a client
         can retry safely after a network interruption. The 404 fault applies only when the
         session ID was never valid.</para>
+      <para>The close command is an optimization for prompt, graceful resource release and
+        explicit session-lifecycle signaling; it is not the sole mechanism by which resources
+        are reclaimed. A client may disappear at any time without sending close (for example, a
+        browser tab being closed by a user, or a network failure), in which case the close
+        command will never arrive. Devices and signaling servers shall therefore implement
+        automatic cleanup as a fallback: a signaling server shall detect a dropped WebSocket
+        connection (see the "Peer disconnected" error, <xref linkend="_Ref_possible_error_codes"
+        />), and may enforce session expiration using the expiryTimeSeconds property of the
+        connect command together with the extend command. Upon such detection, the device shall
+        stop media streaming and release resources such as ICE candidates and TURN connections
+        exactly as if a close command had been received. Implementations shall not assume that a
+        close command will always be delivered.</para>
     </section>
     <section xml:id="section_error_notification">
       <title>error</title>
