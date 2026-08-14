@@ -212,6 +212,15 @@
         </author>
         <revremark>Deprecate PasswordBasedMACAlgorithms. Several clarifications.</revremark>
       </revision>
+      <revision>
+        <revnumber>27.06</revnumber>
+        <date>Jun-2027</date>
+        <author>
+          <personname>Ottavio Campana</personname>
+        </author>
+        <revremark>Extend JWT-based authentication to support OAuth 2.1 while preserving OAuth 2.0
+          and OpenID Connect compatibility.</revremark>
+      </revision>
     </revhistory>
   </info>
   <chapter>
@@ -334,6 +343,10 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.ietf.org/rfc/rfc8705.txt"
       >http://www.ietf.org/rfc/rfc8705.txt</link>&gt;</para>
+    <para>IETF OAuth 2.1 Authorization Framework (draft-ietf-oauth-v2-1-13)</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13"
+        >https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13</link>&gt;</para>
     <para>Unified Modeling Language (UML) </para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.omg.org/spec/UML">http://www.omg.org/spec/UML</link>&gt;</para>
@@ -571,6 +584,12 @@
           <term>PEAP</term>
           <listitem>
             <para>Protected EAP</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>PKCE</term>
+          <listitem>
+            <para>Proof Key for Code Exchange</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -974,6 +993,10 @@
         </itemizedlist>
       </para>
       <para>For the <emphasis>exp</emphasis>, <emphasis>nbf</emphasis> claims, a device shall reject a token when the current time is not within the range of claims nbf and exp. It shall reject a token when at least one of the claims is missing.</para>
+        <para>Standard OAuth 2.0 and OAuth 2.1 JWTs are structurally identical and functionally
+          indistinguishable to an ONVIF device because both adhere to the same JSON formatting,
+          cryptographic signatures, and standard RFC 9068 claims (such as <code>iss</code>,
+            <code>aud</code>, <code>sub</code>, and <code>exp</code>).</para>
       <para>The JWT payload shall include the <emphasis>roles</emphasis> claim, as defined within RFC 7643:</para>
       <para>
         <itemizedlist>
@@ -5176,6 +5199,38 @@
                 <entry>
                   <para>Indicates whether the device supports signing of media using a user
                     provisioned key.</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </section>
+      <section xml:id="section_fhb_hy5_kwb">
+        <title>JWT-based authentication Capabilities</title>
+        <para>The JWT authentication capabilities signal what version os OAuth is supported by the
+            device. </para>
+        <table>
+          <title>JWT Authentication Capabilities</title>
+          <tgroup cols="2">
+            <colspec colname="c1" colwidth="50*"/>
+            <colspec colname="c2" colwidth="50*"/>
+            <thead>
+              <row>
+                <entry>
+                  <para>Capability Name</para>
+                </entry>
+                <entry>
+                  <para>Capability Semantics</para>
+                </entry>
+              </row>
+            </thead>
+            <tbody valign="top">
+              <row>
+                <entry>
+                  <para>OAuthSupportedVersions</para>
+                </entry>
+                <entry>
+                  <para>List of supported OAuth version, currently 2.0 and/or 2.1.</para>
                 </entry>
               </row>
             </tbody>
