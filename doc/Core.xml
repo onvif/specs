@@ -5452,10 +5452,14 @@ onvif://www.onvif.org/name/ARV-453
 
   <section xml:id="s.snmp_extension">
     <title>SNMP Configuration</title>
-    <para>This section defines a feature extension to the Device Management Service for SNMPv3 support as specified in [RFC 3410] and related standards. Only SNMPv3 is within the scope of this extension. Devices supporting this extension shall indicate their capability via the SNMP flag in the DeviceServiceCapabilities (see Section <xref linkend="_Ref468447902"/>).</para>
+    <para>This section defines a feature extension to the Device Management Service for SNMPv3
+        support as specified in [RFC 3410] and related standards. Only SNMPv3 is within the scope of
+        this extension. A device supporting this extension shall indicate their capability via the
+        SNMP flag in the DeviceServiceCapabilities (see Section <xref linkend="_Ref468447902"
+        />).</para>
     <section xml:id="s.snmp_service_control">
       <title>SNMP Service Control</title>
-      <para>The SNMP service shall be disabled by default. When enabled, the Device shall start to
+      <para>The SNMP service shall be disabled by default. When enabled, the device shall start to
           listen for commands and queries on the configured SNMP port. </para>
 
       <section xml:id="op.GetSNMPConfiguration">
@@ -5472,7 +5476,9 @@ onvif://www.onvif.org/name/ARV-453
             <term>response</term>
             <listitem>
               <para role="param">SNMPConfiguration [tt:SNMPConfiguration]</para>
-              <para role="text">The current SNMP service configuration, including service state and, if an initial user has been configured, the associated user name, security level, and active protocol settings.</para>
+              <para role="text">This message includes current SNMP service configuration, including
+                  service state and, if an initial user has been configured, the associated user
+                  name, security level, and active protocol settings.</para>
               <informaltable frame="all">
                 <tgroup cols="3">
                   <colspec colname="c1" colwidth="1*"/>
@@ -5588,7 +5594,7 @@ onvif://www.onvif.org/name/ARV-453
                     </row>
                     <row>
                       <entry>ListeningPort</entry>
-                      <entry>xs:unsignedInt</entry>
+                      <entry>xs:unsignedShort</entry>
                       <entry>optional</entry>
                       <entry>The UDP port number for the SNMP agent. May be set on initial
                           enable or updated while the service is running. If omitted on initial
@@ -5661,17 +5667,13 @@ onvif://www.onvif.org/name/ARV-453
               <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidSNMPPort</para>
               <para role="text">The provided ListeningPort is outside the valid range or is
                   otherwise unusable.</para>
-              <para role="param">env:Sender - ter:InvalidArgVal -
-                  ter:SNMPInitialUserIncomplete</para>
-              <para role="text">The initial user configuration is missing or incomplete.
-                  InitialUserName and SecurityLevel are required when enabling the service or
-                  when updating user credentials. Additional fields (AuthenticationProtocol,
-                  AuthPassword, PrivacyProtocol, PrivacyPassword) are required depending on
-                  the chosen SecurityLevel.</para>
-              <para role="param">env:Sender - ter:InvalidArgVal -
-                  ter:SNMPInvalidInitialUser</para>
-              <para role="text">The provided initial user configuration is invalid (e.g. username
-                  too long, password too short).</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidSNMPConfig</para>
+              <para role="text">The initial user configuration is either incomplete or invalid.
+                  InitialUserName and SecurityLevel are required when enabling the service or when
+                  updating user credentials. Additional fields (AuthenticationProtocol,
+                  AuthPassword, PrivacyProtocol, PrivacyPassword) are required depending on the
+                  chosen SecurityLevel. The provided initial user configuration is invalid (e.g.
+                  username too long, password too short).</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -5686,16 +5688,18 @@ onvif://www.onvif.org/name/ARV-453
 
     <section xml:id="s.snmp_security_parameter_configuration">
       <title>Security Parameter Configuration</title>
-      <para>
-        This section details the requirements for authentication and privacy protocols supported by the SNMP extension.
-        When an initial user is created or updated via <literal>SetSNMPConfiguration</literal>, the Device shall securely store localized keys and apply them according to the specified security level.
-        Authentication and privacy passwords shall be provided by the Client as plaintext strings. The Device shall derive the corresponding keys from these passwords using the password-to-key algorithm defined in [RFC 3414] §2.6, or as extended by [RFC 7860] §4 for SHA-2 based authentication protocols. The Device shall then localize the derived keys using its EngineID per [RFC 3414] Appendix A.1 before storing them internally. Passwords shall be at minimum 8 characters in length as required by [RFC 3414] §2.6.
-      </para>
+      <para>This section details the requirements for authentication and privacy protocols supported
+          by the SNMP extension. When an initial user is created or updated via
+            <literal>SetSNMPConfiguration</literal>, the device shall securely store localized keys
+          and apply them according to the specified security level. The device shall derive
+          corresponding keys from plain text passwords using the password-to-key algorithm defined
+          in [RFC 3414] §2.6, or as extended by [RFC 7860] §4 for SHA-2 based authentication
+          protocols. The device shall then localize the derived keys using its EngineID per [RFC
+          3414] Appendix A.1 before storing them internally. Passwords shall be at minimum 8
+          characters in length as required by [RFC 3414] §2.6. </para>
       <section xml:id="s.snmp_auth_protocols">
         <title>Authentication Protocols</title>
-        <para>
-          The following authentication protocols shall be supported:
-        </para>
+        <para> The following authentication algirithms shall be supported: </para>
         <itemizedlist>
           <listitem>
             <para>
@@ -5703,9 +5707,7 @@ onvif://www.onvif.org/name/ARV-453
             </para>
           </listitem>
         </itemizedlist>
-        <para>
-          Support for stronger authentication algorithms is RECOMMENDED:
-        </para>
+        <para> The following authentication algorithms should be supported: </para>
         <itemizedlist>
           <listitem>
             <para>
@@ -5734,9 +5736,7 @@ onvif://www.onvif.org/name/ARV-453
             </para>
           </listitem>
         </itemizedlist>
-        <para>
-          Support for stronger privacy ciphers is RECOMMENDED:
-        </para>
+        <para> The following privacy protocols should be supported: </para>
         <itemizedlist>
           <listitem>
             <para>
