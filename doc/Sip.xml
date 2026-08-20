@@ -161,26 +161,10 @@
           <tbody valign="top">
             <row>
               <entry>
-                <para>MaximumRecipients</para>
+                <para>MaximumServerConfigurations</para>
               </entry>
               <entry>
-                <para>Indicates the maximum number of call recipients supported. Also defines the maximum value for the Order field of a call recipient.</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>MaximumStunServers</para>
-              </entry>
-              <entry>
-                <para>Indicates the maximum number of STUN server URIs supported.</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>MaximumTurnServers</para>
-              </entry>
-              <entry>
-                <para>Indicates the maximum number of TURN servers supported.</para>
+                <para>Indicates the maximum number of server configurations supported.</para>
               </entry>
             </row>
             <row>
@@ -188,7 +172,31 @@
                 <para>MaximumRegistrars</para>
               </entry>
               <entry>
-                <para>Indicates the maximum number of SIP registrars supported.</para>
+                <para>Indicates the maximum number of SIP registrars supported per server configuration.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>MaximumStunServers</para>
+              </entry>
+              <entry>
+                <para>Indicates the maximum number of STUN server URIs supported per server configuration.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>MaximumTurnServers</para>
+              </entry>
+              <entry>
+                <para>Indicates the maximum number of TURN servers supported per server configuration.</para>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <para>CallButtons</para>
+              </entry>
+              <entry>
+                <para>Indicates if the device supports call buttons.</para>
               </entry>
             </row>
           </tbody>
@@ -197,12 +205,12 @@
     </section>
     <section xml:id="_Toc_ServerConfiguration">
       <title>SIP Server Configuration</title>
-      <para>A device indicating SIP capabilities shall support the GetServerConfiguration and SetServerConfiguration commands. Only one SIP server configuration is supported per device. The maximum number of registrars is indicated by the MaximumRegistrars SIP capability.</para>
-      <para>The SIP server configuration consists of the following fields:</para>
+      <para>A device indicating SIP capabilities shall support the CreateServerConfiguration, DeleteServerConfiguration, GetServerConfigurations and SetServerConfiguration commands. The maximum number of server configurations supported is indicated by the MaximumServerConfigurations SIP capability. The maximum number of registrars per server configuration is indicated by the MaximumRegistrars SIP capability.</para>
+      <para>A server configuration consists of the following fields:</para>
       <variablelist>
         <varlistentry>
           <term>Registrar</term>
-          <listitem><para>One or more SIP registrar entries. Each entry contains a Uri and a Transport field. The Uri shall be an absolute URI without scheme, such as: my.domain:port/p/a/t/h?query. The Transport field specifies the transport protocol to use for the registrar and shall be one of: UDP, TCP, or TLS.</para></listitem>
+          <listitem><para>One or more SIP registrar entries. Each entry contains a Uri and a Transport field. The Transport field specifies the transport protocol to use for the registrar and shall be one of: UDP, TCP, or TLS.</para></listitem>
         </varlistentry>
         <varlistentry>
           <term>UserId</term>
@@ -214,30 +222,111 @@
         </varlistentry>
         <varlistentry>
           <term>Authentication</term>
-          <listitem><para>Authentication configuration. Either Credential (UserName and Password) or AuthorizationServer shall be provided. Credential contains the username and password used to authenticate with the SIP server. AuthorizationServer is a reference token referring to the server that provides access tokens to authorize with the SIP server.</para></listitem>
+          <listitem><para>Authentication configuration. Either Credential (UserName and Password) or AuthorizationServer may be provided. Credential contains the username and password used to authenticate with the SIP server. AuthorizationServer is a reference token referring to the server that provides access tokens to authorize with the renewal endpoint as defined in the Security specification.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Name</term>
+          <listitem><para>Optional name of the server configuration.</para></listitem>
         </varlistentry>
       </variablelist>
-      <section xml:id="_Toc_GetServerConfiguration">
-        <title>GetServerConfiguration</title>
-        <para>This operation gets the SIP server configuration of the device. The device shall not return the password in the response.</para>
+      <section xml:id="_Toc_CreateServerConfiguration">
+        <title>CreateServerConfiguration</title>
+        <para>This operation creates a new SIP server configuration on the device.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
             <listitem>
-              <para role="text">This is an empty message.</para>
+              <para role="param">ServerConfiguration [tsip:ServerConfiguration]</para>
+              <para role="text">The new server configuration to be added on the device.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
             <term>response</term>
             <listitem>
-              <para role="param">ServerConfiguration - optional [tsip:ServerConfiguration]</para>
-              <para role="text">The current SIP server configuration of the device. Absent if no SIP server configuration has been set.</para>
+              <para role="param">Token [tt:ReferenceToken]</para>
+              <para role="text">Token of the created server configuration.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
             <term>faults</term>
             <listitem>
-              <para role="text">No command specific faults defined.</para>
+              <para role="param">env:Receiver - ter:OperationProhibited - ter:MaximumServerConfigurations</para>
+              <para role="text">The device cannot create a new server configuration because it already has the maximum number of server configurations that it supports.</para>
+              <para role="param">env:Receiver - ter:OperationProhibited - ter:MaximumRegistrars</para>
+              <para role="text">The number of registrars exceeds the maximum number supported by the device.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidRegistrar</para>
+              <para role="text">The URI set in a registrar is not valid.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:AuthorizationServer</para>
+              <para role="text">No AuthorizationServer exists for the specified token.</para>
+              <para role="param">env:Sender - ter:OperationProhibited - ter:ConfigurationConflict</para>
+              <para role="text">Cannot have both AuthorizationServer and Credential configured at the same time. Only one may be provided.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:CertPathValidationPolicyID</para>
+              <para role="text">No certification path validation policy exists under the requested CertPathValidationPolicyID.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Toc_DeleteServerConfiguration">
+        <title>DeleteServerConfiguration</title>
+        <para>This operation deletes an existing SIP server configuration from the device. Deleting a server configuration removes all other configuration types that reference this configuration.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Token [tt:ReferenceToken]</para>
+              <para role="text">Token of the server configuration to delete.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidServerConfigurationToken</para>
+              <para role="text">The Token does not reference an existing server configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Toc_GetServerConfigurations">
+        <title>GetServerConfigurations</title>
+        <para>This operation gets the SIP server configuration(s) of the device. The device shall support this command. The device shall not return the password in the response.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">Token - optional [tt:ReferenceToken]</para>
+              <para role="text">Optional token of the requested server configuration. If omitted, all server configurations are returned.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Configuration - unbounded [tsip:ServerConfigurationTokenPair]</para>
+              <para role="text">The SIP server configuration(s) of the device, each paired with its Token.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidServerConfigurationToken</para>
+              <para role="text">The Token does not reference an existing server configuration.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -250,13 +339,15 @@
       </section>
       <section xml:id="_Toc_SetServerConfiguration">
         <title>SetServerConfiguration</title>
-        <para>This operation sets the SIP server configuration of the device. Only one SIP server configuration is supported. The number of registrars shall not exceed the value indicated by the MaximumRegistrars SIP capability. If the configuration is absent, the device shall remove the existing SIP server configuration.</para>
+        <para>This operation sets the SIP server configuration of the device. The device shall support this command. The number of registrars shall not exceed the value indicated by the MaximumRegistrars SIP capability.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
             <listitem>
-              <para role="param">ServerConfiguration - optional [tsip:ServerConfiguration]</para>
-              <para role="text">The SIP server configuration to set on the device. If absent, the device shall remove the existing SIP server configuration.</para>
+              <para role="param">Token [tt:ReferenceToken]</para>
+              <para role="text">Token of the server configuration.</para>
+              <para role="param">ServerConfiguration [tsip:ServerConfiguration]</para>
+              <para role="text">The SIP server configuration to update on the device.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -268,14 +359,12 @@
           <varlistentry>
             <term>faults</term>
             <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidServerConfigurationToken</para>
+              <para role="text">The Token does not reference an existing server configuration.</para>
               <para role="param">env:Receiver - ter:OperationProhibited - ter:MaximumRegistrars</para>
               <para role="text">The number of registrars exceeds the maximum number supported by the device.</para>
-              <para role="param">env:Sender - ter:InvalidArgs - ter:MissingRegistrar</para>
-              <para role="text">No registrar URI has been specified.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidRegistrar</para>
-              <para role="text">The URI set in the registrar is not valid.</para>
-              <para role="param">env:Sender - ter:InvalidArgs - ter:MissingAuthentication</para>
-              <para role="text">Both AuthorizationServer and Credential are missing. One must be provided.</para>
+              <para role="text">The URI set in a registrar is not valid.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:AuthorizationServer</para>
               <para role="text">No AuthorizationServer exists for the specified token.</para>
               <para role="param">env:Sender - ter:OperationProhibited - ter:ConfigurationConflict</para>
@@ -295,42 +384,48 @@
     </section>
     <section xml:id="_Toc_NatConfiguration">
       <title>NAT Configuration</title>
-      <para>A device indicating MaximumStunServers > 0 or MaximumTurnServers > 0 in the SIP capabilities shall support the GetNatConfiguration and 
-        SetNatConfiguration commands. Only one NAT configuration is supported per device. The maximum number of STUN server URIs is indicated by the 
-        MaximumStunServers SIP capability and the maximum number of TURN servers is indicated by the MaximumTurnServers SIP capability. URIs provided 
-        in this context shall be an absolute URI without scheme, such as: stun.domain:port or turn.domain:port</para>
+      <para>A device indicating MaximumStunServers > 0 or MaximumTurnServers > 0 in the SIP capabilities shall support the GetNatConfigurations and 
+        SetNatConfiguration commands. Only one NAT configuration is supported per server configuration. The maximum number of STUN server URIs is indicated by the 
+        MaximumStunServers SIP capability and the maximum number of TURN servers is indicated by the MaximumTurnServers SIP capability.</para>
       <para>The NAT configuration consists of the following fields:</para>
       <variablelist>
+        <varlistentry>
+          <term>ServerConfiguration</term>
+          <listitem><para>Token of the server configuration that this NAT configuration applies to.</para></listitem>
+        </varlistentry>
         <varlistentry>
           <term>Stun</term>
           <listitem><para>Optional. Contains one or more STUN server URIs used for NAT traversal.</para></listitem>
         </varlistentry>
         <varlistentry>
           <term>Turn</term>
-          <listitem><para>Optional, unbounded. Each entry contains one or more TURN server URIs and optional credentials (Username and Password) used to authenticate with the TURN server. The device shall not return the password in the response.</para></listitem>
+          <listitem><para>Optional, unbounded. Each entry contains one or more TURN server URIs and optional credentials (UserName and Password) used to authenticate with the TURN server. The device shall not return the password in the response.</para></listitem>
         </varlistentry>
       </variablelist>
-      <section xml:id="_Toc_GetNatConfiguration">
-        <title>GetNatConfiguration</title>
-        <para>This operation gets the NAT configuration of the device. The device shall not return TURN server passwords in the response.</para>
+      <section xml:id="_Toc_GetNatConfigurations">
+        <title>GetNatConfigurations</title>
+        <para>This operation gets the NAT configurations of the device. There shall be 1 configuration per ServerConfiguration token. The 
+          device shall not return TURN server passwords in the response.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
             <listitem>
-              <para role="text">This is an empty message.</para>
+              <para role="param">ServerConfiguration - optional [tt:ReferenceToken]</para>
+              <para role="text">Optional token to filter configurations based on server configuration token.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
             <term>response</term>
             <listitem>
-              <para role="param">NatConfiguration - optional [tsip:NatConfiguration]</para>
-              <para role="text">The current NAT configuration of the device. Absent if no NAT configuration has been set.</para>
+              <para role="param">NatConfiguration - unbounded [tsip:NatConfiguration]</para>
+              <para role="text">The NAT configurations of the device. Maximum 1 per ServerConfiguration token.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
             <term>faults</term>
             <listitem>
-              <para role="text">No command specific faults defined.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidServerConfigurationToken</para>
+              <para role="text">The ServerConfiguration token does not reference an existing server configuration.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -343,13 +438,15 @@
       </section>
       <section xml:id="_Toc_SetNatConfiguration">
         <title>SetNatConfiguration</title>
-        <para>This operation sets the NAT configuration of the device. Only one NAT configuration is supported. The number of STUN server URIs shall not exceed the value indicated by the MaximumStunServers SIP capability. The number of TURN servers shall not exceed the value indicated by the MaximumTurnServers SIP capability. If the configuration is absent, the device shall remove the existing NAT configuration.</para>
+        <para>This operation updates a NAT configuration of the device based on the ServerConfiguration token. 
+          The number of STUN server URIs shall not exceed the value indicated by the MaximumStunServers SIP capability. 
+          The number of TURN servers shall not exceed the value indicated by the MaximumTurnServers SIP capability.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
             <listitem>
-              <para role="param">NatConfiguration - optional [tsip:NatConfiguration]</para>
-              <para role="text">The NAT configuration to set on the device. If absent, the device shall remove the existing NAT configuration.</para>
+              <para role="param">NatConfiguration [tsip:NatConfiguration]</para>
+              <para role="text">The NAT configuration to set.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -361,6 +458,8 @@
           <varlistentry>
             <term>faults</term>
             <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidServerConfigurationToken</para>
+              <para role="text">The ServerConfiguration token does not reference an existing server configuration.</para>
               <para role="param">env:Receiver - ter:OperationProhibited - ter:MaximumStunServers</para>
               <para role="text">The number of STUN server URIs exceeds the maximum number supported by the device.</para>
               <para role="param">env:Receiver - ter:OperationProhibited - ter:MaximumTurnServers</para>
@@ -378,29 +477,46 @@
     </section>
     <section xml:id="_Toc_CallConfiguration">
       <title>Call Configuration</title>
-      <para>A device indicating SIP capabilities shall support the GetCallConfiguration and SetCallConfiguration commands. The maximum number of call recipients is indicated by the MaximumRecipients SIP capability. Only one call configuration is supported per device.</para>
-      <para>Each recipient has an Order field that determines in which order the contact is displayed or assigned to physical buttons. The Order value shall start at 1 and shall not exceed the value of the MaximumRecipients capability.</para>
-      <section xml:id="_Toc_GetCallConfiguration">
-        <title>GetCallConfiguration</title>
-        <para>This operation gets the call configuration of the device.</para>
+      <para>A device indicating SIP capabilities shall support the GetCallConfigurations and SetCallConfiguration commands. 
+        Shall contain 1 call configuration per ServerConfiguration.</para>
+      <para>A call configuration consists of the following fields:</para>
+      <variablelist>
+        <varlistentry>
+          <term>ServerConfiguration</term>
+          <listitem><para>Token of the server configuration that this call configuration applies to.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>AllowIncomingCalls</term>
+          <listitem><para>Indicates whether the device shall allow incoming calls.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>AutoAnswer</term>
+          <listitem><para>Indicates whether the device shall automatically answer incoming calls.</para></listitem>
+        </varlistentry>
+      </variablelist>
+      <section xml:id="_Toc_GetCallConfigurations">
+        <title>GetCallConfigurations</title>
+        <para>This operation gets the call configurations of the device.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
             <listitem>
-              <para role="text">This is an empty message.</para>
+              <para role="param">ServerConfiguration - optional [tt:ReferenceToken]</para>
+              <para role="text">The matching ServerConfiguration token for the call configuration.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
             <term>response</term>
             <listitem>
-              <para role="param">CallConfiguration [tsip:CallConfiguration]</para>
-              <para role="text">The current call configuration of the device.</para>
+              <para role="param">CallConfiguration - unbounded [tsip:CallConfiguration]</para>
+              <para role="text">One or all call configurations of the device.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
             <term>faults</term>
             <listitem>
-              <para role="text">No command specific faults defined.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidServerConfigurationToken</para>
+              <para role="text">The ServerConfiguration token does not reference an existing server configuration.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -413,13 +529,13 @@
       </section>
       <section xml:id="_Toc_SetCallConfiguration">
         <title>SetCallConfiguration</title>
-        <para>This operation sets the call configuration of the device. The number of recipients shall not exceed the value indicated by the MaximumRecipients SIP capability. The Order field of each recipient shall be between 1 and the MaximumRecipients capability value, inclusive.</para>
+        <para>This operation sets the call configuration of the device.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
             <listitem>
               <para role="param">CallConfiguration [tsip:CallConfiguration]</para>
-              <para role="text">The call configuration to set on the device. Only one call configuration is supported.</para>
+              <para role="text">The call configuration to set on the device.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -431,14 +547,154 @@
           <varlistentry>
             <term>faults</term>
             <listitem>
-              <para role="param">env:Receiver - ter:OperationProhibited - ter:MaximumRecipients</para>
-              <para role="text">The number of recipients exceeds the maximum number of call recipients supported by the device.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidServerConfigurationToken</para>
+              <para role="text">The ServerConfiguration token does not reference an existing server configuration.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
             <term>access class</term>
             <listitem>
               <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
+    <section xml:id="_Toc_CallButtons">
+      <title>Call Buttons</title>
+      <para>A device indicating the CallButtons SIP capability shall support the GetCallButtons, SetCallButtons and GetCallButtonOptions commands. 
+        Shall contain 1 button configuration per ServerConfiguration.</para>
+      <para>A call button consists of the following fields:</para>
+      <variablelist>
+        <varlistentry>
+          <term>ButtonId</term>
+          <listitem><para>The button's reference token.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Name</term>
+          <listitem><para>Display name of the call recipient.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>UserId</term>
+          <listitem><para>The user info/extension of the Address of Record (AoR) in SIP, identifying the recipient on the registrar.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Enabled</term>
+          <listitem><para>Optional attribute indicating whether this button is enabled or not. Defaults to true.</para></listitem>
+        </varlistentry>
+      </variablelist>
+      <section xml:id="_Toc_GetCallButtons">
+        <title>GetCallButtons</title>
+        <para>
+          This operation gets the call button configurations of the device.
+          This method is optional. It shall be available if the CallButtons capability is TRUE.
+        </para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ServerConfiguration - optional [tt:ReferenceToken]</para>
+              <para role="text">The matching ServerConfiguration token for the button configuration.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">ButtonConfiguration - unbounded [tsip:ButtonConfiguration]</para>
+              <para role="text">A button configuration of the device.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidServerConfigurationToken</para>
+              <para role="text">The ServerConfiguration token does not reference an existing server configuration.</para>
+              <para role="param">env:Receiver - ter:ActionNotSupported - ter:NotImplemented</para>
+              <para role="text">This optional method is not implemented.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Toc_SetCallButtons">
+        <title>SetCallButtons</title>
+        <para>
+          This operation sets the call button configuration of the device.
+          This method is optional. It shall be available if the CallButtons capability is TRUE.
+        </para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">ButtonConfiguration [tsip:ButtonConfiguration]</para>
+              <para role="text">The button configuration to set on the device.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidServerConfigurationToken</para>
+              <para role="text">The ServerConfiguration token does not reference an existing server configuration.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidButtonId</para>
+              <para role="text">The ButtonId does not reference a supported physical, relay or virtual button.</para>
+              <para role="param">env:Receiver - ter:ActionNotSupported - ter:NotImplemented</para>
+              <para role="text">This optional method is not implemented.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section xml:id="_Toc_GetCallButtonOptions">
+        <title>GetCallButtonOptions</title>
+        <para>
+          This operation gets the list of supported physical, relay and virtual call button identifiers of the device.
+          This method is optional. It shall be available if the CallButtons capability is TRUE.
+        </para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This is an empty message.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">Physical - unbounded [tsip:ButtonDescription]</para>
+              <para role="text">List of physical button ids.</para>
+              <para role="param">Relay - unbounded [tsip:ButtonDescription]</para>
+              <para role="text">List of relay button ids.</para>
+              <para role="param">Virtual - unbounded [tsip:ButtonDescription]</para>
+              <para role="text">List of virtual button ids. Example for a touchscreen interface.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Receiver - ter:ActionNotSupported - ter:NotImplemented</para>
+              <para role="text">This optional method is not implemented.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM</para>
             </listitem>
           </varlistentry>
         </variablelist>
@@ -451,8 +707,8 @@
         It allows a client to update the provided configurations used when the device participates in a SIP call.
       </para>
       <para>
-        Only a single SIP streaming configuration is supported per device. If the device has a SIP server configuration,
-        the SIP streaming configuration determines the media parameters applied during incoming or outgoing SIP sessions.
+        Shall support a streaming configuration per ServerConfiguration. 
+        The SIP streaming configuration determines the media parameters applied during incoming or outgoing SIP sessions.
         A configuration shall be provided per configuration type that the device supports for SIP streaming. For example,
         if the device supports both video and audio streaming over SIP, the SIP streaming configuration shall include a
         video source configuration, a video encoder configuration, an audio source configuration and an audio encoder
@@ -460,31 +716,64 @@
         only include the audio output configuration and audio decoder configuration.
       </para>
       <para>
-        Note: The configuration listed as part of the SIP streaming configuration are not expected to be used by the device
-        for non-SIP streaming sessions. This means that the configurations needs not to be returned in GetXConfigurations,
+        Note: The configurations listed as part of the SIP streaming configuration are not expected to be used by the device
+        for non-SIP streaming sessions. This means that the configurations need not be returned in GetXConfigurations,
         nor to be configured through SetXConfiguration.
       </para>
-      <section xml:id="_Toc_GetStreamingConfiguration">
-        <title>GetStreamingConfiguration</title>
-        <para>This operation retrieves the current SIP streaming configuration of the device.</para>
+      <para>The SIP streaming configuration consists of the following fields:</para>
+      <variablelist>
+        <varlistentry>
+          <term>ServerConfiguration</term>
+          <listitem><para>The ServerConfiguration token for the streaming configuration to be modified.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>VideoSource</term>
+          <listitem><para>Optional. Video source configuration used for the SIP session.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>VideoEncoder</term>
+          <listitem><para>Optional. Video encoder configuration used for the SIP session.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>AudioSource</term>
+          <listitem><para>Optional. Audio source configuration used for the SIP session.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>AudioEncoder</term>
+          <listitem><para>Optional. Audio encoder configuration used for the SIP session.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>AudioOutput</term>
+          <listitem><para>Optional. Audio output configuration used for the SIP session.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>AudioDecoder</term>
+          <listitem><para>Optional. Audio decoder configuration used for the SIP session.</para></listitem>
+        </varlistentry>
+      </variablelist>
+      <section xml:id="_Toc_GetStreamingConfigurations">
+        <title>GetStreamingConfigurations</title>
+        <para>This operation gets the SIP streaming configurations of the device.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
             <listitem>
-              <para role="text">This is an empty message.</para>
+              <para role="param">ServerConfiguration - optional [tt:ReferenceToken]</para>
+              <para role="text">The matching ServerConfiguration token for the streaming configuration.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
             <term>response</term>
             <listitem>
-              <para role="param">StreamingConfiguration [tsip:StreamingConfiguration]</para>
-              <para role="text">The current SIP streaming configuration of the device.</para>
+              <para role="param">StreamingConfiguration - unbounded [tsip:StreamingConfiguration]</para>
+              <para role="text">The current SIP streaming configuration(s) of the device.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
             <term>faults</term>
             <listitem>
-              <para role="text">No command specific faults defined.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidServerConfigurationToken</para>
+              <para role="text">The ServerConfiguration token does not reference an existing server configuration.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -503,7 +792,7 @@
             <term>request</term>
             <listitem>
               <para role="param">StreamingConfiguration [tsip:StreamingConfiguration]</para>
-              <para role="text">The SIP streaming configuration to set on the device. Only one SIP streaming configuration is supported.</para>
+              <para role="text">The SIP streaming configuration to set on the device.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -515,7 +804,8 @@
           <varlistentry>
             <term>faults</term>
             <listitem>
-              <para role="text">No command specific faults defined.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidServerConfigurationToken</para>
+              <para role="text">The ServerConfiguration token does not reference an existing server configuration.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -528,7 +818,7 @@
       </section>
       <section xml:id="_Toc_GetStreamingConfigurationOptions">
         <title>GetStreamingConfigurationOptions</title>
-        <para>This operation retrieves the supported options for the SIP streaming configuration of the device.</para>
+        <para>This operation gets the supported options for SIP streaming configuration of the device.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
