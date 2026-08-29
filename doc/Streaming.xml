@@ -225,6 +225,14 @@
         </author>
         <revremark>Add support for SRTP.</revremark>
       </revision>
+      <revision>
+        <revnumber>26.12</revnumber>
+        <date>Dec-2026</date>
+        <author>
+          <personname>Venki Aravapalli</personname>
+        </author>
+        <revremark>Add support for SRTP Audio Back Channel.</revremark>
+      </revision>
     </revhistory>
   </info>
   <chapter>
@@ -2363,12 +2371,12 @@ a=control:rtsp://movie.example.com/action/srtp_video
                     When the client is providing the key, it will add a KeyMgmt header
                     containing the MIKEY with transport type RTP/SAVP in the SETUP. (RFC 4567)
                     The client may request a different encryption algorithm than what is configured with
-                    SetAudioEncoderConfiguration, SetMetadataConfiguration and
+                    SetAudioEncoderConfiguration, SetMetadataConfiguration, SetAudioDecoderConfiguration and
                     SetVideoEncoderConfiguration for legacy reasons. Newer clients should respect the
                     encryption algorithm set in the configuration and avoid overriding it in the SETUP
                     request. The client shall not change the encryption algorithm after the stream has
                     been started. (ONVIF specification)
-                    <programlisting><![CDATA[SETUP rtsp://<RTSP_URI> RTSP/1.0
+                    <programlisting><![CDATA[SETUP rtsps://<RTSP_URI> RTSP/1.0
 CSeq: 2
 User-Agent: OmnicastRTSPClient/1.0
 Transport: RTP/SAVP/UDP;unicast
@@ -2378,6 +2386,40 @@ AIBAQMBFAcBAQgBAQoBAQsBCgAAACcAIQAe30C59UrClE0e27UP5h/Wty9UL8+dfzg+2ttmmo3kBAAAA
                     </programlisting> The SSRC is a required component for SRTP encryption and shall be specified
                     during the RTSP session setup. The SSRC shall be provided in the transport header
                     of the RTSP SETUP response. (RFC 2326 Section 12.39)
+                </para>
+                <para>
+                    For an audio back channel, the device includes the MIKEY key in the SDP media
+                    description of the back channel track. The client shall use this key to encrypt
+                    the audio back channel packets it sends to the device, and the device shall use
+                    the same key to decrypt them.
+                    <programlisting><![CDATA[m=audio 0 RTP/SAVP 0
+c=IN IP4 0.0.0.0
+b=AS:8
+a=key-mgmt:mikey AQAFAEsJfAUBAABSMfATAAAAAA...
+a=rtpmap:0 PCMU/8000
+a=sendonly
+a=control:audio_back
+]]>
+                    </programlisting>
+                </para>
+                <para>
+                    Alternatively, the client can supply its own key for the audio back channel by
+                    including a KeyMgmt header with a MIKEY message in the SETUP request for the
+                    audio back channel track, overriding the key provided by the device in the SDP.
+                    The device shall then use this new key to decrypt the audio back channel
+                    packets.
+                    <programlisting><![CDATA[SETUP rtsps://192.168.0.1/live1s1.sdp/audio_back RTSP/1.0
+CSeq: 2
+Authorization: Digest username="admin", realm="LIVE555 Streaming Media", 
+nonce="4c1dc8a68ea51fec57dd24b892c6ac38",
+uri="rtsps://192.168.0.1/live1s1.sdp", response="a0c646fe00936602851eb8e83eb68502"
+User-Agent: LIVE555 Streaming Media v2026.03.23
+Transport: RTP/SAVP;unicast;client_port=63460-63461
+KeyMgmt: prot=mikey; uri="rtsps://192.168.0.1/live1s1.sdp/audio_back"; 
+data="AQAFAD5+Fz0BAAAfpSX4AAAAAAsA7gShYz//NqwKEFwq5F31sCoL0v1+4tC1swgBAAAAGwABBgEBEAIBA
+AQBDAUBAAcBAQgBAQoBABQBEAAAACUAMQAcfkrX2Cu71pIds6levaylStUuUhjbHs7Arv9KgQSbFrGKAA=="
+]]>
+                    </programlisting>
                 </para>
             </section>
             <section>
