@@ -646,7 +646,8 @@
         <varlistentry>
           <term>faults</term>
           <listitem>
-            <para role="text">&lt;none&gt;</para>
+            <para role="text">No faults are defined for a malformed-but-transportable request; see
+              the handling of already-closed sessions below.</para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -657,10 +658,19 @@
       <para><emphasis role="bold">NOTE</emphasis>: Note that ICE candidates can arrive <emphasis
         role="bold">before</emphasis> the SDP offer and the implementing client needs to handle
         this.</para>
+      <para>If a trickle command is received for a session that has already been closed, the
+        signaling server shall respond successfully to the requester and shall not relay the
+        candidate to the peer. This is an exception to the relay requirement above and accounts
+        for in-flight candidates that are still in transit when a session is being torn down; it
+        is consistent with the idempotent design of the close command, under which an
+        already-closed session is not treated as an error.</para>
       <para>If everything works as it should, a peer-to-peer WebRTC session can be set up between
         client and device. After the session has been established the client can terminate the
         WebSocket session to the signaling server and the peer-to-peer connection will not be
         affected. The only reason to keep the connection to the server is if the client needs to extend the session.</para>
+      <para>To actively release device resources such as ICE candidates and TURN connections, the
+        client may send the <literal>close</literal> command (see <xref linkend="section_close"/>)
+        before terminating the WebSocket session.</para>
     </section>
     <section xml:id="section_extend">
       <title>extend</title>
@@ -694,9 +704,16 @@
               <para role="text">The authorization token cannot be verified. The authorization token may not include the required claims, or has expired.</para>
               <para role="param">403 Forbidden</para>
               <para role="text">The client is not authorized to connect to the provided peer.</para>
+              <para role="param">404 Not Found</para>
+              <para role="text">The session does not exist or has already been closed.</para>
             </listitem>
           </varlistentry>
         </variablelist>
+        <para>Unlike the close command, which is idempotent by design, an extend command
+          received for a session that has already been closed shall be rejected with 404, so the
+          client is not left believing a dead session is still alive. An extend for an
+          already-closed session is a state-change request with no valid target, not a retryable
+          notification.</para>
       </section>
       <section xml:id="section_extend_device">
         <title>extend - Signaling Server to Device</title>
@@ -729,7 +746,60 @@
           </varlistentry>
         </variablelist>
       </section>
-    </section>  
+    </section>
+    <section xml:id="section_close">
+      <title>close</title>
+      <para>An ONVIF compliant signaling server, device and client shall support this
+        command to actively terminate a streaming session.</para>
+      <para>A signaling server shall relay this command unaltered to the peer. Upon
+        receiving the close command the device shall stop media streaming and release
+        resources such as ICE candidates and TURN connections.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">session [string]</para>
+            <para role="text">The ID assigned by the signaling server to the session.</para>
+            <para role="param">reason optional [string]</para>
+            <para role="text">A short description of why the session is closed.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="text">&lt;none&gt;</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">400 Bad Request</para>
+            <para role="text">Invalid session ID.</para>
+            <para role="param">404 Not Found</para>
+            <para role="text">The session does not exist.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>The close command is idempotent: if the session has already been closed, the
+        signaling server shall return a successful response rather than 404, so a client
+        can retry safely after a network interruption. The 404 fault applies only when the
+        session ID was never valid.</para>
+      <para>The close command is an optimization for prompt, graceful resource release and
+        explicit session-lifecycle signaling; it is not the sole mechanism by which resources
+        are reclaimed. A client may disappear at any time without sending close (for example, a
+        browser tab being closed by a user, or a network failure), in which case the close
+        command will never arrive. Devices and signaling servers shall therefore implement
+        automatic cleanup as a fallback: a signaling server shall detect a dropped WebSocket
+        connection (see the "Peer disconnected" error, <xref linkend="_Ref_possible_error_codes"
+        />), and may enforce session expiration using the expiryTimeSeconds property of the
+        connect command together with the extend command. Upon such detection, the device shall
+        stop media streaming and release resources such as ICE candidates and TURN connections
+        exactly as if a close command had been received. Implementations shall not assume that a
+        close command will always be delivered.</para>
+      <para>Behavior for trickle and extend commands received after a session has closed is
+        defined in their respective sections; implementations shall not assume the peer has seen
+        the close before such messages arrive.</para>
+    </section>
     <section xml:id="section_error_notification">
       <title>error</title>
       <para>An ONVIF compliant signaling server, device and client shall support sending or receiving notifications signaling that an error has occurred.</para>
@@ -858,6 +928,11 @@ Server -> Device: { "method": "trickle", "params": {"session": "s1", "candidate"
 Client -> Server: { "method": "extend", "params": {"session": "s1", "authorization": "...",
                 "id": 4}
 Server -> Client: { "error": {"code": -32601, "message": "Method not found"}, "id": "4"}
+...
+Client -> Server: { "method": "close", "params": {"session": "s1"}, "id": 5}
+Server -> Device: { "method": "close", "params": {"session": "s1"}, "id": 5}
+Device -> Server: { "result": {}, "id": 5}
+Server -> Client: { "result": {}, "id": 5}
 ...
 Device -> Server: { "error": {"code": 1001, "message": "Insufficient resources"}}
 Server -> Client: { "error": {"code": 1001, "message": "Insufficient resources"}}
