@@ -53,32 +53,11 @@
 
   <chapter xml:id="ch_scope">
     <title>Scope</title>
-    <para>This specification defines a layered protocol stack that enables any ONVIF-compliant
-      client to discover, configure, and consume data from any AI-enabled ONVIF-compliant device.
-      The stack combines three open technologies:</para>
-    <itemizedlist>
-      <listitem>
-        <para>ONVIF, for standardised device control;</para>
-      </listitem>
-      <listitem>
-        <para>MCP (Model Context Protocol), for standardised AI
-          tool invocation and metadata streaming;</para>
-      </listitem>
-      <listitem>
-        <para>LinkML, for defining, validating, and sharing
-          structured metadata schemas.</para>
-      </listitem>
-    </itemizedlist>
-    <para>The document is divided into the following sections:</para>
-    <para>Scope: Defines the applicability and boundaries of this specification.</para>
-    <para>Building Blocks: Introduces the four constituent technologies — ONVIF, MCP, LinkML, and
-      JSON-LD — and their individual roles in the stack.</para>
-    <para>Protocol Stack Architecture: Describes the overall layered architecture, the two planes,
-      and the shared identity authority.</para>
-    <para>Service Discovery and Data Exchange: Defines the message sequences for connection
-      establishment, schema retrieval, skill invocation, and metadata event delivery.</para>
-    <para>Authentication and Authorization: Specifies the JWT-based security model, ONVIF role
-      mapping, and TLS requirements.</para>
+    <para>This specification defines an MCP-based interface for ONVIF devices, enabling AI agents
+      to discover and use device capabilities without relying on SOAP. MCP is natively supported
+      by agentic clients and provides a standard way to expose device functions and metadata.</para>
+    <para>The objective is to broaden the range of clients that can interoperate with ONVIF
+      devices and to expose advanced, ready-to-consume device functions for AI agents.</para>
   </chapter>
 
   <chapter xml:id="ch_background_and_motivation">
@@ -135,6 +114,8 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://modelcontextprotocol.io/specification/2025-11-25">https://modelcontextprotocol.io/specification/2025-11-25</link>&gt;</para>
     <para>Model Context Protocol, 2026-07-28</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://modelcontextprotocol.io/specification/2026-07-28">https://modelcontextprotocol.io/specification/2026-07-28</link>&gt;</para>
+    <para>Model Context Protocol Tasks Extension</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://modelcontextprotocol.io/extensions/tasks/overview">https://modelcontextprotocol.io/extensions/tasks/overview</link>&gt;</para>
     <para>ONVIF Core Specification</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="hhttps://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf">https://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf</link>&gt;</para>
     <para>ONVIF Schema</para>
@@ -143,8 +124,6 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/srv/security/ONVIF-SecurityBaseline-Spec.pdf">https://www.onvif.org/specs/srv/security/ONVIF-SecurityBaseline-Spec.pdf</link>&gt;</para>
     <para>ONVIF Security Service Specification</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/core/ONVIF-Security-Specification.pdf">https://www.onvif.org/specs/core/ONVIF-Security-Specification.pdf</link>&gt;</para>
-    <para>ONVIF WSDL-to-MCP Tool Converter (PR #2)</para>
-    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://github.com/onvif/specs/pull/2">https://github.com/onvif/specs/pull/2</link>&gt;</para>
     <para>W3C JSON Schema Draft-07</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://json-schema.org/draft-07/schema">https://json-schema.org/draft-07/schema</link>&gt;</para>
     <para>W3C RDF Dataset Canonicalization</para>
@@ -270,16 +249,6 @@
               <entry align="left">
                 <para>An ONVIF client that also acts as an MCP Host, managing cameras and consuming
                   agentic analytics events.</para>
-              </entry>
-            </row>
-            <row>
-              <entry align="left">
-                <para><emphasis role="bold">WSDL-MCP Bridge</emphasis></para>
-              </entry>
-              <entry align="left">
-                <para>A component that translates ONVIF SOAP/WSDL operations into MCP Tool
-                  definitions, making legacy cameras accessible to agents without SOAP
-                  knowledge.</para>
               </entry>
             </row>
           </tbody>
@@ -789,10 +758,10 @@
       </section>
 
       <section xml:id="sec_event_plane">
-        <title>Metadata Event Plane</title>
-        <para>The <emphasis>Metadata Event Plane</emphasis> is the event path used by the ONVIF Device to
-          publish AI analytics results to the ONVIF Client. It is server-initiated, asynchronous, and
-          optimized for continuous delivery of structured metadata events.</para>
+        <title>Event Streaming Plane</title>
+        <para>The <emphasis>Event Streaming Plane</emphasis> is the event path used by the ONVIF
+          Device to publish AI analytics results to the ONVIF Client. It is server-initiated,
+          asynchronous, and optimized for continuous delivery of structured metadata events.</para>
         <informaltable>
           <tgroup cols="2">
             <colspec colname="c1" colwidth="24*" />
@@ -842,10 +811,10 @@
       <para>This server acts as the trust anchor for the complete stack: it authenticates clients,
         issues bearer access tokens, and exposes the metadata and key material needed by ONVIF
         Devices to validate tokens before processing MCP requests.</para>
-      <para>In practice, the Authorization Server provides centralized identity and access control for
-        both planes. It ensures that only authorized ONVIF Clients can invoke Skills on the Control
-        Plane and receive protected metadata on the Event Plane, according to the roles and claims
-        contained in the issued token.</para>
+      <para>In practice, the Authorization Server provides centralized identity and access control
+        for both planes. It ensures that only authorized ONVIF Clients can invoke Skills on the
+        Control Plane and receive protected metadata on the Event Plane, according to the roles and
+        claims contained in the issued token.</para>
     </section>
   </chapter>
 
@@ -884,17 +853,17 @@
           if the protocol version is not supported. In that case the ONVIF Device shall include a
             <code>supported</code> list in the error response and the ONVIF Client shall retry using
           one of the listed versions.</para>
-        <para>The <code>server/discover</code> response shall contain:
-          <code>protocolVersions</code> — the list of MCP protocol versions supported by the
-          device; <code>identity</code> — the server <code>name</code> and
-          <code>version</code>; <code>capabilities</code> — the declared capability flags
-          (<code>tools</code>, <code>resources</code>, <code>prompts</code>). The ONVIF Client
-          shall use the returned <code>capabilities</code> flags to determine which subsequent
-          operations are available before invoking them.</para>
-        <para>The ONVIF Client shall open the Streamable HTTP channel as defined by MCP
-          2026-07-28 before it expects to receive <code>notifications/message</code> frames from
-          the ONVIF Device. This channel shall remain open for the duration of the session. See
-          <xref linkend="sec_annex_session_initialization"/> for wire format examples.</para>
+        <para>The <code>server/discover</code> response shall contain: <code>protocolVersions</code>
+          — the list of MCP protocol versions supported by the device; <code>identity</code> — the
+          server <code>name</code> and <code>version</code>; <code>capabilities</code> — the
+          declared capability flags (<code>tools</code>, <code>resources</code>,
+            <code>prompts</code>, and supported extensions). The ONVIF Client shall use the returned
+            <code>capabilities</code> flags to determine which subsequent operations are available
+          before invoking them.</para>
+        <para>The ONVIF Client shall open the Streamable HTTP channel as defined by MCP 2026-07-28
+          before it expects to receive <code>notifications/message</code> frames from the ONVIF
+          Device. This channel shall remain open for the duration of the session. See <xref
+            linkend="sec_annex_session_initialization"/> for wire format examples.</para>
       </section>
       <section xml:id="sec_schema_retrieval">
         <title>Schema Retrieval</title>
@@ -913,11 +882,12 @@
               validator.</para></listitem>
           </orderedlist>
         </para>
-        <para>An ONVIF Device shall advertise at least one resource with
-          <code>mimeType: application/linkml+yaml</code> describing the structure of every event
-          type it emits. The schema shall be self-contained — it shall not require the ONVIF
-          Client to resolve external URIs to validate event payloads.</para>
-        <para>See <xref linkend="sec_annex_schema_inventory"/> and <xref linkend="sec_annex_schema_retrieval"/> for wire format examples.</para>
+        <para>An ONVIF Device shall advertise at least one resource with <code>mimeType:
+            application/linkml+yaml</code> describing the structure of every event type it emits.
+          The schema shall be self-contained — it shall not require the ONVIF Client to resolve
+          external URIs to validate event payloads.</para>
+        <para>See <xref linkend="sec_annex_schema_inventory"/> and <xref
+            linkend="sec_annex_schema_retrieval"/> for wire format examples.</para>
       </section>
       <section xml:id="sec_capability_discovery">
         <title>Capability Discovery</title>
@@ -928,11 +898,12 @@
             <code>capabilities://www.onvif.org/ver10/agentic</code> and shall return the Agentic
           Service capabilities document when that URI is requested via <code>resources/read</code>.
           The capabilities document describes the features supported by the device, such as
-          supported analytics types, event classes, and optional extensions.</para>
-        <para>Exposing capabilities for other ONVIF services is optional. When provided, the
-          same URI pattern shall be used, replacing <code>ai</code> with the service name:
-          <code>capabilities://onvif/&lt;service-name&gt;</code>.</para>
-        <para>See <xref linkend="sec_annex_ai_capability_discovery"/> and <xref linkend="sec_annex_optional_capability_discovery"/> for wire format examples.</para>
+          supported functions, event classes, and optional extensions.</para>
+        <para>Exposing capabilities for other ONVIF services is optional. When provided, the same
+          URI pattern shall be used, replacing <code>ai</code> with the service name:
+            <code>capabilities://onvif/&lt;service-name&gt;</code>.</para>
+        <para>See <xref linkend="sec_annex_ai_capability_discovery"/> and <xref
+            linkend="sec_annex_optional_capability_discovery"/> for wire format examples.</para>
       </section>
       <section xml:id="sec_tool_discovery">
         <title>Tool Discovery</title>
@@ -950,8 +921,9 @@
             <listitem>
               <para><code>inputSchema</code> — a JSON Schema object that fully describes the
                 expected arguments. This JSON Schema is compiled from the LinkML model retrieved in
-                <xref linkend="sec_schema_retrieval"/> and shall use the same coordinate spaces, unit definitions, and
-                vocabulary as the event payloads delivered over the Event Plane.</para>
+                  <xref linkend="sec_schema_retrieval"/> and shall use the same coordinate spaces,
+                unit definitions, and vocabulary as the event payloads delivered over the Event
+                Plane.</para>
             </listitem>
           </itemizedlist></para>
         <para>The ONVIF Client shall validate Skill arguments against the
@@ -971,8 +943,16 @@
         against the <code>inputSchema</code> of the named Skill before executing it. If validation
         fails, the ONVIF Device shall return a structured error response without executing the
         Skill.</para>
+      <para>The ONVIF Device shall advertise support for the MCP Tasks extension in
+        <code>server/discover</code>. Before returning a task result, it shall verify that the
+        client declared <code>io.modelcontextprotocol/tasks</code> support for the request. A
+        supported Skill invocation may return either its normal result or a result with
+        <code>resultType: "task"</code>. The returned task shall include a durable
+        <code>taskId</code>, a status, a <code>ttlMs</code>, and a recommended
+        <code>pollIntervalMs</code>. The client shall use <code>tasks/get</code> until the task
+        reaches <code>completed</code>, <code>failed</code>, or <code>cancelled</code>.</para>
 
-      <para>This specification defines three mandatory Skills that every ONVIF agentic device shall
+      <para>This specification defines five mandatory Skills that every ONVIF agentic device shall
         implement regardless of device type (camera, NVR, access control, or other). Additional
         device-type-specific Skills may be defined in ONVIF profiles or vendor extensions.</para>
 
@@ -987,8 +967,9 @@
                   <code>degraded</code>, or <code>error</code>.</para>
             </listitem>
             <listitem>
-              <para><code>activeAnalytics</code> — list of analytics type identifiers currently
-                active on the device.</para>
+              <para><code>activeFunctions</code> — list of active function executions. Each
+                execution shall include the function identifier and its
+                <code>executionId</code>.</para>
             </listitem>
             <listitem>
               <para><code>engineVersion</code> — version string of the agentic engine
@@ -998,74 +979,102 @@
         <para>See <xref linkend="sec_annex_skill_get_status"/> for a wire format example.</para>
       </section>
 
-      <section xml:id="sec_skill_list_analytics">
-        <title>list_analytics</title>
-        <para>The <code>list_analytics</code> Skill returns the set of analytics types supported
-          by this device instance, together with their current enabled/disabled state. It takes no
+      <section xml:id="sec_skill_list_functions">
+        <title>list_functions</title>
+        <para>The <code>list_functions</code> Skill returns the set of functions supported by this
+          device instance, together with their current configured/available state. It takes no
           arguments. This is the authoritative machine-readable catalogue of what this device can
-          do; the ONVIF Client shall call <code>list_analytics</code> before calling
-          <code>configure_analytics</code>.</para>
-        <para>Each entry in the response <code>structuredContent.analytics</code> array shall
+          do; the ONVIF Client shall call <code>list_functions</code> before calling
+          <code>configure_function</code>, <code>execute_function</code>, or
+          <code>stop_function</code>.</para>
+        <para>Each entry in the response <code>structuredContent.functions</code> array shall
           include: <itemizedlist>
             <listitem>
-              <para><code>type</code> — analytics type identifier drawn from the ONVIF agentic
-                analytics type vocabulary (for example <code>fire_detection</code>,
+              <para><code>name</code> — function identifier drawn from the ONVIF function
+                vocabulary (for example <code>fire_detection</code>,
                   <code>face_recognition</code>, <code>license_plate_recognition</code>,
                   <code>tailgating_detection</code>).</para>
             </listitem>
             <listitem>
-              <para><code>enabled</code> — boolean indicating whether this analytics type is
-                currently active.</para>
+              <para><code>enabled</code> — boolean indicating whether this function is configured
+                and available for execution.</para>
             </listitem>
             <listitem>
               <para><code>configSchema</code> — URI of the LinkML class in the schema bundle
-                (retrieved in <xref linkend="sec_schema_retrieval"/>) that defines the structure of the <code>config</code>
-                argument accepted by <code>configure_analytics</code> for this type.</para>
+                (retrieved in <xref linkend="sec_schema_retrieval"/>) that defines the structure of
+                the <code>config</code> argument accepted by <code>configure_function</code> for
+                this function.</para>
             </listitem>
           </itemizedlist></para>
-        <para>An ONVIF Device that executes no analytics locally (for example a pure RFID access
-          control reader) shall return an empty <code>analytics</code> array.</para>
-        <para>See <xref linkend="sec_annex_skill_list_analytics"/> for a wire format example.</para>
+        <para>An ONVIF Device that exposes no local functions shall return an empty
+          <code>functions</code> array.</para>
+        <para>See <xref linkend="sec_annex_skill_list_functions"/> for a wire format example.</para>
       </section>
 
-      <section xml:id="sec_skill_configure_analytics">
-        <title>configure_analytics</title>
-        <para>The <code>configure_analytics</code> Skill applies a configuration to a named
-          analytics type. It is a generic wrapper: the structure of the <code>config</code>
+      <section xml:id="sec_skill_configure_function">
+        <title>configure_function</title>
+        <para>The <code>configure_function</code> Skill applies a configuration to a named
+          function. It is a generic wrapper: the structure of the <code>config</code>
           argument is defined by the LinkML schema class identified by the
-          <code>configSchema</code> URI returned by <code>list_analytics</code> for that type.
+          <code>configSchema</code> URI returned by <code>list_functions</code> for that function.
           The ONVIF Client shall validate <code>config</code> against the compiled JSON Schema
           (the <code>inputSchema</code> of the Skill) before sending the request.</para>
-        <para>The <code>configure_analytics</code> Skill arguments are: <itemizedlist>
+        <para>The <code>configure_function</code> Skill arguments are: <itemizedlist>
             <listitem>
-              <para><code>analytics_type</code> (string, required) — the analytics type identifier,
-                as returned by <code>list_analytics</code>.</para>
+              <para><code>function</code> (string, required) — the function identifier, as returned
+                by <code>list_functions</code>.</para>
             </listitem>
             <listitem>
               <para><code>config</code> (object, required) — the configuration object whose
-                structure is specific to <code>analytics_type</code> and defined by the
+                structure is specific to <code>function</code> and defined by the
                 corresponding LinkML schema class.</para>
             </listitem>
           </itemizedlist></para>
-        <para>On success the ONVIF Device shall confirm the applied configuration. On failure it
-          shall return a structured error identifying the failing field and the violated
-          constraint.</para>
-        <para>See <xref linkend="sec_annex_skill_configure_analytics"/> for a wire format example.</para>
+        <para><code>configure_function</code> shall not start the function. On success the ONVIF
+          Device shall confirm the applied configuration. If the operation is long-running and the
+          client has declared support for the MCP Tasks extension, the device may return a task
+          result instead of the final result. The client shall use <code>tasks/get</code> until the
+          task reaches a terminal state. On failure it shall return a structured error identifying
+          the failing field and the violated constraint.</para>
+        <para>See <xref linkend="sec_annex_skill_configure_function"/> for a wire format example.</para>
+      </section>
+
+      <section xml:id="sec_skill_execute_function">
+        <title>execute_function</title>
+        <para>The <code>execute_function</code> Skill starts an execution of a configured function.
+          It shall not be used to provide the function's configuration. The arguments shall include
+          the function identifier and may include execution-specific parameters.</para>
+        <para>On successful start, the device shall return an <code>executionId</code>. If starting
+          the function is asynchronous and the client has declared support for MCP Tasks, the device
+          may return a task result. The task represents only the start operation and shall reach a
+          terminal state when the execution is running or has failed. It shall not remain
+          permanently in <code>working</code> while a continuous function is active.</para>
+        <para>For continuous functions, subsequent output shall be delivered through the Event
+          Plane. The execution remains active until stopped or it terminates independently.</para>
+      </section>
+
+      <section xml:id="sec_skill_stop_function">
+        <title>stop_function</title>
+        <para>The <code>stop_function</code> Skill stops an active function execution identified by
+          its <code>executionId</code>. If stopping the execution is asynchronous and the client has
+          declared support for MCP Tasks, the device may return a task result. The task represents
+          only the stop operation and shall reach a terminal state when the execution is stopped or
+          the stop operation has failed.</para>
       </section>
     </section>
 
     <section xml:id="sec_metadata_event_delivery">
-      <title>Metadata Event Delivery</title>
+      <title>Event Streaming</title>
       <section xml:id="sec_streamable_http_delivery">
         <title>Streamable HTTP Delivery Mode</title>
-        <para>The ONVIF Device delivers metadata events as MCP
-          <code>notifications/message</code> frames over the Streamable HTTP channel established
-          during session initialization (<xref linkend="sec_session_initialization"/>). Event delivery is push-only: the ONVIF
-          Device sends frames autonomously as observations are produced; the ONVIF Client does not
+        <para>The ONVIF Device delivers metadata events as MCP <code>notifications/message</code>
+          frames over the Streamable HTTP channel established during session initialization (<xref
+            linkend="sec_session_initialization"/>). Event delivery is push-only: the ONVIF Device
+          sends frames autonomously as observations are produced; the ONVIF Client does not
           poll.</para>
         <para>The ONVIF Client shall open the Streamable HTTP channel before invoking
-          <code>configure_analytics</code> to enable an analytics type. Each
-          <code>notifications/message</code> frame shall carry exactly one metadata event. Batch
+            <code>execute_function</code> to start a function that produces events. Each
+            <code>notifications/message</code> frame shall carry exactly one metadata event. Batch
           delivery of multiple events in a single frame is not permitted.</para>
         <para>When the Streamable HTTP channel is closed, the ONVIF Device shall retain pending
           metadata events in a FIFO buffer until the buffer capacity is exhausted. When the buffer
@@ -1119,9 +1128,9 @@
           </orderedlist></para>
         <para>This mechanism allows the ONVIF Device to introduce new event types — for example
           after a firmware update — without requiring the ONVIF Client to have prior knowledge of
-          the new schema. The ONVIF Device shall ensure that the <code>@context</code> URI is
-          always resolvable via <code>resources/read</code> for as long as the device emits events
-          of that type.</para>
+          the new schema. The ONVIF Device shall ensure that the <code>@context</code> URI is always
+          resolvable via <code>resources/read</code> for as long as the device emits events of that
+          type.</para>
         <para>See <xref linkend="sec_annex_dynamic_schema_reregistration"/> for a wire format example.</para>
       </section>
     </section>
@@ -1131,7 +1140,7 @@
       <para>An ONVIF Agentic Service is self-describing: an ONVIF Client that has completed the
         sequence defined in <xref linkend="sec_session_initialization"/>, <xref
           linkend="sec_schema_retrieval"/>, <xref linkend="sec_capability_discovery"/>, <xref
-          linkend="sec_tool_discovery"/>, <xref linkend="sec_skill_list_analytics"/>, and <xref
+          linkend="sec_tool_discovery"/>, <xref linkend="sec_skill_list_functions"/>, and <xref
           linkend="sec_metadata_event_delivery"/> is fully operational without any out-of-band
         documentation, SDK, or static configuration. The table below summarises the knowledge
         accumulated at each step.</para>
@@ -1164,7 +1173,7 @@
             <row>
               <entry><para><xref linkend="sec_capability_discovery"/></para></entry>
               <entry><para><code>resources/read</code> (<code>capabilities://www.onvif.org/ver10/agentic</code>)</para></entry>
-              <entry><para>Device feature set, supported analytics types,
+              <entry><para>Device feature set, supported functions,
                 <code>eventBufferCapacity</code>.</para></entry>
             </row>
             <row>
@@ -1174,10 +1183,10 @@
                 <code>inputSchema</code> for each skill.</para></entry>
             </row>
             <row>
-              <entry><para><xref linkend="sec_skill_list_analytics"/></para></entry>
-              <entry><para><code>list_analytics</code></para></entry>
-              <entry><para>Which analytics types are currently enabled;
-                <code>configSchema</code> URI per analytics type.</para></entry>
+              <entry><para><xref linkend="sec_skill_list_functions"/></para></entry>
+              <entry><para><code>list_functions</code></para></entry>
+              <entry><para>Which functions are currently enabled;
+                <code>configSchema</code> URI per function.</para></entry>
             </row>
             <row>
               <entry><para><xref linkend="sec_metadata_event_delivery"/></para></entry>
@@ -1263,14 +1272,14 @@
               <entry><para><code>onvif:User</code></para></entry>
             </row>
             <row>
-              <entry><para><code>tools/call</code> — read / query Skills (e.g.
-                  <code>get_status</code>)</para></entry>
+              <entry><para><code>tools/call</code> — <code>get_status</code> and
+                  <code>list_functions</code></para></entry>
               <entry><para>READ_SYSTEM</para></entry>
               <entry><para><code>onvif:User</code></para></entry>
             </row>
             <row>
-              <entry><para><code>tools/call</code> — actuate Skills (e.g.
-                  <code>set_detection_region</code>, <code>set_sensitivity</code>)</para></entry>
+              <entry><para><code>tools/call</code> — <code>configure_function</code>,
+                  <code>execute_function</code>, and <code>stop_function</code></para></entry>
               <entry><para>ACTUATE</para></entry>
               <entry><para><code>onvif:Operator</code></para></entry>
             </row>
@@ -1513,7 +1522,11 @@
         "name": "MyAgenticClient",
         "version": "1.0.0"
       },
-      "io.modelcontextprotocol/clientCapabilities": {}
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
     }
   }
 }</programlisting>
@@ -1531,7 +1544,10 @@
     "protocolVersions": ["2026-07-28"],
     "capabilities": {
       "resources": {},
-      "tools": {}
+      "tools": {},
+      "extensions": {
+        "io.modelcontextprotocol/tasks": {}
+      }
     }
   }
 }</programlisting>
@@ -1757,7 +1773,7 @@
   }
 }</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns the current
-        state of the agentic engine, the list of active analytics types, and the engine firmware
+      state of the agentic engine, the list of active functions, and the engine firmware
         version.</para>
       <programlisting>{
   "jsonrpc": "2.0",
@@ -1767,22 +1783,31 @@
     "content": [{ "type": "text", "text": "agentic engine running." }],
     "structuredContent": {
       "state": "running",
-      "activeAnalytics": ["fire_detection", "smoke_detection"],
+      "activeFunctions": [
+        {
+          "function": "fire_detection",
+          "executionId": "exec_fire_001"
+        },
+        {
+          "function": "smoke_detection",
+          "executionId": "exec_smoke_001"
+        }
+      ],
       "engineVersion": "2.1.4"
     }
   }
 }</programlisting>
     </section>
-    <section xml:id="sec_annex_skill_list_analytics">
-      <title>Skill invocation — list_analytics</title>
+    <section xml:id="sec_annex_skill_list_functions">
+    <title>Skill invocation — list_functions</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
-        <code>list_analytics</code> with no arguments.</para>
+      <code>list_functions</code> with no arguments.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 10,
   "method": "tools/call",
   "params": {
-    "name": "list_analytics",
+    "name": "list_functions",
     "arguments": {},
     "_meta": {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28"
@@ -1790,23 +1815,23 @@
   }
 }</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns all
-        analytics types it supports, their enabled state, and the LinkML schema URI that governs
-        the <code>configure_analytics</code> call for each type.</para>
+        functions it supports, their configured/available state, and the LinkML schema URI that governs
+        the <code>configure_function</code> call for each function.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 10,
   "result": {
     "resultType": "complete",
-    "content": [{ "type": "text", "text": "2 analytics type(s) available." }],
+    "content": [{ "type": "text", "text": "2 function(s) available." }],
     "structuredContent": {
-      "analytics": [
+      "functions": [
         {
-          "type": "fire_detection",
+          "name": "fire_detection",
           "enabled": true,
           "configSchema": "linkml://www.onvif.org/ver10/agentic/events#FireDetectionConfig"
         },
         {
-          "type": "smoke_detection",
+          "name": "smoke_detection",
           "enabled": false,
           "configSchema": "linkml://www.onvif.org/ver10/agentic/events#SmokeDetectionConfig"
         }
@@ -1815,20 +1840,20 @@
   }
 }</programlisting>
     </section>
-    <section xml:id="sec_annex_skill_configure_analytics">
-      <title>Skill invocation — configure_analytics</title>
+    <section xml:id="sec_annex_skill_configure_function">
+      <title>Skill invocation — configure_function</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
-        <code>configure_analytics</code> specifying the analytics type and a
+        <code>configure_function</code> specifying the function and a
         <code>config</code> object whose structure matches the LinkML class identified by
-        <code>configSchema</code> (obtained from <code>list_analytics</code>).</para>
+        <code>configSchema</code> (obtained from <code>list_functions</code>).</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 11,
   "method": "tools/call",
   "params": {
-    "name": "configure_analytics",
+    "name": "configure_function",
     "arguments": {
-      "analytics_type": "fire_detection",
+      "function": "fire_detection",
       "config": {
         "sensitivity": 0.80,
         "channel": "ch1",
@@ -1836,7 +1861,12 @@
       }
     },
     "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
     }
   }
 }</programlisting>
@@ -1848,12 +1878,28 @@
     "resultType": "complete",
     "content": [{ "type": "text", "text": "fire_detection configured successfully." }],
     "structuredContent": {
-      "analytics_type": "fire_detection",
+      "function": "fire_detection",
       "applied": {
         "sensitivity": 0.80,
         "channel": "ch1",
         "region": [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]]
       }
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client — asynchronous):</emphasis> If configuration
+        requires asynchronous processing, the same <code>tools/call</code> request may return a
+        task handle instead of the final result.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 11,
+  "result": {
+    "resultType": "task",
+    "task": {
+      "taskId": "task_123",
+      "status": "working",
+      "ttlMs": 3600000,
+      "pollIntervalMs": 2000
     }
   }
 }</programlisting>
@@ -1873,8 +1919,78 @@
   }
 }</programlisting>
     </section>
+    <section xml:id="sec_annex_skill_execute_function">
+      <title>Skill invocation — execute_function</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client starts a configured
+        function.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "method": "tools/call",
+  "params": {
+    "name": "execute_function",
+    "arguments": {
+      "function": "fire_detection"
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client — asynchronous start):</emphasis> The task
+        represents only the start operation. It completes when the function is running; it does not
+        remain active for the lifetime of the detection.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "result": {
+    "resultType": "task",
+    "task": {
+      "taskId": "task_start_fire_001",
+      "status": "working",
+      "ttlMs": 3600000,
+      "pollIntervalMs": 2000
+    }
+  }
+}</programlisting>
+      <para>The terminal task result shall include the execution identifier, for example
+        <code>exec_fire_001</code>. Events produced by the running function are delivered through
+        the Event Plane.</para>
+    </section>
+    <section xml:id="sec_annex_skill_stop_function">
+      <title>Skill invocation — stop_function</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client stops an active
+        execution.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 13,
+  "method": "tools/call",
+  "params": {
+    "name": "stop_function",
+    "arguments": {
+      "function": "fire_detection",
+      "executionId": "exec_fire_001"
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
+    }
+  }
+}</programlisting>
+      <para>The device may return a task when stopping the execution requires asynchronous
+        processing. The task completes when the execution is stopped.</para>
+    </section>
     <section xml:id="sec_annex_metadata_stream">
-      <title>Metadata stream — channel opening and event frame</title>
+      <title>Event streaming — channel opening and event frame</title>
       <para><emphasis>Channel opening (Client to Device):</emphasis> The ONVIF Client opens the
         Streamable HTTP channel to <code>https://192.0.2.10/mcp</code> as defined by MCP
         2026-07-28. No JSON-RPC request/response exchange occurs for channel establishment; the
