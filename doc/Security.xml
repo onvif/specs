@@ -2032,10 +2032,9 @@
             <para>This operation generates a DER-encoded PKCS#10 v1.7 certification request
               (sometimes also called certificate signing request or CSR) as specified in RFC 2986
               for a public key on the device. </para>
-            <para>The key pair that contains the public key for which a certification request shall
-              be produced is specified by its key ID. If no key is stored under the requested KeyID
-              or the key specified by the requested KeyID is not an asymmetric key pair, an invalid
-              key ID fault shall be produced and no CSR shall be generated.</para>
+            <para>If no key is stored under the requested KeyID or the key specified by the
+              requested KeyID is not an asymmetric key pair, an invalid key ID fault shall be
+              produced and no CSR shall be generated.</para>
             <para>The subject parameter describes the entity that the public key belongs to.
               Additional attributes can be included in the attribute parameter.</para>
             <para>Distinguished name attribute values shall be supplied either in UTF-8 or in
@@ -2273,21 +2272,17 @@
               keystore by setting the PrivateKeyRequired argument in the upload request to
                 <emphasis>true</emphasis>.</para>
             <para>The uploaded certificate has to be linked to a key pair in the keystore.</para>
-            <para>If no private key is required for the public key in the certificate and a key pair
-              exists in the keystore with a public key equal to the public key in the certificate,
-              the uploaded certificate is linked to the key pair identified by the supplied key ID
-              by adding a reference from the certificate to the key pair.</para>
+            <para>If a key pair exists in the keystore with a public key equal to the public key in
+              the certificate, the uploaded certificate is linked to the key pair identified by the
+              supplied key ID by adding a reference from the certificate to the key pair.</para>
             <para>If no private key is required for the public key in the certificate and no key
               pair exists with the public key equal to the public key in the certificate, a new key
               pair with status <emphasis>ok </emphasis>is created with the public key from the
               certificate, and this key pair is linked to the uploaded certificate by adding a
               reference from the certificate to the key pair.</para>
-            <para>If a private key is required for the public key in the certificate, and a key pair
-              exists in the keystore with a private key that matches the public key in the
-              certificate, the uploaded certificate is linked to this key pair by adding a reference
-              from the certificate to the key pair. If a private key is required for the public key
-              and no such keypair exists in the keystore, then a NoMatchingPrivateKey fault shall be
-              produced and the certificate shall not be stored in the keystore.</para>
+            <para>If a private key is required for the public key and no such keypair exists in the
+              keystore, then a NoMatchingPrivateKey fault shall be produced and the certificate
+              shall not be stored in the keystore.</para>
             <para>The device shall assign the supplied Alias to the uploaded certificate.</para>
             <para>If a new key pair is generated, the device shall assign the supplied KeyAlias to
               it. Otherwise, the device shall ignore an eventually supplied KeyAlias.</para>
