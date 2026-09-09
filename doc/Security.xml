@@ -244,10 +244,6 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"
         >http://www.onvif.org/specs/stream/ONVIF-MediaSigning-Specification.pdf</link>&gt;</para>
-    <para>IETF RFC 2246 The TLS Protocol Version 1.0</para>
-    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
-        xlink:href="http://www.ietf.org/rfc/rfc2246.txt"
-      >http://www.ietf.org/rfc/rfc2246.txt</link>&gt;</para>
     <para>IETF RFC 2898 PKCS#5 Password-based Cryptography Specification v2.0</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.ietf.org/rfc/rfc2898.txt"
@@ -272,10 +268,6 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.ietf.org/rfc/rfc4055.txt"
       >http://www.ietf.org/rfc/rfc4055.txt</link>&gt;</para>
-    <para>IETF RFC 4346 The Transport Layer Security (TLS) Protocol Version 1.1</para>
-    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
-        xlink:href="http://www.ietf.org/rfc/rfc4346.txt"
-      >http://www.ietf.org/rfc/rfc4346.txt</link>&gt;</para>
     <para>IETF RFC 5208 Public-Key Cryptography Standards (PKCS) #8: Private-Key Information Syntax
       Specification v1.2</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -3377,8 +3369,7 @@
       <title>TLS Server</title>
       <section>
         <title>Elements of the TLS Server</title>
-        <para>The TLS server security feature implements a TLS server as specified in RFC 2246 and
-          subsequent specifications.</para>
+        <para>The TLS server security feature implements a TLS server as per negotiated TLS version.</para>
         <para>This specification defines how to manage the associations between certification paths
           and the TLS server. All other TLS server configuration actions are outside the scope of
           this specification. In particular, enabling and disabling the TLS server on the device
@@ -3387,10 +3378,10 @@
       </section>
       <section>
         <title>Authorization of TLS authenticated connections</title>
-        <para>If TLS client authentication is enabled, connections shall be authenticated as
-          specified in RFC 2246, and the device shall first of all validate the client TLS
-          certificate. In case of invalid certificate the TLS connection shall be terminated and the
-          device shall ignore any other credentials received on HTTP or WS layer.</para>
+        <para>If TLS client authentication is enabled, connections shall be authenticated using 
+          TLS client certificate authentication mechanism as per negotiated version in the TLS handshake. 
+          The device shall first of all validate the client TLS certificate. In case of invalid certificate 
+          the TLS connection shall be terminated and the device shall ignore any other credentials received on HTTP or WS layer.</para>
         <para>Once a service request is authenticated on the TLS layer, the device shall decide
           based on its access policy whether the requestor is authorized to receive the service. In
           order to authorize the requestor, additional information for the device is
@@ -3421,7 +3412,7 @@
           <para>This operation assigns a key pair and certificate along with a certification path
             (certificate chain) to the TLS server on the device. The TLS server shall use this
             information for key exchange during the TLS handshake, particularly for constructing
-            server certificate messages as specified in RFC 4346, RFC 2246.</para>
+            server certificate messages as per negotiated verion in the TLS handshake.</para>
           <para>Certification paths are identified by their certification path IDs in the keystore.
             The first certificate in the certification path shall be the TLS server
             certificate.</para>
@@ -3431,9 +3422,7 @@
             internal interaction with the keystore.</para>
           <para>If a device chooses to perform a TLS key exchange based on the supplied
             certification path, it shall use the key pair that is associated with the server
-            certificate for key exchange and transmit the certification path to TLS clients as-is,
-            i.e., the device shall not check conformance of the certification path to RFC 4346, RFC
-            2246.</para>
+            certificate for key exchange and transmit the certification path to TLS clients as-is.</para>
           <para>In order to use the server certificate during the TLS handshake, the corresponding
             private key is required. Therefore, if the key pair that is associated with the server
             certificate, i.e., the first certificate in the certification path, does not have an
@@ -3552,8 +3541,7 @@
             suitable internal interaction with the keystore.</para>
           <para>If a device chooses to perform a TLS key exchange based on the new certification
             path, it shall use the key pair that is associated with the server certificate for key
-            exchange and transmit the certification path to TLS clients as-is, i.e., the device
-            shall not check conformance of the certification path to RFC 4346, RFC 2246.</para>
+            exchange and transmit the certification path to TLS clients as-is.</para>
           <para>In order to use the server certificate during the TLS handshake, the corresponding
             private key is required. Therefore, if the key pair that is associated with the server
             certificate, i.e., the first certificate in the certification path, does not have an
