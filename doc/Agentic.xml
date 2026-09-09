@@ -116,6 +116,8 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://modelcontextprotocol.io/specification/2026-07-28">https://modelcontextprotocol.io/specification/2026-07-28</link>&gt;</para>
     <para>Model Context Protocol Tasks Extension</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://modelcontextprotocol.io/extensions/tasks/overview">https://modelcontextprotocol.io/extensions/tasks/overview</link>&gt;</para>
+    <para>MCP Events Extension — Design Sketch Proposal</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://github.com/modelcontextprotocol/experimental-ext-triggers-events/blob/main/docs/design-sketch-proposal.md">https://github.com/modelcontextprotocol/experimental-ext-triggers-events/blob/main/docs/design-sketch-proposal.md</link>&gt;</para>
     <para>ONVIF Core Specification</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="hhttps://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf">https://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf</link>&gt;</para>
     <para>ONVIF Schema</para>
@@ -145,30 +147,13 @@
           <tbody valign="top">
             <row>
               <entry align="left">
-                <para><emphasis role="bold">ONVIF Device</emphasis></para>
+                <para><emphasis role="bold">Event Delivery</emphasis></para>
               </entry>
               <entry align="left">
-                <para>An MCP Server that wraps one or more agentic analytics models and exposes them
-                  as Skills (MCP Tools), together with a schema announcement and a metadata
-                  publisher.</para>
-              </entry>
-            </row>
-            <row>
-              <entry align="left">
-                <para><emphasis role="bold">Control Plane (Bus A)</emphasis></para>
-              </entry>
-              <entry align="left">
-                <para>The MCP channel over which the ONVIF Client sends commands to an Agentic
-                  Service (configure regions, adjust sensitivity, etc.).</para>
-              </entry>
-            </row>
-            <row>
-              <entry align="left">
-                <para><emphasis role="bold">Event Plane (Bus B)</emphasis></para>
-              </entry>
-              <entry align="left">
-                <para>The channel over which an ONVIF Device streams LinkML-structured detection
-                  events to the ONVIF Client.</para>
+                <para>The MCP mechanisms by which an ONVIF Device makes LinkML-structured
+                  detection events available to the ONVIF Client, either on request (poll) or via a
+                  client-supplied HTTPS callback (webhook), as defined by the MCP Events
+                  extension.</para>
               </entry>
             </row>
             <row>
@@ -212,7 +197,7 @@
               </entry>
               <entry align="left">
                 <para>A JSON-LD payload, conforming to a registered LinkML schema, that an ONVIF
-                  Device emits on the Event Plane each time a detection occurs.</para>
+                  Device makes available as an MCP event each time a detection occurs.</para>
               </entry>
             </row>
             <row>
@@ -222,6 +207,25 @@
               <entry align="left">
                 <para>An OpenID Connect server that issues signed ES256 JWTs; acts as the trust
                   anchor for the whole stack.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para><emphasis role="bold">ONVIF Client (Video Management System)</emphasis></para>
+              </entry>
+              <entry align="left">
+                <para>An ONVIF client that also acts as an MCP Host, managing cameras and consuming
+                  agentic analytics events.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
+                <para><emphasis role="bold">ONVIF Device</emphasis></para>
+              </entry>
+              <entry align="left">
+                <para>An MCP Server that wraps one or more agentic analytics models and exposes them
+                  as Skills (MCP Tools), together with a schema announcement and a metadata
+                  publisher.</para>
               </entry>
             </row>
             <row>
@@ -240,15 +244,6 @@
               <entry align="left">
                 <para>An MCP Tool exposed by an ONVIF Device, representing a single callable
                   operation (e.g. set detection region, adjust sensitivity).</para>
-              </entry>
-            </row>
-            <row>
-              <entry align="left">
-                <para><emphasis role="bold">ONVIF Client (Video Management System)</emphasis></para>
-              </entry>
-              <entry align="left">
-                <para>An ONVIF client that also acts as an MCP Host, managing cameras and consuming
-                  agentic analytics events.</para>
               </entry>
             </row>
           </tbody>
@@ -476,12 +471,17 @@
       <section xml:id="sec_transport_modes">
         <title>Transport Modes</title>
         <para>This specification normatively uses the Streamable HTTP transport. The ONVIF Client
-          sends JSON-RPC requests as HTTP POST to the ONVIF Device's <code>/mcp</code> endpoint. For
-          server-initiated messages (schema update notifications, metadata events) the ONVIF Client
-          also opens a Streamable HTTP channel on <code>/mcp</code>; the ONVIF Device sends
-          server-initiated messages over that channel as defined by the Streamable HTTP transport
-          in MCP 2026-07-28. An ONVIF Device
-          conforming to this specification shall support the Streamable HTTP transport.</para>
+          sends JSON-RPC requests as HTTP POST to the ONVIF Device's <code>/mcp</code> endpoint, and
+          the ONVIF Device returns each response on the same request/response exchange, as defined
+          by the Streamable HTTP transport in MCP 2026-07-28. This specification does not use a
+          separate, long-lived, server-initiated streaming channel: metadata events are retrieved
+          by the ONVIF Client via the request/response <code>events/poll</code> operation, or
+          delivered out-of-band via the <code>events/subscribe</code> webhook mechanism (see <xref
+            linkend="sec_metadata_event_delivery"/>). An ONVIF Device conforming to this
+          specification shall support the Streamable HTTP transport and shall support
+            <code>events/poll</code>; support for <code>events/subscribe</code> webhook delivery is
+          OPTIONAL but RECOMMENDED for deployments where the ONVIF Client is not able to poll at the
+          cadence required by the use case.</para>
       </section>
 
       <section xml:id="sec_protocol_version">
@@ -514,8 +514,9 @@
       <title>LinkML — Schema Definition Language</title>
       <para>LinkML (Linked data Modeling Language) is an open schema definition language that
         describes data structures in YAML. In the ONVIF agentic stack, LinkML is the normative
-        language for defining both the structure of metadata events (Event Plane payloads) and the
-        argument shapes of Skills (Control Plane inputs). LinkML defines the schema; JSON-LD (see
+        language for defining both the structure of metadata events (delivered via
+          <code>events/poll</code> or webhook) and the argument shapes of Skills invoked via
+          <code>tools/call</code>. LinkML defines the schema; JSON-LD (see
           <xref linkend="sec-jsonld"/>) is the runtime wire format that carries instances of that
         schema.</para>
 
@@ -554,12 +555,12 @@
         <para>The same LinkML model serves two distinct purposes within the stack:</para>
         <itemizedlist>
           <listitem>
-            <para>On the Event Plane, the compiled JSON Schema derived from the LinkML model is used by
+            <para>For metadata events, the compiled JSON Schema derived from the LinkML model is used by
               the ONVIF Client LinkML Validator to check every incoming metadata event for
               structural correctness — required fields, numeric ranges, and valid enum values.</para>
           </listitem>
           <listitem>
-            <para>On the Control Plane, the <code>inputSchema</code> field of each MCP Tool (Skill)
+            <para>For Skill invocation, the <code>inputSchema</code> field of each MCP Tool (Skill)
               definition is also derived from the same LinkML model. This guarantees that the
               coordinate spaces, unit definitions, and vocabulary used to configure the ONVIF Device
               (e.g., a detection region polygon) are identical to those used to report events,
@@ -583,8 +584,8 @@
           <listitem>
             <para>Second, a copy of the compiled schema is stored in the ONVIF Client Schema
               Registry after schema discovery. The registry uses the compiled schema to validate
-              every incoming metadata event on the Event Plane before the ONVIF Client processes
-              it.</para>
+              every incoming metadata event, whether retrieved via <code>events/poll</code> or
+              delivered via webhook, before the ONVIF Client processes it.</para>
           </listitem>
         </itemizedlist>
         <para>ONVIF Devices shall pre-compile their LinkML schemas at build time and include the
@@ -614,7 +615,7 @@
     <section xml:id="sec-jsonld">
       <title>JSON-LD — Wire Format for Metadata Events</title>
       <para>JSON-LD (JSON-based Linked Data) is the serialisation format used for all metadata
-        events transmitted on the Event Plane. Where LinkML defines the schema at design time,
+        events delivered via <code>events/poll</code> or webhook. Where LinkML defines the schema at design time,
         JSON-LD carries instances of that schema at runtime. The two technologies are
         complementary: LinkML declares what data looks like; JSON-LD is the payload that
         conforms to that declaration.</para>
@@ -675,12 +676,13 @@
       <para>The ONVIF agentic Protocol Stack is structured around the standard ONVIF roles of an
         ONVIF Client and an ONVIF Device, with an OIDC Authorization Server acting as the shared
         trust anchor that issues the tokens consumed by both. The figure below shows the top-level
-        relationships between these three components and the two communication planes.</para>
+        relationships between these three components and the single MCP channel that carries all
+        interactions between them.</para>
       <figure xml:id="fig-stack-overview">
         <title>ONVIF agentic Protocol Stack — Top-Level Architecture</title>
         <mediaobject>
           <imageobject>
-            <?oxy_comment_start author="Ottavio Campana" timestamp="20260729T095751+0200" comment="Image to be redone from scratch"?>
+            <?oxy_comment_start author="Ottavio Campana" timestamp="20260729T095751+0200" comment="Image to be redone from scratch: replace the two-bus (Control Plane / Event Plane) diagram with a single MCP channel between ONVIF Client and ONVIF Device, plus an optional out-of-band arrow for webhook event delivery to the client's HTTPS callback endpoint."?>
             <imagedata fileref="media/AI/stack_overview.svg" contentwidth="140mm"
             /><?oxy_comment_end?>
           </imageobject>
@@ -691,117 +693,77 @@
         grant, and exposes a JWKS endpoint that the ONVIF Device uses to validate every token it
         receives.</para>
       <para>The <emphasis>ONVIF Client</emphasis> combines the ONVIF Client role with the MCP Host
-        role. It manages connections to ONVIF Devices, invokes skills, and subscribes to metadata
+        role. It manages connections to ONVIF Devices, invokes skills, and retrieves metadata
         events. It also maintains the LinkML Schema Registry and validates every incoming event
         before it is passed to business logic.</para>
       <para>The <emphasis>ONVIF Device</emphasis> provides an MCP Server endpoint. Through this
-        endpoint, it exposes skills in the form of MCP Tools and publishes JSON-LD metadata events.
-        Moreover, it announces the LinkML schema via MCP Resources.</para>
+        endpoint, it exposes skills in the form of MCP Tools, makes JSON-LD metadata events
+        available as MCP Events, and, when webhook delivery is supported, posts those events to a
+        client-supplied HTTPS callback. Moreover, it announces the LinkML schema via MCP
+        Resources.</para>
       <para>All communication between the ONVIF Client and the ONVIF Device is bearer-token
-        authenticated. The <emphasis>Control Plane (A)</emphasis> carries MCP
-          <code>tools/call</code> requests from the ONVIF Client to the ONVIF Device. The
-          <emphasis>Event Plane (B)</emphasis> carries JSON-LD metadata events from the ONVIF Device
-        to the ONVIF Client, delivered as MCP <code>notifications/message</code> frames.</para>
+        authenticated and carried over a single MCP channel: every operation defined by this
+        specification — capability discovery, skill invocation, resource retrieval, and event
+        delivery — is a JSON-RPC request/response exchange over MCP 2026-07-28 Streamable HTTP to
+        the ONVIF Device's <code>/mcp</code> endpoint. There is no separate, server-initiated
+        streaming channel. When webhook delivery is used, the resulting event POSTs travel outside
+        this MCP channel, directly from the ONVIF Device to the HTTPS callback endpoint supplied by
+        the ONVIF Client (see <xref linkend="sec_metadata_event_delivery"/>).</para>
     </section>
-    
+
     <section xml:id="sec_protocol_stack">
       <title>Protocol Stack</title>
-      <para>The ONVIF agentic protocol stack uses two independent communication planes, both
-        protected by TLS and bearer tokens issued by the OIDC Authorization Server. The
-          <emphasis>Control Plane</emphasis> carries client-initiated MCP requests, while the
-          <emphasis>Event Plane</emphasis> carries server-pushed metadata events. The detailed
-        behavior of each plane is defined in the following sections.</para>
-      <section xml:id="sec_control_plane">
-        <title>Control Plane</title>
-        <para>The <emphasis>Control Plane</emphasis> is the command path used by the ONVIF Client to
-          discover and invoke Skills exposed by an ONVIF Device. It is request/response oriented and
-          carries only client-initiated MCP operations.</para>
-        <informaltable>
-          <tgroup cols="2">
-            <colspec colname="c1" colwidth="24*" />
-            <colspec colname="c2" colwidth="76*" />
-            <tbody valign="top">
-              <row>
-                <entry align="left"><para><emphasis role="bold">Direction</emphasis></para></entry>
-                <entry align="left"><para>ONVIF Client to ONVIF Device.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Purpose</emphasis></para></entry>
-                <entry align="left"><para>Discover capabilities, list skills, and invoke device actions.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Protocol</emphasis></para></entry>
-                <entry align="left"><para>MCP 2026-07-28 over Streamable HTTP.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Message pattern</emphasis></para></entry>
-                <entry align="left"><para>JSON-RPC 2.0 request/response.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Transport</emphasis></para></entry>
-                <entry align="left"><para>HTTP POST to <code>/mcp</code> over HTTP/1.1 or HTTP/2.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Operations</emphasis></para></entry>
-                <entry align="left"><para><code>server/discover</code>, <code>tools/list</code>, <code>tools/call</code>, <code>resources/list</code>, and <code>resources/read</code>.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Security</emphasis></para></entry>
-                <entry align="left"><para>TLS 1.3 with an <code>Authorization: Bearer</code> ES256 JWT on every request.</para></entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </informaltable>
-        <para>Each request is self-contained and shall be validated independently by the ONVIF Device
-          before execution. A Control Plane response shall report either the requested result or an MCP
-          error indicating why the operation could not be completed.</para>
-      </section>
-
-      <section xml:id="sec_event_plane">
-        <title>Event Streaming Plane</title>
-        <para>The <emphasis>Event Streaming Plane</emphasis> is the event path used by the ONVIF
-          Device to publish AI analytics results to the ONVIF Client. It is server-initiated,
-          asynchronous, and optimized for continuous delivery of structured metadata events.</para>
-        <informaltable>
-          <tgroup cols="2">
-            <colspec colname="c1" colwidth="24*" />
-            <colspec colname="c2" colwidth="76*" />
-            <tbody valign="top">
-              <row>
-                <entry align="left"><para><emphasis role="bold">Direction</emphasis></para></entry>
-                <entry align="left"><para>ONVIF Device to ONVIF Client.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Purpose</emphasis></para></entry>
-                <entry align="left"><para>Deliver detection and analytics events as they occur.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Protocol</emphasis></para></entry>
-                <entry align="left"><para>MCP 2026-07-28 Streamable HTTP.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Message pattern</emphasis></para></entry>
-                <entry align="left"><para>MCP <code>notifications/message</code> frames.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Transport</emphasis></para></entry>
-                <entry align="left"><para>Streamable HTTP to <code>/mcp</code> endpoint, as defined by MCP 2026-07-28.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Payload</emphasis></para></entry>
-                <entry align="left"><para>JSON-LD events conforming to the registered LinkML schema.</para></entry>
-              </row>
-              <row>
-                <entry align="left"><para><emphasis role="bold">Security</emphasis></para></entry>
-                <entry align="left"><para>TLS 1.3 with an <code>Authorization: Bearer</code> ES256 JWT on every request.</para></entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </informaltable>
-        <para>The Event Plane shall preserve event ordering per stream, and each event shall remain
-          self-describing through its JSON-LD <code>@context</code> and <code>@type</code>
-          annotations.</para>
-      </section>
+      <para>The ONVIF agentic protocol stack uses a single MCP channel, protected by TLS and
+        bearer tokens issued by the OIDC Authorization Server, over which the ONVIF Client sends all
+        JSON-RPC requests to the ONVIF Device.</para>
+      <informaltable>
+        <tgroup cols="2">
+          <colspec colname="c1" colwidth="24*" />
+          <colspec colname="c2" colwidth="76*" />
+          <tbody valign="top">
+            <row>
+              <entry align="left"><para><emphasis role="bold">Direction</emphasis></para></entry>
+              <entry align="left"><para>ONVIF Client to ONVIF Device (request/response); ONVIF
+                Device to a client-supplied HTTPS callback endpoint for webhook event
+                delivery.</para></entry>
+            </row>
+            <row>
+              <entry align="left"><para><emphasis role="bold">Purpose</emphasis></para></entry>
+              <entry align="left"><para>Discover capabilities, list and invoke skills, retrieve
+                resources, and retrieve or subscribe to metadata events.</para></entry>
+            </row>
+            <row>
+              <entry align="left"><para><emphasis role="bold">Protocol</emphasis></para></entry>
+              <entry align="left"><para>MCP 2026-07-28 over Streamable HTTP.</para></entry>
+            </row>
+            <row>
+              <entry align="left"><para><emphasis role="bold">Message pattern</emphasis></para></entry>
+              <entry align="left"><para>JSON-RPC 2.0 request/response.</para></entry>
+            </row>
+            <row>
+              <entry align="left"><para><emphasis role="bold">Transport</emphasis></para></entry>
+              <entry align="left"><para>HTTP POST to <code>/mcp</code> over HTTP/1.1 or HTTP/2.</para></entry>
+            </row>
+            <row>
+              <entry align="left"><para><emphasis role="bold">Operations</emphasis></para></entry>
+              <entry align="left"><para><code>server/discover</code>, <code>tools/list</code>,
+                <code>tools/call</code>, <code>resources/list</code>, <code>resources/read</code>,
+                <code>events/list</code>, <code>events/poll</code>, <code>events/subscribe</code>,
+                and <code>events/unsubscribe</code>.</para></entry>
+            </row>
+            <row>
+              <entry align="left"><para><emphasis role="bold">Security</emphasis></para></entry>
+              <entry align="left"><para>TLS 1.3 with an <code>Authorization: Bearer</code> ES256 JWT on every request.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+      <para>Each request is self-contained and shall be validated independently by the ONVIF Device
+        before execution. A response shall report either the requested result or an MCP error
+        indicating why the operation could not be completed. <code>events/poll</code>,
+          <code>events/subscribe</code>, and <code>events/unsubscribe</code> follow this same
+        request/response pattern; their detailed behavior, including the out-of-band webhook
+        delivery mechanism, is defined in <xref linkend="sec_metadata_event_delivery"/>.</para>
     </section>
 
     <section xml:id="sec_identity_and_authorization_server">
@@ -812,8 +774,9 @@
         issues bearer access tokens, and exposes the metadata and key material needed by ONVIF
         Devices to validate tokens before processing MCP requests.</para>
       <para>In practice, the Authorization Server provides centralized identity and access control
-        for both planes. It ensures that only authorized ONVIF Clients can invoke Skills on the
-        Control Plane and receive protected metadata on the Event Plane, according to the roles and
+        for every operation. It ensures that only authorized ONVIF Clients can invoke Skills via
+          <code>tools/call</code> and retrieve or receive protected metadata events via
+          <code>events/poll</code> or webhook delivery, according to the roles and
         claims contained in the issued token.</para>
     </section>
   </chapter>
@@ -860,16 +823,17 @@
             <code>prompts</code>, and supported extensions). The ONVIF Client shall use the returned
             <code>capabilities</code> flags to determine which subsequent operations are available
           before invoking them.</para>
-        <para>The ONVIF Client shall open the Streamable HTTP channel as defined by MCP 2026-07-28
-          before it expects to receive <code>notifications/message</code> frames from the ONVIF
-          Device. This channel shall remain open for the duration of the session. See <xref
+        <para>The ONVIF Client is not required to keep a channel open to receive metadata events:
+          it retrieves them on demand via <code>events/poll</code>, or subscribes for webhook
+          delivery via <code>events/subscribe</code>, as defined in <xref
+            linkend="sec_metadata_event_delivery"/>. See <xref
             linkend="sec_annex_session_initialization"/> for wire format examples.</para>
       </section>
       <section xml:id="sec_schema_retrieval">
         <title>Schema Retrieval</title>
         <para>The ONVIF Agentic Service exposes its LinkML metadata schema as one or more MCP
           Resources. An ONVIF Client shall retrieve the schema bundle before processing any
-            <code>notifications/message</code> frame that carries metadata events.</para>
+          metadata event delivered via <code>events/poll</code> or webhook.</para>
         <para>The schema retrieval procedure is:
           <orderedlist>
             <listitem><para>The ONVIF Client calls <code>resources/list</code>. The response
@@ -898,7 +862,11 @@
             <code>capabilities://www.onvif.org/ver10/agentic</code> and shall return the Agentic
           Service capabilities document when that URI is requested via <code>resources/read</code>.
           The capabilities document describes the features supported by the device, such as
-          supported functions, event classes, and optional extensions.</para>
+          supported functions, event classes, and optional extensions. It shall also declare the
+            <code>events</code> capability (<code>{"events": {"listChanged": true}}</code>, per the
+          MCP Events extension) together with, for each declared event type, the delivery modes
+          supported (<code>"poll"</code>, <code>"webhook"</code>, or both — see <xref
+            linkend="sec_metadata_event_delivery"/>).</para>
         <para>Exposing capabilities for other ONVIF services is optional. When provided, the same
           URI pattern shall be used, replacing <code>ai</code> with the service name:
             <code>capabilities://onvif/&lt;service-name&gt;</code>.</para>
@@ -922,8 +890,8 @@
               <para><code>inputSchema</code> — a JSON Schema object that fully describes the
                 expected arguments. This JSON Schema is compiled from the LinkML model retrieved in
                   <xref linkend="sec_schema_retrieval"/> and shall use the same coordinate spaces,
-                unit definitions, and vocabulary as the event payloads delivered over the Event
-                Plane.</para>
+              unit definitions, and vocabulary as the event payloads delivered via
+                <code>events/poll</code> or webhook delivery.</para>
             </listitem>
           </itemizedlist></para>
         <para>The ONVIF Client shall validate Skill arguments against the
@@ -938,8 +906,8 @@
 
     <section xml:id="sec_skill_invocation">
       <title>Skill Invocation</title>
-      <para>ONVIF Agentic Skills are invoked via the MCP <code>tools/call</code> JSON-RPC method
-        over the Control Plane. The ONVIF Device shall validate the <code>arguments</code> object
+      <para>ONVIF Agentic Skills are invoked via the MCP <code>tools/call</code> JSON-RPC method.
+        The ONVIF Device shall validate the <code>arguments</code> object
         against the <code>inputSchema</code> of the named Skill before executing it. If validation
         fails, the ONVIF Device shall return a structured error response without executing the
         Skill.</para>
@@ -1049,8 +1017,10 @@
           may return a task result. The task represents only the start operation and shall reach a
           terminal state when the execution is running or has failed. It shall not remain
           permanently in <code>working</code> while a continuous function is active.</para>
-        <para>For continuous functions, subsequent output shall be delivered through the Event
-          Plane. The execution remains active until stopped or it terminates independently.</para>
+        <para>For continuous functions, subsequent output shall be made available as metadata
+          events, retrievable via <code>events/poll</code> or delivered via webhook (see <xref
+            linkend="sec_metadata_event_delivery"/>). The execution remains active until stopped or
+          it terminates independently.</para>
       </section>
 
       <section xml:id="sec_skill_stop_function">
@@ -1064,35 +1034,153 @@
     </section>
 
     <section xml:id="sec_metadata_event_delivery">
-      <title>Event Streaming</title>
-      <section xml:id="sec_streamable_http_delivery">
-        <title>Streamable HTTP Delivery Mode</title>
-        <para>The ONVIF Device delivers metadata events as MCP <code>notifications/message</code>
-          frames over the Streamable HTTP channel established during session initialization (<xref
-            linkend="sec_session_initialization"/>). Event delivery is push-only: the ONVIF Device
-          sends frames autonomously as observations are produced; the ONVIF Client does not
-          poll.</para>
-        <para>The ONVIF Client shall open the Streamable HTTP channel before invoking
-            <code>execute_function</code> to start a function that produces events. Each
-            <code>notifications/message</code> frame shall carry exactly one metadata event. Batch
-          delivery of multiple events in a single frame is not permitted.</para>
-        <para>When the Streamable HTTP channel is closed, the ONVIF Device shall retain pending
-          metadata events in a FIFO buffer until the buffer capacity is exhausted. When the buffer
-          is full, the oldest event shall be discarded to make room for the newest. If the ONVIF
-          Client reopens the Streamable HTTP channel before the buffer is exhausted, the ONVIF
-          Device shall deliver all buffered events in FIFO order before resuming live delivery. If
-          the buffer is exhausted before the client reconnects, delivery continuity is lost and the
-          ONVIF Client shall treat the gap as a potential loss of events.</para>
-        <para>The buffer capacity of the device is advertised in the
-            <code>capabilities://www.onvif.org/ver10/agentic</code> document via the
-            <code>eventBufferCapacity</code> field (integer, number of events). A value of
-            <code>0</code> indicates that the device does not support buffering; events produced
-          while the channel is closed are discarded immediately.</para>
+      <title>Event Delivery</title>
+      <para>Metadata events are exposed by the ONVIF Device as MCP event types, discovered via
+          <code>events/list</code> and retrieved or delivered through one or both of the two
+        delivery modes defined by this specification: <emphasis>poll</emphasis>
+          (<code>events/poll</code>) and <emphasis>webhook</emphasis>
+          (<code>events/subscribe</code> / <code>events/unsubscribe</code>), as defined by the MCP
+        Events extension (see <xref linkend="ch_normative_references"/>). This specification does
+        not define, and an ONVIF Device conforming to it shall not require, a long-lived
+        server-initiated streaming channel for event delivery.</para>
+      <section xml:id="sec_event_type_catalogue">
+        <title>Event Type Catalogue</title>
+        <para>An ONVIF Device shall advertise its event types via <code>events/list</code>. Each
+          entry shall include: <itemizedlist>
+            <listitem>
+              <para><code>name</code> — the event type identifier, matching the <code>@type</code>
+                value used in delivered payloads (for example <code>FireDetectionEvent</code>).</para>
+            </listitem>
+            <listitem>
+              <para><code>delivery</code> — the non-empty subset of <code>"poll"</code> and
+                  <code>"webhook"</code> supported for this event type. An ONVIF Device shall
+                support <code>"poll"</code> for every event type it declares; <code>"webhook"</code>
+                support is OPTIONAL.</para>
+            </listitem>
+            <listitem>
+              <para><code>inputSchema</code> — a JSON Schema describing valid subscription
+                arguments (for example a sensor or zone filter).</para>
+            </listitem>
+            <listitem>
+              <para><code>payloadSchema</code> — a JSON Schema describing the shape of the
+                event <code>data</code> field. For this specification, <code>payloadSchema</code>
+                is the JSON Schema compiled from the LinkML class identified by the event's
+                  <code>@context</code>/<code>@type</code> pair (see <xref
+                  linkend="sec_event_payload_structure"/>).</para>
+            </listitem>
+          </itemizedlist></para>
+        <para>If the set of event types, or the descriptor of any of them, changes at runtime, the
+          ONVIF Device shall send <code>notifications/events/list_changed</code> and the ONVIF
+          Client shall re-call <code>events/list</code> to refresh its registry.</para>
+      </section>
+      <section xml:id="sec_poll_based_delivery">
+        <title>Poll-Based Delivery</title>
+        <para>An ONVIF Device shall support <code>events/poll</code> for every declared event type.
+          The ONVIF Client calls <code>events/poll</code> with the event <code>name</code>,
+          subscription <code>arguments</code>, and a <code>cursor</code> (<code>null</code> on the
+          first call). The ONVIF Device returns <code>{events[], cursor, truncated, hasMore,
+            nextPollMs}</code>. Each entry in <code>events[]</code> is an <code>EventOccurrence</code>
+          carrying <code>eventId</code>, <code>name</code>, <code>timestamp</code>, and
+            <code>data</code> (the JSON-LD event payload).</para>
+        <para>The ONVIF Client shall persist the returned <code>cursor</code> and pass it back on
+          the next call so that delivery resumes from that position. The ONVIF Device MAY bound
+          replay using the client-supplied <code>maxAgeMs</code>, and shall set
+            <code>truncated: true</code> whenever events were skipped because the supplied cursor
+          fell outside the retention window. When <code>hasMore</code> is <code>true</code>, the
+          ONVIF Client shall poll again immediately, ignoring <code>nextPollMs</code>, to drain the
+          backlog. The ONVIF Client shall apply a configurable floor (default 1000 ms) to
+            <code>nextPollMs</code> to guard against a misbehaving device inducing a tight polling
+          loop.</para>
+      </section>
+      <section xml:id="sec_webhook_based_delivery">
+        <title>Webhook-Based Delivery</title>
+        <para>Where declared for an event type, an ONVIF Device MAY additionally support webhook
+          delivery. The ONVIF Client registers an <code>https</code> callback URL and a
+            <code>whsec_</code>-prefixed signing secret by calling <code>events/subscribe</code>
+          with <code>name</code>, subscription <code>arguments</code>,
+            <code>delivery: {"mode": "webhook", "url", "secret"}</code>, a starting
+            <code>cursor</code>, and a suggested lifetime <code>ttlMs</code>. The ONVIF Device
+          returns a server-derived subscription <code>id</code>, the granted expiry
+            <code>refreshBefore</code>, and a safe-to-persist <code>cursor</code>.</para>
+        <para>The ONVIF Device shall then POST each matching <code>EventOccurrence</code> to the
+          registered callback URL, signed per Standard Webhooks (<code>webhook-id</code>,
+            <code>webhook-timestamp</code>, <code>webhook-signature</code> headers) and carrying
+            <code>X-MCP-Subscription-Id</code>. Unless the ONVIF Client requested, and the ONVIF
+          Device granted, no expiry (<code>ttlMs: null</code> / <code>refreshBefore: null</code>),
+          the ONVIF Client shall re-call <code>events/subscribe</code> with the same subscription
+          key before <code>refreshBefore</code> elapses to keep the subscription alive. The ONVIF
+          Client calls <code>events/unsubscribe</code> to explicitly terminate a webhook
+          subscription; otherwise it lapses at TTL expiry.</para>
+        <para><code>events/subscribe</code> and <code>events/unsubscribe</code> shall only be
+          accepted from an authenticated principal; an ONVIF Device shall reject unauthenticated
+          calls to either method with <code>-32012 Forbidden</code> (see <xref
+            linkend="sec_event_error_codes"/>).</para>
+      </section>
+      <section xml:id="sec_event_error_codes">
+        <title>Error Codes</title>
+        <para>An ONVIF Device shall report error conditions on <code>events/poll</code>,
+            <code>events/subscribe</code>, and <code>events/unsubscribe</code> using the following
+          JSON-RPC error codes, as defined by the MCP Events extension:</para>
+        <informaltable>
+          <tgroup cols="3">
+            <colspec colname="c1" colwidth="12*" />
+            <colspec colname="c2" colwidth="24*" />
+            <colspec colname="c3" colwidth="64*" />
+            <thead>
+              <row>
+                <entry><para>Code</para></entry>
+                <entry><para>Message</para></entry>
+                <entry><para>Meaning</para></entry>
+              </row>
+            </thead>
+            <tbody valign="top">
+              <row>
+                <entry><para><code>-32602</code></para></entry>
+                <entry><para><code>InvalidParams</code></para></entry>
+                <entry><para>The request is statically invalid — subscription arguments do not
+                  match the event type's <code>inputSchema</code>, the callback
+                    <code>delivery.url</code> is malformed or non-<code>https</code>, or
+                    <code>delivery.secret</code> is not a valid <code>whsec_</code> value.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>-32011</code></para></entry>
+                <entry><para><code>NotFound</code></para></entry>
+                <entry><para>An unknown event <code>name</code>, or no subscription matching the
+                  key on <code>events/unsubscribe</code>.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>-32012</code></para></entry>
+                <entry><para><code>Forbidden</code></para></entry>
+                <entry><para>The authenticated principal is not permitted for this event/arguments
+                  combination, or its access was revoked, or the call was unauthenticated.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>-32013</code></para></entry>
+                <entry><para><code>ResourceExhausted</code></para></entry>
+                <entry><para>A device-imposed limit or quota was reached (for example, the maximum
+                  number of concurrent subscriptions).</para></entry>
+              </row>
+              <row>
+                <entry><para><code>-32014</code></para></entry>
+                <entry><para><code>Unsupported</code></para></entry>
+                <entry><para>The request is well-formed but a requested delivery mode is not
+                  offered for this event type.</para></entry>
+              </row>
+              <row>
+                <entry><para><code>-32015</code></para></entry>
+                <entry><para><code>CallbackEndpointError</code></para></entry>
+                <entry><para>A client-supplied callback endpoint failed verification or could not
+                  be reached (webhook mode only).</para></entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>
       </section>
       <section xml:id="sec_event_payload_structure">
         <title>Event Payload Structure</title>
-        <para>Each <code>notifications/message</code> frame carries a JSON-LD document in its
-            <code>params.message</code> field. Every event document shall include: <itemizedlist>
+        <para>The <code>data</code> field of every <code>EventOccurrence</code> — whether returned
+          in an <code>events/poll</code> response or POSTed to a webhook callback — carries a
+          JSON-LD document. Every event document shall include: <itemizedlist>
             <listitem>
               <para><code>@context</code> — a URI pointing to the canonical LinkML schema for this
                 event type. The ONVIF Client shall use this URI for schema lookup and for dynamic
@@ -1109,7 +1197,7 @@
       <section xml:id="sec_dynamic_schema_reregistration">
         <title>Dynamic Schema Re-registration</title>
         <para>The <code>@context</code> URI in each event is a live pointer to the schema that
-          defines it. If the ONVIF Client receives a <code>notifications/message</code> frame whose
+          defines it. If the ONVIF Client receives an <code>EventOccurrence</code> whose
             <code>@context</code> URI is not already registered in its schema bundle, it shall: <orderedlist>
             <listitem>
               <para>Suspend validation of that event without discarding it.</para>
@@ -1173,8 +1261,8 @@
             <row>
               <entry><para><xref linkend="sec_capability_discovery"/></para></entry>
               <entry><para><code>resources/read</code> (<code>capabilities://www.onvif.org/ver10/agentic</code>)</para></entry>
-              <entry><para>Device feature set, supported functions,
-                <code>eventBufferCapacity</code>.</para></entry>
+              <entry><para>Device feature set, supported functions, <code>events</code>
+                capability and per-event-type delivery modes.</para></entry>
             </row>
             <row>
               <entry><para><xref linkend="sec_tool_discovery"/></para></entry>
@@ -1190,9 +1278,11 @@
             </row>
             <row>
               <entry><para><xref linkend="sec_metadata_event_delivery"/></para></entry>
-              <entry><para>Streamable HTTP channel</para></entry>
-              <entry><para>Live metadata events; <code>@type</code> for routing;
-                <code>@context</code> for dynamic schema re-registration.</para></entry>
+              <entry><para><code>events/list</code>, <code>events/poll</code>,
+                <code>events/subscribe</code></para></entry>
+              <entry><para>Event type catalogue; live metadata events retrieved via poll or
+                delivered via webhook; <code>@type</code> for routing; <code>@context</code> for
+                dynamic schema re-registration.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -1545,6 +1635,9 @@
     "capabilities": {
       "resources": {},
       "tools": {},
+      "events": {
+        "listChanged": true
+      },
       "extensions": {
         "io.modelcontextprotocol/tasks": {}
       }
@@ -1578,13 +1671,12 @@
     }
   }
 }</programlisting>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client opens the
-        Streamable HTTP channel to <code>https://192.0.2.10/mcp</code> as defined by MCP
-        2026-07-28.</para>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device confirms the
-        channel. No JSON-RPC response body is returned for channel establishment; the device
-        will send <code>notifications/message</code> frames over this channel as events
-        occur.</para>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends the
+          <code>server/discover</code> request to <code>https://192.0.2.10/mcp</code> as its
+        first request on the connection, as defined by MCP 2026-07-28. No additional channel is
+        opened; the session initialization exchange is a single JSON-RPC request/response, and the
+        ONVIF Client retrieves metadata events later via <code>events/poll</code> or
+          <code>events/subscribe</code>, as shown in <xref linkend="sec_annex_metadata_stream"/>.</para>
     </section>
     <section xml:id="sec_annex_ai_capability_discovery">
       <title>Agentic capability discovery</title>
@@ -1959,8 +2051,8 @@
   }
 }</programlisting>
       <para>The terminal task result shall include the execution identifier, for example
-        <code>exec_fire_001</code>. Events produced by the running function are delivered through
-        the Event Plane.</para>
+        <code>exec_fire_001</code>. Events produced by the running function are made available as
+        metadata events, retrievable via <code>events/poll</code> or delivered via webhook.</para>
     </section>
     <section xml:id="sec_annex_skill_stop_function">
       <title>Skill invocation — stop_function</title>
@@ -1990,72 +2082,195 @@
         processing. The task completes when the execution is stopped.</para>
     </section>
     <section xml:id="sec_annex_metadata_stream">
-      <title>Event streaming — channel opening and event frame</title>
-      <para><emphasis>Channel opening (Client to Device):</emphasis> The ONVIF Client opens the
-        Streamable HTTP channel to <code>https://192.0.2.10/mcp</code> as defined by MCP
-        2026-07-28. No JSON-RPC request/response exchange occurs for channel establishment; the
-        ONVIF Device will push <code>notifications/message</code> frames over this channel as
-        events are produced.</para>
-      <para><emphasis>Event frame (Device to Client):</emphasis> The ONVIF Device sends a
-        <code>notifications/message</code> frame for each metadata event. The example below shows
-        a <code>FireDetectionEvent</code> carrying a <code>SOSAObservation</code> payload.</para>
+      <title>Event delivery — catalogue, poll, and webhook examples</title>
+      <para><emphasis>Event type catalogue (Client to Device):</emphasis> The ONVIF Client calls
+          <code>events/list</code> to discover the event types exposed by the device.</para>
       <programlisting>{
   "jsonrpc": "2.0",
-  "method": "notifications/message",
-  "params": {
-    "message": {
-      "@context": "linkml://www.onvif.org/ver10/agentic/events",
-      "@type": "FireDetectionEvent",
-      "sosa:madeBySensor": "urn:onvif:device:192.0.2.10:camera:ch1",
-      "sosa:observedProperty": "onvif:FlamePresence",
-      "sosa:hasFeatureOfInterest": "urn:onvif:scene:ch1:zone:north",
-      "sosa:phenomenonTime": "2026-08-04T13:05:00.000Z",
-      "sosa:resultTime":     "2026-08-04T13:05:00.120Z",
-      "sosa:hasResult": {
-        "@type": "FireDetectionResult",
-        "detected": true,
-        "confidence": 0.94,
-        "boundingBox": {
-          "x": 0.22, "y": 0.31, "width": 0.18, "height": 0.24
+  "id": 20,
+  "method": "events/list",
+  "params": {}
+}</programlisting>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 20,
+  "result": {
+    "events": [
+      {
+        "name": "FireDetectionEvent",
+        "description": "Fires when the fire detection function identifies a flame",
+        "delivery": ["poll", "webhook"],
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "zone": { "type": "string", "description": "Scene zone URI to filter on" }
+          }
+        },
+        "payloadSchema": {
+          "$ref": "linkml://www.onvif.org/ver10/agentic/events#FireDetectionEvent"
         }
       }
-    }
+    ]
   }
+}</programlisting>
+      <para><emphasis>Poll request (Client to Device):</emphasis> The ONVIF Client calls
+          <code>events/poll</code> with a <code>null</code> cursor on the first call.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 21,
+  "method": "events/poll",
+  "params": {
+    "name": "FireDetectionEvent",
+    "arguments": { "zone": "urn:onvif:scene:ch1:zone:north" },
+    "cursor": null
+  }
+}</programlisting>
+      <para><emphasis>Poll response (Device to Client):</emphasis> The ONVIF Device returns any
+        matching events produced since the supplied cursor, together with a fresh cursor and the
+        recommended polling interval. The example below shows a <code>FireDetectionEvent</code>
+        carrying a <code>SOSAObservation</code> payload.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 21,
+  "result": {
+    "events": [
+      {
+        "eventId": "evt_fire_0001",
+        "name": "FireDetectionEvent",
+        "timestamp": "2026-08-04T13:05:00.120Z",
+        "data": {
+          "@context": "linkml://www.onvif.org/ver10/agentic/events",
+          "@type": "FireDetectionEvent",
+          "sosa:madeBySensor": "urn:onvif:device:192.0.2.10:camera:ch1",
+          "sosa:observedProperty": "onvif:FlamePresence",
+          "sosa:hasFeatureOfInterest": "urn:onvif:scene:ch1:zone:north",
+          "sosa:phenomenonTime": "2026-08-04T13:05:00.000Z",
+          "sosa:resultTime":     "2026-08-04T13:05:00.120Z",
+          "sosa:hasResult": {
+            "@type": "FireDetectionResult",
+            "detected": true,
+            "confidence": 0.94,
+            "boundingBox": {
+              "x": 0.22, "y": 0.31, "width": 0.18, "height": 0.24
+            }
+          }
+        }
+      }
+    ],
+    "cursor": "historyId_10042",
+    "truncated": false,
+    "hasMore": false,
+    "nextPollMs": 5000
+  }
+}</programlisting>
+      <para><emphasis>Webhook subscription request (Client to Device):</emphasis> Instead of
+        polling, the ONVIF Client MAY register a callback URL for the same event type, when the
+        device advertises <code>"webhook"</code> in <code>delivery</code>.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 22,
+  "method": "events/subscribe",
+  "params": {
+    "name": "FireDetectionEvent",
+    "arguments": { "zone": "urn:onvif:scene:ch1:zone:north" },
+    "delivery": {
+      "mode": "webhook",
+      "url": "https://client.example.com/hooks/onvif-fire",
+      "secret": "whsec_5WbX5uJd9zX2mVvR8zQwHnA7pKtC3sYb"
+    },
+    "cursor": null,
+    "ttlMs": 3600000
+  }
+}</programlisting>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 22,
+  "result": {
+    "id": "sub_9f2a1c7e0b4d3f6a",
+    "refreshBefore": "2026-08-04T14:05:00Z",
+    "cursor": "historyId_10040",
+    "truncated": false
+  }
+}</programlisting>
+      <para><emphasis>Webhook delivery (Device to callback endpoint):</emphasis> As matching
+        events occur, the ONVIF Device POSTs each <code>EventOccurrence</code> to the registered
+        callback URL, signed per Standard Webhooks and identifying the subscription.</para>
+      <programlisting>POST /hooks/onvif-fire HTTP/1.1
+Host: client.example.com
+Content-Type: application/json
+webhook-id: msg_2f6b1a9d
+webhook-timestamp: 1754312700
+webhook-signature: v1,K5r2m9QvC1nF8pXeVYtR3zJdL6oW0uAqBs4h7g==
+X-MCP-Subscription-Id: sub_9f2a1c7e0b4d3f6a
+
+{
+  "eventId": "evt_fire_0001",
+  "name": "FireDetectionEvent",
+  "timestamp": "2026-08-04T13:05:00.120Z",
+  "data": {
+    "@context": "linkml://www.onvif.org/ver10/agentic/events",
+    "@type": "FireDetectionEvent",
+    "sosa:madeBySensor": "urn:onvif:device:192.0.2.10:camera:ch1",
+    "sosa:observedProperty": "onvif:FlamePresence",
+    "sosa:hasFeatureOfInterest": "urn:onvif:scene:ch1:zone:north",
+    "sosa:phenomenonTime": "2026-08-04T13:05:00.000Z",
+    "sosa:resultTime":     "2026-08-04T13:05:00.120Z",
+    "sosa:hasResult": {
+      "@type": "FireDetectionResult",
+      "detected": true,
+      "confidence": 0.94,
+      "boundingBox": {
+        "x": 0.22, "y": 0.31, "width": 0.18, "height": 0.24
+      }
+    }
+  },
+  "cursor": "historyId_10042"
 }</programlisting>
     </section>
     <section xml:id="sec_annex_dynamic_schema_reregistration">
       <title>Dynamic schema re-registration</title>
-      <para>This example shows the procedure triggered when the ONVIF Client receives a
-          <code>notifications/message</code> frame whose <code>@context</code> URI
+      <para>This example shows the procedure triggered when the ONVIF Client receives an
+          <code>EventOccurrence</code> whose <code>@context</code> URI
           (<code>linkml://onvif/agentic/events/v2</code>) is not yet registered in its schema
         bundle. The client suspends validation, fetches the schema, and registers it before
         resuming.</para>
-      <para><emphasis>Incoming frame with unknown context (Device to Client):</emphasis></para>
+      <para><emphasis>Poll response with unknown context (Device to Client):</emphasis></para>
       <programlisting>{
   "jsonrpc": "2.0",
-  "method": "notifications/message",
-  "params": {
-    "message": {
-      "@context": "linkml://onvif/aagentic/events/v2",
-      "@type": "PersonCrossingEvent",
-      "sosa:madeBySensor": "urn:onvif:device:192.0.2.10:camera:ch1",
-      "sosa:observedProperty": "onvif:PersonPresence",
-      "sosa:hasFeatureOfInterest": "urn:onvif:scene:ch1:zone:entrance",
-      "sosa:phenomenonTime": "2026-08-04T13:10:00.000Z",
-      "sosa:resultTime":     "2026-08-04T13:10:00.085Z",
-      "sosa:hasResult": {
-        "@type": "PersonCrossingResult",
-        "direction": "entering",
-        "confidence": 0.91
+  "id": 23,
+  "result": {
+    "events": [
+      {
+        "eventId": "evt_crossing_0001",
+        "name": "PersonCrossingEvent",
+        "timestamp": "2026-08-04T13:10:00.085Z",
+        "data": {
+          "@context": "linkml://onvif/aagentic/events/v2",
+          "@type": "PersonCrossingEvent",
+          "sosa:madeBySensor": "urn:onvif:device:192.0.2.10:camera:ch1",
+          "sosa:observedProperty": "onvif:PersonPresence",
+          "sosa:hasFeatureOfInterest": "urn:onvif:scene:ch1:zone:entrance",
+          "sosa:phenomenonTime": "2026-08-04T13:10:00.000Z",
+          "sosa:resultTime":     "2026-08-04T13:10:00.085Z",
+          "sosa:hasResult": {
+            "@type": "PersonCrossingResult",
+            "direction": "entering",
+            "confidence": 0.91
+          }
+        }
       }
-    }
+    ],
+    "cursor": "historyId_10055",
+    "truncated": false,
+    "hasMore": false,
+    "nextPollMs": 5000
   }
 }</programlisting>
       <para><emphasis>Schema fetch request (Client to Device):</emphasis> The ONVIF Client calls
         <code>resources/read</code> with the unknown <code>@context</code> URI.</para>
       <programlisting>{
   "jsonrpc": "2.0",
-  "id": 13,
+  "id": 24,
   "method": "resources/read",
   "params": {
     "uri": "linkml://onvif/agentic/events/v2",
@@ -2069,7 +2284,7 @@
         processing.</para>
       <programlisting>{
   "jsonrpc": "2.0",
-  "id": 13,
+  "id": 24,
   "result": {
     "resultType": "complete",
     "contents": [{
