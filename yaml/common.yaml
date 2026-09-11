@@ -1,0 +1,148 @@
+id: https://www.onvif.org/ver10/agentic/common/linkml/
+name: onvif-agentic-common
+description: ONVIF Agentic Service common schema
+prefixes:
+  linkml: https://w3id.org/linkml/
+  onvif: https://www.onvif.org/ver10/agentic/linkml/
+imports:
+  - linkml:types
+  - enums
+default_prefix: onvif
+default_range: string
+
+types:
+  Likelihood:
+    typeof: float
+    description: >-
+      A float value representing a probability or likelihood, constrained
+      between 0.0 and 1.0.
+    minimum_value: 0.0
+    maximum_value: 1.0
+
+classes:
+
+  Any:
+    description: >-
+      A dynamic type that allows arbitrary nested data.
+    class_uri: linkml:Any
+
+  StringLikelihood:
+    description: >-
+      A compound data structure combining a string value with a likelihood
+      score.
+    attributes:
+      value:
+        description: The primary string value.
+        range: string
+        required: true
+      likelihood:
+        description: The float value representing the likelihood.
+        range: Likelihood
+        required: true
+
+  BarcodeTypeLikelihood:
+    description: >-
+      A compound data structure combining a barcode type with a likelihood
+      score.
+    attributes:
+      value:
+        description: The primary barcode type.
+        range: BarcodeType
+        required: true
+      likelihood:
+        description: The float value representing the likelihood.
+        range: Likelihood
+        required: true
+
+  Color:
+    description: >-
+      Represents a color defined by three coordinates (X, Y, Z) in a
+      specific colorspace. If the colorspace is absent and not defined on
+      a higher level, YCbCr is implied.
+    attributes:
+      x:
+        description: >-
+          The X coordinate of the color (e.g., Y value in YCbCr, R value in
+          RGB).
+        range: float
+        required: true
+      y:
+        description: >-
+          The Y coordinate of the color (e.g., Cb value in YCbCr, G value in
+          RGB).
+        range: float
+        required: true
+      z:
+        description: >-
+          The Z coordinate of the color (e.g., Cr value in YCbCr, B value in
+          RGB).
+        range: float
+        required: true
+      colorspace:
+        description: URI defining the colorspace.
+        range: Colorspace
+        required: false
+      likelihood:
+        description: Likelihood that the color is correct.
+        range: Likelihood
+        required: false
+
+  ColorCovariance:
+    description: Represents the covariance matrix associated with a color distribution.
+    attributes:
+      xx:
+        description: Variance in the X dimension.
+        range: float
+        required: true
+      yy:
+        description: Variance in the Y dimension.
+        range: float
+        required: true
+      zz:
+        description: Variance in the Z dimension.
+        range: float
+        required: true
+      xy:
+        description: Covariance between X and Y dimensions.
+        range: float
+        required: false
+      xz:
+        description: Covariance between X and Z dimensions.
+        range: float
+        required: false
+      yz:
+        description: Covariance between Y and Z dimensions.
+        range: float
+        required: false
+      colorspace:
+        description: URI defining the colorspace.
+        range: Colorspace
+        required: false
+
+  ColorCluster:
+    description: >-
+      A grouping of a specific color with its associated weight and
+      covariance.
+    attributes:
+      color:
+        description: The primary color value.
+        range: Color
+        required: true
+      weight:
+        description: >-
+          The weight of the color in the cluster (e.g., percentage or ratio).
+        range: float
+        required: false
+      covariance:
+        description: The color covariance matrix or values.
+        range: ColorCovariance
+        required: false
+
+  ColorDescriptor:
+    description: A descriptor containing one or more color clusters associated with an object.
+    attributes:
+      color_cluster:
+        description: A list of color clusters.
+        range: ColorCluster
+        multivalued: true
+        required: false
