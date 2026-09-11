@@ -6,15 +6,12 @@ prefixes:
   onvif: https://www.onvif.org/ver10/agentic/linkml/
 imports:
   - linkml:types
+  - enums
+  - common
 default_prefix: onvif
 default_range: string
 
 classes:
-
-  Any:
-    description: >-
-      A dynamic type that allows arbitrary nested data.
-    class_uri: linkml:Any
 
   VendorExtension:
     abstract: false
@@ -205,6 +202,75 @@ classes:
         range: Location
         required: false
         description: Spatial context observed by this observation.
+
+  VehicleObservation:
+    abstract: false
+    is_a: Observation
+    description: Information about a vehicle.
+    attributes:
+      type:
+        range: VehicleType
+        required: true
+        description: >-
+          The type of the vehicle. Acceptable values are typically defined
+          in VehicleType.
+      brand:
+        range: StringLikelihood
+        required: false
+        description: The brand of the vehicle
+      model:
+        range: StringLikelihood
+        required: false
+        description: The model of the vehicle
+      color:
+        description: Descriptor for the vehicle's color.
+        range: ColorDescriptor
+        required: false
+
+  LicensePlateObservation:
+    abstract: false
+    is_a: Observation
+    description: Information about a vehicle's license plate.
+    attributes:
+      plateNumber:
+        description: A string representing the vehicle license plate number.
+        range: StringLikelihood
+        required: true
+      plateType:
+        description: >-
+          A description of the vehicle license plate type (e.g., "Normal",
+          "Police", "Diplomat").
+        range: PlateType
+        required: false
+      countryCode:
+        description: >-
+          Describes the country of the license plate. The country code shall 
+          be encoded as two letter code according to ISO 3166-1:2013 Alpha-2.
+        range: StringLikelihood
+        required: false
+      issuingEntity:
+        description: >-
+          State, province, or authority that issues the license plate.
+        range: StringLikelihood
+        required: false
+
+  BarcodeObservation:
+    abstract: false
+    is_a: Observation
+    description: Information extracted from a barcode.
+    attributes:
+      data:
+        description: Information encoded in barcode.
+        range: StringLikelihood
+        required: true
+      type:
+        description: Type of the barcode. Acceptable values are defined in BarcodeType.
+        range: BarcodeTypeLikelihood
+        required: false
+      ppm:
+        description: Refers to the pixels per module.
+        range: float
+        required: false
 
   Assertion:
     abstract: true
