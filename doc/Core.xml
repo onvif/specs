@@ -553,6 +553,8 @@
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc2617.txt"></link>&gt;</para>
     <para>RFC 7616, HTTP Digest Access Authentication</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7616.txt"></link>&gt;</para>
+    <para>RFC 7617, The 'Basic' HTTP Authentication Scheme</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7617.txt"></link>&gt;</para>
     <para>RFC 3315, Dynamic Host Configuration Protocol for IPv6 (DHCPv6)</para>
     <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc3315.txt"></link>&gt;</para>
     <para>RFC 3548, The Base16, Base32, and Base64 Data Encodings</para>
@@ -2271,10 +2273,34 @@ DATE: when response was generated
             <para>TLS client authorization and</para>
           </listitem>
           <listitem>
+            <para>Devices supporting HTTP Basic authentication according to [RFC 7617], only over
+              TLS-protected connections, and</para>
+          </listitem>
+          <listitem>
             <para>Devices supporting JWT client authorization based on [RFC 6750], only over
               HTTPS.</para>
           </listitem>
         </itemizedlist>
+        <para>A device that supports HTTP Basic authentication shall signal the HttpBasic capability
+          as true and shall:</para>
+          <itemizedlist>
+            <listitem>
+              <para>accept a request carrying an Authorization header using the Basic scheme over a
+              TLS-protected connection, even if no challenge was sent;</para>
+            </listitem>
+            <listitem>
+              <para>include a Basic challenge in the WWW-Authenticate header of each 401 response
+              sent over a TLS-protected connection;</para>
+            </listitem>
+          <listitem>
+            <para>respond with 401 and a WWW-Authenticate header offering only digest authentication
+              when Basic credentials are received over an unprotected connection;</para>
+          </listitem>
+            <listitem>
+              <para>support digest authentication and include a Digest challenge in the
+                WWW-Authenticate header of each 401 response.</para>
+            </listitem>
+          </itemizedlist>
         <para>If server supports both digest authentication as specified in [RFC 2617] and the user name token profile as specified in WS-Security the following behavior shall be adapted: a web service request can be authenticated on the HTTP level via digest authentication [RFC 2617] or on the web service level via the WS-Security (WSS) framework. If a client does not supply authentication credentials along with a web service request, the server shall assume that the client intends to use digest authentication [RFC 2617], if required. Hence, if a client does not provide authentication credentials when requesting a service that requires authentication, it will receive an HTTP 401 error according to [RFC 2617]. Note that this behaviour on the server’s side differs from the case of supporting only username token profile, which requires for this case an HTTP 400 error on the HTTP level and a SOAP:Fault env:Sender ter:NotAuthorized error on the WS level.</para>
         <para>A client should not simultaneously supply authentication credentials on both the HTTP level and the WS level. If a server receives a web service request that contains authentication credentials on both the HTTP level and the WS level, it shall first validate the credentials provided on the HTTP layer. If this validation was successful, the server shall finally validate the authentication credentials provided on the WS layer.</para>
         <para><xref linkend="AuthenticationFlow"/> summarizes the authentication of a web service request by a server over HTTP and HTTPS.</para>
@@ -2290,7 +2316,13 @@ DATE: when response was generated
         <para>JWT client authorization should only be used over TLS secured connections, in order to
           protect bearer tokens against replay attacks.</para>
         <para>An ONVIF compliant device should authenticate an RTSP request at the RTSP level. If HTTP is used to tunnel the RTSP request the device shall not authenticate on the HTTP level.</para>
-        <para>When authenticating RTSP or HTTP methods, an ONVIF compliant device shall use digest authentication [RFC 2617] or JWT-based authorization. The credentials shall be managed with the GetUsers, CreateUsers, DeleteUsers and SetUser methods. If the device also supports WS-Security, the same set of credentials shall be used.</para>
+        <para>When authenticating RTSP or HTTP methods, an ONVIF compliant device shall use digest
+          authentication [RFC 2617], HTTP Basic authentication [RFC 7617] over TLS-protected
+          connections or JWT-based authorization. The credentials for digest and HTTP Basic
+          authentication shall be managed with the GetUsers, CreateUsers, DeleteUsers and SetUser
+          methods. If the device also supports WS-Security, the same set of credentials shall be
+          used. The parameters used to validate JWT-based authorization shall be in accordance to
+          the ONVIF Security Service Specification.</para>
       </section>
       <section>
         <title>Authentication over SCTP</title>
@@ -3262,7 +3294,7 @@ onvif://www.onvif.org/name/ARV-453
                   </entry>
                 </row>
                 <row>
-                  <entry morerows="17">
+                  <entry morerows="18">
                     <para>Security</para>
                   </entry>
                   <entry>
@@ -3294,6 +3326,15 @@ onvif://www.onvif.org/name/ARV-453
                   </entry>
                   <entry>
                     <para>Indication if the device supports the HTTP digest authentication. </para>
+                  </entry>
+                </row>
+                <row>
+                  <entry>
+                    <para>HttpBasic</para>
+                  </entry>
+                  <entry>
+                    <para>Indication if the device supports HTTP Basic authentication according to
+                      [RFC 7617], only over TLS-protected connections.</para>
                   </entry>
                 </row>
                 <row>
@@ -9728,6 +9769,53 @@ http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet
         acme:ColorName as part of JSON metadata example in ONVIF Analytics Service specification for
         better understanding.</para>
       </section>
+  </appendix>
+  <appendix xml:id="basic_auth_https_example">
+    <title>HTTP Basic authentication over TLS-protected connection</title>
+    <para>The following exchange between client and device over TLS-protected connection
+      demonstrates a device supporting HTTP Basic authentication according to [RFC 7617] in addition
+      to digest authentication.The initial unauthenticated request and challenge are shown for
+      completeness. A client is not required to wait for a challenge before supplying Basic
+      credentials; it may include the Authorization header in its first request.</para>
+    <para>Unauthenticated request from the client:</para>
+    <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
+Host: 10.XX.XX.XX
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: 308
+
+<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>
+</s:Body></s:Envelope>]]></programlisting>
+    <para>Response from the device challenging for authentication</para>
+    <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Basic realm="onvif"
+WWW-Authenticate: Digest algorithm=MD5, realm="onvif", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+WWW-Authenticate: Digest algorithm=SHA-256, realm="onvif", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"]]></programlisting>
+    <para>Authenticated request from the client, using HTTP Basic authentication</para>
+    <programlisting><![CDATA[POST /onvif/device_service HTTP/1.1
+Host: 10.XX.XX.XX
+Authorization: Basic dXNlcjpwYXNzd29yZA==
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: 308
+
+<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>
+</s:Body></s:Envelope>]]></programlisting>
+    <para>Response from the device, rejecting invalid credentials</para>
+    <programlisting><![CDATA[HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Basic realm="onvif"
+WWW-Authenticate: Digest algorithm=MD5, realm="onvif", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"
+WWW-Authenticate: Digest algorithm=SHA-256, realm="onvif", qop="auth",
+nonce="62d82aa9ca59e3a04cd1", opaque="5b6ea228"]]></programlisting>
   </appendix>
   <appendix role="revhistory">
     <title>Revision History</title>
