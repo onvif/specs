@@ -25,13 +25,27 @@ classes:
         identifier: true
         required: true
         description: >-
-          Identifier of the information item. It is serialised as the JSON-LD
-          node identifier and shall be unique across every item the ONVIF
-          Device emits.
+          Identifier of the information item. It shall be unique across every
+          item the ONVIF Device emits, and shall never be reused.
+
+          It is carried on the wire as a plain UUID string and not as a JSON-LD
+          node identifier: a bare UUID is not an IRI, and binding it to @id
+          would require every identifier to be rewritten in urn:uuid form. The
+          cross-references between items are therefore resolved by an ONVIF
+          Client according to this specification, and are not RDF edges.
       confidence:
-        range: float
+        range: Likelihood
         required: true
-        description: Confidence level associated with the information.
+        description: >-
+          Confidence level associated with the information, in the range 0.0 to
+          1.0 inclusive. The range is Likelihood, the same type used by every
+          other confidence-bearing slot of this model, such as the likelihood of
+          a StringLikelihood or of a Color, so that a single interpretation
+          applies wherever a confidence appears.
+
+          The confidence of an item is the confidence of that item alone. It is
+          not derived from, and shall not be propagated to, any item that cites
+          it in supportedBy.
       productionTime:
         range: Time
         required: true
@@ -55,8 +69,9 @@ classes:
         identifier: true
         required: true
         description: >-
-          Identifier of the envelope. It is serialised as the JSON-LD node
-          identifier.
+          Identifier of the envelope. It is carried on the wire as a plain UUID
+          string and not as a JSON-LD node identifier, for the reason given for
+          the identifier of InformationItem.
       items:
         range: InformationItem
         multivalued: true
@@ -162,15 +177,114 @@ classes:
           One or more public keys the device declares as its own. At least
           one key shall be present.
 
+  AnalyticsModule:
+    is_a: Provenance
+    description: >-
+      Concrete Provenance identifying an analytics module running on an ONVIF
+      Device as the producer of an information item. It is the provenance to use
+      when the producer is an algorithm rather than a sensor, which is typically
+      the case for an Assertion.
+
+      Distinguishing the module from the device that hosts it is what allows the
+      two kinds of claim to be told apart: an Observation produced by a video
+      source and an Assertion derived from it by an algorithm running on the same
+      device have different producers, and an ONVIF Client may have reason to
+      trust one and not the other.
+
+      As in ONVIFDevice, publicKeys is the only mandatory descriptor, because the
+      key identifier is the one piece of information in this class that refers to
+      material an ONVIF Client can verify by an independent path.
+    attributes:
+      token:
+        range: ReferenceToken
+        required: true
+        description: >-
+          Unique identifier of the analytics module within the ONVIF Device. It
+          mirrors the token of tt:AnalyticsModule of the ONVIF Schema, so that a
+          module named here can be looked up in the analytics configuration of
+          the device.
+      algorithm:
+        range: string
+        required: false
+        description: >-
+          Identifier of the algorithm the module implements, for example
+          vehicle-reidentification.
+      version:
+        range: string
+        required: false
+        description: >-
+          Version of the algorithm, or of the model it runs. It is the field that
+          makes a derived item reproducible: two items produced by the same
+          algorithm in different versions are not comparable, and an ONVIF Client
+          that has qualified one version has not thereby qualified another.
+      entity:
+        range: DeviceEntity
+        required: false
+        description: >-
+          Optional entity of the device whose data the module consumed, used when
+          a device has several sources that would otherwise be
+          indistinguishable.
+      publicKeys:
+        range: DevicePublicKey
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          One or more public keys the device declares as its own for items
+          produced by this module. At least one key shall be present.
+
   Location:
     abstract: true
     description: >-
       Abstract spatial descriptor for an InformationItem.
+
+      The class is abstract because a place can be given in two irreducibly
+      different ways: by the function it serves, which is what FunctionalLocation
+      expresses, or by its geometry. This specification defines the functional
+      form only; a geometric form may be added as a further concrete subclass
+      without changing Observation.
     attributes:
       extensible:
         range: Extensible
         required: false
         description: Optional vendor extension container.
+
+  FunctionalLocation:
+    is_a: Location
+    description: >-
+      Concrete Location naming a place by the function it serves rather than by
+      its geometry. It is the location descriptor to use when what matters about
+      a place is what happens there, for example an ambulance drop-off, a loading
+      bay or a pedestrian crossing.
+
+      A functional location is meaningful only within the installation it belongs
+      to: the name is assigned when the site is commissioned and carries no
+      meaning outside it. An ONVIF Client shall therefore treat name as a label
+      for presentation, and token, where present, as the key for correlation.
+    attributes:
+      name:
+        range: string
+        required: true
+        description: >-
+          Human readable name of the place, as configured on the ONVIF Device,
+          for example Ambulance Drop-off.
+      token:
+        range: ReferenceToken
+        required: false
+        description: >-
+          Optional identifier of the configured area the name refers to. It
+          allows the place to be correlated across information items even if its
+          name is later changed, and to be looked up in the analytics
+          configuration of the ONVIF Device.
+      description:
+        range: string
+        required: false
+        description: >-
+          Optional longer description of the function the place serves. It is
+          omitted from items carried in a metadata stream, where the location is
+          repeated on every item, and belongs to the configuration and
+          presentation paths instead.
 
   Observation:
     abstract: true
@@ -198,7 +312,17 @@ classes:
         required: true
         description: >-
           The type of the vehicle. Acceptable values are typically defined
-          in VehicleType.
+          in VehicleType. Where a vehicle has been detected but not classified,
+          the value is Unknown: the slot is required, so an ONVIF Device is never
+          obliged to guess a type in order to report a detection.
+      use:
+        range: VehicleUse
+        required: false
+        description: >-
+          The use the vehicle is put to, which is orthogonal to its type. The
+          slot is omitted by an ONVIF Device that does not classify vehicle use;
+          the value Unknown states that the device does classify it but could not
+          determine it for this observation.
       brand:
         range: StringLikelihood
         required: false
@@ -272,3 +396,45 @@ classes:
           Identifiers of one or more supporting information items. The items
           are referenced, not nested: each identifier shall resolve to an
           information item the ONVIF Client has already received.
+
+  VehicleReidentification:
+    abstract: false
+    is_a: Assertion
+    description: >-
+      Concrete Assertion stating that two or more vehicle observations, produced
+      at different times, refer to the same physical vehicle. It is the mechanism
+      by which a later and better informed observation supersedes the
+      classification carried by an earlier one, without either observation being
+      retracted.
+
+      Neither observation is modified by this assertion. What the sensor saw
+      remains on the record at the confidence it deserved, and what the algorithm
+      concluded is a separate claim with its own confidence and its own
+      provenance, which an ONVIF Client may accept or discard on its own merits.
+    slot_usage:
+      supportedBy:
+        minimum_cardinality: 2
+        description: >-
+          Identifiers of the vehicle observations that refer to the same physical
+          vehicle. At least two shall be present, since a single observation
+          cannot be re-identified.
+    attributes:
+      vehicleId:
+        range: UUID
+        required: true
+        description: >-
+          Stable identifier of the physical vehicle to which every observation
+          listed in supportedBy refers. It designates a physical entity and not an
+          InformationItem, and is therefore not subject to the resolution rule
+          that applies to supportedBy.
+
+          Successive re-identifications of the same vehicle shall reuse this
+          value, so that an ONVIF Client can accumulate what is known about one
+          vehicle across several assertions.
+      authoritativeObservation:
+        range: UUID
+        required: false
+        description: >-
+          The observation listed in supportedBy whose classification an ONVIF
+          Client should prefer. Where absent, the observation with the most recent
+          productionTime applies.

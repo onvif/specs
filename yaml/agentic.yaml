@@ -13,7 +13,7 @@ default_range: string
 # Classes are declared in dependency order: no class refers to a class declared
 # below it. The three groups are, in order: the abstract bases that every
 # function specialises, the generic classes that describe functions as data, and
-# the classes of the reserved set_event_keepalive function.
+# the classes of the reserved set_event_stream_parameters function.
 
 classes:
 
@@ -105,8 +105,32 @@ classes:
         range: string
         required: true
         description: >-
-          Function identifier drawn from the ONVIF function vocabulary, for
-          example fire_detection or set_event_keepalive.
+          Local name of the function on this ONVIF Device, for example
+          vehicle_detection or set_event_stream_parameters. It is the value passed in
+          the function argument of configure_function, execute_function,
+          stop_function and get_function_capabilities.
+
+          The name is unique within a single list_functions response and is
+          arbitrated by the ONVIF Device: where two independently defined
+          functions would claim the same local name, the device renames one of
+          them. It is therefore not a global identifier, and an ONVIF Client
+          shall not use it as a key across devices; canonicalUri serves that
+          purpose.
+      canonicalUri:
+        range: uri
+        required: true
+        description: >-
+          Canonical identifier of the function, which is the same on every
+          ONVIF Device that implements it. It is the value an ONVIF Client uses
+          to recognise a function and to correlate it across devices, and it is
+          stable under any renaming of the local name.
+
+          For a function reserved by this specification the value is
+          https://www.onvif.org/ver10/agentic/function/ followed by the reserved
+          name, for example
+          https://www.onvif.org/ver10/agentic/function/set_event_stream_parameters. For
+          any other function the value shall lie in a namespace controlled by
+          the party that defined the function.
       description:
         range: string
         required: false
@@ -162,7 +186,7 @@ classes:
         required: true
         description: >-
           Zero or more function descriptors. The catalogue always contains the
-          reserved set_event_keepalive function.
+          reserved set_event_stream_parameters function.
       extensible:
         range: Extensible
         required: false
@@ -205,16 +229,22 @@ classes:
         required: false
         description: Optional vendor extension container.
 
-  # --- Reserved function: set_event_keepalive -------------------------------
+  # --- Reserved function: set_event_stream_parameters ------------------------
 
-  SetEventKeepaliveParametersRequest:
+  SetEventStreamParametersRequest:
     abstract: false
     is_a: FunctionExecutionParameters
     description: >-
-      Execution parameters of the reserved set_event_keepalive function. The
-      function sets the interval at which the ONVIF Device emits
-      notifications/events/heartbeat keep-alive messages on open
-      events/stream responses.
+      Execution parameters of the reserved set_event_stream_parameters
+      function. The function sets the settable parameters of the event stream;
+      at present the only one is the interval at which the ONVIF Device emits
+      notifications/events/heartbeat keep-alive messages on open events/stream
+      responses.
+
+      The invariant properties of the event stream, such as the number of
+      concurrent streams the ONVIF Device supports, are not set here. They are
+      read with the get_function_capabilities Skill, which for this function
+      returns EventStreamCapabilities.
     attributes:
       keepaliveIntervalMs:
         range: integer
@@ -229,7 +259,7 @@ classes:
           keep-alive notifications on an events/stream response. Defaults to
           30000 (30 seconds). The ONVIF Device clamps the requested value to
           the range it supports and reports the value actually applied in
-          SetEventKeepaliveParametersResponse.appliedKeepaliveIntervalMs.
+          SetEventStreamParametersResponse.appliedKeepaliveIntervalMs.
       subscriptionId:
         range: integer
         required: false
@@ -239,12 +269,12 @@ classes:
           opened by the authenticated principal, including streams opened
           after this call.
 
-  SetEventKeepaliveParametersResponse:
+  SetEventStreamParametersResponse:
     abstract: false
     is_a: FunctionExecutionResult
     description: >-
       Structured result returned by the execute_function Skill when it is
-      invoked for the reserved set_event_keepalive function.
+      invoked for the reserved set_event_stream_parameters function.
     slot_usage:
       executionId:
         description: Identifier of the execution that applied the new interval.
@@ -276,14 +306,21 @@ classes:
           JSON-RPC ids of the events/stream requests to which the applied
           interval was propagated.
 
-  EventKeepaliveCapabilities:
+  EventStreamCapabilities:
     abstract: false
     is_a: FunctionCapabilities
     description: >-
-      Static capabilities of the reserved set_event_keepalive function: the
-      keep-alive interval range supported by the ONVIF Device and the interval
-      it uses when none was requested. These values are invariant for a device
-      instance and are read with the get_function_capabilities Skill.
+      Static capabilities of the reserved set_event_stream_parameters function,
+      which are the invariant properties of the event stream of an ONVIF Device:
+      the keep-alive interval range it supports, the interval it uses when none
+      was requested, and the number of concurrent streams it can serve. These
+      values do not depend on any invocation and are read with the
+      get_function_capabilities Skill.
+
+      The class covers the event stream as a whole and not the keep-alive
+      mechanism alone, because an ONVIF Client has to know the stream limits
+      before it opens a stream, and the reserved function that configures the
+      stream is the one place in this model where those limits have an owner.
     attributes:
       defaultKeepaliveIntervalMs:
         range: integer
@@ -310,34 +347,47 @@ classes:
         description: >-
           Longest keep-alive interval supported by the ONVIF Device, in
           milliseconds. A longer requested interval is clamped to this value.
+      maxConcurrentStreams:
+        range: integer
+        required: true
+        minimum_value: 1
+        description: >-
+          Greatest number of events/stream requests the ONVIF Device serves
+          concurrently for the authenticated principal. An ONVIF Client holds
+          one stream per subscription, so this value bounds the number of
+          subscriptions it can receive by push at any one time.
 
-  SetEventKeepaliveInvocation:
+          The value is at least 1. A request that would exceed it is rejected
+          with -32013 ResourceExhausted, which an ONVIF Client can avoid
+          entirely by reading this value before it opens a stream.
+
+  SetEventStreamParametersInvocation:
     abstract: false
     is_a: FunctionInvocation
     description: >-
-      Declaration of the reserved set_event_keepalive function: it is invoked
-      through the execute_function Skill, it accepts
-      SetEventKeepaliveParametersRequest, and it returns
-      SetEventKeepaliveParametersResponse. The
-      function sets the interval at which the ONVIF Device emits
-      notifications/events/heartbeat keep-alive messages on open events/stream
-      responses, whose default is 30000 milliseconds.
+      Declaration of the reserved set_event_stream_parameters function: it is
+      invoked through the execute_function Skill, it accepts
+      SetEventStreamParametersRequest, it returns
+      SetEventStreamParametersResponse, and its capabilities are
+      EventStreamCapabilities. The function sets the interval at which the ONVIF
+      Device emits notifications/events/heartbeat keep-alive messages on open
+      events/stream responses, whose default is 30000 milliseconds.
     annotations:
       mcp_skill: execute_function
       access_class: ACTUATE
     slot_usage:
       function:
-        equals_string: "set_event_keepalive"
+        equals_string: "set_event_stream_parameters"
         required: true
         description: >-
-          Reserved function identifier. It is always set_event_keepalive for
-          this invocation.
+          Reserved function identifier. It is always
+          set_event_stream_parameters for this invocation.
       parameters:
-        range: SetEventKeepaliveParametersRequest
+        range: SetEventStreamParametersRequest
         required: true
         description: Keep-alive parameters accepted by the function.
       result:
-        range: SetEventKeepaliveParametersResponse
+        range: SetEventStreamParametersResponse
         required: false
         description: >-
           Keep-alive result returned by the function, reporting the interval
