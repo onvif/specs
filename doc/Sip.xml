@@ -626,6 +626,10 @@
         <para>
           This operation sets the call button configuration of the device.
           This method is optional. It shall be available if the CallButtons capability is TRUE.
+          The device may allow the same button ID to be referenced by multiple server configurations at the same time. 
+          In such scenarios, behavior of how user IDs are called is up to the device implementation.
+          For example, does the device call user IDs all at once or sequentially.
+          If the device does not allow the same button ID to be referenced by multiple server configurations, it shall return a ConfigurationConflict fault.
         </para>
         <variablelist role="op">
           <varlistentry>
@@ -647,7 +651,9 @@
               <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidServerConfigurationToken</para>
               <para role="text">The ServerConfiguration token does not reference an existing server configuration.</para>
               <para role="param">env:Sender - ter:InvalidArgVal - ter:InvalidButtonId</para>
-              <para role="text">The ButtonId does not reference a supported physical, relay or virtual button.</para>
+              <para role="text">The ButtonId does not reference a supported physical, digital input or virtual button.</para>
+              <para role="param">env:Sender - ter:OperationProhibited - ter:ConfigurationConflict</para>
+              <para role="text">One or more button IDs are already used by another server configuration.</para>
               <para role="param">env:Receiver - ter:ActionNotSupported - ter:NotImplemented</para>
               <para role="text">This optional method is not implemented.</para>
             </listitem>
