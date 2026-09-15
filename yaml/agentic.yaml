@@ -6,282 +6,339 @@ prefixes:
   onvif: https://www.onvif.org/ver10/agentic/linkml/
 imports:
   - linkml:types
-  - enums
-  - common
+  - agentic/base
 default_prefix: onvif
 default_range: string
 
+# Classes are declared in dependency order: no class refers to a class declared
+# below it. The three groups are, in order: the abstract bases that every
+# function specialises, the generic classes that describe functions as data, and
+# the classes of the reserved set_event_keepalive function.
+
 classes:
 
-  VendorExtension:
-    abstract: false
-    is_a: Extensible
+  # --- Abstract bases -------------------------------------------------------
+
+  FunctionExecutionParameters:
+    abstract: true
     description: >-
-      Container for a single vendor-specific extension entry.
+      Abstract base class for the execution-specific parameters object carried
+      in the parameters argument of the execute_function Skill.
     attributes:
-      vendor_namespace:
-        range: uri
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  FunctionExecutionResult:
+    abstract: true
+    description: >-
+      Abstract base class for the structuredContent object returned by the
+      execute_function Skill.
+    attributes:
+      executionId:
+        range: string
         required: true
-        description: URI namespace that uniquely identifies the vendor.
+        description: >-
+          Identifier of the function execution started, or affected, by the
+          execute_function call.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  FunctionCapabilities:
+    abstract: true
+    description: >-
+      Abstract base class for the static capabilities of a function: the
+      invariant properties that describe what a device instance supports for
+      that function, such as the ranges it accepts. Capabilities do not depend
+      on any particular invocation and are therefore never returned in the
+      result of execute_function. They are read with the
+      get_function_capabilities Skill, and the class that applies to a given
+      function is named by FunctionDescriptor.capabilitiesSchema.
+    attributes:
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  FunctionInvocation:
+    abstract: true
+    description: >-
+      Abstract binding between a function exposed by an ONVIF Device and the
+      classes that define its input and its output. A concrete subclass fixes
+      the function identifier and narrows the parameters and result ranges to
+      the classes that apply to that function. LinkML has no construct for
+      declaring an operation, so this class is the normative way in which this
+      schema states which parameters a function accepts and which result it
+      returns.
+    attributes:
+      function:
+        range: string
+        required: true
+        description: >-
+          Function identifier, as returned by the list_functions Skill and as
+          passed in the function argument of execute_function.
+      parameters:
+        range: FunctionExecutionParameters
+        required: false
+        description: >-
+          Parameters accepted by this function in the parameters argument of
+          execute_function.
+      result:
+        range: FunctionExecutionResult
+        required: false
+        description: >-
+          Result returned by this function in the structuredContent of the
+          execute_function response.
+
+  # --- Function catalogue and capabilities Skills ---------------------------
+
+  FunctionDescriptor:
+    description: >-
+      A single entry of the function catalogue returned by the list_functions
+      Skill. Each entry names a function and points at the LinkML classes that
+      define its configuration, its execution parameters, and its result.
+    attributes:
       name:
         range: string
         required: true
-        description: Local name of the extension element within the vendor namespace.
-      value:
-        range: Any
-        required: false
-        description: Vendor-specific payload.
-
-  VendorExtensible:
-    abstract: false
-    is_a: Extensible
-    description: >-
-      Concrete container for grouping multiple vendor-specific extensions.
-    attributes:
-      vendorExtensions:
-        range: VendorExtension
-        multivalued: true
-        inlined_as_list: true
-        required: false
-        description: Zero or more vendor-specific extension entries.
-
-  Extensible:
-    abstract: true
-    description: >-
-      Abstract class carrying extensions.
-
-  InformationItem:
-    abstract: true
-    description: >-
-      Abstract base container for a single unit of information.
-    attributes:
-      confidence:
-        range: float
-        required: true
-        description: Confidence level associated with the information.
-      productionTime:
-        range: Time
-        required: true
-        description: Production timestamp of the information item.
-      provenance:
-        range: Provenance
-        required: true
-        description: Provenance of the information item.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
-
-  InformationEnvelope:
-    description: >-
-      Optional container that groups one or more information items and may
-      carry a single envelope-level signature.
-    attributes:
-      items:
-        range: InformationItem
-        multivalued: true
-        inlined_as_list: true
-        required: true
-        description: One or more enclosed information items.
-      signature:
-        range: Signature
-        required: false
-        description: Optional envelope-level signature.
-
-  Signature:
-    abstract: true
-    description: >-
-      Abstract cryptographic attestation descriptor.
-    attributes:
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
-
-  JsonLDSignature:
-    is_a: Signature
-    description: >-
-      Concrete Signature profile based on JSON-LD Data Integrity proofs.
-    attributes:
-      type:
+        description: >-
+          Function identifier drawn from the ONVIF function vocabulary, for
+          example fire_detection or set_event_keepalive.
+      description:
         range: string
-        required: true
-        equals_string: "DataIntegrityProof"
-        description: Data Integrity proof type.
-      cryptosuite:
-        range: string
-        required: true
-        description: Cryptographic suite identifier.
-      created:
-        range: datetime
-        required: true
-        description: Proof creation time in ISO 8601 UTC.
-      verificationMethod:
-        range: uriorcurie
-        required: true
-        description: Verification method URI.
-      proofPurpose:
-        range: string
-        required: true
-        equals_string: "assertionMethod"
-        description: Proof purpose value.
-      proofValue:
-        range: string
-        required: true
-        description: Encoded digital signature value.
-
-  Time:
-    abstract: true
-    description: >-
-      Abstract production-time descriptor for an InformationItem.
-    attributes:
-      extensible:
-        range: Extensible
         required: false
-        description: Optional vendor extension container.
-
-  ISO8601Timestamp:
-    abstract: false
-    is_a: Time
-    description: >-
-      An ISO 8601 timestamp is an internationally agreed-upon format for
-      representing dates and times as YYYY-MM-DDTHH:MM:SS
-      (e.g., 2026-09-09T15:54:00), designed to be clear for both humans
-      and machines
-    attributes:
-      timestamp:
-        range: datetime
-        required: true
-        description: The ISO 8601 timestamp
-
-  ISO8601Interval:
-    abstract: false
-    is_a: Time
-    description: >-
-      An ISO 8601 time interval represented as a single string
-      (e.g., '2026-09-09T15:00:00Z/2026-09-09T16:00:00Z' or
-      '2026-09-09T15:00:00Z/P1M' or 'R5/2026-09-09T15:00:00Z/P1M').
-    attributes:
-      intervalString:
-        range: string
-        required: true
-        description: The time interval formatted according to the ISO 8601 standard.
-
-  Provenance:
-    abstract: true
-    description: >-
-      Abstract provenance descriptor for an InformationItem.
-    attributes:
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
-
-  Location:
-    abstract: true
-    description: >-
-      Abstract spatial descriptor for an InformationItem.
-    attributes:
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
-
-  Observation:
-    abstract: true
-    is_a: InformationItem
-    description: >-
-      Abstract InformationItem representing a measurement generated by an
-      ONVIF Device.
-    attributes:
-      observedTime:
-        range: Time
-        required: false
-        description: Temporal context observed by this observation.
-      observedSpace:
-        range: Location
-        required: false
-        description: Spatial context observed by this observation.
-
-  VehicleObservation:
-    abstract: false
-    is_a: Observation
-    description: Information about a vehicle.
-    attributes:
-      type:
-        range: VehicleType
+        description: Human-readable description of what the function does.
+      enabled:
+        range: boolean
         required: true
         description: >-
-          The type of the vehicle. Acceptable values are typically defined
-          in VehicleType.
-      brand:
-        range: StringLikelihood
+          Whether this function is configured and available for execution.
+      configSchema:
+        range: uri
         required: false
-        description: The brand of the vehicle
-      model:
-        range: StringLikelihood
-        required: false
-        description: The model of the vehicle
-      color:
-        description: Descriptor for the vehicle's color.
-        range: ColorDescriptor
-        required: false
-
-  LicensePlateObservation:
-    abstract: false
-    is_a: Observation
-    description: Information about a vehicle's license plate.
-    attributes:
-      plateNumber:
-        description: A string representing the vehicle license plate number.
-        range: StringLikelihood
-        required: true
-      plateType:
         description: >-
-          A description of the vehicle license plate type (e.g., "Normal",
-          "Police", "Diplomat").
-        range: PlateType
+          URI of the LinkML class that defines the config argument accepted by
+          configure_function for this function.
+      executionSchema:
+        range: uri
         required: false
-      countryCode:
         description: >-
-          Describes the country of the license plate. The country code shall 
-          be encoded as two letter code according to ISO 3166-1:2013 Alpha-2.
-        range: StringLikelihood
+          URI of the LinkML class that defines the parameters argument accepted
+          by execute_function for this function. Present when the function
+          accepts execution parameters.
+      resultSchema:
+        range: uri
         required: false
-      issuingEntity:
         description: >-
-          State, province, or authority that issues the license plate.
-        range: StringLikelihood
+          URI of the LinkML class that defines the structuredContent returned
+          by execute_function for this function.
+      capabilitiesSchema:
+        range: uri
         required: false
+        description: >-
+          URI of the LinkML class, derived from FunctionCapabilities, that
+          defines the structure of the capabilities returned by
+          get_function_capabilities for this function. It is present when the
+          function has capabilities that an ONVIF Client can read.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
 
-  BarcodeObservation:
-    abstract: false
-    is_a: Observation
-    description: Information extracted from a barcode.
-    attributes:
-      data:
-        description: Information encoded in barcode.
-        range: StringLikelihood
-        required: true
-      type:
-        description: Type of the barcode. Acceptable values are defined in BarcodeType.
-        range: BarcodeTypeLikelihood
-        required: false
-      ppm:
-        description: Refers to the pixels per module.
-        range: float
-        required: false
-
-  Assertion:
-    abstract: true
-    is_a: InformationItem
+  ListFunctionsResult:
     description: >-
-      Abstract InformationItem representing a statement supported by one or
-      more information items.
+      Structured result returned by the list_functions Skill: the authoritative
+      machine-readable catalogue of the functions supported by a device
+      instance. This class is a root of the schema: it is the shape of a Skill
+      response and is therefore not referenced by any other class.
     attributes:
-      supportedBy:
-        range: InformationItem
+      functions:
+        range: FunctionDescriptor
         multivalued: true
         inlined_as_list: true
         required: true
-        description: One or more supporting information items.
+        description: >-
+          Zero or more function descriptors. The catalogue always contains the
+          reserved set_event_keepalive function.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  GetFunctionCapabilities:
+    description: >-
+      Arguments accepted by the get_function_capabilities Skill.
+    attributes:
+      function:
+        range: string
+        required: true
+        description: >-
+          Function identifier whose capabilities are requested, as returned by
+          the list_functions Skill.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  GetFunctionCapabilitiesResponse:
+    description: >-
+      Structured result returned by the get_function_capabilities Skill. It
+      carries the invariant properties of a single function, kept separate from
+      the result of any execution of that function.
+    attributes:
+      function:
+        range: string
+        required: true
+        description: Function identifier to which the capabilities apply.
+      capabilities:
+        range: FunctionCapabilities
+        required: true
+        description: >-
+          Capabilities of the named function, an instance of the class derived
+          from FunctionCapabilities that the function catalogue names in
+          capabilitiesSchema.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  # --- Reserved function: set_event_keepalive -------------------------------
+
+  SetEventKeepaliveParametersRequest:
+    abstract: false
+    is_a: FunctionExecutionParameters
+    description: >-
+      Execution parameters of the reserved set_event_keepalive function. The
+      function sets the interval at which the ONVIF Device emits
+      notifications/events/heartbeat keep-alive messages on open
+      events/stream responses.
+    attributes:
+      keepaliveIntervalMs:
+        range: integer
+        required: false
+        ifabsent: int(30000)
+        minimum_value: 1000
+        maximum_value: 3600000
+        unit:
+          ucum_code: ms
+        description: >-
+          Requested interval, in milliseconds, between two consecutive
+          keep-alive notifications on an events/stream response. Defaults to
+          30000 (30 seconds). The ONVIF Device clamps the requested value to
+          the range it supports and reports the value actually applied in
+          SetEventKeepaliveParametersResponse.appliedKeepaliveIntervalMs.
+      subscriptionId:
+        range: integer
+        required: false
+        description: >-
+          JSON-RPC id of the events/stream request to which the new interval
+          applies. When omitted, the new interval applies to every stream
+          opened by the authenticated principal, including streams opened
+          after this call.
+
+  SetEventKeepaliveParametersResponse:
+    abstract: false
+    is_a: FunctionExecutionResult
+    description: >-
+      Structured result returned by the execute_function Skill when it is
+      invoked for the reserved set_event_keepalive function.
+    slot_usage:
+      executionId:
+        description: Identifier of the execution that applied the new interval.
+    attributes:
+      appliedKeepaliveIntervalMs:
+        range: integer
+        required: true
+        unit:
+          ucum_code: ms
+        description: >-
+          Keep-alive interval actually applied by the ONVIF Device, in
+          milliseconds. This value is authoritative and may differ from the
+          requested one when the request was clamped.
+      clamped:
+        range: boolean
+        required: false
+        ifabsent: "false"
+        description: >-
+          Whether the requested interval was clamped to the range supported by
+          the ONVIF Device. When true, appliedKeepaliveIntervalMs differs from
+          the requested value. The supported range itself is read with the
+          get_function_capabilities Skill.
+      affectedStreams:
+        range: integer
+        multivalued: true
+        inlined_as_list: true
+        required: false
+        description: >-
+          JSON-RPC ids of the events/stream requests to which the applied
+          interval was propagated.
+
+  EventKeepaliveCapabilities:
+    abstract: false
+    is_a: FunctionCapabilities
+    description: >-
+      Static capabilities of the reserved set_event_keepalive function: the
+      keep-alive interval range supported by the ONVIF Device and the interval
+      it uses when none was requested. These values are invariant for a device
+      instance and are read with the get_function_capabilities Skill.
+    attributes:
+      defaultKeepaliveIntervalMs:
+        range: integer
+        required: true
+        ifabsent: int(30000)
+        unit:
+          ucum_code: ms
+        description: >-
+          Keep-alive interval used by the ONVIF Device when none was
+          requested, in milliseconds. It is 30000 (30 seconds).
+      minKeepaliveIntervalMs:
+        range: integer
+        required: true
+        unit:
+          ucum_code: ms
+        description: >-
+          Shortest keep-alive interval supported by the ONVIF Device, in
+          milliseconds. A shorter requested interval is clamped to this value.
+      maxKeepaliveIntervalMs:
+        range: integer
+        required: true
+        unit:
+          ucum_code: ms
+        description: >-
+          Longest keep-alive interval supported by the ONVIF Device, in
+          milliseconds. A longer requested interval is clamped to this value.
+
+  SetEventKeepaliveInvocation:
+    abstract: false
+    is_a: FunctionInvocation
+    description: >-
+      Declaration of the reserved set_event_keepalive function: it is invoked
+      through the execute_function Skill, it accepts
+      SetEventKeepaliveParametersRequest, and it returns
+      SetEventKeepaliveParametersResponse. The
+      function sets the interval at which the ONVIF Device emits
+      notifications/events/heartbeat keep-alive messages on open events/stream
+      responses, whose default is 30000 milliseconds.
+    annotations:
+      mcp_skill: execute_function
+      access_class: ACTUATE
+    slot_usage:
+      function:
+        equals_string: "set_event_keepalive"
+        required: true
+        description: >-
+          Reserved function identifier. It is always set_event_keepalive for
+          this invocation.
+      parameters:
+        range: SetEventKeepaliveParametersRequest
+        required: true
+        description: Keep-alive parameters accepted by the function.
+      result:
+        range: SetEventKeepaliveParametersResponse
+        required: false
+        description: >-
+          Keep-alive result returned by the function, reporting the interval
+          actually applied.

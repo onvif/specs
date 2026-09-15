@@ -1,0 +1,202 @@
+id: https://www.onvif.org/ver10/agentic/signature/linkml/
+name: onvif-agentic-signature
+description: ONVIF Agentic Service signature schema
+prefixes:
+  linkml: https://w3id.org/linkml/
+  onvif: https://www.onvif.org/ver10/agentic/linkml/
+imports:
+  - linkml:types
+  - enums
+  - common
+default_prefix: onvif
+default_range: string
+
+classes:
+
+  ItemDigest:
+    description: >-
+      Digest of a single canonicalised InformationItem, bound to the
+      identifier of the item it covers. A signed InformationEnvelope carries
+      one ItemDigest per enclosed item, which allows a verifier that detects
+      a mismatch to determine exactly which item was altered.
+    attributes:
+      item:
+        range: UUID
+        required: true
+        description: >-
+          Identifier of the InformationItem covered by this digest. It is
+          equal to the id field of that item.
+      digest:
+        range: Base64Binary
+        required: true
+        description: >-
+          Digest of the canonical form of the item, computed with the
+          digest algorithm declared by the enclosing signature.
+
+  SigningKey:
+    abstract: true
+    description: >-
+      Abstract descriptor of the key used to produce a signature. It is
+      abstract because the key material may either travel with the signed
+      content or be published once and subsequently referenced.
+    attributes:
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  X509CertificateChain:
+    is_a: SigningKey
+    description: >-
+      Concrete SigningKey that carries the certificate chain needed to
+      verify the signature. The leaf certificate contains the public key.
+    attributes:
+      certificateChain:
+        range: string
+        multivalued: true
+        required: true
+        description: >-
+          Certificate chain in PEM format, ordered from the leaf certificate
+          towards the certification authority. The certification authority
+          certificate itself shall not be included.
+      userProvisioned:
+        range: boolean
+        required: false
+        ifabsent: 'boolean(false)'
+        description: >-
+          True when the chain is a user provisioned certificate chain rather
+          than a manufacturer provisioned one.
+
+  PublicKeyIdentifier:
+    is_a: SigningKey
+    description: >-
+      Concrete SigningKey that references key material distributed out of
+      band, so that the certificate chain does not have to be repeated in
+      every signed envelope.
+    attributes:
+      keyId:
+        range: KeyID
+        required: true
+        description: >-
+          Identifier of the key in the keystore of the ONVIF Device. It may
+          be matched against the keys the device declares in the publicKeys
+          field of its provenance.
+      verificationMethod:
+        range: uriorcurie
+        required: false
+        description: >-
+          Optional URI from which the corresponding public key or
+          certificate chain can be retrieved.
+
+  DevicePublicKey:
+    description: >-
+      A public key an ONVIF Device declares as its own. The declaration is
+      informative: it allows a key to be discovered and a key rotation to be
+      followed, but it does not by itself establish that the key is
+      trustworthy.
+    attributes:
+      keyId:
+        range: KeyID
+        required: true
+        description: >-
+          Identifier of the key in the keystore of the ONVIF Device.
+      subjectPublicKeyInfo:
+        range: string
+        required: false
+        description: >-
+          Optional public key in PEM format, carrying a SubjectPublicKeyInfo
+          structure. It is omitted unless the key material has to travel with
+          the information item, since provenance is repeated on every item.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  Signature:
+    abstract: true
+    description: >-
+      Abstract cryptographic attestation descriptor.
+    attributes:
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  OnvifSignature:
+    is_a: Signature
+    description: >-
+      Concrete Signature profile defined by this specification, aligned with
+      the ONVIF Media Signing Specification. The envelope digest is computed
+      over the signature configuration followed by the per-item digests in
+      ascending item identifier order, and the signature is produced over
+      that digest.
+    attributes:
+      digestAlgorithm:
+        range: DigestAlgorithm
+        required: true
+        description: >-
+          Hash algorithm used both for the per-item digests and for the
+          envelope digest. The algorithm actually used shall be one of those
+          mandated by the current version of the ONVIF Security Baseline;
+          that document, and not the enumeration below, is authoritative on
+          which algorithms are allowed at any given time.
+      signatureAlgorithm:
+        range: SignatureAlgorithm
+        required: true
+        description: >-
+          Algorithm used to sign the envelope digest. The algorithm actually
+          used shall be one of those mandated by the current version of the
+          ONVIF Security Baseline; that document, and not the enumeration
+          below, is authoritative on which algorithms are allowed at any
+          given time.
+      created:
+        range: datetime
+        required: true
+        description: Time at which the signature was created, in ISO 8601 UTC.
+      key:
+        range: SigningKey
+        required: true
+        description: Descriptor of the key used to produce the signature.
+      envelopeDigest:
+        range: Base64Binary
+        required: true
+        description: >-
+          Digest computed over the canonical form of the signature
+          configuration followed by the raw digest octets of every
+          ItemDigest, in ascending item identifier order.
+      signatureValue:
+        range: Base64Binary
+        required: true
+        description: Digital signature computed over the envelope digest.
+
+  JsonLDSignature:
+    is_a: Signature
+    description: >-
+      Concrete Signature profile based on JSON-LD Data Integrity proofs.
+    attributes:
+      type:
+        range: string
+        required: true
+        equals_string: "DataIntegrityProof"
+        description: Data Integrity proof type.
+      cryptosuite:
+        range: string
+        required: true
+        description: Cryptographic suite identifier.
+      created:
+        range: datetime
+        required: true
+        description: Proof creation time in ISO 8601 UTC.
+      verificationMethod:
+        range: uriorcurie
+        required: true
+        description: Verification method URI.
+      proofPurpose:
+        range: string
+        required: true
+        equals_string: "assertionMethod"
+        description: Proof purpose value.
+      proofValue:
+        range: string
+        required: true
+        description: Encoded digital signature value.
