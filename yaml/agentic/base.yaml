@@ -1,0 +1,274 @@
+id: https://www.onvif.org/ver10/agentic/base/linkml/
+name: onvif-agentic-base
+description: ONVIF Agentic Service base schema
+prefixes:
+  linkml: https://w3id.org/linkml/
+  onvif: https://www.onvif.org/ver10/agentic/linkml/
+imports:
+  - linkml:types
+  - enums
+  - common
+  - time
+  - signature
+default_prefix: onvif
+default_range: string
+
+classes:
+
+  InformationItem:
+    abstract: true
+    description: >-
+      Abstract base container for a single unit of information.
+    attributes:
+      id:
+        range: UUID
+        identifier: true
+        required: true
+        description: >-
+          Identifier of the information item. It is serialised as the JSON-LD
+          node identifier and shall be unique across every item the ONVIF
+          Device emits.
+      confidence:
+        range: float
+        required: true
+        description: Confidence level associated with the information.
+      productionTime:
+        range: Time
+        required: true
+        description: Production timestamp of the information item.
+      provenance:
+        range: Provenance
+        required: true
+        description: Provenance of the information item.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  InformationEnvelope:
+    description: >-
+      Optional container that groups one or more information items and may
+      carry a single envelope-level signature.
+    attributes:
+      id:
+        range: UUID
+        identifier: true
+        required: true
+        description: >-
+          Identifier of the envelope. It is serialised as the JSON-LD node
+          identifier.
+      items:
+        range: InformationItem
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: One or more enclosed information items.
+      hashes:
+        range: ItemDigest
+        multivalued: true
+        inlined_as_list: true
+        required: false
+        description: >-
+          One digest per enclosed information item, sorted by the item field
+          in ascending order. The list is optional: the envelope digest
+          carried by the signature is sufficient to verify the integrity of
+          the group as a whole, and omitting the list only gives up the
+          ability to identify which individual item was altered.
+      signature:
+        range: Signature
+        required: false
+        description: Optional envelope-level signature.
+
+  Provenance:
+    abstract: true
+    description: >-
+      Abstract provenance descriptor for an InformationItem. It answers the
+      question of who is asserting the information, and is specialised by
+      concrete classes describing a particular kind of producer.
+    attributes:
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  DeviceEntity:
+    description: >-
+      A physical or logical entity of an ONVIF Device, such as an input, an
+      output, or a channel. It mirrors tt:DeviceEntity of the ONVIF Schema,
+      which likewise carries a single token attribute.
+    attributes:
+      token:
+        range: ReferenceToken
+        required: true
+        description: Unique identifier referencing the entity.
+
+  ONVIFDevice:
+    is_a: Provenance
+    description: >-
+      Concrete Provenance identifying an ONVIF Device as the producer of an
+      information item.
+
+      The descriptive fields are all optional and self-asserted, and are
+      meant for diagnostics, inventory and presentation. The only mandatory
+      field is publicKeys, because a key identifier is the one piece of
+      information in this class that refers to material an ONVIF Client can
+      verify by an independent path; the descriptive fields refer to nothing
+      that can be checked.
+    attributes:
+      manufacturer:
+        range: string
+        required: false
+        description: >-
+          The manufacturer of the device, as returned by the Manufacturer
+          field of GetDeviceInformationResponse.
+      model:
+        range: string
+        required: false
+        description: >-
+          The device model, as returned by the Model field of
+          GetDeviceInformationResponse.
+      firmwareVersion:
+        range: string
+        required: false
+        description: >-
+          The firmware version in the device, as returned by the
+          FirmwareVersion field of GetDeviceInformationResponse.
+      serialNumber:
+        range: string
+        required: false
+        description: >-
+          The serial number of the device, as returned by the SerialNumber
+          field of GetDeviceInformationResponse.
+      hardwareId:
+        range: string
+        required: false
+        description: >-
+          The hardware ID of the device, as returned by the HardwareId field
+          of GetDeviceInformationResponse.
+      entity:
+        range: DeviceEntity
+        required: false
+        description: >-
+          Optional entity of the device that produced the information, used
+          when a device has several sources that would otherwise be
+          indistinguishable.
+      publicKeys:
+        range: DevicePublicKey
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          One or more public keys the device declares as its own. At least
+          one key shall be present.
+
+  Location:
+    abstract: true
+    description: >-
+      Abstract spatial descriptor for an InformationItem.
+    attributes:
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  Observation:
+    abstract: true
+    is_a: InformationItem
+    description: >-
+      Abstract InformationItem representing a measurement generated by an
+      ONVIF Device.
+    attributes:
+      observedTime:
+        range: Time
+        required: false
+        description: Temporal context observed by this observation.
+      observedSpace:
+        range: Location
+        required: false
+        description: Spatial context observed by this observation.
+
+  VehicleObservation:
+    abstract: false
+    is_a: Observation
+    description: Information about a vehicle.
+    attributes:
+      type:
+        range: VehicleType
+        required: true
+        description: >-
+          The type of the vehicle. Acceptable values are typically defined
+          in VehicleType.
+      brand:
+        range: StringLikelihood
+        required: false
+        description: The brand of the vehicle
+      model:
+        range: StringLikelihood
+        required: false
+        description: The model of the vehicle
+      color:
+        description: Descriptor for the vehicle's color.
+        range: ColorDescriptor
+        required: false
+
+  LicensePlateObservation:
+    abstract: false
+    is_a: Observation
+    description: Information about a vehicle's license plate.
+    attributes:
+      plateNumber:
+        description: A string representing the vehicle license plate number.
+        range: StringLikelihood
+        required: true
+      plateType:
+        description: >-
+          A description of the vehicle license plate type (e.g., "Normal",
+          "Police", "Diplomat").
+        range: PlateType
+        required: false
+      countryCode:
+        description: >-
+          Describes the country of the license plate. The country code shall 
+          be encoded as two letter code according to ISO 3166-1:2013 Alpha-2.
+        range: StringLikelihood
+        required: false
+      issuingEntity:
+        description: >-
+          State, province, or authority that issues the license plate.
+        range: StringLikelihood
+        required: false
+
+  BarcodeObservation:
+    abstract: false
+    is_a: Observation
+    description: Information extracted from a barcode.
+    attributes:
+      data:
+        description: Information encoded in barcode.
+        range: StringLikelihood
+        required: true
+      type:
+        description: Type of the barcode. Acceptable values are defined in BarcodeType.
+        range: BarcodeTypeLikelihood
+        required: false
+      ppm:
+        description: Refers to the pixels per module.
+        range: float
+        required: false
+
+  Assertion:
+    abstract: true
+    is_a: InformationItem
+    description: >-
+      Abstract InformationItem representing a statement supported by one or
+      more information items.
+    attributes:
+      supportedBy:
+        range: UUID
+        multivalued: true
+        required: true
+        description: >-
+          Identifiers of one or more supporting information items. The items
+          are referenced, not nested: each identifier shall resolve to an
+          information item the ONVIF Client has already received.

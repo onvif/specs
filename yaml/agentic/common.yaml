@@ -19,7 +19,84 @@ types:
     minimum_value: 0.0
     maximum_value: 1.0
 
+  UUID:
+    typeof: string
+    description: >-
+      Universally Unique Identifier in the canonical lowercase hyphenated
+      form specified in RFC 9562. Used as the range of every object
+      identifier slot in this model.
+    pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+
+  Base64Binary:
+    typeof: string
+    description: >-
+      Binary value encoded with the standard base64 alphabet defined in
+      RFC 4648, including padding.
+    pattern: '^[A-Za-z0-9+/]+={0,2}$'
+
+  ReferenceToken:
+    typeof: string
+    description: >-
+      Unique identifier referencing a physical or logical resource of an
+      ONVIF Device. It mirrors tt:ReferenceToken of the ONVIF Schema, and is
+      therefore limited to 64 characters.
+    pattern: '^.{1,64}$'
+
+  KeyID:
+    typeof: string
+    description: >-
+      Unique identifier of a key in the keystore of an ONVIF Device. It
+      mirrors tas:KeyID of the ONVIF Advanced Security Service, which is an
+      XML NCName limited to 64 characters. Using the same identifier space
+      allows a key named here to be looked up in the keystore of the device.
+    pattern: '^[A-Za-z_][A-Za-z0-9._-]{0,63}$'
+
 classes:
+
+  Extensible:
+    abstract: true
+    description: >-
+      Abstract class carrying extensions. It is used as the range of an
+      optional slot named extensible, which classes that support vendor
+      extensions declare individually; it is not intended to be inherited
+      via is_a, as it carries no attributes of its own. The only exceptions
+      are VendorExtension and VendorExtensible, which are themselves
+      extension containers.
+    comments:
+      - 'Declare an optional slot "extensible" with range Extensible on a class
+        that supports vendor extensions. Do not inherit it with is_a.'
+
+  VendorExtension:
+    abstract: false
+    is_a: Extensible
+    description: >-
+      Container for a single vendor-specific extension entry.
+    attributes:
+      vendor_namespace:
+        range: uri
+        required: true
+        description: URI namespace that uniquely identifies the vendor.
+      name:
+        range: string
+        required: true
+        description: Local name of the extension element within the vendor namespace.
+      value:
+        range: Any
+        required: false
+        description: Vendor-specific payload.
+
+  VendorExtensible:
+    abstract: false
+    is_a: Extensible
+    description: >-
+      Concrete container for grouping multiple vendor-specific extensions.
+    attributes:
+      vendorExtensions:
+        range: VendorExtension
+        multivalued: true
+        inlined_as_list: true
+        required: false
+        description: Zero or more vendor-specific extension entries.
 
   Any:
     description: >-
