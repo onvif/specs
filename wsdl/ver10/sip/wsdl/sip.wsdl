@@ -109,48 +109,47 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:simpleType>
 
 			<xs:complexType name="ServerConfiguration">
-				<xs:sequence>
-					<xs:element name="Registrar" type="tsip:Registrar" minOccurs="1" maxOccurs="unbounded">
-						<xs:annotation>
-							<xs:documentation>List of SIP registrars to register with, in order of preference.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:element name="UserId" type="xs:string">
-						<xs:annotation>
-							<xs:documentation>The user info/extension of the Address of Record (AoR) in SIP, identifying the user on the registrar.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:element name="CertPathValidationPolicyID" type="xs:string" minOccurs="0" maxOccurs="1">
-						<xs:annotation>
-							<xs:documentation>The unique identifier of the certification path validation policy to be used for validating the server certificate as declared in the security service.</xs:documentation>
-							<xs:documentation>If not configured, server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:element name="Authentication" minOccurs="1">
-						<xs:complexType>
-							<xs:sequence>
-								<xs:element name="Credential" type="tsip:BasicCredential" minOccurs="0" maxOccurs="1">
-									<xs:annotation>
-										<xs:documentation>Username and password used to authenticate with the registrar.</xs:documentation>
-									</xs:annotation>
-								</xs:element>
-								<xs:element name="AuthorizationServer" type="tt:ReferenceToken" minOccurs="0" maxOccurs="1">
-									<xs:annotation>
-										<xs:documentation>AuthorizationServer token referring to the server that provides access tokens to authorize with the
-											renewal endpoint as defined in the Security specification.</xs:documentation>
-									</xs:annotation>
-								</xs:element>
-							</xs:sequence>
-						</xs:complexType>
-					</xs:element>
-					<xs:element name="Name" type="xs:string" minOccurs="0" maxOccurs="1">
-						<xs:annotation>
-							<xs:documentation>Optional name of the server configuration.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
-				</xs:sequence>
-				<xs:anyAttribute processContents="lax"/>
+				<xs:complexContent>
+					<xs:extension base="tt:ConfigurationEntity">
+						<xs:sequence>
+							<xs:element name="Registrar" type="tsip:Registrar" minOccurs="1" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>List of SIP registrars to register with, in order of preference.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="UserId" type="xs:string">
+								<xs:annotation>
+									<xs:documentation>The user info/extension of the Address of Record (AoR) in SIP, identifying the user on the registrar.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="CertPathValidationPolicyID" type="xs:string" minOccurs="0" maxOccurs="1">
+								<xs:annotation>
+									<xs:documentation>The unique identifier of the certification path validation policy to be used for validating the server certificate as declared in the security service.</xs:documentation>
+									<xs:documentation>If not configured, server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Authentication" minOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Credential" type="tsip:BasicCredential" minOccurs="0" maxOccurs="1">
+											<xs:annotation>
+												<xs:documentation>Username and password used to authenticate with the registrar.</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="AuthorizationServer" type="tt:ReferenceToken" minOccurs="0" maxOccurs="1">
+											<xs:annotation>
+												<xs:documentation>AuthorizationServer token referring to the server that provides access tokens to authorize with the
+													renewal endpoint as defined in the Security specification.</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+						</xs:sequence>
+						<xs:anyAttribute processContents="lax"/>
+					</xs:extension>
+				</xs:complexContent>
 			</xs:complexType>
 			
 			<xs:element name="CreateServerConfiguration">
@@ -158,7 +157,8 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:sequence>
 						<xs:element name="ServerConfiguration" type="tsip:ServerConfiguration" minOccurs="1" maxOccurs="1">
 							<xs:annotation>
-								<xs:documentation>The new server configuration to be added on the device.</xs:documentation>
+								<xs:documentation>The new server configuration to be added on the device. "token" attribute value is ignored during 
+									this operation.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -204,26 +204,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-
-			<xs:complexType name="ServerConfigurationTokenPair">
-				<xs:sequence>
-					<xs:element name="Token" type="tt:ReferenceToken">
-						<xs:annotation>
-							<xs:documentation>Token of the server configuration.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:element name="ServerConfiguration" type="tsip:ServerConfiguration">
-						<xs:annotation>
-							<xs:documentation>The SIP server configuration of the device.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-				</xs:sequence>
-			</xs:complexType>
 			
 			<xs:element name="GetServerConfigurationsResponse">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="Configuration" type="tsip:ServerConfigurationTokenPair" minOccurs="0" maxOccurs="unbounded">
+						<xs:element name="Configuration" type="tsip:ServerConfiguration" minOccurs="0" maxOccurs="unbounded">
 							<xs:annotation>
 								<xs:documentation>SIP server configuration of the device.</xs:documentation>
 							</xs:annotation>
@@ -235,11 +220,6 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<xs:element name="SetServerConfiguration">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="Token" type="tt:ReferenceToken">
-							<xs:annotation>
-								<xs:documentation>Token of the server configuration.</xs:documentation>
-							</xs:annotation>
-						</xs:element>
 						<xs:element name="ServerConfiguration" type="tsip:ServerConfiguration">
 							<xs:annotation>
 								<xs:documentation>The SIP server configuration to update on the device.</xs:documentation>
@@ -772,7 +752,8 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<wsdl:output message="tsip:GetServiceCapabilitiesResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="CreateServerConfiguration">
-			<wsdl:documentation>This operation creates a new SIP server configuration on the device.</wsdl:documentation>
+			<wsdl:documentation>This operation creates a new SIP server configuration on the device. "token" attribute value is ignored during
+				this operation.</wsdl:documentation>
 			<wsdl:input message="tsip:CreateServerConfigurationRequest"/>
 			<wsdl:output message="tsip:CreateServerConfigurationResponse"/>
 		</wsdl:operation>
