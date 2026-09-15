@@ -94,21 +94,55 @@ enums:
       Temporary:
 
   VehicleType:
-    description: Allowed vehicle types (mapped from tt:VehicleType).
+    description: >-
+      Allowed vehicle types. Bus, Car, Truck, Bicycle and Motorcycle mirror
+      tt:VehicleType of the ONVIF Schema; Van, Other and Unknown extend it, so
+      this enumeration is a superset of tt:VehicleType and not a strict mapping
+      of it.
     permissible_values:
       Bus:
       Car:
       Truck:
+      Van:
       Bicycle:
       Motorcycle:
+      Other:
+        description: The type was determined, but it is not one of the values above.
+      Unknown:
+        description: >-
+          A vehicle was detected but its type could not be determined. This is
+          the value to use when classification failed or was not attempted,
+          since type is a required slot.
+
+  VehicleUse:
+    description: >-
+      Allowed uses of a vehicle. The use of a vehicle is orthogonal to its
+      type: an ambulance is a Van, a Truck or a Car that is put to emergency
+      medical service. This enumeration has no counterpart in the ONVIF Schema.
+    permissible_values:
+      Private:
+      Taxi:
+      PublicTransport:
+      Delivery:
+      Ambulance:
+      Police:
+      Fire:
+      Other:
+        description: The use was determined, but it is not one of the values above.
+      Unknown:
+        description: >-
+          The use could not be determined, although the ONVIF Device does
+          classify vehicle use. It is distinct from the absence of the use
+          slot, which states that the device does not classify use at all.
 
   DigestAlgorithm:
     description: >-
       Hash algorithms that may be used to digest a canonicalised
-      InformationItem and to compute the envelope digest. Each permissible
-      value carries, in its meaning, the object identifier of the algorithm,
-      so that the formal identifier is the same one used by the ONVIF Media
-      Signing Specification.
+      InformationItem, to compute the envelope digest, and to compute the
+      fingerprint of a public key. Each permissible value carries, in its
+      meaning, the object identifier of the algorithm, so that the formal
+      identifier is the same one used by the ONVIF Media Signing
+      Specification.
 
       This enumeration only fixes the wire representation of an algorithm
       name. It is not a statement of which algorithms are acceptable: the

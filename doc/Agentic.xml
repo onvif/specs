@@ -98,6 +98,8 @@
     <title>Normative references</title>
     <para>IETF RFC 4648 The Base16, Base32, and Base64 Data Encodings</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc4648.txt">http://www.ietf.org/rfc/rfc4648.txt</link>&gt;</para>
+    <para>IETF RFC 5280 Internet X.509 Public Key Infrastructure Certificate and CRL Profile</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc5280.txt">http://www.ietf.org/rfc/rfc5280.txt</link>&gt;</para>
     <para>IETF RFC 6750 OAuth 2.0 Bearer Token Usage</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc6750.txt">http://www.ietf.org/rfc/rfc6750.txt</link>&gt;</para>
     <para>IETF RFC 7517 JSON Web Key (JWK)</para>
@@ -138,12 +140,6 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/core/ONVIF-Security-Specification.pdf">https://www.onvif.org/specs/core/ONVIF-Security-Specification.pdf</link>&gt;</para>
     <para>W3C JSON Schema Draft-07</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://json-schema.org/draft-07/schema">https://json-schema.org/draft-07/schema</link>&gt;</para>
-    <para>W3C RDF Dataset Canonicalization</para>
-    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.w3.org/TR/rdf-canon/">https://www.w3.org/TR/rdf-canon/</link>&gt;</para>
-    <para>W3C Semantic Sensor Network Ontology — Sensor, Observation, Sample, and Actuator (SOSA)</para>
-    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.w3.org/TR/vocab-ssn/">https://www.w3.org/TR/vocab-ssn/</link>&gt;</para>
-    <para>W3C Verifiable Credential Data Integrity 1.0</para>
-    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.w3.org/TR/vc-data-integrity/">https://www.w3.org/TR/vc-data-integrity/</link>&gt;</para>
   </chapter>
 
   <chapter xml:id="ch_terms_and_definitions">
@@ -176,7 +172,7 @@
                   ONVIF Device on an open <code>events/stream</code> response so that the ONVIF
                   Client can distinguish an idle stream from a dead one, and so that the client's
                   persisted cursor advances during quiet periods. The default interval is 30
-                  seconds and is configurable through the <code>set_event_keepalive</code>
+                  seconds and is configurable through the <code>set_event_stream_parameters</code>
                   function (see <xref linkend="sec_event_keepalive"/>).</para>
               </entry>
             </row>
@@ -462,6 +458,14 @@
               <para>http://www.onvif.org/ver10/topics</para>
             </entry>
           </row>
+          <row>
+            <entry>
+              <para>onvif</para>
+            </entry>
+            <entry>
+              <para>https://www.onvif.org/ver10/agentic/linkml/</para>
+            </entry>
+          </row>
         </tbody>
       </tgroup>
     </table>
@@ -574,27 +578,85 @@
         <para>A LinkML schema document is a YAML file with the following top-level keys:</para>
         <itemizedlist>
           <listitem>
-            <para><code>id</code>: a globally unique URI that serves as the schema identifier. This
-              URI is reused as the JSON-LD <code>@context</code> value in every event payload
-              emitted by the ONVIF Device, making the schema self-locating.</para>
+            <para><code>id</code>: a globally unique URI that identifies the schema module. Each
+              module of the bundle defined by this specification declares its own, for example
+                <code>https://www.onvif.org/ver10/agentic/base/linkml/</code>. It names a document,
+              and it is the identifier under which an ONVIF Client registers the compiled schema. It
+              is not the value carried by <code>@context</code> in a payload; the distinction is set
+              out in <xref linkend="sec_schema_uri_roles"/>.</para>
           </listitem>
           <listitem>
-            <para><code>imports</code>: a list of schema URIs from which common types are inherited.
-              ONVIF maintains a shared type library (<code>ver10_schema_common_linkml</code>) that
-              defines reusable structures such as bounding boxes, polygon regions, timestamps, and
-              confidence scores. ONVIF Devices SHOULD import this library rather than redefining
-              common types.</para>
+            <para><code>prefixes</code> and <code>default_prefix</code>: the mapping from short
+              prefixes to namespace URIs, and the prefix under which the classes of the module are
+              placed. Every module of this specification declares
+                <code>onvif: https://www.onvif.org/ver10/agentic/linkml/</code> and sets
+                <code>default_prefix: onvif</code>, so the classes of all modules share one
+              vocabulary namespace irrespective of which document declares them. The class
+                <code>VehicleObservation</code> is therefore identified by
+                <code>https://www.onvif.org/ver10/agentic/linkml/VehicleObservation</code>. This is
+              the mechanism on which the collision safety of vendor extensions rests, as described
+              in <xref linkend="sec_vendor_class_extensions"/>.</para>
           </listitem>
           <listitem>
-            <para><code>classes</code>: named data structures with typed attributes, optional range
-              constraints (<code>minimum_value</code>, <code>maximum_value</code>), and
-              documentation strings. The root event class shall extend
-                <code>BaseAnalyticsEvent</code> from the ONVIF common type library.</para>
+            <para><code>imports</code>: a list of modules whose definitions are made available to
+              the importing document. The bundle defined by this specification is listed in
+              <xref linkend="sec_onvif_common_type_library"/>. An ONVIF Device shall not redefine a
+              class, a type or an enumeration that the bundle already declares.</para>
           </listitem>
           <listitem>
-            <para><code>enums</code>: closed value sets used for categorical fields such as
-                <code>SeverityLevel</code> (<code>low</code>, <code>medium</code>,
-              <code>high</code>, <code>critical</code>) and event type discriminators.</para>
+            <para><code>classes</code>: named data structures with typed attributes, optional
+              constraints (<code>minimum_value</code>, <code>maximum_value</code>,
+                <code>minimum_cardinality</code>), and documentation strings. Every class that
+              describes a unit of metadata derives, directly or indirectly, from
+                <code>InformationItem</code> (see <xref linkend="sec_information_item"/>).</para>
+          </listitem>
+          <listitem>
+            <para><code>enums</code>: closed value sets used for categorical fields, such as
+                <code>VehicleType</code>, <code>VehicleUse</code> and
+              <code>DigestAlgorithm</code>. A value set is closed in a stronger sense than it may
+              appear: an enumeration reached through <code>imports</code> cannot be extended with
+              further permissible values, so a vendor that needs a value the enumeration does not
+              provide cannot add one. This is why the enumerations of this specification that
+              classify an observed property provide both an <code>Other</code> value, for a property
+              that was determined but does not appear in the list, and an <code>Unknown</code> value,
+              for a property that could not be determined at all.</para>
+          </listitem>
+        </itemizedlist>
+      </section>
+
+      <section xml:id="sec_schema_uri_roles">
+        <title>The Four Roles of a URI</title>
+        <para>Four distinct kinds of URI appear in a metadata payload and in the schema documents
+          behind it. They look alike, and treating one as another leads an ONVIF Client to look up
+          an artefact that does not exist, so each is stated here once and used consistently
+          throughout this specification.</para>
+        <itemizedlist>
+          <listitem>
+            <para>A <emphasis>schema identifier</emphasis> is the <code>id</code> of a LinkML module,
+              such as <code>https://www.onvif.org/ver10/agentic/base/linkml/</code>. It names a
+              document.</para>
+          </listitem>
+          <listitem>
+            <para>The <emphasis>vocabulary namespace</emphasis> is the expansion of
+              <code>default_prefix</code>, which is
+                <code>https://www.onvif.org/ver10/agentic/linkml/</code> for every module of this
+              specification. It is the namespace in which a bare class name is interpreted, and it is
+              the value carried by <code>@context</code> in a payload, as specified in
+              <xref linkend="sec_context_and_type_annotations"/>.</para>
+          </listitem>
+          <listitem>
+            <para>A <emphasis>class identifier</emphasis> is a class name resolved within a
+              vocabulary namespace, such as
+                <code>https://www.onvif.org/ver10/agentic/linkml/VehicleObservation</code>. It is the
+              canonical identity of a metadata class, and therefore of an event type.</para>
+          </listitem>
+          <listitem>
+            <para>An <emphasis>MCP resource URI</emphasis> is the address at which an ONVIF Device
+              serves a schema document over MCP, and is the value an ONVIF Client passes to
+                <code>resources/read</code>, as shown in
+              <xref linkend="sec_annex_schema_retrieval"/>. It is a property of the device that
+              serves the document, not of the schema the document defines: two devices may serve the
+              same schema at different resource URIs.</para>
           </listitem>
         </itemizedlist>
       </section>
@@ -644,20 +706,54 @@
       </section>
 
       <section xml:id="sec_onvif_common_type_library">
-        <title>ONVIF Common Type Library</title>
-        <para>The ONVIF AI Working Group maintains a shared LinkML type library
-            (<code>ver10_schema_common_linkml</code>) that defines base classes and enumerations
-          used across all ONVIF Devices. Key types include:</para>
-        <para><code>BaseAnalyticsEvent</code>: the mandatory root class for all metadata events,
-          defining the required fields <code>event_id</code> (UUID), <code>timestamp</code>
-          (ISO 8601 UTC), <code>source_uri</code>, <code>confidence</code> (float, 0.0–1.0), and
-          <code>severity</code> (<code>SeverityLevel</code> enum).</para>
-        <para><code>BoundingBox</code> and <code>PolygonRegion</code>: normalised coordinate
-          structures shared between event payloads and skill input schemas to ensure consistent
-          spatial referencing.</para>
-        <para>ONVIF shall not redefine any type declared in the common type library. This ensures
-          that an ONVIF Client that has already loaded the common library does not need to re-fetch
-          it for each new ONVIF Device it connects to.</para>
+        <title>ONVIF Agentic Schema Bundle</title>
+        <para>The ONVIF AI Working Group maintains one shared schema bundle, which every ONVIF Device
+          exposes and which no ONVIF Device modifies. It is organised as one module per concern:</para>
+        <itemizedlist>
+          <listitem>
+            <para><code>agentic/common</code>: the primitive types on which the rest of the bundle
+              rests — <code>UUID</code>, <code>Likelihood</code>, <code>Base64Binary</code>,
+                <code>ReferenceToken</code>, <code>KeyID</code> — together with the vendor extension
+              containers and the compound value structures such as
+              <code>StringLikelihood</code> and <code>ColorDescriptor</code>.</para>
+          </listitem>
+          <listitem>
+            <para><code>agentic/enums</code>: the enumerations, such as <code>VehicleType</code>,
+                <code>VehicleUse</code>, <code>PlateType</code>, <code>BarcodeType</code>,
+                <code>DigestAlgorithm</code> and <code>SignatureAlgorithm</code>.</para>
+          </listitem>
+          <listitem>
+            <para><code>agentic/time</code>: <code>Time</code> and its concrete forms,
+                <code>ISO8601Timestamp</code> and <code>ISO8601Interval</code>.</para>
+          </listitem>
+          <listitem>
+            <para><code>agentic/signature</code>: the signing and integrity classes —
+                <code>ItemDigest</code>, <code>KeyFingerprint</code>, <code>SigningKey</code> and its
+              concrete forms, <code>DevicePublicKey</code>, and the <code>OnvifSignature</code>
+              profile.</para>
+          </listitem>
+          <listitem>
+            <para><code>agentic/base</code>: the metadata model proper —
+              <code>InformationItem</code>, <code>InformationEnvelope</code>,
+              <code>Observation</code> and <code>Assertion</code> with their concrete subclasses,
+                <code>Provenance</code>, and <code>Location</code>. It is described in
+              <xref linkend="ch_metadata"/>.</para>
+          </listitem>
+          <listitem>
+            <para><code>agentic</code>: the Skill interface — <code>FunctionDescriptor</code>,
+                <code>ListFunctionsResult</code>, the abstract bases that every function
+              specialises, and the classes of the reserved <code>set_event_stream_parameters</code>
+              function.</para>
+          </listitem>
+        </itemizedlist>
+        <para>An ONVIF Device shall not redefine a class, a type or an enumeration that the bundle
+          declares. This ensures that an ONVIF Client that has already loaded the bundle does not
+          need to re-fetch it for each new ONVIF Device it connects to.</para>
+        <para>Because every module places its classes in the same vocabulary namespace, a class is
+          identified in the same way whichever module declares it. An ONVIF Client therefore resolves
+          a class name against the bundle as a whole, and not against the particular document in
+          which the class happens to appear; moving a class between modules in a future revision does
+          not change its identity.</para>
       </section>
     </section>
 
@@ -671,48 +767,113 @@
 
       <section xml:id="sec_context_and_type_annotations">
         <title>Context and Type Annotations</title>
-        <para>Every metadata event emitted by an ONVIF Device shall include two mandatory JSON-LD
-          keywords:</para>
-        <para><code>@context</code>: a URI that points to the canonical LinkML schema for this event
-          type. The value shall equal the <code>id</code> field of the LinkML schema from which the
-          event class is derived. This URI is the primary key used by the ONVIF Client Schema
-          Registry to look up the compiled JSON Schema for validation.</para>
-        <para><code>@type</code>: the class name of the event as declared in the LinkML schema
-          (e.g., <code>FireDetectionEvent</code>, <code>PersonCrossingEvent</code>). This field
-          allows the ONVIF Client to route the event to the appropriate handler without inspecting the full
-          payload.</para>
-        <para>Together, <code>@context</code> and <code>@type</code> make each event
-          <emphasis>self-describing</emphasis>: an ONVIF Client that receives an event with an unfamiliar
-          <code>@context</code> URI knows exactly where to fetch the schema needed to understand
-          and validate the event.</para>
+        <para>Every metadata payload emitted by an ONVIF Device shall carry two JSON-LD keywords.</para>
+        <para><code>@context</code> shall be the vocabulary namespace defined in
+          <xref linkend="sec_schema_uri_roles"/>, namely
+            <code>https://www.onvif.org/ver10/agentic/linkml/</code>. It appears once per
+            <code>InformationEnvelope</code> and its value is the same for every ONVIF Device, since
+          every device draws its types from the same bundle. It states which vocabulary the bare names
+          in the payload belong to.</para>
+        <para>This URI is not required to be dereferenceable, and an ONVIF Client shall not depend on
+          being able to retrieve a JSON-LD context document from it. The mapping from names to
+          identifiers is not fetched at runtime: it is derived from the LinkML modules the ONVIF
+          Device serves as resources, which an ONVIF Client has already loaded when it established the
+          session (see <xref linkend="sec_annex_schema_retrieval"/>). Where an ONVIF Client wishes to
+          perform full JSON-LD processing, it constructs the context itself from those modules, by the
+          rules below, and supplies it to its own processor.</para>
+        <para>A context derived from a LinkML module shall bind:</para>
+        <itemizedlist>
+          <listitem>
+            <para><code>@vocab</code> to the expansion of the <code>default_prefix</code> of the
+              module;</para>
+          </listitem>
+          <listitem>
+            <para>each class to its own local name within that namespace;</para>
+          </listitem>
+          <listitem>
+            <para>each prefix declared in <code>prefixes</code> to the namespace URI it is declared
+              with.</para>
+          </listitem>
+        </itemizedlist>
+        <para>These three rules are stated normatively so that an ONVIF Device and an ONVIF Client
+          agree on the meaning of a payload without depending on any particular version of the LinkML
+          toolchain. A context produced by a LinkML context generator satisfies them; so does one
+          written by hand.</para>
+        <para><code>@type</code> shall name the class of the node it appears on. For a class declared
+          by the ONVIF Agentic Schema Bundle the value is the bare local name, for example
+            <code>VehicleObservation</code>, which the vocabulary namespace resolves. For a class
+          declared by a vendor extension the value shall be a compact URI formed with a prefix that
+          the vendor module declares, for example <code>acme:ThermalObservation</code>; a bare name
+          shall not be used for a class outside the bundle. The reasoning is given in
+          <xref linkend="sec_vendor_class_extensions"/>.</para>
+        <para>The prefixes declared by the modules a single ONVIF Device serves shall be mutually
+          distinct. Where two independently authored extensions would claim the same prefix, the
+          device shall rename one of them before serving it, in the same way and for the same reason
+          that it arbitrates function names.</para>
+        <para>Together, <code>@context</code> and <code>@type</code> make each item
+            <emphasis>self-describing</emphasis> with respect to a bundle the ONVIF Client already
+          holds: the first says which vocabulary is in force, the second says which class in that
+          vocabulary the item instantiates, and the ONVIF Client routes and validates the item on the
+          strength of the two together.</para>
       </section>
 
       <section xml:id="sec_self_describing_events">
         <title>Self-Describing Events and Dynamic Schema Registration</title>
-        <para>The self-describing nature of JSON-LD enables a dynamic schema registration workflow.
-          When the ONVIF Client Schema Registry receives a metadata event whose
-            <code>@context</code> URI does not match any registered schema, it shall:</para>
-        <para>1. Suspend validation of the triggering event.</para>
-        <para>2. Fetch the LinkML schema YAML from the URI identified by <code>@context</code>,
-          or issue an MCP <code>resources/read</code> request to the originating ONVIF Device to
-          retrieve the latest schema bundle.</para>
-        <para>3. Register the schema bundle in the local registry.</para>
-        <para>4. Re-validate and process the suspended event against the newly registered
-          schema.</para>
-        <para>This mechanism allows an ONVIF Device to introduce a new event type (e.g., a firmware
-          update that adds a <code>VehicleTypeDetectionEvent</code>) without requiring a
-          pre-coordinated ONVIF Client update. The ONVIF Client self-heals its schema knowledge at runtime.</para>
+        <para>An ONVIF Client loads the schema modules an ONVIF Device serves when it establishes the
+          session, by enumerating them with <code>resources/list</code> and reading each one, and it
+          keys its registry on the schema identifier of each module. In steady state, therefore, every
+          class an ONVIF Client encounters is already known to it.</para>
+        <para>The workflow below handles the case where it is not: an ONVIF Client receives an item
+          whose <code>@type</code> it cannot resolve, either because the bare name is not declared by
+          any module it holds or because the prefix of a compact URI is not bound by any of them. The
+          trigger is the unresolved <code>@type</code> and not the value of <code>@context</code>,
+          which is a constant and therefore never signals that anything new has appeared. An ONVIF
+          Client shall:</para>
+        <para>1. Suspend validation of the triggering item.</para>
+        <para>2. Re-enumerate the resources of the originating ONVIF Device with
+            <code>resources/list</code> and read any module it does not already hold.</para>
+        <para>3. Register the new modules under their schema identifiers and rebuild the mapping from
+          class names to class identifiers.</para>
+        <para>4. Re-validate and process the suspended item against the newly registered
+          module.</para>
+        <para>An ONVIF Client that still cannot resolve the <code>@type</code> after this shall treat
+          the item as being of an unknown type. It shall not discard the enclosing
+            <code>InformationEnvelope</code> on that ground alone, since the envelope may carry
+          further items it does understand, and an envelope that is signed remains verifiable
+          irrespective of whether every class in it is known.</para>
+        <para>This mechanism allows an ONVIF Device to introduce a new class — for instance a firmware
+          update that adds a vendor observation — without requiring a pre-coordinated ONVIF Client
+          update. The corresponding obligations on the ONVIF Device, which shall announce the change
+          rather than let it be discovered by a failure, are specified in
+          <xref linkend="sec_dynamic_schema_reregistration"/>.</para>
       </section>
 
       <section xml:id="sec_relationship_to_linked_data">
         <title>Relationship to Linked Data</title>
-        <para>Although full JSON-LD processing (graph expansion, context dereferencing, SPARQL
-          querying) is not required by this specification, the use of JSON-LD framing ensures
-          forward compatibility with semantic web tooling. A conformant ONVIF Client shall treat
-            <code>@context</code> and <code>@type</code> as opaque identifiers for schema lookup and
-          event routing. An ONVIF Client MAY additionally perform full JSON-LD processing for
-          downstream applications such as knowledge graph ingestion or cross-vendor event
-          correlation.</para>
+        <para>No part of this specification requires full JSON-LD processing. Nothing depends on
+          graph expansion, on RDF canonicalisation, or on <code>@context</code> being retrievable: the
+          payload is validated against a JSON Schema compiled from the LinkML bundle, the signature
+          profile of <xref linkend="sec_onvif_signature"/> canonicalises plain JSON, and the
+          cross-references between information items are resolved by the rules of
+          <xref linkend="sec_assertion"/>. A conformant ONVIF Client shall treat
+            <code>@context</code> and <code>@type</code> as identifiers for schema lookup and item
+          routing.</para>
+        <para>An ONVIF Client may nonetheless perform full JSON-LD processing, for downstream
+          applications such as knowledge graph ingestion or cross-vendor correlation, and the payload
+          is shaped so that it can. Two consequences of the preceding sections apply to an ONVIF
+          Client that chooses to do so, and are stated here because they are easy to discover late.</para>
+        <para>First, a general-purpose JSON-LD processor cannot be pointed at an ONVIF payload as it
+          stands, because it would attempt to dereference <code>@context</code> and fail. An ONVIF
+          Client shall instead supply the context it derived from the LinkML modules of the device, by
+          the rules of <xref linkend="sec_context_and_type_annotations"/>, associating it with the
+          vocabulary namespace in the document loader of its processor.</para>
+        <para>Second, the identifiers of information items are plain UUID strings and are not JSON-LD
+          node identifiers, as stated in <xref linkend="sec_object_identifiers"/>. The references that
+          one item makes to another — the <code>supportedBy</code> field of an
+          <code>Assertion</code>, the <code>item</code> field of an <code>ItemDigest</code> — are
+          therefore not edges of an RDF graph. An ONVIF Client that builds a graph from these payloads
+          shall construct those edges itself, minting node identifiers in a form of its own choosing;
+          it shall not expect a JSON-LD processor to produce them.</para>
       </section>
     </section>
   </chapter>
@@ -911,27 +1072,6 @@
         <para>See <xref linkend="sec_annex_schema_inventory"/> and <xref
             linkend="sec_annex_schema_retrieval"/> for wire format examples.</para>
       </section>
-      <section xml:id="sec_capability_discovery">
-        <title>Capability Discovery</title>
-        <para>Capability discovery shall be performed through the MCP <code>resources/read</code>
-          operation using the reserved URI
-          <code>capabilities://www.onvif.org/ver10/agentic</code>.</para>
-        <para>An ONVIF Device implementing the Agentic Service shall expose
-            <code>capabilities://www.onvif.org/ver10/agentic</code> and shall return the Agentic
-          Service capabilities document when that URI is requested via <code>resources/read</code>.
-          The capabilities document describes the features supported by the device, such as
-          supported functions, event classes, and optional extensions. It shall also declare the
-            <code>events</code> capability (<code>{"events": {"listChanged": true}}</code>, per the
-          MCP Events extension) together with, for each declared event type, the delivery modes
-          supported (<code>"push"</code>, <code>"webhook"</code>, or both — see <xref
-            linkend="sec_metadata_event_delivery"/>), and the default keep-alive interval applied
-          to push streams (see <xref linkend="sec_event_keepalive"/>).</para>
-        <para>Exposing capabilities for other ONVIF services is optional. When provided, the same
-          URI pattern shall be used, replacing <code>ai</code> with the service name:
-            <code>capabilities://onvif/&lt;service-name&gt;</code>.</para>
-        <para>See <xref linkend="sec_annex_ai_capability_discovery"/> and <xref
-            linkend="sec_annex_optional_capability_discovery"/> for wire format examples.</para>
-      </section>
       <section xml:id="sec_tool_discovery">
         <title>Tool Discovery</title>
         <para>The ONVIF Device exposes its Skills — callable operations — as MCP Tools. The
@@ -991,7 +1131,7 @@
           <code>tools/call</code>; the six Skills defined here are the same on every conforming
         device and are discovered with <code>tools/list</code> (see <xref
           linkend="sec_tool_discovery"/>). A <emphasis>function</emphasis> is an analytic
-        capability on which those Skills operate, such as <code>fire_detection</code>; functions
+        capability on which those Skills operate, such as <code>vehicle_detection</code>; functions
         vary between device instances and over time, and are discovered with the
           <code>list_functions</code> Skill (see <xref linkend="sec_skill_list_functions"/>). A
         function is not an MCP Tool and shall not be exposed as one: it is named in the
@@ -1034,10 +1174,16 @@
         <para>Each entry in the response <code>structuredContent.functions</code> array shall
           include: <itemizedlist>
             <listitem>
-              <para><code>name</code> — function identifier drawn from the ONVIF function
-                vocabulary (for example <code>fire_detection</code>,
-                  <code>face_recognition</code>, <code>license_plate_recognition</code>,
-                  <code>tailgating_detection</code>).</para>
+              <para><code>name</code> — the local name of the function on this device (for example
+                  <code>vehicle_detection</code>, <code>license_plate_recognition</code>,
+                  <code>set_event_stream_parameters</code>). It is the value the ONVIF Client passes in the
+                  <code>function</code> argument of <code>configure_function</code>,
+                  <code>execute_function</code>, <code>stop_function</code> and
+                  <code>get_function_capabilities</code>.</para>
+            </listitem>
+            <listitem>
+              <para><code>canonicalUri</code> — the canonical identifier of the function, which is
+                the same on every ONVIF Device that implements it.</para>
             </listitem>
             <listitem>
               <para><code>enabled</code> — boolean indicating whether this function is configured
@@ -1071,14 +1217,43 @@
           </itemizedlist></para>
         <para>The structure of this response is defined by the <code>ListFunctionsResult</code> and
           <code>FunctionDescriptor</code> classes of the Agentic Service LinkML schema.</para>
+
         <para>An ONVIF Device that exposes no local functions shall return an array containing only
           the reserved functions defined by this specification.</para>
-        <para>The function identifier <code>set_event_keepalive</code> is reserved by this
+        <para>The function identifier <code>set_event_stream_parameters</code> is reserved by this
           specification. Every ONVIF Device implementing the Agentic Service shall include it in
           the <code>functions</code> array with <code>enabled: true</code>, so that an ONVIF Client
-          can discover the keep-alive control without out-of-band knowledge (see <xref
-            linkend="sec_event_keepalive"/>).</para>
+          can discover both the keep-alive control and the limits of the event stream without
+          out-of-band knowledge (see <xref linkend="sec_event_keepalive"/>).</para>
         <para>See <xref linkend="sec_annex_skill_list_functions"/> for a wire format example.</para>
+
+        <section xml:id="sec_function_catalogue">
+          <title>Function identity</title>
+          <para>A function carries two identifiers because the two questions an ONVIF Client asks
+            about a function are different. To <emphasis>call</emphasis> it, the client needs the
+            handle this device answers to; to <emphasis>recognise</emphasis> it, and to correlate it
+            with the same function on another device, the client needs an identifier that does not
+            depend on the device at all.</para>
+          <para><code>name</code> is the handle. It shall be unique within a single
+            <code>list_functions</code> response, and it is arbitrated by the ONVIF Device: where two
+            independently defined functions would claim the same local name, the device shall rename
+            one of them. It is therefore not a global identifier, and an ONVIF Client shall not use it
+            as a key across devices, nor assume that a name it recognises on one device denotes the
+            same function on another.</para>
+          <para><code>canonicalUri</code> is the identity. It shall be present on every entry, it
+            shall be the same on every ONVIF Device that implements the function, and it shall be
+            stable under any renaming of the local name. For a function reserved by this
+            specification the value shall be
+            <code>https://www.onvif.org/ver10/agentic/function/</code> followed by the reserved name,
+            for example
+            <code>https://www.onvif.org/ver10/agentic/function/set_event_stream_parameters</code>. For any
+            other function the value shall lie in a namespace controlled by the party that defined
+            the function.</para>
+          <para>This is the same division of labour that applies to event types (see <xref
+              linkend="sec_event_type_catalogue"/>), and for the same reason: a bare local name
+            cannot be made collision-free across parties who do not coordinate, while a URI in a
+            namespace its owner controls can.</para>
+        </section>
       </section>
 
       <section xml:id="sec_skill_get_function_capabilities">
@@ -1163,7 +1338,7 @@
           it terminates independently.</para>
         <para><code>execute_function</code> is also the mechanism through which the ONVIF Client
           adjusts the keep-alive interval of push streams, by invoking the reserved
-            <code>set_event_keepalive</code> function (see <xref linkend="sec_event_keepalive"/>).</para>
+            <code>set_event_stream_parameters</code> function (see <xref linkend="sec_event_keepalive"/>).</para>
       </section>
 
       <section xml:id="sec_skill_stop_function">
@@ -1188,11 +1363,38 @@
         (<code>events/poll</code>) delivery mode.</para>
       <section xml:id="sec_event_type_catalogue">
         <title>Event Type Catalogue</title>
+        <para>An event type of this specification is a metadata class. An ONVIF Device that can
+          report vehicle observations declares an event type for
+          <code>VehicleObservation</code>, and an ONVIF Client that subscribes to it is asking to be
+          told when an item of that class is produced. There is no separate catalogue of event names
+          to be kept in step with the schema: the catalogue is a selection of the classes the ONVIF
+          Device is able to emit.</para>
         <para>An ONVIF Device shall advertise its event types via <code>events/list</code>. Each
           entry shall include: <itemizedlist>
             <listitem>
-              <para><code>name</code> — the event type identifier, matching the <code>@type</code>
-                value used in delivered payloads (for example <code>FireDetectionEvent</code>).</para>
+              <para><code>name</code> — the local name of the event type on this ONVIF Device. It
+                shall be the same string that appears as the <code>@type</code> of an item of that
+                class in a delivered payload: the bare class name for a class of the ONVIF Agentic
+                Schema Bundle, for example <code>VehicleObservation</code>, and a compact URI for a
+                class introduced by a vendor extension, for example
+                <code>acme:ThermalObservation</code>.</para>
+              <para>Because the prefixes an ONVIF Device serves are mutually distinct (see <xref
+                  linkend="sec_context_and_type_annotations"/>), this value is unique within the
+                device. It is not unique beyond it: two vendors may independently define a class of
+                the same local name, and an ONVIF Client shall therefore not use <code>name</code> as
+                a key across devices.</para>
+            </listitem>
+            <listitem>
+              <para><code>canonicalUri</code> — the class identifier of the event type, as defined in
+                <xref linkend="sec_schema_uri_roles"/>: an absolute URI such as
+                  <code>https://www.onvif.org/ver10/agentic/linkml/VehicleObservation</code>. This is
+                the identity of the event type. It is the same on every ONVIF Device that emits the
+                class, it is unaffected by any renaming of a prefix, and it is the value an ONVIF
+                Client shall use to decide whether two devices report the same kind of thing.</para>
+              <para>The value is redundant, in that an ONVIF Client holding the schema modules of the
+                device can derive it from <code>name</code>. It is carried explicitly because it
+                appears once per catalogue entry rather than once per event, and because it allows a
+                catalogue to be interpreted before the modules have been read.</para>
             </listitem>
             <listitem>
               <para><code>delivery</code> — the non-empty subset of <code>"push"</code> and
@@ -1206,12 +1408,33 @@
             </listitem>
             <listitem>
               <para><code>payloadSchema</code> — a JSON Schema describing the shape of the
-                event <code>data</code> field. For this specification, <code>payloadSchema</code>
-                is the JSON Schema compiled from the LinkML class identified by the event's
-                  <code>@context</code>/<code>@type</code> pair (see <xref
-                  linkend="sec_event_payload_structure"/>).</para>
+                event <code>data</code> field. Because <code>data</code> is always an
+                  <code>InformationEnvelope</code>, as specified in
+                <xref linkend="sec_event_payload_structure"/>, the value is the same for every event
+                type an ONVIF Device declares, namely a reference to the compiled
+                  <code>InformationEnvelope</code> class:</para>
+              <programlisting>https://www.onvif.org/ver10/agentic/base/linkml/#/$defs/InformationEnvelope</programlisting>
+              <para>What distinguishes one event type from another is therefore not the shape of the
+                payload but <code>canonicalUri</code>, which names the class an ONVIF Client is
+                subscribing to among the items the envelope carries.</para>
             </listitem>
           </itemizedlist></para>
+        <para>An <code>InformationEnvelope</code> delivered for a subscription shall contain at least
+          one item of the subscribed class, and may contain further items that are needed to interpret
+          it. An <code>Assertion</code> that draws on an observation produced at the same moment is
+          the usual reason for the second case: the envelope carries both, so that an ONVIF Client
+          receives the claim and its immediate support together. Items whose production is separated
+          in time are not gathered into one envelope; they are linked by identifier, as specified in
+          <xref linkend="sec_assertion"/>.</para>
+        <para>One occurrence may satisfy several subscriptions — an envelope containing a
+            <code>VehicleObservation</code> and a <code>VehicleReidentification</code> matches a
+          subscription to either class. The ONVIF Device shall deliver it on each matching
+          subscription, and shall not withhold it from one because it was delivered on another. An
+          ONVIF Client holding several subscriptions shall therefore expect to receive the same items
+          more than once, and shall deduplicate on the identifiers of the items rather than on the
+            <code>eventId</code> of the occurrence, which is per-delivery. Item identifiers are unique
+          and never reused, as specified in <xref linkend="sec_object_identifiers"/>, which makes this
+          deduplication exact.</para>
         <para>If the set of event types, or the descriptor of any of them, changes at runtime, the
           ONVIF Device shall send <code>notifications/events/list_changed</code> and the ONVIF
           Client shall re-call <code>events/list</code> to refresh its registry.</para>
@@ -1262,8 +1485,13 @@
           one per subscription; HTTP/2 is RECOMMENDED so that they are multiplexed on a single
           connection. An ONVIF Device shall exempt <code>events/stream</code> from any general
           request-concurrency limit it applies, and shall declare the maximum number of concurrent
-          streams it supports in its capabilities document; it shall reject a request exceeding
-          that limit with <code>-32013 ResourceExhausted</code>.</para>
+          streams it supports in <code>maxConcurrentStreams</code> of
+          <code>EventStreamCapabilities</code>, read with the
+          <code>get_function_capabilities</code> Skill for the reserved
+          <code>set_event_stream_parameters</code> function (see <xref
+            linkend="sec_event_keepalive"/>); it shall reject a request exceeding that limit with
+          <code>-32013 ResourceExhausted</code>. An ONVIF Client that reads that value before
+          opening its streams need never provoke that error.</para>
         <para>If the stream is interrupted, the ONVIF Client shall reopen an
             <code>events/stream</code> request with the same <code>name</code> and
             <code>arguments</code> and its last persisted <code>cursor</code>.</para>
@@ -1287,10 +1515,10 @@
           the current keep-alive interval shall treat the stream as dead and reopen it with its
           last persisted cursor.</para>
         <para>The keep-alive interval is configurable by the ONVIF Client through the reserved
-            <code>set_event_keepalive</code> function, invoked with the <code>execute_function</code>
+            <code>set_event_stream_parameters</code> function, invoked with the <code>execute_function</code>
           Skill (see <xref linkend="sec_skill_execute_function"/>). The structure of the
             <code>parameters</code> argument is defined by the LinkML class
-            <code>SetEventKeepaliveParametersRequest</code> in the schema bundle, which declares:
+            <code>SetEventStreamParametersRequest</code> in the schema bundle, which declares:
           <itemizedlist>
             <listitem>
               <para><code>keepaliveIntervalMs</code> (integer, optional, default
@@ -1307,7 +1535,7 @@
         <para>An ONVIF Device shall apply the requested interval, clamped to the range it supports,
           and shall report the value actually applied in the
             <code>structuredContent</code> of the <code>execute_function</code> response, as
-          defined by the LinkML class <code>SetEventKeepaliveParametersResponse</code>
+          defined by the LinkML class <code>SetEventStreamParametersResponse</code>
             (<code>appliedKeepaliveIntervalMs</code>, <code>clamped</code>, and
             <code>affectedStreams</code>). Clamping is not an error: the ONVIF Client shall use the
           returned <code>appliedKeepaliveIntervalMs</code> as the current keep-alive interval for
@@ -1320,25 +1548,34 @@
           ONVIF Device, not an outcome of the call. An ONVIF Client reads it with the
             <code>get_function_capabilities</code> Skill (see <xref
             linkend="sec_skill_get_function_capabilities"/>) for the
-            <code>set_event_keepalive</code> function, whose capabilities are defined by the LinkML
-          class <code>EventKeepaliveCapabilities</code>:
+            <code>set_event_stream_parameters</code> function, whose capabilities are defined by the
+          LinkML class <code>EventStreamCapabilities</code>:
             <code>defaultKeepaliveIntervalMs</code> (30000),
-            <code>minKeepaliveIntervalMs</code>, and <code>maxKeepaliveIntervalMs</code>. An ONVIF
+            <code>minKeepaliveIntervalMs</code>, <code>maxKeepaliveIntervalMs</code>, and
+            <code>maxConcurrentStreams</code>. An ONVIF
           Client that reads the capabilities before calling the function can choose a value that
           will not be clamped.</para>
+        <para>The class covers the event stream as a whole rather than the keep-alive mechanism
+          alone, which is why <code>maxConcurrentStreams</code> belongs to it. Capabilities in this
+          specification are always the capabilities of a function, and the reserved function that
+          configures the stream is the one place where a property of the stream itself has an owner.
+          The distinction the class draws is the general one of <xref
+            linkend="sec_skill_get_function_capabilities"/>: the keep-alive interval is settable and
+          is therefore a parameter, whereas the interval range and the stream count are invariant for
+          a device instance and are therefore capabilities.</para>
         <para>A change of keep-alive interval takes effect on the affected streams without
           interrupting them, and shall not affect event delivery or cursor semantics. The interval
           applied to a stream does not survive that stream: a stream reopened after an interruption
           starts from the value most recently set for the principal, or from the 30 second default
           if none was set.</para>
         <para>The function as a whole — its identifier, the class of its input, and the class of its
-          output — is declared by the LinkML class <code>SetEventKeepaliveInvocation</code>, a
+          output — is declared by the LinkML class <code>SetEventStreamParametersInvocation</code>, a
           specialization of the abstract <code>FunctionInvocation</code> class. It fixes
-            <code>function</code> to the constant <code>set_event_keepalive</code>, narrows
-            <code>parameters</code> to <code>SetEventKeepaliveParametersRequest</code>, and narrows
-            <code>result</code> to <code>SetEventKeepaliveParametersResponse</code>. This binding is
+            <code>function</code> to the constant <code>set_event_stream_parameters</code>, narrows
+            <code>parameters</code> to <code>SetEventStreamParametersRequest</code>, and narrows
+            <code>result</code> to <code>SetEventStreamParametersResponse</code>. This binding is
           normative: an <code>execute_function</code> call naming
-            <code>set_event_keepalive</code> and the response it produces shall together validate
+            <code>set_event_stream_parameters</code> and the response it produces shall together validate
           against it.</para>
         <para>See <xref linkend="sec_annex_event_keepalive"/> for a wire format example.</para>
       </section>
@@ -1400,7 +1637,7 @@
                 <entry><para>An unknown event <code>name</code>, no subscription matching the
                   key on <code>events/unsubscribe</code>, a <code>subscriptionId</code> that
                   does not identify an open stream on
-                    <code>set_event_keepalive</code>, or an unknown <code>function</code> on
+                    <code>set_event_stream_parameters</code>, or an unknown <code>function</code> on
                     <code>get_function_capabilities</code>.</para></entry>
               </row>
               <row>
@@ -1434,48 +1671,99 @@
       </section>
       <section xml:id="sec_event_payload_structure">
         <title>Event Payload Structure</title>
-        <para>The <code>data</code> field of every <code>EventOccurrence</code> — whether delivered
-          as a <code>notifications/events/event</code> notification on an <code>events/stream</code>
-          response or POSTed to a webhook callback — carries a
-          JSON-LD document. Every event document shall include: <itemizedlist>
-            <listitem>
-              <para><code>@context</code> — a URI pointing to the canonical LinkML schema for this
-                event type. The ONVIF Client shall use this URI for schema lookup and for dynamic
-                schema re-registration (see <xref linkend="sec_dynamic_schema_reregistration"/>).</para>
-            </listitem>
-            <listitem>
-              <para><code>@type</code> — the event class name as defined in the registered schema
-                (for example <code>FireDetectionEvent</code>). The ONVIF Client shall use this field
-                for event routing.</para>
-            </listitem>
-          </itemizedlist></para>
+        <para>A delivered event has two nested envelopes, belonging to two different specifications,
+          and the fields of one are not the fields of the other. Keeping them apart is necessary to
+          read the wire format at all.</para>
+        <para>The outer envelope is the <code>EventOccurrence</code> of the MCP Events extension. It
+          is a unit of <emphasis>delivery</emphasis>: it says that something was sent, on which
+          subscription, and where the subscription now stands. It carries <code>eventId</code>,
+            <code>name</code>, <code>timestamp</code>, <code>cursor</code>, the
+            <code>_meta["io.modelcontextprotocol/subscriptionId"]</code> of the parent stream, and
+            <code>data</code>. It is discarded once the delivery has been accounted for, and it is not
+          signed.</para>
+        <para>The inner envelope is the <code>InformationEnvelope</code> of this specification, defined
+          in <xref linkend="sec_information_envelope"/>. It is a unit of <emphasis>evidence</emphasis>:
+          it says what was observed or concluded, by whom, and — where a signature is present — that
+          the group of items has not been altered. It survives the delivery that carried it, it can be
+          stored, forwarded and re-verified, and it is the only level at which a signature is
+          defined.</para>
+        <para>The <code>data</code> field of every <code>EventOccurrence</code> — whether delivered as
+          a <code>notifications/events/event</code> notification on an <code>events/stream</code>
+          response or POSTed to a webhook callback — shall be a single
+            <code>InformationEnvelope</code>. There is no event class distinct from the metadata model:
+          an event is an <code>InformationEnvelope</code> in transit. The envelope shall carry
+            <code>@context</code> and <code>@type</code> as specified in
+          <xref linkend="sec_context_and_type_annotations"/>, and each of its items shall carry its own
+            <code>@type</code>.</para>
+        <para>The following correspondences hold, and an ONVIF Client shall not substitute one side for
+          the other:</para>
+        <itemizedlist>
+          <listitem>
+            <para><code>EventOccurrence.name</code> identifies the class an ONVIF Client subscribed to.
+              It shall equal the <code>@type</code> of at least one item in the envelope, but the
+              envelope may carry items of other classes as well (see
+              <xref linkend="sec_event_type_catalogue"/>).</para>
+          </listitem>
+          <listitem>
+            <para><code>EventOccurrence.eventId</code> identifies a delivery and is scoped to the
+              subscription that produced it. The identity of the content is
+                <code>InformationEnvelope.id</code>, and the identity of each claim is the
+                <code>id</code> of the item. Two deliveries of the same envelope on two subscriptions
+              have two <code>eventId</code> values and one envelope identifier.</para>
+          </listitem>
+          <listitem>
+            <para><code>EventOccurrence.timestamp</code> is when the occurrence was emitted for
+              delivery. It is not when the information was produced, which is the
+                <code>productionTime</code> of each item, nor when the observed situation obtained,
+              which is its <code>observedTime</code>. The three may differ by an amount an ONVIF Client
+              cannot bound, and it shall use <code>productionTime</code> and <code>observedTime</code>
+              for any reasoning about the world.</para>
+          </listitem>
+          <listitem>
+            <para><code>EventOccurrence.cursor</code> is a position in a subscription. It is not part of
+              the evidence, it is not covered by any signature, and it shall not be stored as an
+              attribute of the information it accompanied.</para>
+          </listitem>
+        </itemizedlist>
         <para>See <xref linkend="sec_annex_metadata_stream"/> for a complete wire format example.</para>
       </section>
       <section xml:id="sec_dynamic_schema_reregistration">
         <title>Dynamic Schema Re-registration</title>
-        <para>The <code>@context</code> URI in each event is a live pointer to the schema that
-          defines it. If the ONVIF Client receives an <code>EventOccurrence</code> whose
-            <code>@context</code> URI is not already registered in its schema bundle, it shall: <orderedlist>
+        <para>An ONVIF Client holds the schema modules of a device from the moment the session was
+          established. The mechanism below covers the case where a class appears that those modules do
+          not define — typically after a firmware update that adds one.</para>
+        <para>The trigger is an <code>@type</code> the ONVIF Client cannot resolve: a bare name that no
+          module it holds declares, or a compact URI whose prefix no module it holds binds. It is not
+          the value of <code>@context</code>, which is a constant and therefore never changes when a new
+          class is introduced. If the ONVIF Client receives an item whose <code>@type</code> it cannot
+          resolve, it shall: <orderedlist>
             <listitem>
-              <para>Suspend validation of that event without discarding it.</para>
+              <para>Suspend validation of that item without discarding it, and without discarding the
+                enclosing <code>InformationEnvelope</code>, whose other items it may be able to
+                process.</para>
             </listitem>
             <listitem>
-              <para>Call <code>resources/read</code> with the <code>@context</code> URI to fetch the
-                LinkML schema YAML from the ONVIF Device.</para>
+              <para>Call <code>resources/list</code> on the ONVIF Device and <code>resources/read</code>
+                for each module it does not already hold, using the MCP resource URI the device
+                reports (see <xref linkend="sec_annex_schema_retrieval"/>).</para>
             </listitem>
             <listitem>
-              <para>Register the retrieved schema in its validator.</para>
+              <para>Register the retrieved modules under their schema identifiers, and rebuild the
+                mapping from class names and prefixes to class identifiers over the whole set of
+                modules it now holds.</para>
             </listitem>
             <listitem>
-              <para>Resume validation of the suspended event and all subsequent events of that
-                type.</para>
+              <para>Resume validation of the suspended item and of all subsequent items of that
+                class.</para>
             </listitem>
           </orderedlist></para>
-        <para>This mechanism allows the ONVIF Device to introduce new event types — for example
-          after a firmware update — without requiring the ONVIF Client to have prior knowledge of
-          the new schema. The ONVIF Device shall ensure that the <code>@context</code> URI is always
-          resolvable via <code>resources/read</code> for as long as the device emits events of that
-          type.</para>
+        <para>This mechanism allows the ONVIF Device to introduce new classes without requiring the
+          ONVIF Client to have prior knowledge of them. It is a recovery path and not the normal one:
+          an ONVIF Device shall announce a change to its schema bundle with
+            <code>notifications/events/list_changed</code>, so that an ONVIF Client learns of it by
+          being told rather than by failing to interpret an item. An ONVIF Device shall keep every
+          module needed to interpret the classes it emits readable through
+            <code>resources/read</code> for as long as it emits them.</para>
         <para>See <xref linkend="sec_annex_dynamic_schema_reregistration"/> for a wire format example.</para>
       </section>
     </section>
@@ -1484,8 +1772,8 @@
       <title>Post-Handshake ONVIF Client Knowledge</title>
       <para>An ONVIF Agentic Service is self-describing: an ONVIF Client that has completed the
         sequence defined in <xref linkend="sec_session_initialization"/>, <xref
-          linkend="sec_schema_retrieval"/>, <xref linkend="sec_capability_discovery"/>, <xref
-          linkend="sec_tool_discovery"/>, <xref linkend="sec_skill_list_functions"/>, and <xref
+          linkend="sec_schema_retrieval"/>, <xref linkend="sec_tool_discovery"/>, <xref
+          linkend="sec_skill_list_functions"/>, and <xref
           linkend="sec_metadata_event_delivery"/> is fully operational without any out-of-band
         documentation, SDK, or static configuration. The table below summarises the knowledge
         accumulated at each step.</para>
@@ -1514,12 +1802,6 @@
                 <code>resources/read</code></para></entry>
               <entry><para>Complete LinkML schema bundle; JSON Schema for event validation and
                 skill argument validation.</para></entry>
-            </row>
-            <row>
-              <entry><para><xref linkend="sec_capability_discovery"/></para></entry>
-              <entry><para><code>resources/read</code> (<code>capabilities://www.onvif.org/ver10/agentic</code>)</para></entry>
-              <entry><para>Device feature set, supported functions, <code>events</code>
-                capability and per-event-type delivery modes.</para></entry>
             </row>
             <row>
               <entry><para><xref linkend="sec_tool_discovery"/></para></entry>
@@ -1681,14 +1963,22 @@
     <section xml:id="sec_object_identifiers">
       <title>Object identifiers</title>
       <para>Every object defined in this chapter carries an identifier. In the LinkML schema the
-        identifier is declared as a slot named <code>id</code>; when the object is serialised,
-        JSON-LD interprets that slot as the node identifier <code>@id</code>. The field therefore
-        appears on the wire under the name <code>id</code> and is understood as <code>@id</code> by
-        any JSON-LD processor.</para>
+        identifier is declared as a slot named <code>id</code>, and it appears on the wire under that
+        name as a plain string.</para>
       <para>The value of every such identifier shall be a UUID as specified in RFC 9562, written in
         the canonical lowercase hyphenated form, for example
         <code>3f2b8c1e-6a4d-4f7b-9e21-5c8d0a1b2e3f</code>. Uppercase forms, the URN form
         <code>urn:uuid:</code>, and the braced Microsoft form shall not be used.</para>
+      <para>The <code>id</code> slot is deliberately not bound to the JSON-LD node identifier
+        <code>@id</code>. A bare UUID is not an IRI: a JSON-LD processor asked to read it as
+        <code>@id</code> would resolve it against a base URI and produce an identifier that means
+        nothing. Binding it properly would require every identifier in this model to be written in the
+        <code>urn:uuid:</code> form that the paragraph above forbids, on the wire and in every digest
+        computed over it, in exchange for a graph structure no part of this specification needs (see
+        <xref linkend="sec_relationship_to_linked_data"/>).</para>
+      <para>The consequence is that the references one object makes to another are resolved by the
+        rules of this specification, by comparing identifier strings, and are not RDF edges. An ONVIF
+        Client shall resolve them itself and shall not expect a JSON-LD processor to do so.</para>
       <para>UUID version 4 or version 7 is recommended. Version 7 embeds a timestamp and is
         therefore sortable by creation order, which can be convenient for storage and indexing;
         version 4 discloses nothing about the device or the moment of creation. An ONVIF Device
@@ -1713,8 +2003,9 @@
         <code>Assertion</code>.</para>
       <para>Each <code>InformationItem</code> carries the following fields: an <code>id</code>
         uniquely identifying the item, as specified in <xref linkend="sec_object_identifiers"/>; a
-        <code>confidence</code> value expressing the confidence level of the contained
-        information; a mandatory <code>productionTime</code> field giving the time at which the
+        mandatory <code>confidence</code> value expressing the confidence level of the contained
+        information, whose range is <code>Likelihood</code> and which therefore lies between 0.0 and
+        1.0 inclusive; a mandatory <code>productionTime</code> field giving the time at which the
         information was produced, as specified in <xref linkend="sec_timing"/>; and a
         <code>provenance</code> field describing the origin or producer of the
         information.</para>
@@ -1760,10 +2051,80 @@
 
     <section xml:id="sec_observation">
       <title>Observation</title>
-      <para><code>Observation</code> is a concrete <code>InformationItem</code> that captures the
-        output of any generic sensor. Whether the source is a physical device (like a camera, radar,
-        or thermometer), a person, or a virtual source like a database, the Observation packages
-        this data into a standardized format for consumption by downstream systems.</para>
+      <para><code>Observation</code> is an abstract <code>InformationItem</code> that captures the
+        output of any generic sensor. Whether the source is a physical device such as a camera, a radar
+        or a thermometer, a person, or a virtual source such as a database, the observation packages
+        that output into a standardised format for consumption by downstream systems. The class is
+        abstract: an observation on the wire is always an instance of one of the concrete subclasses
+        below, or of a subclass introduced by a vendor extension.</para>
+      <para>Beyond the fields it inherits from <code>InformationItem</code>, an
+        <code>Observation</code> carries two optional context fields, which describe the situation
+        observed rather than the act of observing it:</para>
+      <itemizedlist>
+        <listitem>
+          <para><code>observedTime</code> — the time to which the observation refers, as specified in
+            <xref linkend="sec_timing"/>. It is distinct from <code>productionTime</code>, which is
+            when the item was produced: a plate read from a recording refers to the moment of the
+            recording, not to the moment of the reading.</para>
+        </listitem>
+        <listitem>
+          <para><code>observedSpace</code> — the place to which the observation refers, as specified in
+            <xref linkend="sec_location"/>.</para>
+        </listitem>
+      </itemizedlist>
+      <para>An <code>Observation</code> states what a sensor produced. It is never revised: where an
+        ONVIF Device later has better information about the same subject, it emits a further
+        observation and, where it can, an <code>Assertion</code> relating the two, as described in
+        <xref linkend="sec_vehicle_reidentification"/>. An ONVIF Client shall not expect an
+        observation it has received to be superseded in place.</para>
+
+      <section xml:id="sec_vehicle_observation">
+        <title>VehicleObservation</title>
+        <para><code>VehicleObservation</code> reports a vehicle. Its only mandatory field beyond those
+          of <code>InformationItem</code> is <code>type</code>, drawn from the
+          <code>VehicleType</code> enumeration.</para>
+        <para>The enumeration provides <code>Unknown</code> precisely because <code>type</code> is
+          mandatory: an ONVIF Device that has detected a vehicle without classifying it reports
+          <code>Unknown</code>, and is never placed in the position of having to guess a type in order
+          to report a detection. It provides <code>Other</code> for a type that was determined but does
+          not appear in the enumeration, which an ONVIF Client shall not confuse with
+          <code>Unknown</code>: the first says the device knows and cannot express it, the second says
+          the device does not know.</para>
+        <para>The optional <code>use</code> field, drawn from the <code>VehicleUse</code> enumeration,
+          reports what the vehicle is used for. Use is orthogonal to type — an ambulance is a
+          <code>Van</code>, a <code>Truck</code> or a <code>Car</code> put to emergency medical service
+          — and the two fields shall not be conflated. Three states are distinguishable, and an ONVIF
+          Client shall distinguish them: the field is absent when the ONVIF Device does not classify
+          vehicle use at all; it is <code>Unknown</code> when the device does classify use but could
+          not determine it for this observation; and it names a value otherwise.</para>
+        <para>The optional <code>brand</code>, <code>model</code> and <code>color</code> fields report
+          further properties. <code>brand</code> and <code>model</code> are
+          <code>StringLikelihood</code> values, and therefore carry a likelihood of their own,
+          independent of the <code>confidence</code> of the item.</para>
+      </section>
+
+      <section xml:id="sec_license_plate_observation">
+        <title>LicensePlateObservation</title>
+        <para><code>LicensePlateObservation</code> reports a licence plate. Its mandatory field is
+          <code>plateNumber</code>, a <code>StringLikelihood</code>. The optional
+          <code>plateType</code>, <code>countryCode</code> and <code>issuingEntity</code> fields report
+          the kind of plate, the country encoded as an ISO 3166-1:2013 Alpha-2 two-letter code, and the
+          authority that issued it.</para>
+        <para>A plate observation is a separate item from any vehicle observation made at the same
+          moment, and it is not nested inside one. The statement that a particular plate belongs to a
+          particular vehicle is a claim about two observations and is therefore an
+          <code>Assertion</code>, not a field.</para>
+      </section>
+
+      <section xml:id="sec_barcode_observation">
+        <title>BarcodeObservation</title>
+        <para><code>BarcodeObservation</code> reports information extracted from a barcode or 2D code.
+          Its mandatory field is <code>data</code>, a <code>StringLikelihood</code> carrying the
+          decoded content. The optional <code>type</code> field is a
+          <code>BarcodeTypeLikelihood</code>, which pairs a value of the <code>BarcodeType</code>
+          enumeration with a likelihood, and the optional <code>ppm</code> field reports the pixels per
+          module of the decoded symbol.</para>
+      </section>
     </section>
 
     <section xml:id="sec_assertion">
@@ -1811,6 +2172,51 @@
           to. The client should defer evaluation until the reference can be resolved, and apply its
           own policy if it never is.</para>
       </section>
+
+      <section xml:id="sec_vehicle_reidentification">
+        <title>VehicleReidentification</title>
+        <para><code>VehicleReidentification</code> is a concrete <code>Assertion</code> stating that two
+          or more vehicle observations, produced at different times, refer to the same physical vehicle.
+          It is the mechanism by which a later and better informed observation supersedes the
+          classification carried by an earlier one.</para>
+        <para>It exists because an <code>Observation</code> is never revised. A vehicle first seen at a
+          distance may be reported with <code>type</code> set to <code>Unknown</code> and a low
+          confidence; seen again, closer, it may be reported as a <code>Van</code> in
+          <code>Ambulance</code> use with a high confidence. Both observations are correct statements
+          about what the sensor produced at the time it produced them, and neither is withdrawn. What
+          was missing is the statement that they concern one vehicle, and that is what this class
+          carries.</para>
+        <para>Beyond the <code>supportedBy</code> field it inherits, of which at least two entries shall
+          be present since a single observation cannot be re-identified, the class carries:</para>
+        <itemizedlist>
+          <listitem>
+            <para><code>vehicleId</code> (mandatory) — a stable identifier of the physical vehicle to
+              which every observation listed in <code>supportedBy</code> refers. It designates a
+              physical entity and not an <code>InformationItem</code>, and is therefore the one
+              identifier in this model that is not subject to the resolution rule of
+              <xref linkend="sec_assertion_sanity_checks"/>: an ONVIF Client shall not attempt to
+              resolve it to a received item. Successive re-identifications of the same vehicle shall
+              reuse the value, so that an ONVIF Client can accumulate what is known about one vehicle
+              across several assertions.</para>
+          </listitem>
+          <listitem>
+            <para><code>authoritativeObservation</code> (optional) — the observation listed in
+              <code>supportedBy</code> whose classification an ONVIF Client should prefer. Where absent,
+              the observation with the most recent <code>productionTime</code> applies. The field exists
+              because recency is not always the right rule: an ONVIF Device that recognised a vehicle
+              clearly and then lost it to occlusion may consider the earlier reading the better
+              one.</para>
+          </listitem>
+        </itemizedlist>
+        <para>The producer of a re-identification is typically not the producer of the observations it
+          cites. An observation comes from a video source; a re-identification comes from an algorithm,
+          whose provenance is an <code>AnalyticsModule</code> as described in
+          <xref linkend="sec_analytics_module"/>. The separation is deliberate and has a consequence an
+          ONVIF Client can act on: it may accept the observations and reject the assertion, because they
+          are distinct items with distinct provenance and distinct confidence. An ONVIF Client shall not
+          propagate the confidence of an observation to an assertion that cites it; an assertion may
+          well deserve less confidence than its evidence.</para>
+      </section>
     </section>
 
     <section xml:id="sec_signature">
@@ -1825,25 +2231,16 @@
         omitted, the enclosed items carry no integrity, authenticity, or non-repudiation claim;
         signature is never applied to an individual <code>InformationItem</code>, as defined in
         <xref linkend="sec_information_item"/>.</para>
-      <para>This specification defines two concrete profiles, and an ONVIF Device selects the one
-        it uses:</para>
-      <itemizedlist>
-        <listitem>
-          <para><code>OnvifSignature</code> (see <xref linkend="sec_onvif_signature"/>) is the
-            reference profile for ONVIF interoperability. It is aligned with the ONVIF Media
-            Signing Specification, requires no JSON-LD processing, and allows a verifier to
-            determine which individual item was altered.</para>
-        </listitem>
-        <listitem>
-          <para><code>JsonLDSignature</code> (see <xref linkend="sec_jsonld_signature"/>) is
-            intended for deployments that have to feed an existing Verifiable Credentials or Data
-            Integrity infrastructure. It treats the envelope as a single unit and offers no
-            per-item granularity.</para>
-        </listitem>
-      </itemizedlist>
-      <para>A conformant ONVIF Client shall accept both profiles and select the verification
-        procedure from the concrete type of the received object.</para>
-      <para>For both profiles, the digest and signature algorithms that an ONVIF Device shall use,
+      <para>This specification defines one concrete profile,
+        <code>OnvifSignature</code> (see <xref linkend="sec_onvif_signature"/>). It is aligned with the
+        ONVIF Media Signing Specification, requires no JSON-LD processing, and allows a verifier to
+        determine which individual item was altered.</para>
+      <para>The class nevertheless remains abstract, and an ONVIF Client shall select the verification
+        procedure from the concrete type of the received object rather than assuming
+        <code>OnvifSignature</code>. This keeps a further profile addable in a later revision without
+        any change to <code>InformationEnvelope</code>, and it means that an ONVIF Client encountering
+        a profile it does not implement rejects that envelope rather than misreading it.</para>
+      <para>For any profile, the digest and signature algorithms that an ONVIF Device shall use,
         and that an ONVIF Client shall accept, are those mandated by the current version of the
         ONVIF Security Baseline Specification. Any algorithm enumeration appearing in the schema
         fixes only how an algorithm is named on the wire; it is not a statement that the algorithm
@@ -1871,11 +2268,18 @@
             JSON object. A deterministic serialisation is therefore required, so that the device
             and the client hash exactly the same byte sequence. An ONVIF Device shall use the JSON
             Canonicalization Scheme defined in RFC 8785.</para>
-          <para>RFC 8785 is used in preference to RDF Dataset Canonicalization, which
-            <code>JsonLDSignature</code> relies on, because it operates on plain JSON: it requires
-            neither JSON-LD expansion, nor context dereferencing, nor RDF processing. This keeps
-            the profile implementable on a constrained device, consistently with the design
+          <para>RFC 8785 is used in preference to a canonicalisation defined over an expanded RDF
+            graph, which is what a proof format based on RDF would require, because it operates on
+            plain JSON: it requires neither JSON-LD expansion, nor context dereferencing, nor RDF
+            processing. This
+            keeps the profile implementable on a constrained device, consistently with the design
             intent of the ONVIF Media Signing Specification.</para>
+          <para>It also keeps a signed envelope verifiable in isolation. A proof computed over an
+            expanded RDF graph can only be checked by a verifier that can still resolve the JSON-LD
+            context that was in force when the proof was made, which may be years later and on a
+            machine with no access to the originating device. Canonicalising the JSON as received
+            removes that dependency: the octets needed to verify an envelope are the octets of the
+            envelope.</para>
           <para>The canonical form of an item is the JSON object representing that item exactly as
             it appears in the <code>items</code> list of the envelope, including its
             <code>@type</code> and its <code>id</code>. The digest of an item is therefore
@@ -2014,6 +2418,12 @@
               <para><emphasis>verificationMethod</emphasis> (optional) — a URI from which the
                 corresponding public key or certificate chain can be retrieved.</para>
             </listitem>
+            <listitem>
+              <para><emphasis>fingerprints</emphasis> (optional) — zero or more
+                <code>KeyFingerprint</code> objects, at most one per digest algorithm, identifying
+                the key material the <code>keyId</code> is expected to designate (see <xref
+                  linkend="sec_key_fingerprints"/>).</para>
+            </listitem>
           </itemizedlist>
           <para>Because the identifier space is that of the device keystore, this value is directly
             comparable with the identifiers a device declares in the <code>publicKeys</code> field
@@ -2066,65 +2476,54 @@
         </section>
       </section>
 
-      <section xml:id="sec_jsonld_signature">
-        <title>JsonLDSignature</title>
-        <para><code>JsonLDSignature</code> is the concrete <code>Signature</code> profile intended
-          for deployments that already operate a Verifiable Credentials or Data Integrity
-          infrastructure and need the envelope to be consumable by it without conversion.
-          It attests the integrity of an <code>InformationEnvelope</code>, and thereby of every
-          <code>InformationItem</code> it encloses, by means of a JSON-LD Data
-          Integrity proof , as defined in W3C Verifiable Credential Data Integrity 1.0. The ECC
-          signature algorithm and key parameters shall conform to the ONVIF Security
-          Baseline.</para>
-        <para>Unlike <code>OnvifSignature</code>, this profile covers the envelope as a single
-          unit. The <code>hashes</code> field plays no part in it, and a verification failure
-          indicates only that something within the envelope changed, without identifying
-          what.</para>
-
-        <section xml:id="sec_signing_procedure">
-          <title>Signing procedure</title>
-          <para>The ONVIF Device shall compute the proof using the <code>Add Proof</code> algorithm
-            defined in W3C Verifiable Credential Data Integrity 1.0 with W3C RDF Dataset
-            Canonicalization 1.0 (RDFC-1.0) as the canonicalization algorithm. The digest and
-            signing algorithms shall be those mandated by the current version of the ONVIF Security
-            Baseline.</para>
-        </section>
-
-        <section xml:id="sec_proof_fields">
-          <title>Proof fields</title>
-          <para><code>JsonLDSignature</code> carries the following fields, aligned with the
-              <code>DataIntegrityProof</code> structure defined in W3C Verifiable Credential Data
-            Integrity 1.0:</para>
-          <itemizedlist>
-            <listitem>
-              <para><emphasis>type</emphasis> (mandatory) — fixed string
-                <code>"DataIntegrityProof"</code>.</para>
-            </listitem>
-            <listitem>
-              <para><emphasis>cryptosuite</emphasis> (mandatory) — identifies the cryptosuite used.
-                The value shall correspond to the algorithm profile mandated by the current version
-                of the ONVIF Security Baseline. It is included in the proof configuration and
-                therefore covered by the signature.</para>
-            </listitem>
-            <listitem>
-              <para><emphasis>created</emphasis> (mandatory) — ISO 8601 UTC datetime at which
-                the proof was created.</para>
-            </listitem>
-            <listitem>
-              <para><emphasis>verificationMethod</emphasis> (mandatory) — URI of the public key
-                or verification method that can be used to verify the proof.</para>
-            </listitem>
-            <listitem>
-              <para><emphasis>proofPurpose</emphasis> (mandatory) — fixed string
-                <code>"assertionMethod"</code>.</para>
-            </listitem>
-            <listitem>
-              <para><emphasis>proofValue</emphasis> (mandatory) — the encoded digital signature
-                over <code>hashData</code> as defined in the signing procedure above.</para>
-            </listitem>
-          </itemizedlist>
-        </section>
+      <section xml:id="sec_key_fingerprints">
+        <title>Key fingerprints</title>
+        <para>A <code>KeyID</code> names an entry in the keystore of one device. It says nothing
+          about the material that entry holds: the same identifier designates different material
+          after a key rotation, and the same identifier on two devices designates unrelated
+          material. An ONVIF Client that matched a key on the strength of an identifier alone would
+          therefore be trusting a label, not a key.</para>
+        <para><code>KeyFingerprint</code> closes that gap. It carries a digest of the key itself,
+          computed over the DER encoding of the <code>SubjectPublicKeyInfo</code> structure defined
+          in IETF RFC 5280, together with the digest algorithm used to compute it. The two fields
+          are:</para>
+        <itemizedlist>
+          <listitem>
+            <para><emphasis>algorithm</emphasis> (mandatory) — the digest algorithm, which shall be
+              one of those mandated by the current version of the ONVIF Security Baseline
+              Specification.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>value</emphasis> (mandatory) — the digest of the DER encoded
+              <code>SubjectPublicKeyInfo</code> structure, encoded in base64.</para>
+          </listitem>
+        </itemizedlist>
+        <para>The input is the key, not a certificate that carries it. Two certificates issued at
+          different times for the same key yield the same fingerprint, so a fingerprint survives a
+          certificate renewal, a firmware upgrade and a change of device, which the fingerprint of a
+          certificate does not. It is also the same octet sequence that the PEM form carried by
+          <code>subjectPublicKeyInfo</code> encodes, so a fingerprint can always be recomputed from
+          that field alone and an ONVIF Client never has to take a declared fingerprint on
+          trust.</para>
+        <para>Fingerprints appear in two places. In <code>DevicePublicKey</code>, they make the key
+          declaration of a provenance checkable (see <xref linkend="sec_declared_keys"/>): an ONVIF
+          Client that holds a fingerprint obtained by an independent path considers the key matched
+          when that fingerprint equals one of those listed, and shall not consider a key matched on
+          the basis of <code>keyId</code> alone. In <code>PublicKeyIdentifier</code>, they state
+          which key material the signer claims to have used.</para>
+        <para>A fingerprint carried in <code>PublicKeyIdentifier</code> has a further property. The
+          key descriptor is part of the signature configuration, and the signature configuration is
+          covered by the envelope digest as computed in step 4 of <xref linkend="sec_signing_steps"
+          />. The fingerprint is therefore covered by the signature itself, which binds the
+          signature to key material rather than to the name of a keystore entry: an attacker cannot
+          substitute a different key for the same <code>keyId</code> without invalidating the
+          signature.</para>
+        <para>Because provenance is repeated on every information item, the
+          <code>fingerprints</code> field of <code>DevicePublicKey</code> is normally omitted from
+          items carried in a metadata stream, and is populated where an ONVIF Client is expected to
+          pin a key, such as in a signed <code>InformationEnvelope</code>.</para>
       </section>
+
     </section>
 
     <section xml:id="sec_location">
@@ -2133,6 +2532,49 @@
         observation. It is the type of the optional <code>observedSpace</code> field of
         <code>Observation</code>; when present it shall be an instance of a concrete
         subclass.</para>
+      <para>The class is abstract because a place can be given in two irreducibly different ways.
+        It can be given by the function it serves — an ambulance drop-off, a loading bay, a
+        pedestrian crossing — which is a name assigned when the site is commissioned and which says
+        what happens there but not where it is. Or it can be given by its geometry: a polygon in
+        image coordinates, a point in a geographic reference system, a volume in a building model.
+        Neither form can be derived from the other, and a class that tried to carry both would leave
+        an ONVIF Client unable to tell which of the two it had actually been given.</para>
+      <para>This specification defines the functional form only. A geometric form may be added as a
+        further concrete subclass in a later revision without any change to
+        <code>Observation</code>, and an ONVIF Client shall therefore select its handling from the
+        concrete type of the received object rather than assuming
+        <code>FunctionalLocation</code>.</para>
+
+      <section xml:id="sec_functional_location">
+        <title>FunctionalLocation</title>
+        <para><code>FunctionalLocation</code> is the concrete <code>Location</code> that names a
+          place by the function it serves. It carries the following fields:</para>
+        <itemizedlist>
+          <listitem>
+            <para><emphasis>name</emphasis> (mandatory) — the human readable name of the place as
+              configured on the ONVIF Device, for example <code>Ambulance Drop-off</code>.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>token</emphasis> (optional) — a <code>ReferenceToken</code> identifying
+              the configured area the name refers to. It allows the place to be correlated across
+              information items even if its name is later changed, and to be looked up in the
+              analytics configuration of the device.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>description</emphasis> (optional) — a longer description of the function
+              the place serves.</para>
+          </listitem>
+        </itemizedlist>
+        <para>A functional location is meaningful only within the installation it belongs to. The
+          name is assigned by whoever commissioned the site and carries no meaning outside it: two
+          installations may both have a <code>Main Gate</code>, and the same gate may be renamed
+          without anything about the site having changed. An ONVIF Client shall therefore treat
+          <code>name</code> as a label for presentation, and <code>token</code>, where present, as
+          the key for correlation.</para>
+        <para>The <code>description</code> field is omitted from items carried in a metadata stream,
+          where the location is repeated on every item; it belongs to the configuration and
+          presentation paths instead.</para>
+      </section>
     </section>
 
     <section xml:id="sec_timing">
@@ -2203,10 +2645,18 @@
         <code>Time</code> answers when the information was produced and <code>Location</code> where
         the observed phenomenon was, <code>Provenance</code> answers who says so.</para>
       <para>The class is abstract because producers of different natures are described by different
-        attributes, and shall be specialised by a concrete subclass. This specification defines one
-        such subclass, <code>ONVIFDevice</code>. Like the other abstract classes in this chapter,
-        <code>Provenance</code> carries an optional vendor extension point (see <xref
-          linkend="sec_vendor_extensions"/>).</para>
+        attributes, and shall be specialised by a concrete subclass. This specification defines two
+        such subclasses: <code>ONVIFDevice</code>, used when the producer is a device or one of its
+        sources, and <code>AnalyticsModule</code>, used when the producer is an algorithm running on
+        a device. Like the other abstract classes in this chapter, <code>Provenance</code> carries an
+        optional vendor extension point (see <xref linkend="sec_vendor_extensions"/>).</para>
+      <para>The distinction between the two is what allows the two kinds of claim defined in this
+        chapter to be told apart. An <code>Observation</code> produced by a video source and an
+        <code>Assertion</code> derived from it by an algorithm running on the same device do not have
+        the same producer, even though they leave the device through the same interface and may
+        travel in the same envelope. An ONVIF Client may have reason to trust the sensor and not the
+        algorithm, or to trust one version of the algorithm and not another, and it can only act on
+        that distinction if the items state it.</para>
       <para>Provenance is part of the content of an information item. When the item travels inside
         a signed envelope it is therefore covered by the item digest, as specified in <xref
           linkend="sec_onvif_signature"/>, and cannot be altered without invalidating the
@@ -2261,9 +2711,12 @@
           single information item the device produces. Making them optional lets a device avoid
           repeating on each item what a client may already have obtained, and lets it withhold
           serial number and hardware ID on streams where those are considered sensitive.</para>
-        <para>An ONVIF Device that produces information from more than one source should populate
-          <code>entity</code>. Without it, items originating from different channels or inputs of
-          the same device are indistinguishable from one another.</para>
+        <para>An ONVIF Device that exposes more than one source of information shall populate
+          <code>entity</code>. Without it, items originating from different channels or inputs of the
+          same device are indistinguishable from one another, and an ONVIF Client receiving two
+          contradictory observations from a multichannel encoder has no way of telling whether they
+          describe two different scenes or disagree about one. A device with a single source may omit
+          the field, since there is then nothing to distinguish.</para>
 
         <section xml:id="sec_device_entity">
           <title>DeviceEntity</title>
@@ -2290,7 +2743,16 @@
             <listitem>
               <para><emphasis>keyId</emphasis> (mandatory) — the identifier of the key in the
                 keystore of the device, drawn from the same identifier space as
-                <code>tas:KeyID</code> of the ONVIF Advanced Security Service.</para>
+                <code>tas:KeyID</code> of the ONVIF Advanced Security Service. It names an entry of
+                that keystore and not the key material the entry holds.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>fingerprints</emphasis> (optional) — zero or more
+                <code>KeyFingerprint</code> objects, at most one per digest algorithm, identifying
+                the key material itself (see <xref linkend="sec_key_fingerprints"/>). An ONVIF Client
+                that holds a fingerprint obtained by an independent path considers the key matched
+                when that fingerprint equals one of those listed, and shall not consider a key
+                matched on the basis of <code>keyId</code> alone.</para>
             </listitem>
             <listitem>
               <para><emphasis>subjectPublicKeyInfo</emphasis> (optional) — the public key in PEM
@@ -2305,6 +2767,9 @@
             two can be compared because both are identifiers of the same keystore. An ONVIF Client
             can therefore tell whether an envelope was signed with a key the producing device
             claims as its own, and can look that key up through the Advanced Security Service.</para>
+          <para>The comparison of identifiers alone establishes only that the two names agree.
+            Where the envelope and the provenance both carry a fingerprint, the comparison is one of
+            key material, and it is that comparison an ONVIF Client shall rely on.</para>
           <para>No field states what a key is used for. The keystore of the device is the
             authoritative source for that, and restating it here would only create a second place
             able to contradict the first.</para>
@@ -2329,6 +2794,57 @@
             Those fields are for diagnostics, inventory, and presentation.</para>
         </section>
       </section>
+
+      <section xml:id="sec_analytics_module">
+        <title>AnalyticsModule</title>
+        <para><code>AnalyticsModule</code> is the concrete <code>Provenance</code> subclass used when
+          the producer of an information item is an algorithm rather than a sensor. It is the
+          provenance that normally applies to an <code>Assertion</code>: an assertion is the product
+          of reasoning over items already produced, and what a client needs to know about it is which
+          algorithm reasoned, in which version, over the data of which source.</para>
+        <para><code>AnalyticsModule</code> carries the following fields:</para>
+        <itemizedlist>
+          <listitem>
+            <para><emphasis>token</emphasis> (mandatory) — a unique identifier of the module within
+              the device, drawn from the same identifier space as the token of
+              <code>tt:AnalyticsModule</code> of the ONVIF Schema, so that a module named here can be
+              looked up in the analytics configuration of the device.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>algorithm</emphasis> (optional) — an identifier of the algorithm the
+              module implements, for example <code>vehicle-reidentification</code>.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>version</emphasis> (optional) — the version of the algorithm, or of the
+              model it runs.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>entity</emphasis> (optional) — a <code>DeviceEntity</code> naming the
+              part of the device whose data the module consumed.</para>
+          </listitem>
+          <listitem>
+            <para><emphasis>publicKeys</emphasis> (mandatory) — one or more
+              <code>DevicePublicKey</code> entries. At least one entry shall be present.</para>
+          </listitem>
+        </itemizedlist>
+        <para>The <code>version</code> field is what makes a derived item reproducible. Two items
+          produced by the same algorithm in different versions are not comparable, and an ONVIF
+          Client that has qualified one version has not thereby qualified another. A device that
+          updates an analytics model without changing this field leaves a client unable to tell that
+          the basis of the claims it is receiving has changed.</para>
+        <para><code>entity</code> is populated for the same reason as in <code>ONVIFDevice</code>,
+          and an ONVIF Device whose module consumes data from more than one source shall populate it.
+          The field is a reference to the source, not a claim about it: an assertion drawn from two
+          channels names the module that drew it, while the observations it cites name the channels
+          they came from.</para>
+        <para>As in <code>ONVIFDevice</code>, <code>publicKeys</code> is the only mandatory
+          descriptor, and for the same reason (see <xref linkend="sec_declared_keys"/>): the key
+          identifier, together with any fingerprint accompanying it, is the one piece of information
+          in the class that refers to material an ONVIF Client can verify by an independent path.
+          <code>algorithm</code> and <code>version</code> are self-asserted and shall not be used as
+          the basis of a trust decision; they are the means by which a client decides how to
+          <emphasis>interpret</emphasis> a claim it has already decided to accept.</para>
+      </section>
     </section>
 
     <section xml:id="sec_vendor_extensions">
@@ -2336,22 +2852,75 @@
       <para>ONVIF follows the convention, established in its WSDL-based specifications, of
         providing a generic extension point in every data structure to allow implementers to
         carry vendor-specific information without breaking interoperability. This specification
-        carries that convention into the LinkML metadata model through the
-        <code>Extensible</code> mixin.</para>
-      <para>The <code>Extensible</code> mixin adds a single optional, repeatable slot named
-        <code>extension</code> to any class that includes it. Each entry in the slot is an
-        instance of <code>VendorExtension</code>, which pairs a mandatory vendor namespace URI
-        with a locally named, arbitrarily typed value. The namespace URI uniquely identifies the
-        vendor and prevents naming collisions between different implementers.</para>
-      <para>An ONVIF Client that encounters an <code>extension</code> entry whose
-        <code>vendor_namespace</code> it does not recognise shall ignore that entry and shall not
-        treat its presence as an error. An ONVIF Device shall not use the extension slot to carry
-        information that is required for correct interpretation of the normative fields of the
-        enclosing class.</para>
-      <para>The <code>Extensible</code> mixin is applied to <code>Observation</code>, making the
-        extension point available on every concrete observation class derived from it. Other
-        abstract classes in this chapter (<code>Signature</code>, <code>Location</code>,
-        <code>Time</code>) may also include the mixin in future revisions as needed.</para>
+        carries that convention into the LinkML metadata model, and adds a second mechanism that
+        the WSDL-based specifications had no need for: a vendor may also define classes of its
+        own.</para>
+
+      <section xml:id="sec_vendor_field_extensions">
+        <title>Extending a class with fields</title>
+        <para>A class that supports vendor-specific fields declares an optional slot named
+          <code>extensible</code> whose range is the abstract class <code>Extensible</code>.
+          <code>Extensible</code> is not inherited: a class that supports extension declares the slot
+          individually, and the classes of this specification that support it do so. The only
+          exceptions are <code>VendorExtension</code> and <code>VendorExtensible</code>, which are
+          themselves extension containers and derive from <code>Extensible</code>.</para>
+        <para><code>VendorExtension</code> is a single extension entry. It pairs a mandatory vendor
+          namespace URI with a locally named, arbitrarily typed value; the namespace URI uniquely
+          identifies the vendor and prevents naming collisions between implementers.
+          <code>VendorExtensible</code> groups several such entries, and is the value to use where
+          more than one extension has to be carried on the same class.</para>
+        <para>An ONVIF Client that encounters a <code>VendorExtension</code> whose
+          <code>vendor_namespace</code> it does not recognise shall ignore that entry and shall not
+          treat its presence as an error. An ONVIF Device shall not use the extension point to carry
+          information that is required for correct interpretation of the normative fields of the
+          enclosing class: an extension is additional information, never a modifier of what is
+          already there.</para>
+      </section>
+
+      <section xml:id="sec_vendor_class_extensions">
+        <title>Extending the model with classes</title>
+        <para>A vendor may also define entirely new information item classes, by deriving them from
+          <code>Observation</code>, from <code>Assertion</code>, or from any concrete class of this
+          specification, and publishing them in a LinkML module of its own. This is how a device
+          reports information for which no class defined here is adequate, and it is the mechanism the
+          event type catalogue exposes (see <xref linkend="sec_event_type_catalogue"/>).</para>
+        <para>Vendor classes are declared in a vendor-controlled namespace. A vendor module declares
+          its own prefix and its own <code>default_prefix</code>, so the class URI of every class it
+          defines is formed from a namespace the vendor controls, and two vendors that independently
+          choose the same local name for a class still define two distinct classes. The
+          <code>@type</code> of an instance of a vendor class is written as a CURIE using that
+          prefix, as specified in <xref linkend="sec_context_and_type_annotations"/>; only the classes
+          of the ONVIF Agentic Schema Bundle are written as bare local names.</para>
+        <para>The prefixes served by one ONVIF Device shall be mutually distinct. Where two vendor
+          modules a device serves declare the same prefix for different namespaces, the device
+          arbitrates: it renames one of them in the context it derives and in the <code>@type</code>
+          values it emits. A prefix is therefore local to one device, and an ONVIF Client shall
+          resolve a CURIE through the context of the session in which it was received rather than
+          treat the prefix as a global name.</para>
+        <para>Two consequences follow from the structure of a LinkML module and shall be taken into
+          account by anyone defining a vendor class.</para>
+        <orderedlist>
+          <listitem>
+            <para>Class names are flat across the imports closure. A vendor module that imports the
+              bundle shares one name space with it, so a vendor class shall not reuse the local name
+              of a class defined by the bundle or by another module in the same closure. The
+              namespacing described above distinguishes the class <emphasis>URIs</emphasis>; it does
+              not make the local names independent within a single closure.</para>
+          </listitem>
+          <listitem>
+            <para>An enumeration reached through <code>imports</code> cannot be extended with further
+              permissible values. A vendor that needs a value an enumeration of this specification
+              does not offer cannot add it to that enumeration; it shall either use the fallback value
+              the enumeration provides, where one exists, or define a class of its own carrying an
+              enumeration of its own. This is why the enumerations of this specification that describe
+              a classification carry <code>Other</code> and <code>Unknown</code> values (see <xref
+                linkend="sec_vehicle_observation"/>).</para>
+          </listitem>
+        </orderedlist>
+        <para>An ONVIF Client that receives an item of a class it cannot resolve shall handle it as
+          specified in <xref linkend="sec_self_describing_events"/>, and shall not discard the
+          enclosing envelope on that account.</para>
+      </section>
     </section>
   </chapter>
 
@@ -2457,67 +3026,6 @@
           <code>events/stream</code> request, or calls <code>events/subscribe</code>, to receive
         metadata events, as shown in <xref linkend="sec_annex_metadata_stream"/>.</para>
     </section>
-    <section xml:id="sec_annex_ai_capability_discovery">
-      <title>Agentic capability discovery</title>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
-          <code>resources/read</code> with URI
-          <code>capabilities://www.onvif.org/ver10/agentic</code>.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 4,
-  "method": "resources/read",
-  "params": {
-    "uri": "capabilities://www.onvif.org/ver10/agentic",
-    "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns the Agentic
-        Service capabilities document.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 4,
-  "result": {
-    "resultType": "complete",
-    "contents": [{
-      "uri": "capabilities://www.onvif.org/ver10/agentic",
-      "mimeType": "application/json",
-      "text": "{...}"
-    }]
-  }
-}</programlisting>
-    </section>
-    <section xml:id="sec_annex_optional_capability_discovery">
-      <title>Optional non-agentic capability discovery</title>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
-          <code>resources/read</code> with URI
-          <code>capabilities://onvif/&lt;service-name&gt;</code> (example:
-          <code>capabilities://onvif/media</code>).</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 5,
-  "method": "resources/read",
-  "params": {
-    "uri": "capabilities://onvif/media",
-    "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client — not supported):</emphasis> If the requested
-        service capability is not exposed, the ONVIF Device returns a resource-not-found
-        error.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 5,
-  "error": {
-    "code": -32002,
-    "message": "ResourceNotFound",
-    "data": { "uri": "capabilities://onvif/media" }
-  }
-}</programlisting>
-    </section>
     <section xml:id="sec_annex_schema_inventory">
       <title>Schema resource inventory</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
@@ -2535,8 +3043,9 @@
 }</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns available
         resources. Resources with <code>mimeType: application/linkml+yaml</code> are the schema
-        files to be retrieved in <xref linkend="sec_annex_schema_retrieval"/> (example URIs:
-          <code>linkml://www.onvif.org/ver10/agentic/events</code>).</para>
+        files to be retrieved in <xref linkend="sec_annex_schema_retrieval"/>. The device serves the
+        six modules of the ONVIF Agentic Schema Bundle described in
+        <xref linkend="sec_onvif_common_type_library"/>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 6,
@@ -2544,31 +3053,57 @@
     "resultType": "complete",
     "resources": [
       {
-        "uri": "linkml://www.onvif.org/ver10/agentic/events",
-        "name": "ONVIF Agentic Events Schema",
+        "uri": "linkml://192.0.2.10/agentic/common",
+        "name": "ONVIF Agentic Common Types",
         "mimeType": "application/linkml+yaml"
       },
       {
-        "uri": "capabilities://www.onvif.org/ver10/agentic",
-        "name": "ONVIF Agentic Capabilities",
-        "mimeType": "application/json"
+        "uri": "linkml://192.0.2.10/agentic/enums",
+        "name": "ONVIF Agentic Enumerations",
+        "mimeType": "application/linkml+yaml"
+      },
+      {
+        "uri": "linkml://192.0.2.10/agentic/time",
+        "name": "ONVIF Agentic Time",
+        "mimeType": "application/linkml+yaml"
+      },
+      {
+        "uri": "linkml://192.0.2.10/agentic/signature",
+        "name": "ONVIF Agentic Signature",
+        "mimeType": "application/linkml+yaml"
+      },
+      {
+        "uri": "linkml://192.0.2.10/agentic/base",
+        "name": "ONVIF Agentic Metadata Model",
+        "mimeType": "application/linkml+yaml"
+      },
+      {
+        "uri": "linkml://192.0.2.10/agentic",
+        "name": "ONVIF Agentic Skill Interface",
+        "mimeType": "application/linkml+yaml"
       }
     ]
   }
 }</programlisting>
+      <para>These resource URIs are chosen by the ONVIF Device and are not the same thing as the
+        <code>id</code> of the module they carry: the module served at
+        <code>linkml://192.0.2.10/agentic/base</code> declares
+        <code>id: https://www.onvif.org/ver10/agentic/base/linkml/</code>, and another device serving
+        the same module would very likely address it differently. The distinction is the one drawn in
+        <xref linkend="sec_schema_uri_roles"/>.</para>
     </section>
     <section xml:id="sec_annex_schema_retrieval">
       <title>Schema retrieval</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
           <code>resources/read</code> for each <code>application/linkml+yaml</code> resource URI
-        obtained from <xref linkend="sec_annex_schema_inventory"/> (example:
-          <code>linkml://www.onvif.org/ver10/agentic/events</code>).</para>
+        obtained from <xref linkend="sec_annex_schema_inventory"/>. The example reads
+        <code>agentic/base</code>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 7,
   "method": "resources/read",
   "params": {
-    "uri": "linkml://www.onvif.org/ver10/agentic/events",
+    "uri": "linkml://192.0.2.10/agentic/base",
     "_meta": {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28"
     }
@@ -2576,20 +3111,27 @@
 }</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns the
         LinkML schema as a YAML string in the <code>text</code> field. The ONVIF Client
-        registers this schema in its validator. If multiple schema resources were listed in
-        <xref linkend="sec_annex_schema_inventory"/>, this request is repeated for each URI.</para>
+        registers this schema in its validator. The request is repeated for each of the six modules
+        listed in <xref linkend="sec_annex_schema_inventory"/>, since a module is only interpretable
+        together with the modules it imports.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 7,
   "result": {
     "resultType": "complete",
     "contents": [{
-      "uri": "linkml://www.onvif.org/ver10/agentic/events",
+      "uri": "linkml://192.0.2.10/agentic/base",
       "mimeType": "application/linkml+yaml",
-      "text": "..."
+      "text": "id: https://www.onvif.org/ver10/agentic/base/linkml/\nname: onvif-agentic-base\n..."
     }]
   }
 }</programlisting>
+      <para>Having loaded the six modules, the ONVIF Client holds the whole vocabulary the device
+        will use in its payloads, and can derive from them both the JSON Schema it validates against
+        and, if it performs JSON-LD processing, the context described in
+        <xref linkend="sec_context_and_type_annotations"/>. No further schema retrieval is needed
+        unless the device later announces a class the client cannot resolve, which is the case shown
+        in <xref linkend="sec_annex_dynamic_schema_reregistration"/>.</para>
     </section>
     <section xml:id="sec_annex_tool_discovery">
       <title>Tool discovery</title>
@@ -2656,12 +3198,12 @@
       "state": "running",
       "activeFunctions": [
         {
-          "function": "fire_detection",
-          "executionId": "exec_fire_001"
+          "function": "vehicle_detection",
+          "executionId": "exec_vehicle_001"
         },
         {
-          "function": "smoke_detection",
-          "executionId": "exec_smoke_001"
+          "function": "vehicle_reidentification",
+          "executionId": "exec_reid_001"
         }
       ],
       "engineVersion": "2.1.4"
@@ -2686,43 +3228,74 @@
   }
 }</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns all
-        functions it supports, their configured/available state, and the LinkML schema URI that governs
-        the <code>configure_function</code> call for each function.</para>
+        functions it supports, their configured/available state, and the LinkML classes that govern
+        the calls applicable to each function. Every entry carries both a local
+        <code>name</code> and a <code>canonicalUri</code>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 10,
   "result": {
     "resultType": "complete",
-    "content": [{ "type": "text", "text": "3 function(s) available." }],
+    "content": [{ "type": "text", "text": "4 function(s) available." }],
     "structuredContent": {
       "functions": [
         {
-          "name": "fire_detection",
+          "name": "vehicle_detection",
+          "canonicalUri": "https://vendor.example/agentic/function/vehicle_detection",
+          "description": "Detect and classify vehicles in the scene.",
           "enabled": true,
-          "configSchema": "linkml://www.onvif.org/ver10/agentic/events#FireDetectionConfig"
+          "configSchema": "https://vendor.example/agentic/linkml/#/$defs/VehicleDetectionConfig"
         },
         {
-          "name": "smoke_detection",
+          "name": "vehicle_reidentification",
+          "canonicalUri": "https://vendor.example/agentic/function/vehicle_reidentification",
+          "description": "Assert that vehicle observations refer to the same physical vehicle.",
+          "enabled": true,
+          "configSchema": "https://vendor.example/agentic/linkml/#/$defs/VehicleReidentificationConfig"
+        },
+        {
+          "name": "license_plate_recognition",
+          "canonicalUri": "https://vendor.example/agentic/function/license_plate_recognition",
+          "description": "Read license plates of detected vehicles.",
           "enabled": false,
-          "configSchema": "linkml://www.onvif.org/ver10/agentic/events#SmokeDetectionConfig"
+          "configSchema": "https://vendor.example/agentic/linkml/#/$defs/LicensePlateRecognitionConfig"
         },
         {
-          "name": "set_event_keepalive",
+          "name": "set_event_stream_parameters",
+          "canonicalUri": "https://www.onvif.org/ver10/agentic/function/set_event_stream_parameters",
           "description": "Set the keep-alive interval of the event stream.",
           "enabled": true,
-          "executionSchema": "linkml://www.onvif.org/ver10/agentic#SetEventKeepaliveParametersRequest",
-          "resultSchema": "linkml://www.onvif.org/ver10/agentic#SetEventKeepaliveParametersResponse",
-          "capabilitiesSchema": "linkml://www.onvif.org/ver10/agentic#EventKeepaliveCapabilities"
+          "executionSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/SetEventStreamParametersRequest",
+          "resultSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/SetEventStreamParametersResponse",
+          "capabilitiesSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/EventStreamCapabilities"
         }
       ]
     }
   }
 }</programlisting>
+      <para>The two identifiers play different roles, as specified in
+        <xref linkend="sec_function_catalogue"/>. The <code>name</code> is what the ONVIF Client
+        passes back in the <code>function</code> argument of <code>configure_function</code>,
+          <code>execute_function</code>, <code>stop_function</code> and
+          <code>get_function_capabilities</code>; it is unique within this response only, and this
+        device may have renamed a function to make it so. The <code>canonicalUri</code> is what the
+        client uses to <emphasis>recognise</emphasis> the function: it is the same on every device
+        that implements the function, so a client that knows how to drive
+        <code>https://vendor.example/agentic/function/vehicle_reidentification</code> can drive it on
+        any of them, whatever local name each has chosen.</para>
+      <para>The reserved function has a <code>canonicalUri</code> in the ONVIF function namespace,
+        <code>https://www.onvif.org/ver10/agentic/function/</code> followed by the reserved name. The
+        three others lie in a namespace controlled by the party that defined them.</para>
+      <para><code>license_plate_recognition</code> is listed with <code>enabled: false</code>. The
+        function exists on this device but is not configured, so the ONVIF Client can see that
+        license plate observations are obtainable here and knows to call
+        <code>configure_function</code> first. This is why the catalogue lists unconfigured functions
+        rather than hiding them.</para>
     </section>
     <section xml:id="sec_annex_skill_get_function_capabilities">
       <title>Skill invocation — get_function_capabilities</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client reads the static
-        capabilities of the reserved <code>set_event_keepalive</code> function before choosing an
+        capabilities of the reserved <code>set_event_stream_parameters</code> function before choosing an
         interval, so that its request is not clamped. The <code>arguments</code> object is an
         instance of the LinkML class <code>GetFunctionCapabilities</code>.</para>
       <programlisting>{
@@ -2732,7 +3305,7 @@
   "params": {
     "name": "get_function_capabilities",
     "arguments": {
-      "function": "set_event_keepalive"
+      "function": "set_event_stream_parameters"
     },
     "_meta": {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28"
@@ -2740,7 +3313,7 @@
   }
 }</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> The <code>capabilities</code> object
-        is an instance of <code>EventKeepaliveCapabilities</code>, the class named by
+        is an instance of <code>EventStreamCapabilities</code>, the class named by
           <code>capabilitiesSchema</code> in the function's catalogue entry. These values are
         invariant for this device instance.</para>
       <programlisting>{
@@ -2748,13 +3321,15 @@
   "id": 13,
   "result": {
     "resultType": "complete",
-    "content": [{ "type": "text", "text": "Keep-alive interval supported from 5000 to 300000 ms." }],
+    "content": [{ "type": "text",
+                  "text": "Keep-alive 5000-300000 ms; up to 4 concurrent streams." }],
     "structuredContent": {
-      "function": "set_event_keepalive",
+      "function": "set_event_stream_parameters",
       "capabilities": {
         "defaultKeepaliveIntervalMs": 30000,
         "minKeepaliveIntervalMs": 5000,
-        "maxKeepaliveIntervalMs": 300000
+        "maxKeepaliveIntervalMs": 300000,
+        "maxConcurrentStreams": 4
       }
     }
   }
@@ -2784,11 +3359,11 @@
   "params": {
     "name": "configure_function",
     "arguments": {
-      "function": "fire_detection",
+      "function": "vehicle_detection",
       "config": {
         "sensitivity": 0.80,
         "channel": "ch1",
-        "region": [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]]
+        "classifyUse": true
       }
     },
     "_meta": {
@@ -2807,17 +3382,23 @@
   "id": 11,
   "result": {
     "resultType": "complete",
-    "content": [{ "type": "text", "text": "fire_detection configured successfully." }],
+    "content": [{ "type": "text", "text": "vehicle_detection configured successfully." }],
     "structuredContent": {
-      "function": "fire_detection",
+      "function": "vehicle_detection",
       "applied": {
         "sensitivity": 0.80,
         "channel": "ch1",
-        "region": [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]]
+        "classifyUse": true
       }
     }
   }
 }</programlisting>
+      <para><code>classifyUse</code> is a configuration option of this vendor's function, not a
+        field of the metadata model. Enabling it is what makes the difference, in the observations of
+        <xref linkend="sec_annex_metadata_stream"/>, between a <code>use</code> field carrying
+        <code>Unknown</code> and a <code>use</code> field being absent altogether: a device that does
+        not classify vehicle use omits the field, whereas a device that classifies it and fails
+        reports <code>Unknown</code>.</para>
       <para><emphasis>Response (Device to Client — asynchronous):</emphasis> If configuration
         requires asynchronous processing, the same <code>tools/call</code> request may return a
         task handle instead of the final result.</para>
@@ -2861,7 +3442,7 @@
   "params": {
     "name": "execute_function",
     "arguments": {
-      "function": "fire_detection"
+      "function": "vehicle_detection"
     },
     "_meta": {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28",
@@ -2882,7 +3463,7 @@
   "result": {
     "resultType": "task",
     "task": {
-      "taskId": "task_start_fire_001",
+      "taskId": "task_start_vehicle_001",
       "status": "working",
       "ttlMs": 3600000,
       "pollIntervalMs": 2000
@@ -2890,15 +3471,15 @@
   }
 }</programlisting>
       <para>The terminal task result shall include the execution identifier, for example
-        <code>exec_fire_001</code>. Events produced by the running function are delivered on the
+        <code>exec_vehicle_001</code>. Events produced by the running function are delivered on the
         ONVIF Client's open <code>events/stream</code> request, or via webhook.</para>
     </section>
     <section xml:id="sec_annex_event_keepalive">
-      <title>Skill invocation — set_event_keepalive</title>
+      <title>Skill invocation — set_event_stream_parameters</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client shortens the
         keep-alive interval of its push streams from the 30 second default to 10 seconds. The
           <code>parameters</code> object is an instance of the LinkML class
-          <code>SetEventKeepaliveParametersRequest</code>.</para>
+          <code>SetEventStreamParametersRequest</code>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 14,
@@ -2906,7 +3487,7 @@
   "params": {
     "name": "execute_function",
     "arguments": {
-      "function": "set_event_keepalive",
+      "function": "set_event_stream_parameters",
       "parameters": {
         "keepaliveIntervalMs": 10000
       }
@@ -2964,8 +3545,8 @@
   "params": {
     "name": "stop_function",
     "arguments": {
-      "function": "fire_detection",
-      "executionId": "exec_fire_001"
+      "function": "vehicle_detection",
+      "executionId": "exec_vehicle_001"
     },
     "_meta": {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28",
@@ -2982,6 +3563,14 @@
     </section>
     <section xml:id="sec_annex_metadata_stream">
       <title>Event delivery — catalogue, stream, and webhook examples</title>
+      <para>The examples in this section follow one vehicle through two events. In the first, the
+        device reports that a vehicle passed the main gate but cannot say what kind of vehicle it
+        was. In the second, four seconds later, the same vehicle is observed at the ambulance
+        drop-off, where it is classified as a van in emergency medical service, and an analytics
+        module asserts that the two observations are of the same physical vehicle. This is the
+        ordinary case of a first observation being refined by a later one, and it is worked through
+        in <xref linkend="sec_annex_refinement_narrative"/> after the wire format has been
+        shown.</para>
       <para><emphasis>Event type catalogue (Client to Device):</emphasis> The ONVIF Client calls
           <code>events/list</code> to discover the event types exposed by the device.</para>
       <programlisting>{
@@ -2996,26 +3585,56 @@
   "result": {
     "events": [
       {
-        "name": "FireDetectionEvent",
-        "description": "Fires when the fire detection function identifies a flame",
+        "name": "VehicleObservation",
+        "canonicalUri": "https://www.onvif.org/ver10/agentic/linkml/VehicleObservation",
+        "description": "Emitted when the vehicle detection function observes a vehicle",
         "delivery": ["push", "webhook"],
         "inputSchema": {
           "type": "object",
           "properties": {
-            "zone": { "type": "string", "description": "Scene zone URI to filter on" }
+            "locationToken": {
+              "type": "string",
+              "description": "Token of a configured location to filter on"
+            }
           }
         },
         "payloadSchema": {
-          "$ref": "linkml://www.onvif.org/ver10/agentic/events#FireDetectionEvent"
+          "$ref": "https://www.onvif.org/ver10/agentic/base/linkml/#/$defs/InformationEnvelope"
+        }
+      },
+      {
+        "name": "VehicleReidentification",
+        "canonicalUri": "https://www.onvif.org/ver10/agentic/linkml/VehicleReidentification",
+        "description": "Emitted when two vehicle observations are found to be of the same vehicle",
+        "delivery": ["push", "webhook"],
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "locationToken": {
+              "type": "string",
+              "description": "Token of a configured location to filter on"
+            }
+          }
+        },
+        "payloadSchema": {
+          "$ref": "https://www.onvif.org/ver10/agentic/base/linkml/#/$defs/InformationEnvelope"
         }
       }
     ]
   }
 }</programlisting>
-      <para><emphasis>Stream request (Client to Device):</emphasis> The ONVIF Client opens a
-        long-lived <code>events/stream</code> request with a <code>null</code> cursor to start from
-        now. On Streamable HTTP this is an HTTP POST to <code>/mcp</code> whose response is an SSE
-        stream.</para>
+      <para>An event type is a metadata class, as specified in
+        <xref linkend="sec_event_type_catalogue"/>. Both entries therefore carry the same
+        <code>payloadSchema</code>: the payload of any event is an
+        <code>InformationEnvelope</code>, and what distinguishes one event type from another is the
+        class named by <code>canonicalUri</code>, which is the class an ONVIF Client is asking to be
+        told about among the items the envelope carries. Neither entry names a class invented for
+        the purpose of eventing; both name classes of the metadata model that the device is able to
+        emit.</para>
+      <para><emphasis>Stream requests (Client to Device):</emphasis> The ONVIF Client opens two
+        long-lived <code>events/stream</code> requests, one per class it is interested in, each with
+        a <code>null</code> cursor to start from now. On Streamable HTTP each is an HTTP POST to
+        <code>/mcp</code> whose response is an SSE stream.</para>
       <programlisting>POST /mcp HTTP/1.1
 Host: 192.0.2.10
 Accept: text/event-stream
@@ -3028,17 +3647,33 @@ Authorization: Bearer &lt;ES256 JWT&gt;
   "id": 30,
   "method": "events/stream",
   "params": {
-    "name": "FireDetectionEvent",
-    "arguments": { "zone": "urn:onvif:scene:ch1:zone:north" },
+    "name": "VehicleObservation",
+    "arguments": {},
     "cursor": null,
     "maxAgeMs": 300000
   }
 }</programlisting>
-      <para><emphasis>Stream response (Device to Client):</emphasis> The ONVIF Device confirms the
-        subscription, then delivers each matching event as it occurs and a keep-alive during quiet
-        periods. Every notification carries the subscription identifier of the parent request. The
-        example below shows a <code>FireDetectionEvent</code> carrying a
-          <code>SOSAObservation</code> payload.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 31,
+  "method": "events/stream",
+  "params": {
+    "name": "VehicleReidentification",
+    "arguments": {},
+    "cursor": null,
+    "maxAgeMs": 300000
+  }
+}</programlisting>
+      <para>Both subscriptions pass an empty <code>arguments</code> object although the event type
+        offers a <code>locationToken</code> filter. Filtering on
+        <code>Area_MainGate</code> would have delivered the first observation and withheld the
+        second, and the ONVIF Client would then have received a re-identification citing an
+        observation it never saw. A filter narrower than the phenomenon being tracked breaks the
+        chain it is meant to follow, and an ONVIF Client that intends to correlate items across
+        locations shall not apply one.</para>
+      <para><emphasis>Stream response, first event (Device to Client):</emphasis> The ONVIF Device
+        confirms the subscription and then delivers the first occurrence. The vehicle has been
+        detected, but neither its type nor its use could be determined.</para>
       <programlisting>HTTP/1.1 200 OK
 Content-Type: text/event-stream
 
@@ -3049,32 +3684,153 @@ data:   "_meta": {"io.modelcontextprotocol/subscriptionId": 30}
 data: }}
 
 data: {"jsonrpc":"2.0","method":"notifications/events/event","params":{
-data:   "eventId": "evt_fire_0001",
-data:   "name": "FireDetectionEvent",
+data:   "eventId": "evt_veh_0001",
+data:   "name": "VehicleObservation",
 data:   "timestamp": "2026-08-04T13:05:00.120Z",
 data:   "data": {
-data:     "@context": "linkml://www.onvif.org/ver10/agentic/events",
-data:     "@type": "FireDetectionEvent",
-data:     "sosa:madeBySensor": "urn:onvif:device:192.0.2.10:camera:ch1",
-data:     "sosa:observedProperty": "onvif:FlamePresence",
-data:     "sosa:hasFeatureOfInterest": "urn:onvif:scene:ch1:zone:north",
-data:     "sosa:phenomenonTime": "2026-08-04T13:05:00.000Z",
-data:     "sosa:resultTime": "2026-08-04T13:05:00.120Z",
-data:     "sosa:hasResult": {
-data:       "@type": "FireDetectionResult",
-data:       "detected": true,
-data:       "confidence": 0.94,
-data:       "boundingBox": { "x": 0.22, "y": 0.31, "width": 0.18, "height": 0.24 }
-data:     }
+data:     "@context": "https://www.onvif.org/ver10/agentic/linkml/",
+data:     "@type": "InformationEnvelope",
+data:     "id": "0a7e1c34-9f2b-4d61-8c05-3ab7e6d91f42",
+data:     "items": [
+data:       {
+data:         "@type": "VehicleObservation",
+data:         "id": "2c9f4b18-7d3e-4a52-9e61-0b8c5f2a1d76",
+data:         "confidence": 0.62,
+data:         "productionTime": {
+data:           "@type": "ISO8601Timestamp",
+data:           "timestamp": "2026-08-04T13:05:00.120Z"
+data:         },
+data:         "observedTime": {
+data:           "@type": "ISO8601Timestamp",
+data:           "timestamp": "2026-08-04T13:05:00.000Z"
+data:         },
+data:         "observedSpace": {
+data:           "@type": "FunctionalLocation",
+data:           "name": "Main Gate",
+data:           "token": "Area_MainGate"
+data:         },
+data:         "provenance": {
+data:           "@type": "ONVIFDevice",
+data:           "entity": { "token": "VideoSource_1" },
+data:           "publicKeys": [ { "keyId": "metadata-signing-1" } ]
+data:         },
+data:         "type": "Unknown",
+data:         "use": "Unknown"
+data:       }
+data:     ]
 data:   },
 data:   "cursor": "historyId_10042",
+data:   "_meta": {"io.modelcontextprotocol/subscriptionId": 30}
+data: }}</programlisting>
+      <para><emphasis>Stream response, second event (Device to Client):</emphasis> Four seconds
+        later the vehicle is observed at the ambulance drop-off and classified. The envelope carries
+        two items: the new observation, and the assertion that ties it to the earlier one. A
+        keep-alive follows during the quiet period afterwards.</para>
+      <programlisting>data: {"jsonrpc":"2.0","method":"notifications/events/event","params":{
+data:   "eventId": "evt_veh_0002",
+data:   "name": "VehicleObservation",
+data:   "timestamp": "2026-08-04T13:05:04.310Z",
+data:   "data": {
+data:     "@context": "https://www.onvif.org/ver10/agentic/linkml/",
+data:     "@type": "InformationEnvelope",
+data:     "id": "5d3b8e07-1a4c-4f92-b6d8-7e2019c4a3f5",
+data:     "items": [
+data:       {
+data:         "@type": "VehicleObservation",
+data:         "id": "6b1e0d92-4c73-4a18-8f5d-2e9a7c04b3e1",
+data:         "confidence": 0.94,
+data:         "productionTime": {
+data:           "@type": "ISO8601Timestamp",
+data:           "timestamp": "2026-08-04T13:05:04.090Z"
+data:         },
+data:         "observedTime": {
+data:           "@type": "ISO8601Timestamp",
+data:           "timestamp": "2026-08-04T13:05:04.000Z"
+data:         },
+data:         "observedSpace": {
+data:           "@type": "FunctionalLocation",
+data:           "name": "Ambulance Drop-off",
+data:           "token": "Area_AmbulanceDropoff"
+data:         },
+data:         "provenance": {
+data:           "@type": "ONVIFDevice",
+data:           "entity": { "token": "VideoSource_1" },
+data:           "publicKeys": [ { "keyId": "metadata-signing-1" } ]
+data:         },
+data:         "type": "Van",
+data:         "use": "Ambulance"
+data:       },
+data:       {
+data:         "@type": "VehicleReidentification",
+data:         "id": "9f4c2a61-08d5-4e37-b19c-6a3f7d21e480",
+data:         "confidence": 0.88,
+data:         "productionTime": {
+data:           "@type": "ISO8601Timestamp",
+data:           "timestamp": "2026-08-04T13:05:04.310Z"
+data:         },
+data:         "provenance": {
+data:           "@type": "AnalyticsModule",
+data:           "token": "ReID_1",
+data:           "algorithm": "vehicle-reidentification",
+data:           "version": "4.2.0",
+data:           "entity": { "token": "VideoSource_1" },
+data:           "publicKeys": [ { "keyId": "metadata-signing-1" } ]
+data:         },
+data:         "supportedBy": [
+data:           "2c9f4b18-7d3e-4a52-9e61-0b8c5f2a1d76",
+data:           "6b1e0d92-4c73-4a18-8f5d-2e9a7c04b3e1"
+data:         ],
+data:         "vehicleId": "c4d81f36-2b90-4e57-a8c1-5f7042e9b613",
+data:         "authoritativeObservation": "6b1e0d92-4c73-4a18-8f5d-2e9a7c04b3e1"
+data:       }
+data:     ]
+data:   },
+data:   "cursor": "historyId_10061",
 data:   "_meta": {"io.modelcontextprotocol/subscriptionId": 30}
 data: }}
 
 data: {"jsonrpc":"2.0","method":"notifications/events/heartbeat","params":{
-data:   "cursor": "historyId_10050",
+data:   "cursor": "historyId_10070",
 data:   "_meta": {"io.modelcontextprotocol/subscriptionId": 30}
 data: }}</programlisting>
+      <para>This envelope satisfies both subscriptions, because it contains an item of each
+        subscribed class. The ONVIF Device therefore delivers it on subscription 31 as well, as a
+        separate occurrence with its own <code>eventId</code>. The <code>data</code> field is
+        abridged below: it carries the envelope shown above, byte for byte, and only its identifier
+        is repeated here so that the two deliveries can be seen to refer to one envelope.</para>
+      <programlisting>data: {"jsonrpc":"2.0","method":"notifications/events/event","params":{
+data:   "eventId": "evt_reid_0001",
+data:   "name": "VehicleReidentification",
+data:   "timestamp": "2026-08-04T13:05:04.310Z",
+data:   "data": {
+data:     "@type": "InformationEnvelope",
+data:     "id": "5d3b8e07-1a4c-4f92-b6d8-7e2019c4a3f5",
+data:     "items": []
+data:   },
+data:   "cursor": "historyId_10061",
+data:   "_meta": {"io.modelcontextprotocol/subscriptionId": 31}
+data: }}</programlisting>
+      <para>The empty <code>items</code> list above is an artefact of the abridgement and never
+        appears on the wire: <code>items</code> is mandatory and carries at least one item, and here
+        it carries the two items delivered on subscription 30.</para>
+      <para>The ONVIF Client now holds the same two items twice, under two different
+        <code>eventId</code> values. It deduplicates on the item identifiers
+        <code>6b1e0d92-…</code> and <code>9f4c2a61-…</code>, not on <code>eventId</code>, which is
+        per-delivery and differs precisely because the delivery differed. Item identifiers are
+        unique and never reused, which makes this deduplication exact.</para>
+      <para>The correspondences between the MCP occurrence and the ONVIF envelope are worth reading
+        off this example, since the two levels are easy to confuse (see
+        <xref linkend="sec_event_payload_structure"/>). The <code>name</code>
+        <code>VehicleObservation</code> and the <code>@type</code> of the item happen to be the same
+        string, but they are different fields serving different purposes: the first says which
+        subscription this delivery belongs to, the second says what the item is. The
+        <code>eventId</code> <code>evt_veh_0002</code> is not the identifier of the envelope
+        <code>5d3b8e07-…</code>, nor of any item in it. The <code>timestamp</code>
+        <code>13:05:04.310Z</code> is when the device dispatched the occurrence, and is not the
+        <code>productionTime</code> of either item, still less the <code>observedTime</code> of
+        <code>13:05:04.000Z</code>. And <code>cursor</code> is a position in the subscription, not a
+        fact about the world: it is the one field an ONVIF Client persists and sends back, and it
+        carries no evidential weight.</para>
       <para>Every line of an SSE event carries its own <code>data:</code> prefix. This is not a
         typographical device of this document but the framing rule of <code>text/event-stream</code>:
         the prefix is a field name, not part of the payload, and a receiver strips it from each
@@ -3089,26 +3845,103 @@ data: }}</programlisting>
         a stream that delivered no event during that interval. See <xref
           linkend="sec_annex_event_keepalive"/> for how the ONVIF Client changes that
         interval.</para>
-      <para><emphasis>Webhook subscription request (Client to Device):</emphasis> Instead of
-        keeping a stream open, the ONVIF Client MAY register a callback URL for the same event
-        type, when the device advertises <code>"webhook"</code> in <code>delivery</code>.</para>
-      <programlisting>{
+      <para>Neither envelope above carries a <code>signature</code>. Signing is optional, and on a
+        continuous metadata stream a device may reasonably omit it; the price is that the items
+        carry no integrity or non-repudiation claim.
+        <xref linkend="sec_annex_signed_envelope"/> shows the signed form.</para>
+
+      <section xml:id="sec_annex_refinement_narrative">
+        <title>How the second event refines the first</title>
+        <para>The two events above are the normal way in which analytics improves its own output,
+          and the model is built so that it can do so without ever contradicting itself. It is worth
+          following what each of the three items claims.</para>
+        <para>At 13:05:00 the device saw something at the main gate. It was confident enough that a
+          vehicle was there to report it — a confidence of 0.62 — but it could determine neither the
+          type of the vehicle nor the use it was being put to. Both fields carry
+          <code>Unknown</code>. This is not a defect of the report: <code>type</code> is a mandatory
+          slot, and <code>Unknown</code> is what allows the device to state a detection it is sure of
+          without inventing a classification it is not. Had the device not classified vehicle use at
+          all, the <code>use</code> field would have been absent rather than
+          <code>Unknown</code>; here it is present and <code>Unknown</code>, which says something
+          more specific — the device does classify use, and it tried, and it failed. An ONVIF Client
+          can tell those two situations apart, and they call for different responses.</para>
+        <para>At 13:05:04 the same device, on the same channel, saw a vehicle at the ambulance
+          drop-off and this time classified it: a <code>Van</code> in <code>Ambulance</code> use, at
+          a confidence of 0.94. Nothing in this second observation refers to the first. It is an
+          independent report of what the sensor saw at a different place and a different time, and it
+          would be exactly the same report if the first observation had never been made.</para>
+        <para>The link between the two is the third item, and it is a different kind of claim
+          altogether. <code>VehicleReidentification</code> is an <code>Assertion</code>: it states
+          that observations <code>2c9f4b18-…</code> and <code>6b1e0d92-…</code> are of the same
+          physical vehicle. It lists both in <code>supportedBy</code>, which is why that field
+          requires at least two entries — a single observation cannot be re-identified. It assigns
+          the vehicle a stable identifier, <code>vehicleId</code>
+          <code>c4d81f36-…</code>, which designates the physical vehicle and not any information
+          item, and which a later re-identification of the same vehicle will reuse, so that an ONVIF
+          Client can accumulate what is known about one vehicle over time. And it nominates
+          <code>6b1e0d92-…</code> as the <code>authoritativeObservation</code>, telling the client
+          which of the two classifications to prefer.</para>
+        <para>What the assertion does <emphasis>not</emphasis> do is modify either observation.
+          The item <code>2c9f4b18-…</code> still says <code>Unknown</code>, still at a confidence of
+          0.62, and it will say so for as long as it is retained. Nothing is retracted, nothing is
+          overwritten, and an ONVIF Client that received the first event and then lost its
+          connection is not holding a report that has since become false — it is holding a true
+          report of what the sensor could determine at 13:05:00. An <code>Observation</code> is never
+          revised, and this is the property that makes a metadata stream auditable: an observation
+          recorded at the time of an incident reads afterwards exactly as it read then. What changes
+          is not the record but what can be concluded from it, and conclusions are separate items
+          with their own identity.</para>
+        <para>The provenances make the distinction visible. Both observations are provenanced to an
+          <code>ONVIFDevice</code> naming the video source that produced them. The assertion is
+          provenanced to an <code>AnalyticsModule</code> — token <code>ReID_1</code>, algorithm
+          <code>vehicle-reidentification</code>, version <code>4.2.0</code> — because an algorithm,
+          not a sensor, produced it. The two items travel in the same envelope and leave the device
+          through the same interface, but they do not have the same author, and an ONVIF Client may
+          have good reason to accept what the sensor reports while treating the re-identification
+          with more caution, or to accept re-identifications from version 4.2.0 of this algorithm
+          and not from an earlier one. That decision is only available to a client if the items say
+          who made them, which is why <code>provenance</code> is mandatory and why the two
+          concrete provenance classes are distinct.</para>
+        <para>Confidence follows the same rule. The assertion is at 0.88 while the observation it
+          nominates as authoritative is at 0.94, and this ordering is the expected one: the
+          algorithm is at least as uncertain as its evidence, since it may have matched the wrong
+          vehicle even where each individual observation was sound. An ONVIF Client shall not
+          propagate the confidence of an observation to an assertion that cites it, in either
+          direction.</para>
+        <para>Finally, the two observations reached the client in two separate envelopes, four
+          seconds apart, while the assertion travelled together with the observation it was derived
+          from. That is the general pattern: items whose production is separated in time are not
+          gathered into one envelope but linked by identifier, whereas an assertion and the
+          observation produced at the same moment are delivered together, so that a client receives
+          the claim and its immediate support in one delivery. The reference to
+          <code>2c9f4b18-…</code> resolves against what the client already holds; if it does not —
+          because the client subscribed too late, or applied a filter that excluded the first
+          observation — then the client holds an assertion it cannot fully resolve, and shall treat
+          it as such rather than discarding the envelope.</para>
+      </section>
+
+      <section xml:id="sec_annex_webhook_delivery">
+        <title>Webhook delivery of the same events</title>
+        <para><emphasis>Webhook subscription request (Client to Device):</emphasis> Instead of
+          keeping a stream open, the ONVIF Client MAY register a callback URL for the same event
+          type, when the device advertises <code>"webhook"</code> in <code>delivery</code>.</para>
+        <programlisting>{
   "jsonrpc": "2.0",
   "id": 22,
   "method": "events/subscribe",
   "params": {
-    "name": "FireDetectionEvent",
-    "arguments": { "zone": "urn:onvif:scene:ch1:zone:north" },
+    "name": "VehicleObservation",
+    "arguments": {},
     "delivery": {
       "mode": "webhook",
-      "url": "https://client.example.com/hooks/onvif-fire",
+      "url": "https://client.example.com/hooks/onvif-vehicle",
       "secret": "whsec_5WbX5uJd9zX2mVvR8zQwHnA7pKtC3sYb"
     },
     "cursor": null,
     "ttlMs": 3600000
   }
 }</programlisting>
-      <programlisting>{
+        <programlisting>{
   "jsonrpc": "2.0",
   "id": 22,
   "result": {
@@ -3118,10 +3951,12 @@ data: }}</programlisting>
     "truncated": false
   }
 }</programlisting>
-      <para><emphasis>Webhook delivery (Device to callback endpoint):</emphasis> As matching
-        events occur, the ONVIF Device POSTs each <code>EventOccurrence</code> to the registered
-        callback URL, signed per Standard Webhooks and identifying the subscription.</para>
-      <programlisting>POST /hooks/onvif-fire HTTP/1.1
+        <para><emphasis>Webhook delivery (Device to callback endpoint):</emphasis> As matching
+          events occur, the ONVIF Device POSTs each <code>EventOccurrence</code> to the registered
+          callback URL, signed per Standard Webhooks and identifying the subscription. The
+          occurrence is the same object that the stream carried, and the payload is the same
+          <code>InformationEnvelope</code>; only the framing differs.</para>
+        <programlisting>POST /hooks/onvif-vehicle HTTP/1.1
 Host: client.example.com
 Content-Type: application/json
 webhook-id: msg_2f6b1a9d
@@ -3130,28 +3965,50 @@ webhook-signature: v1,K5r2m9QvC1nF8pXeVYtR3zJdL6oW0uAqBs4h7g==
 X-MCP-Subscription-Id: sub_9f2a1c7e0b4d3f6a
 
 {
-  "eventId": "evt_fire_0001",
-  "name": "FireDetectionEvent",
+  "eventId": "evt_veh_0001",
+  "name": "VehicleObservation",
   "timestamp": "2026-08-04T13:05:00.120Z",
   "data": {
-    "@context": "linkml://www.onvif.org/ver10/agentic/events",
-    "@type": "FireDetectionEvent",
-    "sosa:madeBySensor": "urn:onvif:device:192.0.2.10:camera:ch1",
-    "sosa:observedProperty": "onvif:FlamePresence",
-    "sosa:hasFeatureOfInterest": "urn:onvif:scene:ch1:zone:north",
-    "sosa:phenomenonTime": "2026-08-04T13:05:00.000Z",
-    "sosa:resultTime":     "2026-08-04T13:05:00.120Z",
-    "sosa:hasResult": {
-      "@type": "FireDetectionResult",
-      "detected": true,
-      "confidence": 0.94,
-      "boundingBox": {
-        "x": 0.22, "y": 0.31, "width": 0.18, "height": 0.24
+    "@context": "https://www.onvif.org/ver10/agentic/linkml/",
+    "@type": "InformationEnvelope",
+    "id": "0a7e1c34-9f2b-4d61-8c05-3ab7e6d91f42",
+    "items": [
+      {
+        "@type": "VehicleObservation",
+        "id": "2c9f4b18-7d3e-4a52-9e61-0b8c5f2a1d76",
+        "confidence": 0.62,
+        "productionTime": {
+          "@type": "ISO8601Timestamp",
+          "timestamp": "2026-08-04T13:05:00.120Z"
+        },
+        "observedTime": {
+          "@type": "ISO8601Timestamp",
+          "timestamp": "2026-08-04T13:05:00.000Z"
+        },
+        "observedSpace": {
+          "@type": "FunctionalLocation",
+          "name": "Main Gate",
+          "token": "Area_MainGate"
+        },
+        "provenance": {
+          "@type": "ONVIFDevice",
+          "entity": { "token": "VideoSource_1" },
+          "publicKeys": [ { "keyId": "metadata-signing-1" } ]
+        },
+        "type": "Unknown",
+        "use": "Unknown"
       }
-    }
+    ]
   },
   "cursor": "historyId_10042"
 }</programlisting>
+        <para>The webhook signature attests the transport: it tells the callback endpoint that this
+          HTTP request came from the party holding the subscription secret. It says nothing about the
+          items inside, and it does not survive the request — once the body has been read, the
+          signature is gone. An envelope that has to remain verifiable after delivery carries its own
+          <code>signature</code>, as shown in <xref linkend="sec_annex_signed_envelope"/>; the two
+          mechanisms protect different things and neither substitutes for the other.</para>
+      </section>
     </section>
     <section xml:id="sec_annex_signed_envelope">
       <title>Signed information envelope example</title>
@@ -3170,12 +4027,26 @@ X-MCP-Subscription-Id: sub_9f2a1c7e0b4d3f6a
         linkend="sec_onvif_device"/>) with its descriptive fields populated and the channel named
         through <code>entity</code>, so that the example reads clearly. All of those fields are
         optional, and the minimal form of the class — a single key identifier — is equally valid
-        and considerably shorter, which matters because provenance is repeated on every item. Note
-        also that the <code>keyId</code> declared in <code>publicKeys</code> is the same value the
-        signature names in its <code>key</code> field: the envelope was signed with a key the
-        producing device claims as its own.</para>
+        and considerably shorter, which matters because provenance is repeated on every item. The
+        stream examples of <xref linkend="sec_annex_metadata_stream"/> use that minimal form.</para>
+      <para>Here the declared key carries a fingerprint as well as an identifier (see <xref
+          linkend="sec_key_fingerprints"/>), and the same fingerprint appears in the
+        <code>key</code> field of the signature. Three things can therefore be checked, and they are
+        not the same check. The <code>keyId</code> declared in <code>publicKeys</code> equals the one
+        the signature names, so the envelope was signed with a key the producing device claims as its
+        own. The fingerprints equal each other, so the two references are to the same key
+        <emphasis>material</emphasis> and not merely to the same keystore entry name. And an ONVIF
+        Client that obtained this device's key fingerprint through the Advanced Security Service, or
+        at provisioning, can compare it with the value here and establish that the key is the one it
+        trusts — which no comparison internal to the envelope could establish, since an attacker who
+        fabricates an envelope can make it internally consistent.</para>
+      <para>The fingerprint in the <code>key</code> field is covered by the signature, because
+        <code>key</code> is part of the signature configuration and the configuration is hashed into
+        <code>envelopeDigest</code>. The fingerprints in <code>publicKeys</code> are covered by the
+        per-item digests, since provenance is part of the content of an item. Neither can be
+        substituted without invalidating something.</para>
       <programlisting>{
-  "@context": "https://www.onvif.org/ver10/agentic/base/linkml/",
+  "@context": "https://www.onvif.org/ver10/agentic/linkml/",
   "@type": "InformationEnvelope",
   "id": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
   "items": [
@@ -3195,7 +4066,17 @@ X-MCP-Subscription-Id: sub_9f2a1c7e0b4d3f6a
         "serialNumber": "AC42-00193847",
         "hardwareId": "AC4200-RevB",
         "entity": { "token": "VideoSource_1" },
-        "publicKeys": [ { "keyId": "metadata-signing-1" } ]
+        "publicKeys": [
+          {
+            "keyId": "metadata-signing-1",
+            "fingerprints": [
+              {
+                "algorithm": "SHA256",
+                "value": "Ry9mXk1tQ0pQb0hZd2s3TnZFcjJhUDVjNmJHOHVMdz0="
+              }
+            ]
+          }
+        ]
       },
       "type": "Car",
       "color": {
@@ -3220,7 +4101,17 @@ X-MCP-Subscription-Id: sub_9f2a1c7e0b4d3f6a
         "serialNumber": "AC42-00193847",
         "hardwareId": "AC4200-RevB",
         "entity": { "token": "VideoSource_1" },
-        "publicKeys": [ { "keyId": "metadata-signing-1" } ]
+        "publicKeys": [
+          {
+            "keyId": "metadata-signing-1",
+            "fingerprints": [
+              {
+                "algorithm": "SHA256",
+                "value": "Ry9mXk1tQ0pQb0hZd2s3TnZFcjJhUDVjNmJHOHVMdz0="
+              }
+            ]
+          }
+        ]
       },
       "plateNumber": { "value": "AB123CD", "likelihood": 0.88 },
       "countryCode": { "value": "IT", "likelihood": 0.99 }
@@ -3243,13 +4134,23 @@ X-MCP-Subscription-Id: sub_9f2a1c7e0b4d3f6a
     "created": "2026-08-04T13:05:00.200Z",
     "key": {
       "@type": "PublicKeyIdentifier",
-      "keyId": "metadata-signing-1"
+      "keyId": "metadata-signing-1",
+      "fingerprints": [
+        {
+          "algorithm": "SHA256",
+          "value": "Ry9mXk1tQ0pQb0hZd2s3TnZFcjJhUDVjNmJHOHVMdz0="
+        }
+      ]
     },
     "envelopeDigest": "9CkF0ap3z4NJVJaS5gF22AOgEeegqRdTpqu/g5tQ/3g=",
-    "signatureValue": "MEUCICp2gQfPcz4q5mZ2rDhUaotdS0y4leaiXL2DJ1Jf" \
-                      "hw6lAiEAhazQbwvi+Y87ndrmllh2IFublKLU8irz36FERWlrWYA="
+    "signatureValue": "MEUCICp2gQfPcz4q5mZ2rDhUaotdS0y4leaiXL2DJ1Jfhw6l..."
   }
 }</programlisting>
+      <para>The <code>signatureValue</code> above is abridged, as are the certificates later in this
+        section: a DER encoded ECDSA P-256 signature is 96 base64 characters and does not fit the
+        width of this page. The trailing ellipsis marks the elision and is not part of the value,
+        which on the wire is base64 characters and padding alone, with nothing else inside the
+        string. Every digest in the example is shown in full, since a SHA-256 digest fits.</para>
       <para>In this example <code>envelopeDigest</code> is obtained by hashing the canonical form of
         the signature configuration — that is, the <code>signature</code> object above without
         <code>envelopeDigest</code> and <code>signatureValue</code> — followed by the raw octets of
@@ -3273,65 +4174,172 @@ X-MCP-Subscription-Id: sub_9f2a1c7e0b4d3f6a
 
     <section xml:id="sec_annex_dynamic_schema_reregistration">
       <title>Dynamic schema re-registration</title>
-      <para>This example shows the procedure triggered when the ONVIF Client receives an
-          <code>EventOccurrence</code> whose <code>@context</code> URI
-          (<code>linkml://onvif/agentic/events/v2</code>) is not yet registered in its schema
-        bundle. The client suspends validation, fetches the schema, and registers it before
-        resuming.</para>
-      <para><emphasis>Event notification with unknown context (Device to Client):</emphasis> the
-        notification is delivered on the open <code>events/stream</code> response.</para>
+      <para>This example shows the recovery procedure of
+        <xref linkend="sec_dynamic_schema_reregistration"/>. The device has been updated and now
+        emits a vendor class, <code>acme:ThermalObservation</code>, which the ONVIF Client does not
+        hold: the prefix <code>acme</code> is bound by no module the client loaded when it
+        established the session. The trigger is that unresolvable <code>@type</code>, not the value
+        of <code>@context</code>, which is a constant and is the same here as in every other
+        payload.</para>
+      <para><emphasis>Event notification with an unresolvable type (Device to Client):</emphasis> the
+        notification is delivered on the open <code>events/stream</code> response. The envelope
+        carries two items, only one of which the client can interpret.</para>
       <programlisting>data: {"jsonrpc":"2.0","method":"notifications/events/event","params":{
-data:   "eventId": "evt_crossing_0001",
-data:   "name": "PersonCrossingEvent",
+data:   "eventId": "evt_veh_0007",
+data:   "name": "VehicleObservation",
 data:   "timestamp": "2026-08-04T13:10:00.085Z",
 data:   "data": {
-data:     "@context": "linkml://onvif/agentic/events/v2",
-data:     "@type": "PersonCrossingEvent",
-data:     "sosa:madeBySensor": "urn:onvif:device:192.0.2.10:camera:ch1",
-data:     "sosa:observedProperty": "onvif:PersonPresence",
-data:     "sosa:hasFeatureOfInterest": "urn:onvif:scene:ch1:zone:entrance",
-data:     "sosa:phenomenonTime": "2026-08-04T13:10:00.000Z",
-data:     "sosa:resultTime": "2026-08-04T13:10:00.085Z",
-data:     "sosa:hasResult": {
-data:       "@type": "PersonCrossingResult",
-data:       "direction": "entering",
-data:       "confidence": 0.91
-data:     }
+data:     "@context": "https://www.onvif.org/ver10/agentic/linkml/",
+data:     "@type": "InformationEnvelope",
+data:     "id": "b8e37f05-6c21-4a9d-90f3-1d5e8ac47206",
+data:     "items": [
+data:       {
+data:         "@type": "VehicleObservation",
+data:         "id": "4e70a3c8-52b9-4d16-8ac7-91f0b26d5e34",
+data:         "confidence": 0.90,
+data:         "productionTime": {
+data:           "@type": "ISO8601Timestamp",
+data:           "timestamp": "2026-08-04T13:10:00.085Z"
+data:         },
+data:         "provenance": {
+data:           "@type": "ONVIFDevice",
+data:           "entity": { "token": "VideoSource_1" },
+data:           "publicKeys": [ { "keyId": "metadata-signing-1" } ]
+data:         },
+data:         "type": "Van",
+data:         "use": "Ambulance"
+data:       },
+data:       {
+data:         "@type": "acme:ThermalObservation",
+data:         "id": "d1c94b26-8f57-4e03-a2b8-6035ce7d91af",
+data:         "confidence": 0.87,
+data:         "productionTime": {
+data:           "@type": "ISO8601Timestamp",
+data:           "timestamp": "2026-08-04T13:10:00.085Z"
+data:         },
+data:         "provenance": {
+data:           "@type": "ONVIFDevice",
+data:           "entity": { "token": "VideoSource_2" },
+data:           "publicKeys": [ { "keyId": "metadata-signing-1" } ]
+data:         },
+data:         "peakCelsius": 41.8
+data:       }
+data:     ]
 data:   },
 data:   "cursor": "historyId_10055",
 data:   "_meta": {"io.modelcontextprotocol/subscriptionId": 30}
 data: }}</programlisting>
-      <para>Schema retrieval is a separate request/response exchange on the same
-          <code>/mcp</code> endpoint; the <code>events/stream</code> request remains open
-        throughout.</para>
-      <para><emphasis>Schema fetch request (Client to Device):</emphasis> The ONVIF Client calls
-        <code>resources/read</code> with the unknown <code>@context</code> URI.</para>
+      <para>The ONVIF Client suspends validation of the second item and discards neither it nor the
+        envelope. The first item is of a class the client holds, and it processes it normally. This
+        matters: an envelope is a group of items, not an all-or-nothing unit, and a client that threw
+        the envelope away because one item was unrecognised would lose a vehicle observation it was
+        perfectly able to understand.</para>
+      <para>Schema retrieval is a separate request/response exchange on the same <code>/mcp</code>
+        endpoint; the <code>events/stream</code> request remains open throughout, and further events
+        continue to arrive on it while the exchange is in progress.</para>
+      <para><emphasis>Resource enumeration (Client to Device):</emphasis> The client re-calls
+        <code>resources/list</code>. It does not guess a URI from the prefix: a prefix is not a
+        resource address, and the address at which this device serves the vendor module is something
+        only the device can state.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 24,
-  "method": "resources/read",
+  "method": "resources/list",
   "params": {
-    "uri": "linkml://onvif/agentic/events/v2",
     "_meta": {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28"
     }
   }
 }</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns the new
-        schema. After registration the client validates the suspended event and resumes normal
-        processing.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 24,
   "result": {
     "resultType": "complete",
+    "resources": [
+      {
+        "uri": "linkml://192.0.2.10/agentic/base",
+        "name": "ONVIF Agentic Metadata Model",
+        "mimeType": "application/linkml+yaml"
+      },
+      {
+        "uri": "linkml://192.0.2.10/vendor/acme/thermal",
+        "name": "ACME Thermal Extension",
+        "mimeType": "application/linkml+yaml"
+      }
+    ]
+  }
+}</programlisting>
+      <para>The listing is abridged; the six bundle modules of
+        <xref linkend="sec_annex_schema_inventory"/> are still present. What is new is the last
+        entry, which the client does not yet hold.</para>
+      <para><emphasis>Schema fetch request (Client to Device):</emphasis> The ONVIF Client reads the
+        module it is missing.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 25,
+  "method": "resources/read",
+  "params": {
+    "uri": "linkml://192.0.2.10/vendor/acme/thermal",
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns the vendor
+        module as a YAML string in the <code>text</code> field, abridged here as in
+        <xref linkend="sec_annex_schema_retrieval"/>.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 25,
+  "result": {
+    "resultType": "complete",
     "contents": [{
-      "uri": "linkml://onvif/agentic/events/v2",
+      "uri": "linkml://192.0.2.10/vendor/acme/thermal",
       "mimeType": "application/linkml+yaml",
-      "text": "id: https://onvif.org/agentic/events/v2\nname: onvif-ai-events-v2\n..."
+      "text": "id: https://acme.example/agentic/thermal/linkml/\nname: acme-agentic-thermal\n..."
     }]
   }
 }</programlisting>
+      <para>With its escaped newlines resolved, the module reads as follows. It declares its own
+        prefix and its own <code>default_prefix</code>, so the classes it defines lie in a namespace
+        ACME controls, and it imports <code>agentic/base</code> because
+        <code>ThermalObservation</code> derives from <code>Observation</code>.</para>
+      <programlisting>id: https://acme.example/agentic/thermal/linkml/
+name: acme-agentic-thermal
+prefixes:
+  linkml: https://w3id.org/linkml/
+  onvif: https://www.onvif.org/ver10/agentic/linkml/
+  acme: https://acme.example/agentic/linkml/
+imports:
+  - linkml:types
+  - agentic/base
+default_prefix: acme
+
+classes:
+
+  ThermalObservation:
+    is_a: Observation
+    description: Peak apparent temperature measured over the observed region.
+    attributes:
+      peakCelsius:
+        range: float
+        required: true</programlisting>
+      <para>The ONVIF Client registers the module under its schema identifier
+        <code>https://acme.example/agentic/thermal/linkml/</code> and rebuilds its mapping from names
+        and prefixes to class identifiers over the whole set of modules it now holds. The prefix
+        <code>acme</code> now binds to <code>https://acme.example/agentic/linkml/</code>, so
+        <code>acme:ThermalObservation</code> resolves to the class identifier
+        <code>https://acme.example/agentic/linkml/ThermalObservation</code>. That identifier, and not
+        the CURIE, is what the client stores: the prefix is local to this device and this session,
+        while the class identifier is the same wherever the class appears. The suspended item is then
+        validated, and every subsequent item of the class is validated as it arrives.</para>
+      <para>This path is a recovery path, not the normal one. The ONVIF Device should have announced
+        the change with <code>notifications/events/list_changed</code>, on receipt of which the client
+        would have re-called <code>events/list</code> and <code>resources/list</code> and loaded the
+        module before the first item of the new class was ever delivered. The procedure above is what
+        keeps the client working when that announcement did not arrive, or arrived too
+        late.</para>
     </section>
   </appendix>
 

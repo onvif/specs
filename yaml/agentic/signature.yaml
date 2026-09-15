@@ -33,6 +33,35 @@ classes:
           Digest of the canonical form of the item, computed with the
           digest algorithm declared by the enclosing signature.
 
+  KeyFingerprint:
+    description: >-
+      Digest of a public key, computed over the key material itself rather than
+      over a certificate that carries it. Two certificates issued at different
+      times for the same key have the same fingerprint, so a fingerprint
+      follows the key across certificate renewals, across firmware versions and
+      across devices, which the fingerprint of a certificate does not.
+
+      A fingerprint is what makes the key declaration of a provenance checkable:
+      a KeyID names an entry in the keystore of one device and says nothing
+      about the material it holds, whereas a fingerprint can be compared with a
+      value an ONVIF Client obtained by an independent path.
+    attributes:
+      algorithm:
+        range: DigestAlgorithm
+        required: true
+        description: >-
+          Digest algorithm used to compute the fingerprint. The algorithm
+          actually used shall be one of those mandated by the current version of
+          the ONVIF Security Baseline.
+      value:
+        range: Base64Binary
+        required: true
+        description: >-
+          Digest of the DER encoding of the SubjectPublicKeyInfo structure of
+          the key, as specified in RFC 5280. The input is the same octet
+          sequence that the PEM form carried by subjectPublicKeyInfo encodes, so
+          a fingerprint can always be recomputed from that field alone.
+
   SigningKey:
     abstract: true
     description: >-
@@ -82,11 +111,23 @@ classes:
           be matched against the keys the device declares in the publicKeys
           field of its provenance.
       verificationMethod:
-        range: uriorcurie
+        range: uri
         required: false
         description: >-
           Optional URI from which the corresponding public key or
           certificate chain can be retrieved.
+      fingerprints:
+        range: KeyFingerprint
+        multivalued: true
+        inlined_as_list: true
+        required: false
+        description: >-
+          Zero or more fingerprints of the referenced key, at most one per
+          digest algorithm. Because the key descriptor is part of the signature
+          configuration, and the signature configuration is covered by the
+          envelope digest, a fingerprint carried here is covered by the
+          signature: it binds the signature to key material rather than to the
+          name of a keystore entry.
 
   DevicePublicKey:
     description: >-
@@ -99,7 +140,26 @@ classes:
         range: KeyID
         required: true
         description: >-
-          Identifier of the key in the keystore of the ONVIF Device.
+          Identifier of the key in the keystore of the ONVIF Device. It names an
+          entry of that keystore and not the key material it holds: the same
+          identifier may designate different material after a key rotation, and
+          the same identifier on two devices designates unrelated material.
+      fingerprints:
+        range: KeyFingerprint
+        multivalued: true
+        inlined_as_list: true
+        required: false
+        description: >-
+          Zero or more fingerprints of the key, at most one per digest
+          algorithm. An ONVIF Client that holds a fingerprint obtained by an
+          independent path considers the key matched when that fingerprint is
+          equal to one of those listed, and shall not consider a key matched on
+          the basis of keyId alone.
+
+          The slot is normally omitted from items carried in a metadata stream,
+          where provenance is repeated on every item, and is populated where an
+          ONVIF Client is expected to pin a key, such as in a signed
+          InformationEnvelope.
       subjectPublicKeyInfo:
         range: string
         required: false
@@ -168,35 +228,3 @@ classes:
         range: Base64Binary
         required: true
         description: Digital signature computed over the envelope digest.
-
-  JsonLDSignature:
-    is_a: Signature
-    description: >-
-      Concrete Signature profile based on JSON-LD Data Integrity proofs.
-    attributes:
-      type:
-        range: string
-        required: true
-        equals_string: "DataIntegrityProof"
-        description: Data Integrity proof type.
-      cryptosuite:
-        range: string
-        required: true
-        description: Cryptographic suite identifier.
-      created:
-        range: datetime
-        required: true
-        description: Proof creation time in ISO 8601 UTC.
-      verificationMethod:
-        range: uriorcurie
-        required: true
-        description: Verification method URI.
-      proofPurpose:
-        range: string
-        required: true
-        equals_string: "assertionMethod"
-        description: Proof purpose value.
-      proofValue:
-        range: string
-        required: true
-        description: Encoded digital signature value.
