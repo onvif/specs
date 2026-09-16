@@ -23,7 +23,7 @@ classes:
     abstract: true
     description: >-
       Abstract base class for the execution-specific parameters object carried
-      in the parameters argument of the execute_function Skill.
+      in the parameters argument of the execute_function Tool.
     attributes:
       extensible:
         range: Extensible
@@ -34,7 +34,7 @@ classes:
     abstract: true
     description: >-
       Abstract base class for the structuredContent object returned by the
-      execute_function Skill.
+      execute_function Tool.
     attributes:
       executionId:
         range: string
@@ -55,7 +55,7 @@ classes:
       that function, such as the ranges it accepts. Capabilities do not depend
       on any particular invocation and are therefore never returned in the
       result of execute_function. They are read with the
-      get_function_capabilities Skill, and the class that applies to a given
+      get_function_capabilities Tool, and the class that applies to a given
       function is named by FunctionDescriptor.capabilitiesSchema.
     attributes:
       extensible:
@@ -78,7 +78,7 @@ classes:
         range: string
         required: true
         description: >-
-          Function identifier, as returned by the list_functions Skill and as
+          Function identifier, as returned by the list_functions Tool and as
           passed in the function argument of execute_function.
       parameters:
         range: FunctionExecutionParameters
@@ -93,12 +93,12 @@ classes:
           Result returned by this function in the structuredContent of the
           execute_function response.
 
-  # --- Function catalogue and capabilities Skills ---------------------------
+  # --- Function catalogue and capabilities Tools ---------------------------
 
   FunctionDescriptor:
     description: >-
       A single entry of the function catalogue returned by the list_functions
-      Skill. Each entry names a function and points at the LinkML classes that
+      Tool. Each entry names a function and points at the LinkML classes that
       define its configuration, its execution parameters, and its result.
     attributes:
       name:
@@ -174,9 +174,9 @@ classes:
 
   ListFunctionsResult:
     description: >-
-      Structured result returned by the list_functions Skill: the authoritative
+      Structured result returned by the list_functions Tool: the authoritative
       machine-readable catalogue of the functions supported by a device
-      instance. This class is a root of the schema: it is the shape of a Skill
+      instance. This class is a root of the schema: it is the shape of a Tool
       response and is therefore not referenced by any other class.
     attributes:
       functions:
@@ -194,14 +194,14 @@ classes:
 
   GetFunctionCapabilities:
     description: >-
-      Arguments accepted by the get_function_capabilities Skill.
+      Arguments accepted by the get_function_capabilities Tool.
     attributes:
       function:
         range: string
         required: true
         description: >-
           Function identifier whose capabilities are requested, as returned by
-          the list_functions Skill.
+          the list_functions Tool.
       extensible:
         range: Extensible
         required: false
@@ -209,7 +209,7 @@ classes:
 
   GetFunctionCapabilitiesResponse:
     description: >-
-      Structured result returned by the get_function_capabilities Skill. It
+      Structured result returned by the get_function_capabilities Tool. It
       carries the invariant properties of a single function, kept separate from
       the result of any execution of that function.
     attributes:
@@ -243,7 +243,7 @@ classes:
 
       The invariant properties of the event stream, such as the number of
       concurrent streams the ONVIF Device supports, are not set here. They are
-      read with the get_function_capabilities Skill, which for this function
+      read with the get_function_capabilities Tool, which for this function
       returns EventStreamCapabilities.
     attributes:
       keepaliveIntervalMs:
@@ -273,7 +273,7 @@ classes:
     abstract: false
     is_a: FunctionExecutionResult
     description: >-
-      Structured result returned by the execute_function Skill when it is
+      Structured result returned by the execute_function Tool when it is
       invoked for the reserved set_event_stream_parameters function.
     slot_usage:
       executionId:
@@ -296,7 +296,7 @@ classes:
           Whether the requested interval was clamped to the range supported by
           the ONVIF Device. When true, appliedKeepaliveIntervalMs differs from
           the requested value. The supported range itself is read with the
-          get_function_capabilities Skill.
+          get_function_capabilities Tool.
       affectedStreams:
         range: integer
         multivalued: true
@@ -315,7 +315,7 @@ classes:
       the keep-alive interval range it supports, the interval it uses when none
       was requested, and the number of concurrent streams it can serve. These
       values do not depend on any invocation and are read with the
-      get_function_capabilities Skill.
+      get_function_capabilities Tool.
 
       The class covers the event stream as a whole and not the keep-alive
       mechanism alone, because an ONVIF Client has to know the stream limits
@@ -366,14 +366,14 @@ classes:
     is_a: FunctionInvocation
     description: >-
       Declaration of the reserved set_event_stream_parameters function: it is
-      invoked through the execute_function Skill, it accepts
+      invoked through the execute_function Tool, it accepts
       SetEventStreamParametersRequest, it returns
       SetEventStreamParametersResponse, and its capabilities are
       EventStreamCapabilities. The function sets the interval at which the ONVIF
       Device emits notifications/events/heartbeat keep-alive messages on open
       events/stream responses, whose default is 30000 milliseconds.
     annotations:
-      mcp_skill: execute_function
+      mcp_tool: execute_function
       access_class: ACTUATE
     slot_usage:
       function:
