@@ -165,6 +165,19 @@
             </row>
             <row>
               <entry align="left">
+                <para><emphasis role="bold">Function</emphasis></para>
+              </entry>
+              <entry align="left">
+                <para>An analytic or control capability of an ONVIF Device, such as
+                    <code>vehicle_detection</code> or the reserved
+                    <code>set_event_stream_parameters</code>, on which the Tools of this
+                  specification act. Functions vary between device instances and over time, and are
+                  discovered with the <code>list_functions</code> Tool. A function is not an MCP Tool
+                  and is not exposed as one.</para>
+              </entry>
+            </row>
+            <row>
+              <entry align="left">
                 <para><emphasis role="bold">Keep-Alive (Heartbeat)</emphasis></para>
               </entry>
               <entry align="left">
@@ -182,7 +195,7 @@
               </entry>
               <entry align="left">
                 <para>A YAML document that defines the data structures and enumerations used by an
-                  ONVIF Device for both event payloads and skill input parameters.</para>
+                  ONVIF Device for both event payloads and Tool arguments.</para>
               </entry>
             </row>
             <row>
@@ -243,9 +256,9 @@
                 <para><emphasis role="bold">ONVIF Device</emphasis></para>
               </entry>
               <entry align="left">
-                <para>An MCP Server that wraps one or more agentic analytics models and exposes them
-                  as Skills (MCP Tools), together with a schema announcement and a metadata
-                  publisher.</para>
+                <para>An MCP Server that wraps one or more agentic analytics models, reports them as
+                  functions, and exposes the Tools through which an ONVIF Client operates on them,
+                  together with a schema announcement and a metadata publisher.</para>
               </entry>
             </row>
             <row>
@@ -259,11 +272,14 @@
             </row>
             <row>
               <entry align="left">
-                <para><emphasis role="bold">Skill</emphasis></para>
+                <para><emphasis role="bold">Tool</emphasis></para>
               </entry>
               <entry align="left">
-                <para>An MCP Tool exposed by an ONVIF Device, representing a single callable
-                  operation (e.g. set detection region, adjust sensitivity).</para>
+                <para>A callable entry point that an ONVIF Device exposes over MCP, described by a
+                  name, a human-readable description and an <code>inputSchema</code>, discovered
+                  with <code>tools/list</code> and invoked with <code>tools/call</code>. This
+                  specification defines six Tools; they are the same on every conforming device, and
+                  they act on the functions that device reports.</para>
               </entry>
             </row>
           </tbody>
@@ -485,29 +501,38 @@
 
       <section xml:id="sec_protocol_primitives">
         <title>Protocol Primitives</title>
-        <para>MCP defines three categories of server-side object that a host may discover and
-          use:</para>
+        <para>MCP defines three categories of server-side object that a host may discover and use,
+          together with an extension governing how a call to one of them may outlive a single
+          request/response exchange:</para>
         <itemizedlist>
           <listitem>
             <para>Tools are callable operations with a named identifier, a human-readable
               description, and an <code>inputSchema</code> (JSON Schema) that fully describes the
-              expected arguments. In the ONVIF agentic stack, Tools are called
-                <emphasis>Skills</emphasis> and represent ONVIF Device capabilities such as
-              configuring a detection region or querying service status. The ONVIF Client invokes a
-              Skill by sending a <code>tools/call</code> JSON-RPC request over the Control
-              Plane.</para>
+              expected arguments. The Tools an ONVIF Device exposes are the means by which an ONVIF
+              Client reads and controls its agentic capabilities, such as configuring a detection
+              region or querying service status. The ONVIF Client invokes a Tool by sending a
+                <code>tools/call</code> JSON-RPC request. This specification defines six Tools,
+              given in <xref linkend="sec_tool_invocation"/>.</para>
           </listitem>
           <listitem>
             <para>Resources are read-only data objects accessible via <code>resources/list</code>
               and <code>resources/read</code> requests. In this specification, Resources carry the
-              LinkML schema bundles that describe the event payloads and skill input parameters of
-              the ONVIF Device. Each schema resource carries the MIME type
+              LinkML schema bundles that describe the event payloads and the Tool arguments of the
+              ONVIF Device. Each schema resource carries the MIME type
                 <code>application/linkml+yaml</code>.</para>
           </listitem>
           <listitem>
             <para>Prompts are optional server-defined interaction templates. This specification does
               not mandate Prompt support; ONVIF Devices MAY expose Prompts for human-in-the-loop
               workflows.</para>
+          </listitem>
+          <listitem>
+            <para>Tasks is an extension and not a fourth category of object: it adds nothing for a
+              host to discover, but allows the result of a <code>tools/call</code> to be returned
+              after the request that started it has completed, under a durable <code>taskId</code>
+              the ONVIF Client polls with <code>tasks/get</code>. This specification requires it,
+              because a Tool invocation may start work that does not finish within one
+              request/response exchange (see <xref linkend="sec_tool_invocation"/>).</para>
           </listitem>
         </itemizedlist>
       </section>
@@ -568,7 +593,7 @@
       <para>LinkML (Linked data Modeling Language) is an open schema definition language that
         describes data structures in YAML. In the ONVIF agentic stack, LinkML is the normative
         language for defining both the structure of metadata events (delivered via
-          <code>events/stream</code> or webhook) and the argument shapes of Skills invoked via
+          <code>events/stream</code> or webhook) and the argument shapes of the Tools invoked via
           <code>tools/call</code>. LinkML defines the schema; JSON-LD (see
           <xref linkend="sec-jsonld"/>) is the runtime wire format that carries instances of that
         schema.</para>
@@ -662,7 +687,7 @@
       </section>
 
       <section xml:id="sec_dual_role_schema">
-        <title>Dual Role: Event Schema and Skill Input Schema</title>
+        <title>Dual Role: Event Schema and Tool Input Schema</title>
         <para>The same LinkML model serves two distinct purposes within the stack:</para>
         <itemizedlist>
           <listitem>
@@ -671,7 +696,7 @@
               structural correctness — required fields, numeric ranges, and valid enum values.</para>
           </listitem>
           <listitem>
-            <para>For Skill invocation, the <code>inputSchema</code> field of each MCP Tool (Skill)
+            <para>For Tool invocation, the <code>inputSchema</code> field of each MCP Tool
               definition is also derived from the same LinkML model. This guarantees that the
               coordinate spaces, unit definitions, and vocabulary used to configure the ONVIF Device
               (e.g., a detection region polygon) are identical to those used to report events,
@@ -688,9 +713,9 @@
         <itemizedlist>
           <listitem>
             <para>First, it is embedded in the <code>inputSchema</code> field of each MCP Tool
-              definition returned by <code>tools/list</code>. The ONVIF Client can validate skill arguments
-              against this schema before sending a <code>tools/call</code> request, providing early
-              client-side error detection.</para>
+              definition returned by <code>tools/list</code>. The ONVIF Client can validate Tool
+              arguments against this schema before sending a <code>tools/call</code> request,
+              providing early client-side error detection.</para>
           </listitem>
           <listitem>
             <para>Second, a copy of the compiled schema is stored in the ONVIF Client Schema
@@ -740,7 +765,8 @@
               <xref linkend="ch_metadata"/>.</para>
           </listitem>
           <listitem>
-            <para><code>agentic</code>: the Skill interface — <code>FunctionDescriptor</code>,
+            <para><code>agentic</code>: the function-control interface —
+                <code>FunctionDescriptor</code>,
                 <code>ListFunctionsResult</code>, the abstract bases that every function
               specialises, and the classes of the reserved <code>set_event_stream_parameters</code>
               function.</para>
@@ -903,17 +929,17 @@
         grant, and exposes a JWKS endpoint that the ONVIF Device uses to validate every token it
         receives.</para>
       <para>The <emphasis>ONVIF Client</emphasis> combines the ONVIF Client role with the MCP Host
-        role. It manages connections to ONVIF Devices, invokes skills, and receives metadata
+        role. It manages connections to ONVIF Devices, invokes Tools, and receives metadata
         events. It also maintains the LinkML Schema Registry and validates every incoming event
         before it is passed to business logic.</para>
       <para>The <emphasis>ONVIF Device</emphasis> provides an MCP Server endpoint. Through this
-        endpoint, it exposes skills in the form of MCP Tools, pushes JSON-LD metadata events to the
+        endpoint, it exposes its capabilities as MCP Tools, pushes JSON-LD metadata events to the
         ONVIF Client as MCP Events, and, when webhook delivery is supported, posts those events to a
         client-supplied HTTPS callback. Moreover, it announces the LinkML schema via MCP
         Resources.</para>
       <para>All communication between the ONVIF Client and the ONVIF Device is bearer-token
         authenticated and carried over a single MCP channel: every operation defined by this
-        specification — capability discovery, skill invocation, resource retrieval, and event
+        specification — capability discovery, Tool invocation, resource retrieval, and event
         delivery — is a JSON-RPC exchange over MCP 2026-07-28 Streamable HTTP to the ONVIF Device's
           <code>/mcp</code> endpoint. Event delivery uses the same endpoint: the ONVIF Client opens
         an <code>events/stream</code> POST request per subscription and the ONVIF Device writes
@@ -942,7 +968,7 @@
             </row>
             <row>
               <entry align="left"><para><emphasis role="bold">Purpose</emphasis></para></entry>
-              <entry align="left"><para>Discover capabilities, list and invoke skills, retrieve
+              <entry align="left"><para>Discover capabilities, list and invoke Tools, retrieve
                 resources, and stream or subscribe to metadata events.</para></entry>
             </row>
             <row>
@@ -993,7 +1019,7 @@
         issues bearer access tokens, and exposes the metadata and key material needed by ONVIF
         Devices to validate tokens before processing MCP requests.</para>
       <para>In practice, the Authorization Server provides centralized identity and access control
-        for every operation. It ensures that only authorized ONVIF Clients can invoke Skills via
+        for every operation. It ensures that only authorized ONVIF Clients can invoke Tools via
           <code>tools/call</code> and receive protected metadata events via
           <code>events/stream</code> or webhook delivery, according to the roles and
         claims contained in the issued token.</para>
@@ -1074,16 +1100,17 @@
       </section>
       <section xml:id="sec_tool_discovery">
         <title>Tool Discovery</title>
-        <para>The ONVIF Device exposes its Skills — callable operations — as MCP Tools. The
-          ONVIF Client discovers the available Skills by calling <code>tools/list</code>.</para>
+        <para>Every operation an ONVIF Client may invoke on an ONVIF Device is exposed as an MCP
+          Tool. The ONVIF Client discovers the Tools a device supports by calling
+            <code>tools/list</code>.</para>
         <para>Each Tool entry in the <code>tools/list</code> response shall contain: <itemizedlist>
             <listitem>
-              <para><code>name</code> — the Skill identifier used in subsequent
+              <para><code>name</code> — the Tool identifier used in subsequent
                   <code>tools/call</code> requests.</para>
             </listitem>
             <listitem>
-              <para><code>description</code> — a human-readable description of the Skill's
-                function.</para>
+              <para><code>description</code> — a human-readable description of what the Tool
+                does.</para>
             </listitem>
             <listitem>
               <para><code>inputSchema</code> — a JSON Schema object that fully describes the
@@ -1093,58 +1120,58 @@
                 <code>events/stream</code> or webhook delivery.</para>
             </listitem>
           </itemizedlist></para>
-        <para>The ONVIF Client shall validate Skill arguments against the
+        <para>The ONVIF Client shall validate Tool arguments against the
           <code>inputSchema</code> before sending a <code>tools/call</code> request. After
           completing tool discovery the ONVIF Client has obtained, without any out-of-band
-          documentation: the complete catalogue of Skills supported by this device instance; the
-          argument types, valid ranges, and required/optional fields for each Skill; and
+          documentation: the complete catalogue of Tools supported by this device instance; the
+          argument types, valid ranges, and required/optional fields for each Tool; and
           human-readable descriptions suitable for display or automated orchestration. This
-          catalogue covers the Skills only; the functions on which they operate are discovered
+          catalogue covers the Tools only; the functions on which they operate are discovered
           separately with <code>list_functions</code> (see <xref
-            linkend="sec_skill_list_functions"/>).</para>
+            linkend="sec_tool_list_functions"/>).</para>
         <para>See <xref linkend="sec_annex_tool_discovery"/> for a wire format example.</para>
       </section>
     </section>
 
-    <section xml:id="sec_skill_invocation">
-      <title>Skill Invocation</title>
-      <para>ONVIF Agentic Skills are invoked via the MCP <code>tools/call</code> JSON-RPC method.
-        The ONVIF Device shall validate the <code>arguments</code> object
-        against the <code>inputSchema</code> of the named Skill before executing it. If validation
+    <section xml:id="sec_tool_invocation">
+      <title>Tool Invocation</title>
+      <para>The Tools defined by this specification are invoked via the MCP <code>tools/call</code>
+        JSON-RPC method. The ONVIF Device shall validate the <code>arguments</code> object
+        against the <code>inputSchema</code> of the named Tool before executing it. If validation
         fails, the ONVIF Device shall return a structured error response without executing the
-        Skill.</para>
+        Tool.</para>
       <para>The ONVIF Device shall advertise support for the MCP Tasks extension in
         <code>server/discover</code>. Before returning a task result, it shall verify that the
         client declared <code>io.modelcontextprotocol/tasks</code> support for the request. A
-        supported Skill invocation may return either its normal result or a result with
+        supported Tool invocation may return either its normal result or a result with
         <code>resultType: "task"</code>. The returned task shall include a durable
         <code>taskId</code>, a status, a <code>ttlMs</code>, and a recommended
         <code>pollIntervalMs</code>. The client shall use <code>tasks/get</code> until the task
         reaches <code>completed</code>, <code>failed</code>, or <code>cancelled</code>.</para>
 
-      <para>This specification defines six mandatory Skills that every ONVIF agentic device shall
+      <para>This specification defines six mandatory Tools that every ONVIF agentic device shall
         implement regardless of device type (camera, NVR, access control, or other). Additional
-        device-type-specific Skills may be defined in ONVIF profiles or vendor extensions.</para>
+        device-type-specific Tools may be defined in ONVIF profiles or vendor extensions.</para>
 
-      <para>Skills and functions are distinct concepts and are discovered through distinct
-        operations. A <emphasis>Skill</emphasis> is an operation invocable via
-          <code>tools/call</code>; the six Skills defined here are the same on every conforming
+      <para>Tools and functions are distinct concepts and are discovered through distinct requests.
+        A <emphasis>Tool</emphasis> is a callable entry point of the ONVIF Device, invoked with the
+          <code>tools/call</code> method; the six Tools defined here are the same on every conforming
         device and are discovered with <code>tools/list</code> (see <xref
           linkend="sec_tool_discovery"/>). A <emphasis>function</emphasis> is an analytic
-        capability on which those Skills operate, such as <code>vehicle_detection</code>; functions
+        capability on which those Tools act, such as <code>vehicle_detection</code>; functions
         vary between device instances and over time, and are discovered with the
-          <code>list_functions</code> Skill (see <xref linkend="sec_skill_list_functions"/>). A
+          <code>list_functions</code> Tool (see <xref linkend="sec_tool_list_functions"/>). A
         function is not an MCP Tool and shall not be exposed as one: it is named in the
-          <code>function</code> argument of the generic Skills. Consequently
+          <code>function</code> argument of the six Tools. Consequently
           <code>tools/list</code> and <code>list_functions</code> are not redundant — the first
-        enumerates the operations an ONVIF Client may invoke, the second the subjects on which it
-        may invoke them.</para>
+        enumerates what an ONVIF Client may invoke, the second the subjects on which it
+        may invoke it.</para>
 
-      <section xml:id="sec_skill_get_status">
+      <section xml:id="sec_tool_get_status">
         <title>get_status</title>
-        <para>The <code>get_status</code> Skill returns the current operational status of the
+        <para>The <code>get_status</code> Tool returns the current operational status of the
           agentic analytics engine. It takes no arguments. The ONVIF Device shall always respond
-          successfully to this Skill unless the device is unreachable.</para>
+          successfully to this Tool unless the device is unreachable.</para>
         <para>The response <code>structuredContent</code> shall include: <itemizedlist>
             <listitem>
               <para><code>state</code> — one of <code>running</code>, <code>stopped</code>,
@@ -1160,12 +1187,12 @@
                 firmware.</para>
             </listitem>
           </itemizedlist></para>
-        <para>See <xref linkend="sec_annex_skill_get_status"/> for a wire format example.</para>
+        <para>See <xref linkend="sec_annex_tool_get_status"/> for a wire format example.</para>
       </section>
 
-      <section xml:id="sec_skill_list_functions">
+      <section xml:id="sec_tool_list_functions">
         <title>list_functions</title>
-        <para>The <code>list_functions</code> Skill returns the set of functions supported by this
+        <para>The <code>list_functions</code> Tool returns the set of functions supported by this
           device instance, together with their current configured/available state. It takes no
           arguments. This is the authoritative machine-readable function catalogue of this device;
           the ONVIF Client shall call <code>list_functions</code> before calling
@@ -1225,7 +1252,7 @@
           the <code>functions</code> array with <code>enabled: true</code>, so that an ONVIF Client
           can discover both the keep-alive control and the limits of the event stream without
           out-of-band knowledge (see <xref linkend="sec_event_keepalive"/>).</para>
-        <para>See <xref linkend="sec_annex_skill_list_functions"/> for a wire format example.</para>
+        <para>See <xref linkend="sec_annex_tool_list_functions"/> for a wire format example.</para>
 
         <section xml:id="sec_function_catalogue">
           <title>Function identity</title>
@@ -1256,9 +1283,9 @@
         </section>
       </section>
 
-      <section xml:id="sec_skill_get_function_capabilities">
+      <section xml:id="sec_tool_get_function_capabilities">
         <title>get_function_capabilities</title>
-        <para>The <code>get_function_capabilities</code> Skill returns the static capabilities of a
+        <para>The <code>get_function_capabilities</code> Tool returns the static capabilities of a
           single function: the invariant properties that describe what this device instance
           supports for that function, such as the ranges of values it accepts. Capabilities do not
           depend on any particular invocation; they are the same before and after an execution and
@@ -1266,10 +1293,10 @@
         <para>Capabilities shall not be returned in the <code>structuredContent</code> of
             <code>execute_function</code>. An <code>execute_function</code> response reports the
           outcome of the call it completes; the properties of the function itself are read through
-          this Skill. Keeping the two apart lets an ONVIF Client discover what a function accepts
+          this Tool. Keeping the two apart lets an ONVIF Client discover what a function accepts
           before deciding what to ask for, and prevents invariant values from appearing as though
           they were results of an action.</para>
-        <para>The Skill takes a single argument, as defined by the LinkML class
+        <para>The Tool takes a single argument, as defined by the LinkML class
             <code>GetFunctionCapabilities</code>: <itemizedlist>
             <listitem>
               <para><code>function</code> (string, required) — the function identifier whose
@@ -1285,21 +1312,21 @@
         <para>An ONVIF Device shall reject a request naming a function it does not support with
             <code>-32011 NotFound</code>. A function that has no readable capabilities shall omit
             <code>capabilitiesSchema</code> from its descriptor; an ONVIF Device shall respond to
-          this Skill for such a function with an empty <code>capabilities</code> object rather than
+          this Tool for such a function with an empty <code>capabilities</code> object rather than
           with an error.</para>
-        <para>See <xref linkend="sec_annex_skill_get_function_capabilities"/> for a wire format
+        <para>See <xref linkend="sec_annex_tool_get_function_capabilities"/> for a wire format
           example.</para>
       </section>
 
-      <section xml:id="sec_skill_configure_function">
+      <section xml:id="sec_tool_configure_function">
         <title>configure_function</title>
-        <para>The <code>configure_function</code> Skill applies a configuration to a named
+        <para>The <code>configure_function</code> Tool applies a configuration to a named
           function. It is a generic wrapper: the structure of the <code>config</code>
           argument is defined by the LinkML schema class identified by the
           <code>configSchema</code> URI returned by <code>list_functions</code> for that function.
           The ONVIF Client shall validate <code>config</code> against the compiled JSON Schema
-          (the <code>inputSchema</code> of the Skill) before sending the request.</para>
-        <para>The <code>configure_function</code> Skill arguments are: <itemizedlist>
+          (the <code>inputSchema</code> of the Tool) before sending the request.</para>
+        <para>The <code>configure_function</code> Tool arguments are: <itemizedlist>
             <listitem>
               <para><code>function</code> (string, required) — the function identifier, as returned
                 by <code>list_functions</code>.</para>
@@ -1316,12 +1343,12 @@
           result instead of the final result. The client shall use <code>tasks/get</code> until the
           task reaches a terminal state. On failure it shall return a structured error identifying
           the failing field and the violated constraint.</para>
-        <para>See <xref linkend="sec_annex_skill_configure_function"/> for a wire format example.</para>
+        <para>See <xref linkend="sec_annex_tool_configure_function"/> for a wire format example.</para>
       </section>
 
-      <section xml:id="sec_skill_execute_function">
+      <section xml:id="sec_tool_execute_function">
         <title>execute_function</title>
-        <para>The <code>execute_function</code> Skill starts an execution of a configured function.
+        <para>The <code>execute_function</code> Tool starts an execution of a configured function.
           It shall not be used to provide the function's configuration. The arguments shall include
           the function identifier and may include execution-specific parameters. The structure of
           the <code>parameters</code> argument, when present, is defined by the LinkML class
@@ -1341,9 +1368,9 @@
             <code>set_event_stream_parameters</code> function (see <xref linkend="sec_event_keepalive"/>).</para>
       </section>
 
-      <section xml:id="sec_skill_stop_function">
+      <section xml:id="sec_tool_stop_function">
         <title>stop_function</title>
-        <para>The <code>stop_function</code> Skill stops an active function execution identified by
+        <para>The <code>stop_function</code> Tool stops an active function execution identified by
           its <code>executionId</code>. If stopping the execution is asynchronous and the client has
           declared support for MCP Tasks, the device may return a task result. The task represents
           only the stop operation and shall reach a terminal state when the execution is stopped or
@@ -1487,7 +1514,7 @@
           request-concurrency limit it applies, and shall declare the maximum number of concurrent
           streams it supports in <code>maxConcurrentStreams</code> of
           <code>EventStreamCapabilities</code>, read with the
-          <code>get_function_capabilities</code> Skill for the reserved
+          <code>get_function_capabilities</code> Tool for the reserved
           <code>set_event_stream_parameters</code> function (see <xref
             linkend="sec_event_keepalive"/>); it shall reject a request exceeding that limit with
           <code>-32013 ResourceExhausted</code>. An ONVIF Client that reads that value before
@@ -1516,7 +1543,7 @@
           last persisted cursor.</para>
         <para>The keep-alive interval is configurable by the ONVIF Client through the reserved
             <code>set_event_stream_parameters</code> function, invoked with the <code>execute_function</code>
-          Skill (see <xref linkend="sec_skill_execute_function"/>). The structure of the
+          Tool (see <xref linkend="sec_tool_execute_function"/>). The structure of the
             <code>parameters</code> argument is defined by the LinkML class
             <code>SetEventStreamParametersRequest</code> in the schema bundle, which declares:
           <itemizedlist>
@@ -1546,8 +1573,8 @@
           of the authenticated principal with <code>-32011 NotFound</code>.</para>
         <para>The supported range itself is not part of that result: it is a static property of the
           ONVIF Device, not an outcome of the call. An ONVIF Client reads it with the
-            <code>get_function_capabilities</code> Skill (see <xref
-            linkend="sec_skill_get_function_capabilities"/>) for the
+            <code>get_function_capabilities</code> Tool (see <xref
+            linkend="sec_tool_get_function_capabilities"/>) for the
             <code>set_event_stream_parameters</code> function, whose capabilities are defined by the
           LinkML class <code>EventStreamCapabilities</code>:
             <code>defaultKeepaliveIntervalMs</code> (30000),
@@ -1560,7 +1587,7 @@
           specification are always the capabilities of a function, and the reserved function that
           configures the stream is the one place where a property of the stream itself has an owner.
           The distinction the class draws is the general one of <xref
-            linkend="sec_skill_get_function_capabilities"/>: the keep-alive interval is settable and
+            linkend="sec_tool_get_function_capabilities"/>: the keep-alive interval is settable and
           is therefore a parameter, whereas the interval range and the stream count are invariant for
           a device instance and are therefore capabilities.</para>
         <para>A change of keep-alive interval takes effect on the affected streams without
@@ -1773,7 +1800,7 @@
       <para>An ONVIF Agentic Service is self-describing: an ONVIF Client that has completed the
         sequence defined in <xref linkend="sec_session_initialization"/>, <xref
           linkend="sec_schema_retrieval"/>, <xref linkend="sec_tool_discovery"/>, <xref
-          linkend="sec_skill_list_functions"/>, and <xref
+          linkend="sec_tool_list_functions"/>, and <xref
           linkend="sec_metadata_event_delivery"/> is fully operational without any out-of-band
         documentation, SDK, or static configuration. The table below summarises the knowledge
         accumulated at each step.</para>
@@ -1801,22 +1828,22 @@
               <entry><para><code>resources/list</code> +
                 <code>resources/read</code></para></entry>
               <entry><para>Complete LinkML schema bundle; JSON Schema for event validation and
-                skill argument validation.</para></entry>
+                Tool argument validation.</para></entry>
             </row>
             <row>
               <entry><para><xref linkend="sec_tool_discovery"/></para></entry>
               <entry><para><code>tools/list</code></para></entry>
-              <entry><para>Skill catalogue: name, human-readable description, and
-                <code>inputSchema</code> for each skill.</para></entry>
+              <entry><para>Tool catalogue: name, human-readable description, and
+                <code>inputSchema</code> for each Tool.</para></entry>
             </row>
             <row>
-              <entry><para><xref linkend="sec_skill_list_functions"/></para></entry>
+              <entry><para><xref linkend="sec_tool_list_functions"/></para></entry>
               <entry><para><code>list_functions</code></para></entry>
               <entry><para>Which functions are currently enabled;
                 <code>configSchema</code> URI per function.</para></entry>
             </row>
             <row>
-              <entry><para><xref linkend="sec_skill_get_function_capabilities"/></para></entry>
+              <entry><para><xref linkend="sec_tool_get_function_capabilities"/></para></entry>
               <entry><para><code>get_function_capabilities</code></para></entry>
               <entry><para>Static capabilities of a single function, such as the ranges of values
                 it accepts.</para></entry>
@@ -1834,7 +1861,7 @@
       </informaltable>
       <para>An ONVIF Device implementing this specification shall ensure that an ONVIF Client
         completing the above sequence is able to: validate all incoming event payloads against the
-        registered schema; invoke any available Skill with correctly structured arguments; and
+        registered schema; invoke any available Tool with correctly structured arguments; and
         interpret the full feature set of the device — all without consulting any resource external
         to the ONVIF Device.</para>
     </section>
@@ -1869,7 +1896,7 @@
         token carrying <code>onvif:Administrator</code> satisfies all lower access class
         requirements; a token carrying <code>onvif:Operator</code> satisfies
           <code>READ_SYSTEM</code> in addition to <code>ACTUATE</code>.</para>
-      <para>The table below is normative. Each Skill exposed via <code>tools/list</code> shall
+      <para>The table below is normative. Each Tool exposed via <code>tools/list</code> shall
         include an annotation declaring its access class. The ONVIF Device shall enforce this
         mapping at runtime.</para>
       <table xml:id="tab-role-mcp-mapping">
@@ -1920,7 +1947,7 @@
               <entry><para><code>onvif:Operator</code></para></entry>
             </row>
             <row>
-              <entry><para><code>tools/call</code> — administrative Skills (e.g. model
+              <entry><para><code>tools/call</code> — administrative Tools (e.g. model
                   management, device configuration)</para></entry>
               <entry><para>WRITE_SYSTEM</para></entry>
               <entry><para><code>onvif:Administrator</code></para></entry>
@@ -3080,7 +3107,7 @@
       },
       {
         "uri": "linkml://192.0.2.10/agentic",
-        "name": "ONVIF Agentic Skill Interface",
+        "name": "ONVIF Agentic Function Interface",
         "mimeType": "application/linkml+yaml"
       }
     ]
@@ -3137,7 +3164,7 @@
     <section xml:id="sec_annex_tool_discovery">
       <title>Tool discovery</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client sends
-          <code>tools/list</code> to obtain the catalogue of available Skills.</para>
+          <code>tools/list</code> to obtain the catalogue of available Tools.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 8,
@@ -3148,9 +3175,9 @@
     }
   }
 }</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns one Tool
-        entry per supported Skill, each with a compiled <code>inputSchema</code> derived from the
-        LinkML model. The example shows <code>get_status</code> only.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF Device returns one entry per
+        Tool it supports, each with a compiled <code>inputSchema</code> derived from the LinkML
+        model. The example shows <code>get_status</code> only.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 8,
@@ -3170,8 +3197,8 @@
   }
 }</programlisting>
     </section>
-    <section xml:id="sec_annex_skill_get_status">
-      <title>Skill invocation — get_status</title>
+    <section xml:id="sec_annex_tool_get_status">
+      <title>Tool invocation — get_status</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
         <code>get_status</code> with no arguments.</para>
       <programlisting>{
@@ -3212,8 +3239,8 @@
   }
 }</programlisting>
     </section>
-    <section xml:id="sec_annex_skill_list_functions">
-    <title>Skill invocation — list_functions</title>
+    <section xml:id="sec_annex_tool_list_functions">
+      <title>Tool invocation — list_functions</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
       <code>list_functions</code> with no arguments.</para>
       <programlisting>{
@@ -3293,8 +3320,8 @@
         <code>configure_function</code> first. This is why the catalogue lists unconfigured functions
         rather than hiding them.</para>
     </section>
-    <section xml:id="sec_annex_skill_get_function_capabilities">
-      <title>Skill invocation — get_function_capabilities</title>
+    <section xml:id="sec_annex_tool_get_function_capabilities">
+      <title>Tool invocation — get_function_capabilities</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client reads the static
         capabilities of the reserved <code>set_event_stream_parameters</code> function before choosing an
         interval, so that its request is not clamped. The <code>arguments</code> object is an
@@ -3347,8 +3374,8 @@
   }
 }</programlisting>
     </section>
-    <section xml:id="sec_annex_skill_configure_function">
-      <title>Skill invocation — configure_function</title>
+    <section xml:id="sec_annex_tool_configure_function">
+      <title>Tool invocation — configure_function</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
         <code>configure_function</code> specifying the function and a
         <code>config</code> object whose structure matches the LinkML class identified by
@@ -3432,8 +3459,8 @@
   }
 }</programlisting>
     </section>
-    <section xml:id="sec_annex_skill_execute_function">
-      <title>Skill invocation — execute_function</title>
+    <section xml:id="sec_annex_tool_execute_function">
+      <title>Tool invocation — execute_function</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client starts a configured
         function.</para>
       <programlisting>{
@@ -3476,7 +3503,7 @@
         ONVIF Client's open <code>events/stream</code> request, or via webhook.</para>
     </section>
     <section xml:id="sec_annex_event_keepalive">
-      <title>Skill invocation — set_event_stream_parameters</title>
+      <title>Tool invocation — execute_function for set_event_stream_parameters</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client shortens the
         keep-alive interval of its push streams from the 30 second default to 10 seconds. The
           <code>parameters</code> object is an instance of the LinkML class
@@ -3502,7 +3529,7 @@
         interval it applied. The value reported in <code>appliedKeepaliveIntervalMs</code> is
         authoritative. The range the device supports is not part of this result; it is read with
           <code>get_function_capabilities</code> (see <xref
-          linkend="sec_annex_skill_get_function_capabilities"/>).</para>
+          linkend="sec_annex_tool_get_function_capabilities"/>).</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 14,
@@ -3535,8 +3562,8 @@
   }
 }</programlisting>
     </section>
-    <section xml:id="sec_annex_skill_stop_function">
-      <title>Skill invocation — stop_function</title>
+    <section xml:id="sec_annex_tool_stop_function">
+      <title>Tool invocation — stop_function</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client stops an active
         execution.</para>
       <programlisting>{
