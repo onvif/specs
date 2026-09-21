@@ -1,0 +1,811 @@
+id: https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/
+name: hackathon-2026.11
+description: >-
+  ONVIF ad-hoc classes for the hackathon in Mexico City in November, 2026.
+
+  The module models one use case end to end: a straight road watched by two
+  cameras placed far apart, each producing a vehicle detection carrying a licence
+  plate; an analytics box deriving an average speed from the two detections and
+  publishing the three items as a collection; and a service on a server judging
+  that speed against a speed limit and issuing a speeding assessment where the
+  limit was exceeded.
+
+  Everything declared here lives for the duration of the hackathon only. The
+  classes are in a namespace of their own so that nothing in this file can be
+  mistaken for a class of the Agentic Service specification, and so that the file
+  can be deleted without touching the tracked bundle.
+prefixes:
+  linkml: https://w3id.org/linkml/
+  onvif: https://www.onvif.org/ver10/agentic/linkml/
+  hackathon2026: https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/
+imports:
+  - linkml:types
+  # The root module of the specification, which imports base and through it
+  # enums, common, time and signature, so that none of those has to be listed
+  # here. It is imported rather than base alone because the function layer -
+  # FunctionExecutionParameters, FunctionCapabilities and the classes that
+  # describe functions as data - is declared there and is not restated here.
+  - agentic
+default_prefix: hackathon2026
+default_range: string
+
+types:
+
+  WGS84Latitude:
+    typeof: float
+    description: >-
+      Geodetic latitude in the WGS 84 reference frame, in decimal degrees,
+      positive towards the north.
+    minimum_value: -90.0
+    maximum_value: 90.0
+
+  WGS84Longitude:
+    typeof: float
+    description: >-
+      Geodetic longitude in the WGS 84 reference frame, in decimal degrees,
+      positive towards the east.
+    minimum_value: -180.0
+    maximum_value: 180.0
+
+  Metres:
+    typeof: float
+    description: A length in metres.
+    minimum_value: 0.0
+
+  Seconds:
+    typeof: float
+    description: A duration in seconds.
+    minimum_value: 0.0
+
+  KilometresPerHour:
+    typeof: float
+    description: >-
+      A speed in kilometres per hour. The unit is fixed by this type rather than
+      carried in a field, so that two speeds are always comparable without an
+      ONVIF Client having to read a unit first.
+    minimum_value: 0.0
+
+classes:
+
+  DeviceEntity:
+    description: >-
+      A physical or logical entity of an ONVIF Device, such as an input, an
+      output, or a channel. It mirrors tt:DeviceEntity of the ONVIF Schema,
+      which likewise carries a single token attribute.
+    attributes:
+      token:
+        range: ReferenceToken
+        required: true
+        description: Unique identifier referencing the entity.
+
+  ONVIFDevice:
+    is_a: Provenance
+    description: >-
+      Concrete Provenance identifying an ONVIF Device as the producer of an
+      information item.
+
+      The descriptive fields are all optional and self-asserted, and are
+      meant for diagnostics, inventory and presentation. The only mandatory
+      field is publicKeys, because a key identifier is the one piece of
+      information in this class that refers to material an ONVIF Client can
+      verify by an independent path; the descriptive fields refer to nothing
+      that can be checked.
+    attributes:
+      manufacturer:
+        range: string
+        required: false
+        description: >-
+          The manufacturer of the device, as returned by the Manufacturer
+          field of GetDeviceInformationResponse.
+      model:
+        range: string
+        required: false
+        description: >-
+          The device model, as returned by the Model field of
+          GetDeviceInformationResponse.
+      firmwareVersion:
+        range: string
+        required: false
+        description: >-
+          The firmware version in the device, as returned by the
+          FirmwareVersion field of GetDeviceInformationResponse.
+      serialNumber:
+        range: string
+        required: false
+        description: >-
+          The serial number of the device, as returned by the SerialNumber
+          field of GetDeviceInformationResponse.
+      hardwareId:
+        range: string
+        required: false
+        description: >-
+          The hardware ID of the device, as returned by the HardwareId field
+          of GetDeviceInformationResponse.
+      entity:
+        range: DeviceEntity
+        required: false
+        description: >-
+          Optional entity of the device that produced the information, used
+          when a device has several sources that would otherwise be
+          indistinguishable. In this use case it names the video source the
+          detection came from, which is what distinguishes the entry camera
+          from the exit camera when both are channels of one device.
+      publicKeys:
+        range: DevicePublicKey
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          One or more public keys the device declares as its own. At least
+          one key shall be present.
+
+  AnalyticsModule:
+    is_a: Provenance
+    description: >-
+      Concrete Provenance identifying an analytics module running on an ONVIF
+      Device as the producer of an information item. It is the provenance to use
+      when the producer is an algorithm rather than a sensor, which is the case
+      for the analytics box of this use case: the box does not look at the road,
+      it computes over what the two cameras reported.
+
+      Distinguishing the module from the device that hosts it is what allows the
+      two kinds of claim to be told apart: an Observation produced by a video
+      source and an Observation derived from it by an algorithm running on the
+      same device have different producers, and an ONVIF Client may have reason to
+      trust one and not the other.
+
+      As in ONVIFDevice, publicKeys is the only mandatory descriptor, because the
+      key identifier is the one piece of information in this class that refers to
+      material an ONVIF Client can verify by an independent path.
+    attributes:
+      token:
+        range: ReferenceToken
+        required: true
+        description: >-
+          Unique identifier of the analytics module within the ONVIF Device. It
+          mirrors the token of tt:AnalyticsModule of the ONVIF Schema, so that a
+          module named here can be looked up in the analytics configuration of
+          the device.
+      algorithm:
+        range: string
+        required: false
+        description: >-
+          Identifier of the algorithm the module implements, for example
+          two-point-transit-speed.
+      version:
+        range: string
+        required: false
+        description: >-
+          Version of the algorithm, or of the model it runs. It is the field that
+          makes a derived item reproducible: two items produced by the same
+          algorithm in different versions are not comparable, and an ONVIF Client
+          that has qualified one version has not thereby qualified another.
+      entity:
+        range: DeviceEntity
+        required: false
+        description: >-
+          Optional entity of the device whose data the module consumed, used when
+          a device has several sources that would otherwise be
+          indistinguishable.
+      publicKeys:
+        range: DevicePublicKey
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          One or more public keys the device declares as its own for items
+          produced by this module. At least one key shall be present.
+
+  SoftwareService:
+    is_a: Provenance
+    description: >-
+      Concrete Provenance identifying a software service running on a general
+      purpose server as the producer of an information item.
+
+      The class exists because the service that issues the speeding assessment is
+      neither an ONVIF Device nor a module of one: it holds no sensor, it is not
+      described by GetDeviceInformationResponse, and it has no token in the
+      analytics configuration of any device. Reporting it as an ONVIFDevice would
+      claim a nature it does not have, and an ONVIF Client that trusts devices
+      differently from services could not tell the two apart.
+
+      What identifies the producer of an assessment is the criterion it applied
+      and the instance that applied it, so name and instanceId carry the weight
+      here, and publicKeys is optional: a service on a server is not obliged to
+      hold a keystore, and its items may be unsigned, whereas a device always has
+      one.
+    attributes:
+      name:
+        range: string
+        required: true
+        description: >-
+          Name of the service, for example speeding-assessment-service. It names
+          the software that produced the item and not the host it runs on.
+      vendor:
+        range: string
+        required: false
+        description: Party that supplies the service.
+      version:
+        range: string
+        required: false
+        description: >-
+          Version of the service. It carries the same weight as the version of an
+          AnalyticsModule: an assessment is only reproducible against a stated
+          version, because a change of version may change the criterion applied.
+      instanceId:
+        range: string
+        required: false
+        description: >-
+          Identifier of the running instance, used where several instances of the
+          same service issue assessments and the one that issued a given item has
+          to be identified afterwards.
+      publicKeys:
+        range: DevicePublicKey
+        multivalued: true
+        inlined_as_list: true
+        required: false
+        description: >-
+          Zero or more public keys the service declares as its own. The slot is
+          optional, unlike its counterpart on ONVIFDevice, because a service is
+          not required to sign what it emits.
+
+  GeoPoint:
+    is_a: Location
+    description: >-
+      Concrete Location giving a place by its geodetic coordinates in the WGS 84
+      reference frame. It is the location descriptor to use when what matters
+      about a place is where it is, which is the case whenever a distance between
+      two places has to be computed.
+
+      The reference frame is fixed by this class and is not a field: two
+      coordinate pairs expressed in different frames cannot be compared, and a
+      frame carried as a value would let a producer emit a pair an ONVIF Client
+      cannot use. WGS 84 is the frame of GNSS receivers, so a device reporting
+      what its receiver gives it needs no conversion.
+    attributes:
+      latitude:
+        range: WGS84Latitude
+        required: true
+        description: Latitude of the place, in decimal degrees.
+      longitude:
+        range: WGS84Longitude
+        required: true
+        description: Longitude of the place, in decimal degrees.
+      altitude:
+        range: float
+        required: false
+        description: >-
+          Optional height above the WGS 84 ellipsoid, in metres. It is omitted
+          where it is not measured, and it is not needed to compute a distance
+          along a road.
+      horizontalAccuracy:
+        range: Metres
+        required: false
+        description: >-
+          Optional radius, in metres, of the horizontal uncertainty of the
+          coordinates. It is what allows an ONVIF Client to decide whether a
+          distance derived from two GeoPoint values is precise enough for the use
+          it intends: a speed computed over a baseline of two hundred metres from
+          coordinates accurate to fifty is not evidence of anything.
+
+  VehicleDetectionResult:
+    is_a: ObservationResult
+    description: >-
+      Concrete ObservationResult of a VehicleDetectionObservation: what the camera
+      read about the vehicle it saw.
+
+      The plate is the whole of what this use case needs, because it is the only
+      field by which the two cameras can be known to have seen the same vehicle.
+    attributes:
+      plate:
+        range: string
+        required: true
+        description: >-
+          The licence plate as read, transcribed as a single string. It is a plain
+          string for the duration of the hackathon: no issuing authority, no
+          layout and no per-character confidence, and the comparison between two
+          readings is a comparison of strings.
+      trackId:
+        range: string
+        required: false
+        description: >-
+          Optional identifier of the track the detection belongs to, as assigned
+          by the analytics of the camera that produced it. It is local to that
+          camera: two cameras never share a track identifier, which is why it
+          cannot be used to match the two detections of this use case.
+
+  VehicleDetectionObservation:
+    abstract: false
+    is_a: Observation
+    description: >-
+      Concrete Observation reporting that a camera saw a vehicle at a place and at
+      a time, and what plate it read on it. It is a direct observation: it comes
+      from a sensor looking at the road and cites nothing.
+
+      Each of the two cameras of the use case emits one, and the pair is what the
+      analytics box computes a speed from. The two are matched by the plate
+      carried in the result, ordered by observedTime, and separated in space by
+      their observedSpace values.
+
+      The class is defined for one kind of entity and one method, so it fixes both
+      rather than leaving them to the producer: the featureOfInterest is the value
+      Vehicle of FeatureOfInterestType and the procedure is the value Analytics of
+      ProcedureType, both carried in the onvif slot of the respective class. The
+      values are pinned in slot_usage below and are therefore enforced by the
+      compiled schema, not merely prescribed here: an item of this class that
+      names another entity, or that reports either value in the custom slot, is
+      invalid. An ONVIF Client may rely on the two values from the class alone,
+      without reading them.
+    slot_usage:
+      result:
+        range: VehicleDetectionResult
+        value_presence: PRESENT
+        required: true
+      featureOfInterest:
+        required: true
+        range_expression:
+          slot_conditions:
+            onvif:
+              equals_string: Vehicle
+              required: true
+        description: >-
+          The entity this observation is about, fixed to the value Vehicle. The
+          value is pinned on this slot and not by a subclass of FeatureOfInterest,
+          because that class is concrete and is not specialised: what varies from
+          one observation class to another is which value applies, and that is a
+          property of the citing class, not a new kind of feature of interest.
+      procedure:
+        required: true
+        range_expression:
+          slot_conditions:
+            onvif:
+              equals_string: Analytics
+              required: true
+        description: >-
+          The method by which the observation was produced, fixed to the value
+          Analytics: a camera of this use case reports what its analytics found in
+          a media stream, and no other method produces this class.
+      observedTime:
+        range: ISO8601Timestamp
+        required: true
+        description: >-
+          The instant at which the vehicle was seen. It is a single timestamp and
+          not an interval, because a detection is reported for one instant, and it
+          is the field the two detections are ordered by and the field their
+          difference is taken from.
+
+          The timestamp is expected to carry the UTC offset. This is not enforced
+          by the schema for the duration of the hackathon: a device that reports
+          local time without an offset produces a payload that validates and a
+          speed that is wrong, and the participants accept that risk rather than
+          constrain the format further.
+      observedSpace:
+        range: GeoPoint
+        required: true
+        description: >-
+          Where the vehicle was when it was seen, as geodetic coordinates. It is
+          required, and it is a GeoPoint rather than any Location, because the
+          distance between the two detections is computed from these two values
+          and from nothing else.
+      provenance:
+        range: ONVIFDevice
+        required: true
+        description: >-
+          The camera that produced the detection. Where both cameras are channels
+          of one device, the entity slot names the video source, and it is what
+          distinguishes the two detections of one vehicle.
+
+  SpeedEstimateResult:
+    is_a: ObservationResult
+    description: >-
+      Concrete ObservationResult of a SpeedEstimateObservation: the average speed
+      the analytics box computed, together with the two quantities it was computed
+      from.
+
+      The two supporting quantities are optional but are what makes the estimate
+      checkable: travelTime and baselineDistance are the difference of the
+      observedTime values and the distance between the observedSpace values of the
+      two detections, so an ONVIF Client that has them can recompute the speed
+      without resolving the references.
+    attributes:
+      speed:
+        range: KilometresPerHour
+        required: true
+        description: >-
+          Average speed of the vehicle over the baseline, in kilometres per hour.
+          It is an average and not an instantaneous speed: it is the speed the
+          vehicle would have had to hold to cover the baseline in the travel time,
+          and it says nothing about how fast it was going at either end.
+      travelTime:
+        range: Seconds
+        required: false
+        description: >-
+          Time the vehicle took to travel the baseline, being the difference
+          between the observedTime of the second detection and that of the first.
+      baselineDistance:
+        range: Metres
+        required: false
+        description: >-
+          Distance travelled between the two detections, measured between their
+          observedSpace values. For a straight road it is the distance between the
+          two cameras.
+
+  SpeedEstimateObservation:
+    abstract: false
+    is_a: Observation
+    description: >-
+      Concrete Observation reporting the average speed of a vehicle between two
+      vehicle detections. It is a derived observation: the analytics box did not
+      look at the road, it divided the distance between the two observedSpace
+      values by the interval between the two observedTime values.
+
+      The derivation is arithmetic over measurements and introduces no criterion,
+      which is what keeps it an Observation. The statement that the resulting speed
+      is above a limit is a different kind of claim and is a SpeedingAssessment.
+
+      The procedure names the derivation with a URI of the hackathon rather than a
+      value of ProcedureType, because no value of the specification names a
+      two-point transit computation. The class fixes it to
+      urn:onvif-hackathon:procedure:two-point-transit-speed, carried in the custom
+      slot of the Procedure, and the value is pinned in slot_usage below and
+      therefore enforced by the compiled schema: an item of this class that names
+      another procedure, or that reports a value of ProcedureType in the onvif
+      slot, is invalid.
+
+      The featureOfInterest is fixed in the same way to the value Vehicle of
+      FeatureOfInterestType, and is required here although it is optional on
+      Observation: an estimate is published and assessed on its own, so what it is
+      about is stated on the item and is not left to be found by resolving the two
+      detections it cites.
+    slot_usage:
+      result:
+        range: SpeedEstimateResult
+        value_presence: PRESENT
+        required: true
+      supportedBy:
+        required: true
+        minimum_cardinality: 2
+        maximum_cardinality: 2
+        description: >-
+          The identifiers of the two VehicleDetectionObservation items the speed
+          was computed from, in ascending observedTime order. Exactly two are
+          cited: a transit speed is defined by two passages and no others.
+
+          The items are cited by identifier and not nested, as stated for
+          Observation.supportedBy, and an ONVIF Client determines that each of
+          them is a vehicle detection from the @type the resolved item carries.
+      procedure:
+        required: true
+        range_expression:
+          slot_conditions:
+            custom:
+              equals_string: 'urn:onvif-hackathon:procedure:two-point-transit-speed'
+              required: true
+        description: >-
+          The method by which the speed was obtained, fixed to the hackathon URI
+          that names the two-point transit computation. The value is carried in the
+          custom slot, which exercises the extension branch of a closed vocabulary:
+          ProcedureType has no value for a derivation of this kind, and the onvif
+          slot shall therefore stay absent.
+      featureOfInterest:
+        required: true
+        range_expression:
+          slot_conditions:
+            onvif:
+              equals_string: Vehicle
+              required: true
+        description: >-
+          The entity the estimate is about, fixed to the value Vehicle. A speed
+          estimate derived from vehicle detections cannot be about anything else.
+
+          The slot is required here although it is optional on Observation: an
+          ONVIF Client shall be able to read what the estimate is about from the
+          item itself, without resolving the two detections it cites, because the
+          item is published on its own and is assessed on its own.
+      observedTime:
+        range: ISO8601Interval
+        required: true
+        description: >-
+          The interval the speed applies to, running from the first detection to
+          the second. It is an interval and not an instant because the estimate is
+          an average over that span and is not a measurement made at a point in
+          time.
+      observedSpace:
+        range: GeoPoint
+        required: true
+        description: >-
+          Where the speed is reported, taken to be the coordinates of the exit
+          camera, which is the place the vehicle had reached when the estimate
+          became determinable.
+
+          The whole stretch is not described, because describing it would require a
+          geometry class the use case does not otherwise need. An ONVIF Client that
+          wants the stretch resolves the two supporting detections and reads their
+          observedSpace values, and the baselineDistance of the result already
+          states its length.
+      provenance:
+        range: AnalyticsModule
+        required: true
+        description: >-
+          The analytics module that computed the estimate. Its version is what
+          makes the estimate reproducible, since a change in the computation
+          changes the speed without changing the detections.
+
+  SpeedingAssessmentResult:
+    is_a: AssessmentResult
+    description: >-
+      Concrete AssessmentResult of a SpeedingAssessment: the comparison of a
+      measured speed against the limit in force.
+
+      The result carries the two quantities compared and the plate the comparison
+      concerns, and not a flag stating that the limit was exceeded. The existence
+      of the item is already that statement, as set out for AssessmentResult: the
+      service emits an assessment where the criterion was met and emits nothing
+      where it was not.
+    attributes:
+      measuredSpeed:
+        range: KilometresPerHour
+        required: true
+        description: >-
+          The speed the assessment was made on, copied from the speed of the
+          SpeedEstimateObservation the cited collection contains. It is restated
+          here so that the assessment can be read without resolving the
+          collection, and an ONVIF Client that resolves it shall find the two
+          equal.
+      speedLimit:
+        range: KilometresPerHour
+        required: true
+        description: >-
+          The limit in force at that place and at that time, against which the
+          measured speed was compared. It is the criterion, and it is stated on the
+          item because it is not derivable from any observation: the same speed is
+          an offence on one road and lawful on another.
+      plate:
+        range: string
+        required: true
+        description: >-
+          The licence plate of the vehicle the assessment concerns, copied from
+          the supporting detections. It is what the fine is issued against, and it
+          is carried on the assessment so that the item is actionable on its own.
+      excess:
+        range: KilometresPerHour
+        required: false
+        description: >-
+          The amount by which the measured speed exceeded the limit, being the
+          difference of the two fields above. It is stated where the amount itself
+          has consequences, as it does wherever the penalty depends on the size of
+          the excess.
+      tolerance:
+        range: KilometresPerHour
+        required: false
+        description: >-
+          The margin the service allowed above the limit before issuing the
+          assessment. It is stated because an assessment issued with a tolerance
+          and one issued without are different claims about the same measurement.
+      rule:
+        range: uri
+        required: false
+        description: >-
+          Optional identifier of the provision or policy that fixed the limit and
+          the tolerance. It names the criterion applied, so that an assessment can
+          be revisited when the criterion changes without any observation being
+          revised.
+
+  SpeedingAssessment:
+    abstract: false
+    is_a: Assessment
+    description: >-
+      Concrete Assessment stating that a vehicle exceeded the speed limit in
+      force, issued by a service on a server so that a fine can be raised.
+
+      The item is an Assessment and not an Observation because the limit is not
+      contained in anything the cameras or the analytics box measured: it comes
+      from a provision in force at that place, and the same speed yields an
+      assessment on one road and none on another. Its production is therefore
+      separate from the production of the speed, and the two can be trusted
+      differently.
+
+      An assessment is emitted only where the limit was exceeded. There is no
+      assessment of compliance: silence is what a lawful passage produces.
+    slot_usage:
+      result:
+        range: SpeedingAssessmentResult
+        value_presence: PRESENT
+        required: true
+      supportedBy:
+        required: true
+        minimum_cardinality: 1
+        maximum_cardinality: 1
+        description: >-
+          The identifier of the ObservationsCollection the analytics box
+          published, which cites the speed estimate and the two vehicle
+          detections it was computed from. Exactly one item is cited: the
+          service assessed one package, and the collection is what the box
+          published as a unit.
+
+          The collection is cited rather than the speed estimate directly, which
+          is what a collection is for: one identifier stands for the three, and
+          an ONVIF Client that resolves it reaches the estimate and, through it,
+          the two detections. Citing the three identifiers here instead would
+          state a support the service assembled itself, when in fact it assessed
+          what it received.
+      provenance:
+        range: SoftwareService
+        required: true
+        description: >-
+          The service that applied the criterion. It is a SoftwareService and not
+          an ONVIFDevice because the party that issues the fine is not the party
+          that watched the road, and an ONVIF Client shall be able to tell the two
+          apart.
+
+  FunctionConfig:
+    abstract: true
+    description: >-
+      Abstract base of the configuration object an ONVIF Client passes in the
+      config argument of configure_function. A concrete subclass exists for every
+      function that accepts a configuration, and the ONVIF Device names it in the
+      configSchema field of the descriptor list_functions returns for that
+      function.
+
+      The class declares no type designator, unlike the abstract classes of the
+      information model. It is not used as the range of a nested slot: the concrete
+      class is already fixed, out of band, by the configSchema URI of the
+      descriptor, so an ONVIF Client validating a config knows which class it is
+      validating against before it reads the object.
+
+      The class is declared in this module because the root module it imports
+      declares no base for a configuration, whereas FunctionExecutionParameters
+      and FunctionCapabilities are taken from there and are not restated here.
+    attributes:
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  SpeedingAssessmentConfig:
+    is_a: FunctionConfig
+    description: >-
+      Configuration of the speeding_assessment function: the criterion the service
+      applies. It is the class the descriptor of that function names in
+      configSchema.
+
+      The function is not a function of this specification, so its canonicalUri
+      lies in the namespace of this module and is
+      https://www.onvif.org/ver10/agentic/hackathon-2026.11/function/speeding_assessment.
+      The ONVIF namespace for functions is reserved to functions the specification
+      defines.
+
+      Everything that fixes what counts as speeding is configured here, and not
+      passed per execution: a criterion that changed from one run to the next could
+      not be stated on the assessments produced, and two assessments of the same
+      service would not be comparable.
+    attributes:
+      speedLimit:
+        range: KilometresPerHour
+        required: true
+        description: >-
+          The limit above which an assessment is issued. It is the only mandatory
+          field, because it is the criterion: without it the function has nothing
+          to compare against.
+      tolerance:
+        range: KilometresPerHour
+        required: false
+        description: >-
+          Margin allowed above the limit before an assessment is issued. Where it
+          is present, the service shall state it in the tolerance field of every
+          result it produces, so that the claim carries the margin it was made
+          with.
+      rule:
+        range: uri
+        required: false
+        description: >-
+          Identifier of the provision or policy the limit and the tolerance come
+          from. Where it is present, the service shall state it in the rule field
+          of every result it produces.
+      minimumConfidence:
+        range: Likelihood
+        required: false
+        description: >-
+          Lowest confidence a SpeedEstimateObservation may carry for the service
+          to assess it. An estimate below this value is ignored rather than
+          assessed, since a fine cannot rest on a measurement the producer itself
+          does not stand behind.
+      emitOnlyWhenExceeded:
+        range: boolean
+        required: false
+        ifabsent: 'boolean(true)'
+        description: >-
+          Whether the service emits an assessment only where the limit was
+          exceeded. The default is true, which is the behaviour set out for
+          SpeedingAssessment. Setting it to false is admitted for diagnostics
+          during the hackathon, and an ONVIF Client shall then not read the mere
+          existence of an item as a statement that the limit was exceeded.
+
+  SpeedingAssessmentExecutionParameters:
+    is_a: FunctionExecutionParameters
+    description: >-
+      Parameters of a single execution of the speeding_assessment function. It is
+      the class the descriptor names in executionSchema.
+
+      Both fields bear on the run and not on the criterion, which is why they are
+      here and not in SpeedingAssessmentConfig.
+    attributes:
+      validity:
+        range: ISO8601Interval
+        required: false
+        description: >-
+          Interval over which the execution is to remain active. Where it is
+          absent the execution runs until it is stopped with stop_function.
+      dryRun:
+        range: boolean
+        required: false
+        ifabsent: 'boolean(false)'
+        description: >-
+          Where true, the service evaluates the criterion and reports what it
+          would have produced without emitting any SpeedingAssessment. It is the
+          field that lets a limit be tried against live traffic before any fine can
+          follow from it.
+
+  SpeedingAssessmentExecutionResult:
+    description: >-
+      Structured content execute_function returns when it starts the
+      speeding_assessment function. It is the class the descriptor names in
+      resultSchema.
+
+      It reports the start of the execution and nothing about its outcome. The
+      assessments arrive afterwards as metadata events, and the task the ONVIF
+      Device may return for the call represents the start operation alone: it
+      reaches a terminal state once the execution is running, and does not stay
+      working for as long as the function is active.
+    attributes:
+      executionId:
+        range: string
+        required: true
+        description: >-
+          Identifier of the execution that was started. It is the value the ONVIF
+          Client passes to stop_function, which takes it and nothing else: stopping
+          an execution needs no per-function parameters, so no class is declared
+          for it.
+      startedAt:
+        range: datetime
+        required: false
+        description: Time at which the execution started.
+
+  SpeedingAssessmentCapabilities:
+    is_a: FunctionCapabilities
+    description: >-
+      Capabilities of the speeding_assessment function on this instance. It is the
+      class the descriptor names in capabilitiesSchema.
+
+      The fields bound what SpeedingAssessmentConfig may ask for, so an ONVIF
+      Client reads them before configuring rather than discovering the bounds
+      through a rejected configuration.
+    attributes:
+      minimumSpeedLimit:
+        range: KilometresPerHour
+        required: false
+        description: Lowest limit the service accepts in a configuration.
+      maximumSpeedLimit:
+        range: KilometresPerHour
+        required: false
+        description: Highest limit the service accepts in a configuration.
+      maximumTolerance:
+        range: KilometresPerHour
+        required: false
+        description: Largest margin the service accepts in a configuration.
+      supportsDryRun:
+        range: boolean
+        required: false
+        description: >-
+          Whether the service implements the dryRun execution parameter. An ONVIF
+          Client shall not ask for a dry run where this is false, since the
+          alternative to a refused call is a real assessment.
+      maximumConcurrentExecutions:
+        range: integer
+        required: false
+        minimum_value: 1
+        description: >-
+          Number of executions the service can hold active at one time. It bounds
+          how many limits can be watched at once on one instance.

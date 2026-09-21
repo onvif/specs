@@ -23,8 +23,28 @@ types:
     typeof: string
     description: >-
       Universally Unique Identifier in the canonical lowercase hyphenated
-      form specified in RFC 9562. Used as the range of every object
-      identifier slot in this model.
+      form specified in RFC 9562.
+
+      It is the range of every object identifier slot of this model, and equally
+      of every slot that cites another item instead of nesting it. The two uses
+      share one type because a reference is the identifier of the item it points
+      at and can be nothing else: the two lexical spaces cannot diverge, and
+      declaring a second type for the citing position would only put a copy of
+      the pattern below in a place where nothing checks that the two copies still
+      agree.
+
+      A citing slot carries the identifier of the cited item and nothing more. It
+      does not state the class of that item: the class is read from the cited item
+      itself, which carries it in its @type slot as specified for
+      InformationItem, so an ONVIF Client learns what it has been given at the
+      moment it resolves the reference, and the slot documents in prose, and in
+      its any_of constraint, which classes it admits.
+
+      Declaring the cited class as the range of a citing slot would give no
+      constraint at all. A slot whose range is a class and that is not inlined
+      compiles to a bare string, with no pattern and no trace of the class, so any
+      string whatsoever would pass; with this type the identifier has at least a
+      checkable shape.
     pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
 
   Base64Binary:
@@ -59,12 +79,22 @@ classes:
       Abstract class carrying extensions. It is used as the range of an
       optional slot named extensible, which classes that support vendor
       extensions declare individually; it is not intended to be inherited
-      via is_a, as it carries no attributes of its own. The only exceptions
-      are VendorExtension and VendorExtensible, which are themselves
-      extension containers.
+      via is_a, as it carries no attributes of its own beyond the type
+      designator every abstract class of this model declares. The only
+      exceptions are VendorExtension and VendorExtensible, which are
+      themselves extension containers.
     comments:
       - 'Declare an optional slot "extensible" with range Extensible on a class
         that supports vendor extensions. Do not inherit it with is_a.'
+    attributes:
+      '@type':
+        designates_type: true
+        range: string
+        required: true
+        description: >-
+          The local name of the concrete extension container this object
+          instantiates, VendorExtension or VendorExtensible. It is required for
+          the reason given for the type designator of InformationItem.
 
   VendorExtension:
     abstract: false
