@@ -1231,6 +1231,9 @@
         <para>The <code>get_status</code> Tool returns the current operational status of the
           agentic analytics engine. It takes no arguments. The ONVIF Device shall always respond
           successfully to this Tool unless the device is unreachable.</para>
+        <para>The empty <code>arguments</code> object is defined by the LinkML class
+          <code>GetStatus</code>. The response <code>structuredContent</code> is defined by
+          <code>GetStatusResponse</code>.</para>
         <para>The response <code>structuredContent</code> shall include: <itemizedlist>
             <listitem>
               <para><code>state</code> — one of <code>running</code>, <code>stopped</code>,
@@ -1257,6 +1260,8 @@
           the ONVIF Client shall call <code>list_functions</code> before calling
           <code>configure_function</code>, <code>execute_function</code>, or
           <code>stop_function</code>.</para>
+        <para>The empty <code>arguments</code> object is defined by the LinkML class
+          <code>ListFunctions</code>.</para>
         <para>Each entry in the response <code>structuredContent.functions</code> array shall
           include: <itemizedlist>
             <listitem>
@@ -1391,8 +1396,13 @@
           function. It is a generic wrapper: the structure of the <code>config</code>
           argument is defined by the LinkML schema class identified by the
           <code>configSchema</code> URI returned by <code>list_functions</code> for that function.
-          The ONVIF Client shall validate <code>config</code> against the compiled JSON Schema
-          (the <code>inputSchema</code> of the Tool) before sending the request.</para>
+          The ONVIF Client shall validate <code>config</code> against the compiled JSON Schema of
+          that class before sending the request.</para>
+        <para>The wrapper <code>arguments</code> object is defined by the LinkML class
+          <code>ConfigureFunction</code>; its <code>config</code> value is dynamically validated
+          against the class named by the function descriptor's <code>configSchema</code>. A
+          synchronous response <code>structuredContent</code> is defined by
+          <code>ConfigureFunctionResponse</code>.</para>
         <para>A function whose descriptor omits <code>configSchema</code> accepts no configuration,
           and is configured, if at all, by the parameters of its execution; the reserved
           <code>set_event_stream_parameters</code> function is of that kind. An ONVIF Device shall
@@ -1427,6 +1437,13 @@
           the <code>parameters</code> argument, when present, is defined by the LinkML class
           derived from <code>FunctionExecutionParameters</code> that corresponds to the named
           function.</para>
+        <para>The wrapper <code>arguments</code> object is defined by the LinkML class
+          <code>ExecuteFunction</code>. Its optional <code>parameters</code> value is dynamically
+          validated against the class named by the function descriptor's
+          <code>executionSchema</code>. A synchronous response
+          <code>structuredContent</code>, when present, is the concrete
+          <code>FunctionExecutionResult</code> class named by <code>resultSchema</code>; the
+          JSON-RPC and MCP Task result envelopes are defined by MCP rather than LinkML.</para>
         <para>On successful start, the device shall return an <code>executionId</code>. If starting
           the function is asynchronous and the client has declared support for MCP Tasks, the device
           may return a task result. The task represents only the start operation and shall reach a
@@ -1448,6 +1465,10 @@
           declared support for MCP Tasks, the device may return a task result. The task represents
           only the stop operation and shall reach a terminal state when the execution is stopped or
           the stop operation has failed.</para>
+        <para>The <code>arguments</code> object is defined by the LinkML class
+          <code>StopFunction</code>. A synchronous successful response has no required
+          <code>structuredContent</code>; its JSON-RPC and MCP Task result envelopes are defined by
+          MCP rather than LinkML.</para>
       </section>
     </section>
 

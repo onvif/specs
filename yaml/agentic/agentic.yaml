@@ -176,6 +176,56 @@ classes:
 
   # --- Function catalogue and capabilities Tools ---------------------------
 
+  GetStatus:
+    description: >-
+      Empty arguments object accepted by the get_status Tool. The Tool takes
+      no arguments, so its JSON Schema accepts an empty object and no
+      properties.
+    annotations:
+      mcp_tool: get_status
+      access_class: READ_SYSTEM
+
+  ActiveFunctionExecution:
+    description: >-
+      A function execution active when the ONVIF Device answers get_status.
+    attributes:
+      function:
+        range: string
+        required: true
+        description: Local function identifier of the active execution.
+      executionId:
+        range: string
+        required: true
+        description: Identifier of the active execution.
+
+  GetStatusResponse:
+    description: >-
+      Structured result returned by the get_status Tool.
+    attributes:
+      state:
+        range: AgenticEngineState
+        required: true
+        description: Current operational state of the analytics engine.
+      activeFunctions:
+        range: ActiveFunctionExecution
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: Active function executions, or an empty list when none is active.
+      engineVersion:
+        range: string
+        required: true
+        description: Version of the agentic engine firmware.
+
+  ListFunctions:
+    description: >-
+      Empty arguments object accepted by the list_functions Tool. The Tool
+      takes no arguments, so its JSON Schema accepts an empty object and no
+      properties.
+    annotations:
+      mcp_tool: list_functions
+      access_class: READ_SYSTEM
+
   FunctionDescriptor:
     description: >-
       A single entry of the function catalogue returned by the list_functions
@@ -283,6 +333,9 @@ classes:
   GetFunctionCapabilities:
     description: >-
       Arguments accepted by the get_function_capabilities Tool.
+    annotations:
+      mcp_tool: get_function_capabilities
+      access_class: READ_SYSTEM
     attributes:
       function:
         range: string
@@ -314,6 +367,93 @@ classes:
           when present, it is an instance of the class derived from
           FunctionCapabilities that capabilitiesSchema identifies. It is absent
           when the function has no readable capabilities.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  ConfigureFunction:
+    description: >-
+      Arguments accepted by the configure_function Tool. The config value is
+      validated against the class identified by the named function's
+      FunctionDescriptor.configSchema, rather than against a fixed generic
+      class.
+    annotations:
+      mcp_tool: configure_function
+      access_class: ACTUATE
+    attributes:
+      function:
+        range: string
+        required: true
+        description: Function identifier whose configuration is applied.
+      config:
+        range: Any
+        required: true
+        description: >-
+          Configuration object validated against the named function's
+          configSchema.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  ConfigureFunctionResponse:
+    description: >-
+      Structured result returned when configure_function has synchronously
+      applied a configuration.
+    attributes:
+      function:
+        range: string
+        required: true
+        description: Function identifier to which the applied configuration belongs.
+      applied:
+        range: Any
+        required: true
+        description: >-
+          Configuration object applied by the ONVIF Device, conforming to the
+          named function's configSchema.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  ExecuteFunction:
+    description: >-
+      Arguments accepted by the execute_function Tool. When parameters is
+      present, it is validated against the class identified by the named
+      function's FunctionDescriptor.executionSchema.
+    annotations:
+      mcp_tool: execute_function
+      access_class: ACTUATE
+    attributes:
+      function:
+        range: string
+        required: true
+        description: Function identifier to execute.
+      parameters:
+        range: FunctionExecutionParameters
+        required: false
+        description: Execution-specific parameters for the named function.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  StopFunction:
+    description: >-
+      Arguments accepted by the stop_function Tool.
+    annotations:
+      mcp_tool: stop_function
+      access_class: ACTUATE
+    attributes:
+      function:
+        range: string
+        required: true
+        description: Function identifier of the execution to stop.
+      executionId:
+        range: string
+        required: true
+        description: Identifier of the execution to stop.
       extensible:
         range: Extensible
         required: false
