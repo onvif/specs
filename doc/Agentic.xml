@@ -1368,15 +1368,17 @@
           </itemizedlist></para>
         <para>The response <code>structuredContent</code> is defined by the LinkML class
             <code>GetFunctionCapabilitiesResponse</code> and shall include the
-            <code>function</code> identifier and a <code>capabilities</code> object. The
-            <code>capabilities</code> object is an instance of the class derived from
-            <code>FunctionCapabilities</code> that <code>list_functions</code> names in the
-            <code>capabilitiesSchema</code> field of that function's descriptor.</para>
+            <code>function</code> identifier. If the function's descriptor contains
+            <code>capabilitiesSchema</code>, it shall also include a <code>capabilities</code>
+            object that is an instance of the class derived from
+            <code>FunctionCapabilities</code> that <code>capabilitiesSchema</code> identifies.
+            If the descriptor omits <code>capabilitiesSchema</code>, the response shall omit
+            <code>capabilities</code>.</para>
         <para>An ONVIF Device shall reject a request naming a function it does not support with
             <code>-32011 NotFound</code>. A function that has no readable capabilities shall omit
-            <code>capabilitiesSchema</code> from its descriptor; an ONVIF Device shall respond to
-          this Tool for such a function with an empty <code>capabilities</code> object rather than
-          with an error.</para>
+            <code>capabilitiesSchema</code> from its descriptor; an ONVIF Device shall respond
+          successfully to this Tool for such a function without a <code>capabilities</code>
+          field.</para>
         <para>See <xref linkend="sec_annex_tool_get_function_capabilities"/> for a wire format
           example.</para>
       </section>
@@ -3531,6 +3533,19 @@ default_range: string</programlisting>
         "maxKeepaliveIntervalMs": 300000,
         "maxConcurrentStreams": 4
       }
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client — no readable capabilities):</emphasis> A
+        function whose catalogue descriptor omits <code>capabilitiesSchema</code> returns a
+        successful response without a <code>capabilities</code> field.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 13,
+  "result": {
+    "resultType": "complete",
+    "structuredContent": {
+      "function": "vehicle_detection"
     }
   }
 }</programlisting>
