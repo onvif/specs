@@ -2222,7 +2222,8 @@
         <code>@context</code> and <code>@type</code>, as specified in <xref
         linkend="sec_context_and_type_annotations"/>, an <code>id</code>, as specified in <xref
         linkend="sec_object_identifiers"/>, the mandatory list of enclosed <code>items</code>, an
-        optional list of <code>hashes</code>, and the optional <code>signature</code>.</para>
+        optional list of <code>hashes</code>, required when a <code>signature</code> is present,
+        and the optional <code>signature</code>.</para>
       <para>The two keywords are fields of the envelope and not of the delivery that carried it.
         <code>@context</code> is the inline context derived from the modules represented in the
         payload, as specified in <xref linkend="sec_context_and_type_annotations"/>;
@@ -2237,12 +2238,12 @@
         would compute different digests. Sorting by identifier, rather than preserving the order in
         which the items were produced, makes the result independent of the order in which the
         device happened to assemble the envelope.</para>
-      <para>The <code>hashes</code> field is optional even when a signature is present. The
-        envelope digest carried by the signature is sufficient to establish that the group of items
-        as a whole is intact; omitting the individual digests saves bandwidth and gives up only the
-        ability to determine <emphasis>which</emphasis> item was altered when verification fails.
-        The same trade-off is made by the Low Bitrate Mode of the ONVIF Media Signing
-        Specification.</para>
+      <para>When a <code>signature</code> is present, <code>hashes</code> shall contain exactly
+        one <code>ItemDigest</code> for every enclosed item and shall not be empty. The identifier
+        in each digest shall identify an enclosed item, no identifier shall occur more than once,
+        and every enclosed item shall have a corresponding digest. An unsigned envelope may omit
+        <code>hashes</code>. The signature authenticates the digest list; comparing each digest
+        with its item is what establishes the integrity of the enclosed content.</para>
     </section>
 
     <section xml:id="sec_observation">
@@ -2619,7 +2620,8 @@
             <listitem>
               <para>Emit one <code>ItemDigest</code> per item, carrying the item identifier and
                 <code>d_i</code>, and sort the resulting entries by identifier in ascending
-                order as required by <xref linkend="sec_information_envelope"/>. Let
+                order as required by <xref linkend="sec_information_envelope"/>. Place the
+                resulting non-empty list in <code>InformationEnvelope.hashes</code>. Let
                 <code>d_1 … d_n</code> denote the digests in that order.</para>
             </listitem>
             <listitem>
@@ -2657,26 +2659,23 @@
           <orderedlist>
             <listitem>
               <para>Reconstruct the signature configuration from the received object, recompute
-                <code>envelopeDigest</code> as specified above, and verify
-                <code>signatureValue</code> against it using the public key obtained from
-                <code>key</code>. If this succeeds, every enclosed item is authentic and
-                unmodified, and no further computation is required.</para>
+                <code>envelopeDigest</code> from that configuration and the raw digest octets in
+                <code>hashes</code>, as specified above, and verify <code>signatureValue</code>
+                against it using the public key obtained from <code>key</code>. If this fails,
+                the envelope shall be treated as unauthentic.</para>
             </listitem>
             <listitem>
-              <para>If it fails and the <code>hashes</code> list is present, recompute
-                <code>H(JCS(item_i))</code> for each enclosed item and compare it with the
-                corresponding <code>ItemDigest</code>. Any entry that does not match identifies an
-                item that was altered; an entry present in <code>hashes</code> with no
-                corresponding item identifies one that was removed.</para>
+              <para>After the signature verifies, recompute <code>H(JCS(item_i))</code> for every
+                enclosed item and compare it with the corresponding <code>ItemDigest</code>. The
+                verifier shall also confirm the one-to-one correspondence and ordering required by
+                <xref linkend="sec_information_envelope"/>. A digest mismatch, a missing digest,
+                an extra digest, a duplicate identifier, or an incorrectly ordered list makes the
+                envelope invalid.</para>
             </listitem>
           </orderedlist>
-          <para>The second stage is diagnostic only. An envelope whose signature does not verify
-            shall be treated as unauthentic as a whole, irrespective of how many of its items
-            individually match. The purpose of the per-item comparison is to let an operator or a
-            downstream system know what was tampered with, not to salvage part of the
-            envelope.</para>
-          <para>When <code>hashes</code> is absent, only the first stage is possible; this is the
-            trade-off described in <xref linkend="sec_information_envelope"/>.</para>
+          <para>Both stages are required to establish the integrity and authenticity of the enclosed
+            items. An envelope that fails either stage shall be treated as unauthentic as a whole;
+            a verifier shall not salvage individual items from it.</para>
         </section>
 
         <section xml:id="sec_item_digest">

@@ -160,16 +160,27 @@ classes:
         multivalued: true
         inlined_as_list: true
         required: false
+        minimum_cardinality: 1
         description: >-
           One digest per enclosed information item, sorted by the item field
-          in ascending order. The list is optional: the envelope digest
-          carried by the signature is sufficient to verify the integrity of
-          the group as a whole, and omitting the list only gives up the
-          ability to identify which individual item was altered.
+          in ascending order. When signature is present, this list is required:
+          the signature authenticates the list of digests, and each digest is
+          required to verify the corresponding enclosed item. The list may be
+          omitted only when the envelope is unsigned.
       signature:
         range: Signature
         required: false
         description: Optional envelope-level signature.
+    rules:
+      - title: Signature requires item digests
+        preconditions:
+          slot_conditions:
+            signature:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            hashes:
+              value_presence: PRESENT
 
   Provenance:
     abstract: true
