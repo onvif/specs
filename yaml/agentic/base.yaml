@@ -39,9 +39,9 @@ classes:
         description: >-
           Confidence level associated with the information, in the range 0.0 to
           1.0 inclusive. The range is Likelihood, the same type used by every
-          other confidence-bearing slot of this model, such as the likelihood of
-          a StringLikelihood or of a Color, so that a single interpretation
-          applies wherever a confidence appears.
+          other confidence-bearing slot of this model, whether it qualifies a
+          whole item or a single value inside an observation result, so that a
+          single interpretation applies wherever a confidence appears.
 
           The confidence of an item is the confidence of that item alone. It is
           not derived from, and shall not be propagated to, any item that cites
@@ -60,6 +60,8 @@ classes:
         description: Optional vendor extension container.
 
   InformationEnvelope:
+    abstract: false
+    tree_root: true
     description: >-
       Optional container that groups one or more information items and may
       carry a single envelope-level signature.
@@ -77,7 +79,10 @@ classes:
         multivalued: true
         inlined_as_list: true
         required: true
-        description: One or more enclosed information items.
+        minimum_cardinality: 1
+        description: >-
+          One or more enclosed information items. At least one item shall be
+          present.
       hashes:
         range: ItemDigest
         multivalued: true
@@ -106,193 +111,262 @@ classes:
         required: false
         description: Optional vendor extension container.
 
-  DeviceEntity:
-    description: >-
-      A physical or logical entity of an ONVIF Device, such as an input, an
-      output, or a channel. It mirrors tt:DeviceEntity of the ONVIF Schema,
-      which likewise carries a single token attribute.
-    attributes:
-      token:
-        range: ReferenceToken
-        required: true
-        description: Unique identifier referencing the entity.
-
-  ONVIFDevice:
-    is_a: Provenance
-    description: >-
-      Concrete Provenance identifying an ONVIF Device as the producer of an
-      information item.
-
-      The descriptive fields are all optional and self-asserted, and are
-      meant for diagnostics, inventory and presentation. The only mandatory
-      field is publicKeys, because a key identifier is the one piece of
-      information in this class that refers to material an ONVIF Client can
-      verify by an independent path; the descriptive fields refer to nothing
-      that can be checked.
-    attributes:
-      manufacturer:
-        range: string
-        required: false
-        description: >-
-          The manufacturer of the device, as returned by the Manufacturer
-          field of GetDeviceInformationResponse.
-      model:
-        range: string
-        required: false
-        description: >-
-          The device model, as returned by the Model field of
-          GetDeviceInformationResponse.
-      firmwareVersion:
-        range: string
-        required: false
-        description: >-
-          The firmware version in the device, as returned by the
-          FirmwareVersion field of GetDeviceInformationResponse.
-      serialNumber:
-        range: string
-        required: false
-        description: >-
-          The serial number of the device, as returned by the SerialNumber
-          field of GetDeviceInformationResponse.
-      hardwareId:
-        range: string
-        required: false
-        description: >-
-          The hardware ID of the device, as returned by the HardwareId field
-          of GetDeviceInformationResponse.
-      entity:
-        range: DeviceEntity
-        required: false
-        description: >-
-          Optional entity of the device that produced the information, used
-          when a device has several sources that would otherwise be
-          indistinguishable.
-      publicKeys:
-        range: DevicePublicKey
-        multivalued: true
-        inlined_as_list: true
-        required: true
-        minimum_cardinality: 1
-        description: >-
-          One or more public keys the device declares as its own. At least
-          one key shall be present.
-
-  AnalyticsModule:
-    is_a: Provenance
-    description: >-
-      Concrete Provenance identifying an analytics module running on an ONVIF
-      Device as the producer of an information item. It is the provenance to use
-      when the producer is an algorithm rather than a sensor, which is typically
-      the case for an Assertion.
-
-      Distinguishing the module from the device that hosts it is what allows the
-      two kinds of claim to be told apart: an Observation produced by a video
-      source and an Assertion derived from it by an algorithm running on the same
-      device have different producers, and an ONVIF Client may have reason to
-      trust one and not the other.
-
-      As in ONVIFDevice, publicKeys is the only mandatory descriptor, because the
-      key identifier is the one piece of information in this class that refers to
-      material an ONVIF Client can verify by an independent path.
-    attributes:
-      token:
-        range: ReferenceToken
-        required: true
-        description: >-
-          Unique identifier of the analytics module within the ONVIF Device. It
-          mirrors the token of tt:AnalyticsModule of the ONVIF Schema, so that a
-          module named here can be looked up in the analytics configuration of
-          the device.
-      algorithm:
-        range: string
-        required: false
-        description: >-
-          Identifier of the algorithm the module implements, for example
-          vehicle-reidentification.
-      version:
-        range: string
-        required: false
-        description: >-
-          Version of the algorithm, or of the model it runs. It is the field that
-          makes a derived item reproducible: two items produced by the same
-          algorithm in different versions are not comparable, and an ONVIF Client
-          that has qualified one version has not thereby qualified another.
-      entity:
-        range: DeviceEntity
-        required: false
-        description: >-
-          Optional entity of the device whose data the module consumed, used when
-          a device has several sources that would otherwise be
-          indistinguishable.
-      publicKeys:
-        range: DevicePublicKey
-        multivalued: true
-        inlined_as_list: true
-        required: true
-        minimum_cardinality: 1
-        description: >-
-          One or more public keys the device declares as its own for items
-          produced by this module. At least one key shall be present.
-
   Location:
     abstract: true
     description: >-
       Abstract spatial descriptor for an InformationItem.
 
       The class is abstract because a place can be given in two irreducibly
-      different ways: by the function it serves, which is what FunctionalLocation
-      expresses, or by its geometry. This specification defines the functional
-      form only; a geometric form may be added as a further concrete subclass
-      without changing Observation.
+      different ways: by the function it serves, such as a named entrance or lane,
+      or by its geometry. Either form is introduced as a concrete subclass, by a
+      future revision of this specification or by a vendor extension, without
+      changing Observation.
     attributes:
       extensible:
         range: Extensible
         required: false
         description: Optional vendor extension container.
 
-  FunctionalLocation:
-    is_a: Location
+  FeatureOfInterest:
+    abstract: false
     description: >-
-      Concrete Location naming a place by the function it serves rather than by
-      its geometry. It is the location descriptor to use when what matters about
-      a place is what happens there, for example an ambulance drop-off, a loading
-      bay or a pedestrian crossing.
+      The kind of real-world entity an observation is about, as opposed to what
+      was found about it, which is the ObservationResult.
 
-      A functional location is meaningful only within the installation it belongs
-      to: the name is assigned when the site is commissioned and carries no
-      meaning outside it. An ONVIF Client shall therefore treat name as a label
-      for presentation, and token, where present, as the key for correlation.
+      The entity is named in one of two ways, and exactly one of them is used by
+      any given instance: by the vocabulary of this specification, in the onvif
+      slot, or by the vendor, in the custom slot. Expressing that choice is the
+      only reason the class exists; a FeatureOfInterest that carries both slots,
+      or neither, is invalid.
+
+      The arrangement keeps the common vocabulary closed while leaving the set of
+      observable entities open. An ONVIF Client that receives a value it does not
+      implement can always tell which of the two cases it is in - a value of this
+      specification it does not support, or a vendor value it does not know - and
+      an ONVIF Device can name entities of its own without any risk of a future
+      value of this specification taking the same name.
+
+      The class is concrete and is not specialised. The vocabulary grows in two
+      ways only: a new value of FeatureOfInterestType, added by a future version
+      of this specification, or a URI of a vendor's own in the custom slot. An
+      ONVIF Client therefore never encounters a subclass of FeatureOfInterest,
+      and the two slots are the whole of what it has to interpret.
     attributes:
-      name:
-        range: string
-        required: true
-        description: >-
-          Human readable name of the place, as configured on the ONVIF Device,
-          for example Ambulance Drop-off.
-      token:
-        range: ReferenceToken
+      onvif:
+        range: FeatureOfInterestType
         required: false
         description: >-
-          Optional identifier of the configured area the name refers to. It
-          allows the place to be correlated across information items even if its
-          name is later changed, and to be looked up in the analytics
-          configuration of the ONVIF Device.
-      description:
-        range: string
+          The entity, named by the vocabulary of this specification. An ONVIF
+          Device shall use this slot wherever a value of FeatureOfInterestType
+          applies to what is being observed.
+      custom:
+        range: uri
+        pattern: '^[A-Za-z][A-Za-z0-9+.\-]*:[^\s]+$'
         required: false
         description: >-
-          Optional longer description of the function the place serves. It is
-          omitted from items carried in a metadata stream, where the location is
-          repeated on every item, and belongs to the configuration and
-          presentation paths instead.
+          The entity, named by the vendor, for an entity FeatureOfInterestType
+          does not name. The value shall be an absolute URI in a namespace the
+          vendor controls, in the same sense as the vendor_namespace of a
+          VendorExtension.
+
+          The pattern imposes that shape, and each of its two parts carries a
+          distinct meaning. The leading production, [A-Za-z][A-Za-z0-9+.\-]*
+          followed by a colon, is the URI scheme, and it is what identifies the
+          namespace the proprietary extension belongs to: it tells an ONVIF
+          Client that the value is a vendor's own and under which naming
+          authority it is to be resolved. Where the scheme is a generic one, such
+          as https, the authority that follows it participates in identifying the
+          namespace as well, and it is then the vendor's registered domain that
+          makes the namespace its own. The remainder, [^\s]+, is the vendor's own
+          name for the entity within that namespace; it is opaque to this
+          specification, and only the vendor owning the namespace assigns meaning
+          to it. Whitespace is excluded throughout so that the value remains a
+          single token.
+    exactly_one_of:
+      - slot_conditions:
+          onvif:
+            value_presence: PRESENT
+      - slot_conditions:
+          custom:
+            value_presence: PRESENT
+
+  Procedure:
+    abstract: false
+    description: >-
+      How an observation was produced: the method that turned the physical world
+      into a result, as opposed to the entity observed, which is the
+      featureOfInterest, or to what was found, which is the ObservationResult.
+
+      The procedure is named in one of two ways, and exactly one of them is used
+      by any given instance: by the vocabulary of this specification, in the
+      onvif slot, or by the vendor, in the custom slot. The class is deliberately
+      built the same way as FeatureOfInterest, and for the same reasons, so that
+      an ONVIF Client handles a procedure it does not recognise exactly as it
+      handles a feature of interest it does not recognise.
+
+      Naming a procedure is not describing it. The class states which method was
+      used, and neither how that method works nor with what parameters it was
+      configured; those belong to the provenance of the information item, or to a
+      vendor extension.
+
+      The class is concrete and is not specialised, for the reason given for
+      FeatureOfInterest: the set of methods grows through a new value of
+      ProcedureType or through a URI of a vendor's own, and never through a
+      subclass.
+    attributes:
+      onvif:
+        range: ProcedureType
+        required: false
+        description: >-
+          The method, named by the vocabulary of this specification. An ONVIF
+          Device shall use this slot wherever a value of ProcedureType applies to
+          how the observation was produced.
+      custom:
+        range: uri
+        pattern: '^[A-Za-z][A-Za-z0-9+.\-]*:[^\s]+$'
+        required: false
+        description: >-
+          The method, named by the vendor, for a method ProcedureType does not
+          name. The value shall be an absolute URI in a namespace the vendor
+          controls, in the same sense as the vendor_namespace of a
+          VendorExtension.
+
+          The pattern imposes that shape, and each of its two parts carries a
+          distinct meaning. The leading production, [A-Za-z][A-Za-z0-9+.\-]*
+          followed by a colon, is the URI scheme, and it is what identifies the
+          namespace the proprietary extension belongs to: it tells an ONVIF
+          Client that the value is a vendor's own and under which naming
+          authority it is to be resolved. Where the scheme is a generic one, such
+          as https, the authority that follows it participates in identifying the
+          namespace as well, and it is then the vendor's registered domain that
+          makes the namespace its own. The remainder, [^\s]+, is the vendor's own
+          name for the method within that namespace; it is opaque to this
+          specification, and only the vendor owning the namespace assigns meaning
+          to it. Whitespace is excluded throughout so that the value remains a
+          single token.
+    exactly_one_of:
+      - slot_conditions:
+          onvif:
+            value_presence: PRESENT
+      - slot_conditions:
+          custom:
+            value_presence: PRESENT
+
+  ObservationResult:
+    abstract: true
+    description: >-
+      Abstract container for what an observation of the physical world found: the
+      measured quantity itself, as opposed to the circumstances of the
+      measurement, which the Observation carries in observedTime, observedSpace,
+      productionTime and provenance.
+
+      The class is abstract because there is nothing a generic result can state.
+      What a result contains depends entirely on what was observed - a plate
+      reading, a vehicle classification, a speed - so every concrete Observation
+      is paired with a concrete subclass of ObservationResult describing its own
+      kind of result. The pairing is one to one: a result class belongs to the
+      observation class that declares it, and is not shared between observation
+      classes that happen to measure something similar.
+    attributes:
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
 
   Observation:
     abstract: true
     is_a: InformationItem
     description: >-
-      Abstract InformationItem representing a measurement generated by an
-      ONVIF Device.
+      Abstract InformationItem representing a measurement of the physical world
+      generated by an ONVIF Device.
+
+      An observation is either direct or derived. A direct observation is what a
+      sensor produced by looking at the physical world, and cites nothing. A
+      derived observation is computed from other observations and lists them in
+      supportedBy: a speed, for example, is obtained from two observations of the
+      same subject by dividing the distance between their observedSpace values by
+      the interval between their observedTime values. Both forms are measurements
+      of the same physical world, expressed in the units they would have had if a
+      sensor had measured them directly; the derivation is arithmetic over
+      measurements and introduces no criterion that the measurements do not
+      already contain.
+
+      This is what separates an Observation that cites other items from an
+      Assessment that cites other items. An Assessment applies a criterion
+      external to the measurement, and its result is an interpretation that
+      cannot be reached from the supporting data by computation alone. The same
+      items can feed both: an average speed of 82 km/h is an Observation derived
+      from positions and times, while the statement that this speed exceeds the
+      limit in force at that place is an Assessment.
     attributes:
+      result:
+        range: ObservationResult
+        inlined: true
+        required: false
+        value_presence: ABSENT
+        description: >-
+          What the observation found. The result is nested inside the observation
+          and not referenced by identifier: it is not an information item of its
+          own, it has no independent existence, and it is meaningless apart from
+          the observation that produced it.
+
+          The slot is declared ABSENT here, on the abstract class, and this is
+          deliberate. Its purpose is to force every concrete Observation to
+          declare the result class that belongs to it, by refining this slot in
+          slot_usage:
+
+            ExampleObservation:
+              is_a: Observation
+              slot_usage:
+                result:
+                  range: ExampleObservationResult
+                  value_presence: PRESENT
+                  required: true
+
+          LinkML has no way to mandate that a subclass refine an inherited slot:
+          a slot marked abstract is inherited as an ordinary optional slot, and
+          neither the validator nor any generator reports the omission. ABSENT
+          supplies what is missing. A concrete Observation that fails to refine
+          the slot inherits the prohibition and is therefore unable to carry any
+          result at all - which is a visible defect, caught by the first payload
+          the class is used for, rather than a silent one. The prohibition is
+          what makes the omission impossible to overlook; it is not a statement
+          that observations have no results.
+
+          A subclass that refines the slot shall restate value_presence, as
+          PRESENT where the result is mandatory or UNCOMMITTED where it is
+          optional. Refining only range and required leaves the inherited ABSENT
+          in force, and the result is a class no payload can satisfy: the
+          compiled JSON Schema then requires the field and forbids it at the same
+          time, and rejects every instance either way.
+
+          Because the refined range is a concrete result class, the nested object
+          is unambiguous: the compiled schema points at exactly one class, and an
+          ONVIF Client parsing the observation knows what the result contains
+          from the class of the observation alone.
+      featureOfInterest:
+        range: FeatureOfInterest
+        inlined: true
+        required: false
+        description: >-
+          The entity this observation is about. It is nested inside the
+          observation and not referenced by identifier: it is not an information
+          item of its own, it has no independent existence, and it names the
+          subject of this observation only.
+      procedure:
+        range: Procedure
+        inlined: true
+        required: false
+        description: >-
+          The method by which this observation was produced, nested for the same
+          reason the featureOfInterest is.
+
+          The slot describes a direct observation, where there is a method that
+          turned the physical world into the result. A derived observation is
+          computed from the observations it lists in supportedBy, and the method
+          that applies to it is the arithmetic stated there; it therefore omits
+          this slot, unless the derivation is itself a named method of this
+          specification or of the vendor.
       observedTime:
         range: Time
         required: false
@@ -301,140 +375,96 @@ classes:
         range: Location
         required: false
         description: Spatial context observed by this observation.
+      supportedBy:
+        range: InformationItem
+        any_of:
+          - range: Observation
+          - range: ObservationsCollection
+        multivalued: true
+        inlined: false
+        required: false
+        description: >-
+          Identifiers of the observations this observation was derived from. The
+          field is omitted, or carries an empty list, for a direct observation;
+          the two forms have the same meaning. It carries one or more identifiers
+          for a derived observation.
 
-  VehicleObservation:
+          Each identifier shall resolve either to an observation or to an
+          ObservationsCollection, whose members are then taken in its place. The
+          declared range is InformationItem because it is the common ancestor of
+          the two; the any_of constraint states which of its descendants are
+          admissible, and no other kind of item may be cited here.
+
+          The observations are referenced, not nested. The references shall be
+          directed and acyclic, the productionTime of a derived observation shall
+          be more recent than the productionTime of every observation it cites,
+          and every chain shall terminate in direct observations.
+
+          The confidence of a derived observation is its own, as stated for
+          InformationItem.confidence: it is neither computed from, nor propagated
+          to, the observations it cites.
+
+  ObservationsCollection:
     abstract: false
-    is_a: Observation
-    description: Information about a vehicle.
-    attributes:
-      type:
-        range: VehicleType
-        required: true
-        description: >-
-          The type of the vehicle. Acceptable values are typically defined
-          in VehicleType. Where a vehicle has been detected but not classified,
-          the value is Unknown: the slot is required, so an ONVIF Device is never
-          obliged to guess a type in order to report a detection.
-      use:
-        range: VehicleUse
-        required: false
-        description: >-
-          The use the vehicle is put to, which is orthogonal to its type. The
-          slot is omitted by an ONVIF Device that does not classify vehicle use;
-          the value Unknown states that the device does classify it but could not
-          determine it for this observation.
-      brand:
-        range: StringLikelihood
-        required: false
-        description: The brand of the vehicle
-      model:
-        range: StringLikelihood
-        required: false
-        description: The model of the vehicle
-      color:
-        description: Descriptor for the vehicle's color.
-        range: ColorDescriptor
-        required: false
+    is_a: InformationItem
+    description: >-
+      Concrete InformationItem collecting several observations, so that multiple
+      observations can be referenced in an efficient way: a slot that would
+      otherwise have to carry a long list of identifiers carries the single
+      identifier of the collection instead, and the collection can be cited
+      again by any later item without repeating its members.
 
-  LicensePlateObservation:
-    abstract: false
-    is_a: Observation
-    description: Information about a vehicle's license plate.
+      The identifier of the collection is the identifier every InformationItem
+      carries, and it obeys the same uniqueness and non-reuse rules.
     attributes:
-      plateNumber:
-        description: A string representing the vehicle license plate number.
-        range: StringLikelihood
+      observations:
+        range: Observation
+        multivalued: true
+        inlined: false
         required: true
-      plateType:
+        minimum_cardinality: 1
         description: >-
-          A description of the vehicle license plate type (e.g., "Normal",
-          "Police", "Diplomat").
-        range: PlateType
-        required: false
-      countryCode:
-        description: >-
-          Describes the country of the license plate. The country code shall 
-          be encoded as two letter code according to ISO 3166-1:2013 Alpha-2.
-        range: StringLikelihood
-        required: false
-      issuingEntity:
-        description: >-
-          State, province, or authority that issues the license plate.
-        range: StringLikelihood
-        required: false
+          Identifiers of one or more collected observations. At least one
+          observation shall be present. The observations are referenced, not
+          nested: each identifier shall resolve to an observation the ONVIF
+          Client has already received.
 
-  BarcodeObservation:
-    abstract: false
-    is_a: Observation
-    description: Information extracted from a barcode.
-    attributes:
-      data:
-        description: Information encoded in barcode.
-        range: StringLikelihood
-        required: true
-      type:
-        description: Type of the barcode. Acceptable values are defined in BarcodeType.
-        range: BarcodeTypeLikelihood
-        required: false
-      ppm:
-        description: Refers to the pixels per module.
-        range: float
-        required: false
-
-  Assertion:
+  Assessment:
     abstract: true
     is_a: InformationItem
     description: >-
-      Abstract InformationItem representing a statement supported by one or
-      more information items.
+      Abstract InformationItem representing an interpretation of one or more
+      information items.
+
+      An Assessment does not measure the physical world: it judges what has
+      already been measured, by applying a criterion the measurements do not
+      themselves contain - a provision of law, a rule on the admissibility or the
+      sufficiency of evidence, an operational policy. Its result cannot be
+      obtained from the supporting items by computation, and this is what
+      distinguishes it from a derived Observation: a derived observation restates
+      the physical world in other quantities, while an assessment states what the
+      physical world means under a given criterion.
+
+      Because a criterion can change while the data do not, the same supporting
+      items may be assessed differently by two Assessments, or by a later
+      Assessment of the same kind, without any observation being revised.
     attributes:
       supportedBy:
-        range: UUID
+        range: InformationItem
         multivalued: true
+        inlined: false
         required: true
+        minimum_cardinality: 1
         description: >-
-          Identifiers of one or more supporting information items. The items
-          are referenced, not nested: each identifier shall resolve to an
-          information item the ONVIF Client has already received.
+          Identifiers of one or more supporting information items. At least one
+          item shall be present. An Assessment may cite observations, other
+          assessments, or both, because the criterion it applies can bear on an
+          earlier interpretation as much as on a measurement. The range is
+          therefore InformationItem and is not restricted further, unlike the
+          supportedBy of an Observation.
 
-  VehicleReidentification:
-    abstract: false
-    is_a: Assertion
-    description: >-
-      Concrete Assertion stating that two or more vehicle observations, produced
-      at different times, refer to the same physical vehicle. It is the mechanism
-      by which a later and better informed observation supersedes the
-      classification carried by an earlier one, without either observation being
-      retracted.
+          The items are referenced, not nested: each identifier shall resolve to
+          an information item the ONVIF Client has already received. The
+          acyclicity, productionTime ordering and traceability rules stated for
+          Observation.supportedBy apply here as well.
 
-      Neither observation is modified by this assertion. What the sensor saw
-      remains on the record at the confidence it deserved, and what the algorithm
-      concluded is a separate claim with its own confidence and its own
-      provenance, which an ONVIF Client may accept or discard on its own merits.
-    slot_usage:
-      supportedBy:
-        minimum_cardinality: 2
-        description: >-
-          Identifiers of the vehicle observations that refer to the same physical
-          vehicle. At least two shall be present, since a single observation
-          cannot be re-identified.
-    attributes:
-      vehicleId:
-        range: UUID
-        required: true
-        description: >-
-          Stable identifier of the physical vehicle to which every observation
-          listed in supportedBy refers. It designates a physical entity and not an
-          InformationItem, and is therefore not subject to the resolution rule
-          that applies to supportedBy.
-
-          Successive re-identifications of the same vehicle shall reuse this
-          value, so that an ONVIF Client can accumulate what is known about one
-          vehicle across several assertions.
-      authoritativeObservation:
-        range: UUID
-        required: false
-        description: >-
-          The observation listed in supportedBy whose classification an ONVIF
-          Client should prefer. Where absent, the observation with the most recent
-          productionTime applies.
