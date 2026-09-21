@@ -730,6 +730,15 @@
           compiled JSON Schema in Tool definitions. The source YAML shall also be exposed as a
           schema Resource so that the ONVIF Client can re-compile or audit the schema
           independently.</para>
+        <para>What the compiled schema checks is the structure of one item at a time: its required
+          fields, the form of its values, the classes of the objects nested within it. It cannot
+          check a rule that holds between items, because an item does not contain the items it
+          cites; it carries their identifiers, and an identifier is a string whatever the class of
+          the item it denotes. The class of a cited item, the direction of the support graph and the
+          ordering of production times are therefore beyond what any schema derived from this model
+          can express, in JSON Schema as in SHACL. An ONVIF Client applies them itself, as the checks
+          of <xref linkend="sec_support_graph_sanity_checks"/>, and a payload that the compiled
+          schema accepts is not conformant on that ground alone.</para>
       </section>
 
       <section xml:id="sec_onvif_common_type_library">
@@ -2537,14 +2546,29 @@
     <section xml:id="sec_support_graph_sanity_checks">
       <title>Support graph sanity checks</title>
       <para>To achieve robust and reliable parsers, the following sanity checks are required for
-        every item that carries a <code>supportedBy</code> field. They apply to an
-        <code>Assessment</code> and, with the additional restriction on what may be cited stated in
-        <xref linkend="sec_derived_observation"/>, to a derived <code>Observation</code>; the item
-        that carries the field is called the citing item below:</para>
+        every item that cites other items. They apply to an <code>Assessment</code> and, with the
+        additional restriction on what may be cited stated in
+        <xref linkend="sec_derived_observation"/>, to a derived <code>Observation</code>, through
+        their <code>supportedBy</code> field, and to an <code>ObservationsCollection</code> through
+        its <code>observations</code> field; the item that carries the field is called the citing
+        item below, and the field itself the citing field:</para>
       <orderedlist>
         <listitem>
-          <para>Every identifier listed in <code>supportedBy</code> shall resolve to an
+          <para>Every identifier listed in the citing field shall resolve to an
             <code>InformationItem</code> the ONVIF Client has already received.</para>
+        </listitem>
+        <listitem>
+          <para>The class of the item an identifier resolves to, read from the <code>@type</code>
+            that item carries, shall be one the citing field admits: the
+            <code>supportedBy</code> of an <code>Observation</code> admits an
+            <code>Observation</code> or an <code>ObservationsCollection</code>, as stated in
+            <xref linkend="sec_derived_observation"/>; the <code>observations</code> of an
+            <code>ObservationsCollection</code> admits an <code>Observation</code>, as stated in
+            <xref linkend="sec_observations_collection"/>; and the <code>supportedBy</code> of an
+            <code>Assessment</code> admits any <code>InformationItem</code>. This check is
+            referential and not structural, and is therefore not performed by the compiled schema:
+            the citing field carries the identifier of an item and not the item itself, as
+            <xref linkend="sec_compilation_to_json_schema"/> explains.</para>
         </listitem>
         <listitem>
           <para>The <code>productionTime</code> of the citing item shall be more recent than the
