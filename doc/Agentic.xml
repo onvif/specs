@@ -184,9 +184,11 @@
                 <para>A periodic <code>notifications/events/heartbeat</code> message sent by an
                   ONVIF Device on an open <code>events/stream</code> response so that the ONVIF
                   Client can distinguish an idle stream from a dead one, and so that the client's
-                  persisted cursor advances during quiet periods. The default interval is 30
-                  seconds and is configurable through the <code>set_event_stream_parameters</code>
-                  function (see <xref linkend="sec_event_keepalive"/>).</para>
+                  persisted cursor advances during quiet periods. The interval used when no
+                  client value is configured is device-specific and is declared in
+                  <code>EventStreamCapabilities.defaultKeepaliveIntervalMs</code>. It is
+                  configurable through the <code>set_event_stream_parameters</code> function
+                  (see <xref linkend="sec_event_keepalive"/>).</para>
               </entry>
             </row>
             <row>
@@ -1603,16 +1605,14 @@
           Streamable HTTP the keep-alive shall be sent as an SSE <code>data:</code> frame; the SSE
           comment form (<code>: keepalive</code>) shall not be used, as it cannot carry cursor
           state.</para>
-        <para>An ONVIF Device shall send a keep-alive at least once per keep-alive interval on every
-          stream on which no event was delivered during that interval. The interval a device uses
-          when none has been requested of it is a property of the device, declared in
-            <code>defaultKeepaliveIntervalMs</code>; this specification fixes no value for it. An
-          ONVIF Client applies a default request timeout to a JSON-RPC request as specified in MCP,
-          and shall not apply it to an <code>events/stream</code> request; the keep-alive is the
-          liveness signal, and a device is expected to choose its default interval accordingly.
-          An ONVIF Client that has received neither an event nor a keep-alive for more than twice
-          the current keep-alive interval shall treat the stream as dead and reopen it with its
-          last persisted cursor.</para>
+        <para>The MCP Events draft requires a server to send periodic keep-alive messages on a push
+          stream and recommends that it send a heartbeat at least every 30 seconds. It also
+          recommends that a client not apply its default request timeout to
+          <code>events/stream</code>, and that a client which has received neither an event nor a
+          heartbeat for more than twice the heartbeat interval treat the stream as dead and
+          reconnect with its cursor. The interval a device uses when none has been requested of it
+          is a property of the device, declared in <code>defaultKeepaliveIntervalMs</code>; this
+          specification fixes neither a default value nor a global supported range.</para>
         <para>The keep-alive interval is configurable by the ONVIF Client through the reserved
             <code>set_event_stream_parameters</code> function, invoked with the <code>execute_function</code>
           Tool (see <xref linkend="sec_tool_execute_function"/>). The structure of the
