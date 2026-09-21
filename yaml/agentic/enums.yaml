@@ -11,130 +11,6 @@ default_range: string
 
 enums:
 
-  BarcodeType:
-    description: Standard formats for barcodes and 2D codes.
-    permissible_values:
-      Code39:
-        title: "Code-39"
-      Code49:
-        title: "Code-49"
-      Code93:
-        title: "Code-93"
-      Code128:
-        title: "Code-128"
-      Code11:
-        title: "Code-11"
-      Code25Interleaved:
-        title: "Code-25-Interleaved"
-      Code25NonInterleaved:
-        title: "Code-25-NonInterleaved"
-      DataMatrix:
-      Maxicode:
-      Postnet:
-      RM4SCC:
-        description: RoyalMail
-      ISBN13:
-        title: "ISBN-13"
-      ISBN13Dual:
-        title: "ISBN-13-Dual"
-      ISBN10:
-        title: "ISBN-10"
-      ITF14:
-        title: "ITF-14"
-      EAN2:
-        title: "EAN-2"
-      EAN8:
-        title: "EAN-8"
-      EAN13:
-        title: "EAN-13"
-      EAN14:
-        title: "EAN-14"
-      EAN18:
-        title: "EAN-18"
-      EAN99:
-        title: "EAN-99"
-      EAN128:
-        title: "EAN-128"
-      SCC14:
-        title: "SCC-14"
-      SSCC18:
-        title: "SSCC-18"
-      UPCA:
-        title: "UPC-A"
-      UPCE:
-        title: "UPC-E"
-      PDF417:
-      QRCode:
-
-  Colorspace:
-    description: Acceptable colorspace URIs for color representation.
-    permissible_values:
-      YCbCr:
-        meaning: "http://www.onvif.org/ver10/colorspace/YCbCr"
-        description: YCbCr colorspace (default if absent).
-      RGB:
-        meaning: "http://www.onvif.org/ver10/colorspace/RGB"
-        description: RGB colorspace.
-      CIELUV:
-        meaning: "http://www.onvif.org/ver10/colorspace/CIELUV"
-        description: CIE LUV colorspace (Deprecated).
-      CIELAB:
-        meaning: "http://www.onvif.org/ver10/colorspace/CIELAB"
-        description: CIE 1976 (L*a*b*) colorspace (Deprecated).
-      HSV:
-        meaning: "http://www.onvif.org/ver10/colorspace/HSV"
-        description: HSV colorspace (Deprecated).
-
-  PlateType:
-    description: Acceptable values for license plate types.
-    permissible_values:
-      Normal:
-      Police:
-      Diplomat:
-      Temporary:
-
-  VehicleType:
-    description: >-
-      Allowed vehicle types. Bus, Car, Truck, Bicycle and Motorcycle mirror
-      tt:VehicleType of the ONVIF Schema; Van, Other and Unknown extend it, so
-      this enumeration is a superset of tt:VehicleType and not a strict mapping
-      of it.
-    permissible_values:
-      Bus:
-      Car:
-      Truck:
-      Van:
-      Bicycle:
-      Motorcycle:
-      Other:
-        description: The type was determined, but it is not one of the values above.
-      Unknown:
-        description: >-
-          A vehicle was detected but its type could not be determined. This is
-          the value to use when classification failed or was not attempted,
-          since type is a required slot.
-
-  VehicleUse:
-    description: >-
-      Allowed uses of a vehicle. The use of a vehicle is orthogonal to its
-      type: an ambulance is a Van, a Truck or a Car that is put to emergency
-      medical service. This enumeration has no counterpart in the ONVIF Schema.
-    permissible_values:
-      Private:
-      Taxi:
-      PublicTransport:
-      Delivery:
-      Ambulance:
-      Police:
-      Fire:
-      Other:
-        description: The use was determined, but it is not one of the values above.
-      Unknown:
-        description: >-
-          The use could not be determined, although the ONVIF Device does
-          classify vehicle use. It is distinct from the absence of the use
-          slot, which states that the device does not classify use at all.
-
   DigestAlgorithm:
     description: >-
       Hash algorithms that may be used to digest a canonicalised
@@ -188,3 +64,48 @@ enums:
         description: >-
           RSASSA-PSS. The digest used within the padding scheme is the one
           declared by the digestAlgorithm field.
+
+  FeatureOfInterestType:
+    description: >-
+      Kinds of real-world entity an observation can be about, as named by this
+      specification and carried by the onvif slot of a FeatureOfInterest.
+
+      This enumeration is closed: every value it can take is listed here. It does
+      not claim to exhaust what an ONVIF Device may observe, and an entity it
+      does not name is reported through the custom slot of a FeatureOfInterest
+      instead. Because the two slots are mutually exclusive, a value of this
+      enumeration and a value of a vendor's own can never be confused for one
+      another.
+
+      An ONVIF Device shall use the value listed here where one applies. Coining
+      a vendor value for an entity this enumeration already names defeats the
+      purpose of having a common vocabulary, because an ONVIF Client cannot know
+      that the two denote the same kind of thing.
+    permissible_values:
+      VehicleDetection:
+        description: >-
+          A vehicle present in the observed scene, as found by vehicle
+          detection.
+      PersonDetection:
+        description: >-
+          A person present in the observed scene, as found by person detection.
+
+  ProcedureType:
+    description: >-
+      Methods by which an observation can be produced, as named by this
+      specification and carried by the onvif slot of a Procedure.
+
+      This enumeration is closed, and is open to extension by a vendor in exactly
+      the way FeatureOfInterestType is: a method this specification does not name
+      is reported through the custom slot of a Procedure instead.
+
+      A value names a method without describing it. It says how the physical
+      world was turned into a result, at the granularity an ONVIF Client needs in
+      order to know what kind of thing it is looking at, and not which
+      implementation was used nor how it was configured.
+    permissible_values:
+      Analytics:
+        description: >-
+          Analysis of a media stream by an analytics module of an ONVIF Device,
+          which is the method by which an ONVIF Device produces an observation
+          from what a sensor captured.
