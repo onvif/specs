@@ -504,12 +504,19 @@ classes:
           for a derived observation.
 
           Each identifier shall resolve either to an observation or to an
-          ObservationsCollection, whose members are then taken in its place. The
-          range is UUID, which imposes the shape of an identifier and nothing
-          more; the any_of constraint states which classes are
-          admissible, and no other kind of item may be cited here. Which of the
-          two an identifier resolved to is read from the @type of the item
-          itself, as specified for InformationItem.
+          ObservationsCollection, whose members are then taken in its place, and
+          no other kind of item may be cited here. Which of the two an identifier
+          resolved to is read from the @type of the item itself, as specified for
+          InformationItem.
+
+          The range is UUID, which imposes the shape of an identifier and nothing
+          more, and the any_of records the two admissible classes in
+          machine-readable form. It does not impose them, and no compiled schema
+          can: the slot carries the identifier of an item and not the item, so
+          neither the JSON Schema nor the SHACL shapes derived from this module
+          constrain the class of what the identifier resolves to. The restriction
+          is referential, and is one of the checks an ONVIF Client performs
+          against the items it has received.
 
           The observations are referenced, not nested. The references shall be
           directed and acyclic, the productionTime of a derived observation shall
@@ -547,11 +554,16 @@ classes:
           nested: each identifier shall resolve to an observation the ONVIF
           Client has already received.
 
-          The range is UUID, which imposes the shape of an identifier; the
-          any_of constraint states that only an observation may be
-          collected. An item of any other class shall not be cited here, and an
-          ONVIF Client determines the class of a cited item from the @type it
-          carries.
+          Only an observation may be collected: an item of any other class shall
+          not be cited here, and an ONVIF Client determines the class of a cited
+          item from the @type it carries.
+
+          The range is UUID, which imposes the shape of an identifier and nothing
+          more, and the any_of records the single admissible class in
+          machine-readable form. It does not impose it, for the reason given for
+          Observation.supportedBy: the slot carries the identifier of an item and
+          not the item, so the restriction is referential and is checked by an
+          ONVIF Client against the items it has received.
 
   AssessmentResult:
     abstract: true
