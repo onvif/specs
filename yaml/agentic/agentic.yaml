@@ -6,7 +6,7 @@ prefixes:
   onvif: https://www.onvif.org/ver10/agentic/linkml/
 imports:
   - linkml:types
-  - agentic/base
+  - base
 default_prefix: onvif
 default_range: string
 
@@ -23,7 +23,19 @@ classes:
     abstract: true
     description: >-
       Abstract base class for the execution-specific parameters object carried
-      in the parameters argument of the execute_function Tool.
+      in the parameters argument of the execute_function Tool. A concrete
+      subclass exists for every function that accepts execution parameters, and
+      the class that applies to a given function is named by
+      FunctionDescriptor.executionSchema. Execution parameters are what applies
+      to a single run, as opposed to a configuration, which persists until it is
+      replaced.
+
+      The class declares no type designator, unlike the abstract classes of the
+      information model. It is not used as the range of a nested slot the
+      concrete class of which has to be read from the object itself: the class is
+      already fixed, out of band, by the executionSchema URI of the descriptor,
+      so an ONVIF Client knows which class it is validating against before it
+      reads the object.
     attributes:
       extensible:
         range: Extensible
@@ -57,6 +69,11 @@ classes:
       result of execute_function. They are read with the
       get_function_capabilities Tool, and the class that applies to a given
       function is named by FunctionDescriptor.capabilitiesSchema.
+
+      A concrete subclass exists for every function that has capabilities an
+      ONVIF Client can read. The class declares no type designator, for the
+      reason given for FunctionExecutionParameters: the concrete class is fixed
+      by the capabilitiesSchema URI of the descriptor.
     attributes:
       extensible:
         range: Extensible

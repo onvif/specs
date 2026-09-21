@@ -408,8 +408,8 @@
     <para>Agentic configurations are handled through the Agentic Service. Agentic configurations are
       used to configure and control the intelligent functions as defined in this specification. YAML
       for this service is specified in <link xmlns:xlink="http://www.w3.org/1999/xlink"
-        xlink:href="http://www.onvif.org/ver20/media/wsdl/media.wsdl"
-        >http://www.onvif.org/yaml/agentic.yaml</link>.</para>
+        xlink:href="http://www.onvif.org/yaml/agentic/agentic.yaml"
+        >http://www.onvif.org/yaml/agentic/agentic.yaml</link>.</para>
     <table>
       <title>Referenced namespaces (with prefix)</title>
       <tgroup cols="2">
@@ -834,6 +834,28 @@
           the vendor module declares, for example <code>acme:ThermalObservation</code>; a bare name
           shall not be used for a class outside the bundle. The reasoning is given in
           <xref linkend="sec_vendor_class_extensions"/>.</para>
+        <para>The keyword appears on more nodes than the information item itself. It appears on the
+          <code>InformationEnvelope</code>, which is the outermost object of a payload and has nothing
+          enclosing it that could state its class. Every object nested
+          inside an item whose place in the containing class is declared in terms of an abstract class
+          shall carry <code>@type</code>, naming the concrete class it instantiates: a production
+          time, a provenance, an observed location, an observation result, an assessment result, a
+          signature, a key descriptor and an extension container are all of that kind. An object whose
+          place is declared in terms of a concrete class, such as a feature of interest or a procedure,
+          shall not carry it.</para>
+        <para>The division is not a stylistic one. Where the declared class is abstract it names a
+          family and not a structure, and the fields of the object are the only other evidence of what
+          it is; an ONVIF Client would have to guess the class from the fields it happens to find, and
+          two concrete classes of the same family may well be distinguished by an optional field alone.
+          Where the declared class is concrete the class is already fixed for every instance, and
+          <code>@type</code> would only repeat what the schema states, while giving a producer the
+          opportunity to contradict it.</para>
+        <para>The obligation is a property of the position and not of the class: a class carries
+          <code>@type</code> in the positions where the declared class is abstract, and an ONVIF
+          Client shall not expect it elsewhere. A vendor introducing a class into an existing abstract
+          family therefore inherits the obligation without having to be told of it, and a future
+          revision of this specification that makes an abstract family out of what is now a single
+          concrete class shall introduce the keyword on the objects concerned.</para>
         <para>The prefixes declared by the modules a single ONVIF Device serves shall be mutually
           distinct. Where two independently authored extensions would claim the same prefix, the
           device shall rename one of them before serving it, in the same way and for the same reason
@@ -2026,6 +2048,21 @@
         references, such as the supporting items of an assessment (see <xref
           linkend="sec_assessment"/>), and digest-to-item binding in a signed envelope (see <xref
           linkend="sec_onvif_signature"/>) unambiguous.</para>
+      <para>Where one item cites another, the citing field carries the identifier of the cited item
+        and nothing else. It shall be a UUID in the form required above, and an ONVIF Device shall not
+        place an object, a URI or any other form of designation there. The supporting items of an
+        observation or of an assessment, the members of an observations collection and the item a
+        digest covers are all cited in this way.</para>
+      <para>A reference does not state the class of the item it points at. That class is read from
+        the cited item itself, which carries it in <code>@type</code> as specified in <xref
+          linkend="sec_context_and_type_annotations"/>, so an ONVIF Client learns what it has been
+        given at the moment it resolves the reference. The field documents which classes may be cited,
+        and an ONVIF Device shall cite no other; an ONVIF Client that resolves a reference to an item
+        of a class the field does not admit shall treat the citing item as malformed.</para>
+      <para>The division of labour is the same one that governs <code>@type</code>: what an object is
+        is stated by the object, and a field that points at it states only where to find it. The two
+        together give an ONVIF Client a checkable path from any item to every item it depends on,
+        without a reference having to be trusted for a claim about a class it does not carry.</para>
     </section>
 
     <section xml:id="sec_open_vocabulary">
@@ -2117,9 +2154,17 @@
         on devices with constrained cryptographic acceleration resources, while still providing
         integrity, authenticity, and non-repudiation coverage for all enclosed
         <code>InformationItem</code> instances.</para>
-      <para>An <code>InformationEnvelope</code> carries an <code>id</code>, as specified in <xref
+      <para>An <code>InformationEnvelope</code> carries the two mandatory JSON-LD keywords
+        <code>@context</code> and <code>@type</code>, as specified in <xref
+        linkend="sec_context_and_type_annotations"/>, an <code>id</code>, as specified in <xref
         linkend="sec_object_identifiers"/>, the mandatory list of enclosed <code>items</code>, an
         optional list of <code>hashes</code>, and the optional <code>signature</code>.</para>
+      <para>The two keywords are fields of the envelope and not of the delivery that carried it.
+        <code>@context</code> has the single value given in <xref
+        linkend="sec_context_and_type_annotations"/> and is fixed by the schema, so an envelope that
+        names another vocabulary is invalid; <code>@type</code> has the value
+        <code>InformationEnvelope</code>. The envelope carries them because it is the outermost
+        object of a payload and nothing encloses it that could state what it is.</para>
       <para>The <code>hashes</code> field holds one <code>ItemDigest</code> per enclosed item, as
         defined in <xref linkend="sec_item_digest"/>. The entries shall be sorted by their
         <code>item</code> field in ascending order, comparing the canonical lowercase UUID strings
@@ -2185,6 +2230,18 @@
         observation and, where it can, an <code>Assessment</code> relating the two, as described in
         <xref linkend="sec_assessment"/>. An ONVIF Client shall not expect an
         observation it has received to be superseded in place.</para>
+      <para>A concrete observation class defined for one kind of entity and one method shall fix the
+        value of <code>featureOfInterest</code> and of <code>procedure</code> in its own definition,
+        rather than leave the choice to the ONVIF Device producing the item. An information item of
+        such a class that reports a different value is invalid, and an ONVIF Client may rely on the
+        value from the class of the item alone, without reading the field. A class that is not
+        defined for one kind of entity, or that admits more than one method, leaves the fields to the
+        producer and an ONVIF Client shall then read them.</para>
+      <para>Fixing a value does not introduce a subclass of <code>FeatureOfInterest</code> or of
+        <code>Procedure</code>: neither is specialised by subclassing, as stated in <xref
+        linkend="sec_open_vocabulary"/>. What varies
+        between two observation classes is which value of the vocabulary applies, which is a property
+        of the observing class and not a new kind of feature of interest or of procedure.</para>
 
       <section xml:id="sec_observation_result">
         <title>ObservationResult</title>
@@ -2340,10 +2397,44 @@
         <code>supportedBy</code> of an observation, which admits only observations and collections of
         observations, the field admits any <code>InformationItem</code>, because a criterion can bear
         on an earlier interpretation as much as on a measurement.</para>
+      <para>The <code>result</code> field holds the judgement reached, nested inside the assessment
+        and described in <xref linkend="sec_assessment_result"/>. The two fields divide the item
+        cleanly: <code>supportedBy</code> says what was judged, and <code>result</code> says what the
+        judgement was.</para>
       <para>An <code>Assessment</code> is itself an <code>InformationItem</code>: it carries its own
         <code>id</code> and, when conveyed in a signed envelope, is covered by its own digest.
         Because the identifiers it cites are part of its canonical form, the signature over the
         assessment also fixes the set of items it claims to be supported by.</para>
+
+      <section xml:id="sec_assessment_result">
+        <title>AssessmentResult</title>
+        <para><code>AssessmentResult</code> is the abstract container for the judgement an assessment
+          reached: the interpretation itself, as opposed to the items it was reached from, which the
+          assessment carries in <code>supportedBy</code>, or to the circumstances of the
+          interpretation, which it carries in <code>productionTime</code> and
+          <code>provenance</code>.</para>
+        <para>The class is abstract for the same reason <code>ObservationResult</code> is, described in
+          <xref linkend="sec_observation_result"/>: there is nothing a generic judgement can state.
+          What a result contains depends entirely on the criterion applied — a speed compared against
+          a limit, a presence compared against an authorisation — so each concrete
+          <code>Assessment</code> is paired with a concrete subclass of <code>AssessmentResult</code>
+          describing its own kind of judgement. The pairing is one to one, and a concrete assessment
+          class shall declare the result class that belongs to it.</para>
+        <para>The result is nested inside the assessment and is not referenced by identifier. It is
+          not an information item of its own: it has no <code>id</code>, no
+          <code>productionTime</code> and no <code>provenance</code>, it cannot be cited in
+          <code>supportedBy</code>, and it is meaningless apart from the assessment that reached
+          it.</para>
+        <para>A result states what the criterion yielded, and states it by what it contains. The
+          existence of the item is already the affirmative conclusion: an ONVIF Device emits an
+          assessment where the criterion was met, so a result shall carry the quantities and the
+          references that make the conclusion checkable — the measured value, the threshold it was
+          compared against, the rule that fixed the threshold — and shall not carry a field whose only
+          content is that the conclusion was reached. An ONVIF Client shall not read the absence of an
+          assessment as an assessment to the contrary, since an ONVIF Device that was never asked to
+          apply the criterion, and one that applied it and found it unmet, are indistinguishable by
+          silence.</para>
+      </section>
 
       <section xml:id="sec_assessment_sanity_checks">
         <title>Support graph sanity checks</title>
@@ -2929,6 +3020,18 @@
 
   <appendix xml:id="app_example_call_sequence">
     <title>Example Call Sequence (informative)</title>
+    <para><emphasis role="bold">Editorial note — this annex is out of date and shall be rewritten
+        before release. The payloads below instantiate classes that no longer exist in the ONVIF
+        Agentic Schema Bundle, and they would be rejected by the schema as it stands.</emphasis></para>
+    <para>The classes concerned are <code>VehicleObservation</code>,
+      <code>LicensePlateObservation</code>, <code>FunctionalLocation</code>,
+      <code>VehicleReidentification</code> and <code>acme:ThermalObservation</code>; one
+      <code>signatureValue</code> is also abbreviated with an ellipsis, which the
+      <code>Base64Binary</code> type does not admit. The call sequence itself, the order of the
+      operations and the shape of the MCP messages remain correct and are the point of the annex; it
+      is only the metadata carried inside them that has to be brought back into line with the
+      bundle. <xref linkend="app_hackathon_wire_format"/> shows payloads that do validate against
+      the current schema and is the model to follow for that rewrite.</para>
     <para>This annex is informative and provides an example end-to-end sequence with sample
       values.</para>
 
@@ -4343,6 +4446,784 @@ classes:
         module before the first item of the new class was ever delivered. The procedure above is what
         keeps the client working when that announcement did not arrive, or arrived too
         late.</para>
+    </section>
+  </appendix>
+
+  <appendix xml:id="app_hackathon_wire_format">
+    <title>Wire Format Example — November 2026 Hackathon (informative)</title>
+    <para>This annex is informative, and its validity is limited to the duration of the ONVIF
+      hackathon held in Mexico City in November 2026. It is not part of the specification of the
+      Agentic Service and shall not be relied upon after that event.</para>
+    <para>The payloads below use the classes of the hackathon module
+      <code>hackathon.yaml</code>, namespace
+      <code>https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/</code>, alongside the
+      classes of the ONVIF Agentic Schema Bundle. The hackathon module is served as a resource by
+      the participating devices in the same way as any other module, and it is deleted when the
+      event is over: a class named here is not a class of this specification, and no future revision
+      is bound by it.</para>
+    <para>The scenario is a straight road watched by two cameras placed two hundred metres apart.
+      Each camera reports a vehicle detection carrying the licence plate it read. An analytics box
+      derives an average speed from the two detections and publishes it together with a collection
+      that groups the three observations. A service running on a server compares that speed with the
+      limit in force and issues a speeding assessment. Four parties therefore produce information,
+      and each one signs an envelope of its own.</para>
+    <para>The identifiers are fixed throughout this annex so that the references between the items
+      can be followed:</para>
+    <informaltable>
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="30*"/>
+        <colspec colname="c2" colwidth="70*"/>
+        <thead>
+          <row>
+            <entry><para>Item</para></entry>
+            <entry><para>Identifier</para></entry>
+          </row>
+        </thead>
+        <tbody valign="top">
+          <row>
+            <entry><para>Entry detection</para></entry>
+            <entry><para>b41c7e58-0d93-4a26-8f71-52ac9e3d6810</para></entry>
+          </row>
+          <row>
+            <entry><para>Exit detection</para></entry>
+            <entry><para>c87f2a90-3e61-4d58-b0a4-6f19e5c72d3b</para></entry>
+          </row>
+          <row>
+            <entry><para>Speed estimate</para></entry>
+            <entry><para>e2b95f47-1a68-4c30-8d59-73f04b2ea915</para></entry>
+          </row>
+          <row>
+            <entry><para>Observations collection</para></entry>
+            <entry><para>7c3d81f6-4b20-49ae-b165-0e8a2d94f37c</para></entry>
+          </row>
+          <row>
+            <entry><para>Speeding assessment</para></entry>
+            <entry><para>a5e18c62-9f43-4b07-8d21-6c70e21fb945</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+    <para>Every payload below is a complete <code>InformationEnvelope</code> and validates against
+      the bundle together with the hackathon module. The digests and signature values are
+      well-formed base64 of the right length but are not real: they were not computed over these
+      payloads, and a participant reproducing this annex shall compute its own by the procedure of
+      <xref linkend="sec_onvif_signature"/>.</para>
+
+    <section xml:id="sec_annex_hk_entry_camera">
+      <title>Entry camera</title>
+      <para>The vehicle passes the first camera at 10:15:00.000 UTC. The camera reads the plate and
+        emits one <code>VehicleDetectionObservation</code> in an envelope it signs with its own
+        key.</para>
+      <para>The <code>featureOfInterest</code> and the <code>procedure</code> carry the values the
+        class fixes, <code>Vehicle</code> and <code>Analytics</code>, as specified in <xref
+        linkend="sec_observation"/>: an ONVIF Client knows both from the class of the item and does
+        not have to read them. The <code>observedTime</code> is the instant the vehicle was seen and
+        the <code>productionTime</code> is the later instant at which the item was assembled; the
+        speed is computed from the first and never from the second.</para>
+      <programlisting>{
+  "@context": "https://www.onvif.org/ver10/agentic/linkml/",
+  "@type": "InformationEnvelope",
+  "id": "3f8a1d02-6c47-4b9e-9a15-7d2e04c81b63",
+  "items": [
+    {
+      "@type": "VehicleDetectionObservation",
+      "id": "b41c7e58-0d93-4a26-8f71-52ac9e3d6810",
+      "confidence": 0.96,
+      "productionTime": {
+        "@type": "ISO8601Timestamp",
+        "timestamp": "2026-11-03T10:15:00.120Z"
+      },
+      "provenance": {
+        "@type": "ONVIFDevice",
+        "manufacturer": "ACME Corporation",
+        "model": "AC-4200",
+        "firmwareVersion": "3.1.4",
+        "serialNumber": "AC42-00193847",
+        "hardwareId": "AC4200-RevB",
+        "entity": { "token": "VideoSource_1" },
+        "publicKeys": [
+          {
+            "keyId": "cam-entry-signing-1",
+            "fingerprints": [
+              {
+                "algorithm": "SHA256",
+                "value": "HFGdPwxF7Cj6qHCPEMwGHKWZQLQeA3VTehFzwPm5oQo="
+              }
+            ]
+          }
+        ]
+      },
+      "featureOfInterest": { "onvif": "Vehicle" },
+      "procedure": { "onvif": "Analytics" },
+      "observedTime": {
+        "@type": "ISO8601Timestamp",
+        "timestamp": "2026-11-03T10:15:00.000Z"
+      },
+      "observedSpace": {
+        "@type": "GeoPoint",
+        "latitude": 19.4326,
+        "longitude": -99.1332,
+        "horizontalAccuracy": 2.5
+      },
+      "result": {
+        "@type": "VehicleDetectionResult",
+        "plate": "NPA-518-C",
+        "trackId": "entry-track-8841"
+      }
+    }
+  ],
+  "hashes": [
+    {
+      "item": "b41c7e58-0d93-4a26-8f71-52ac9e3d6810",
+      "digest": "ujCBjgd7zkpHm7NpcIucEfei5W3NnHzyESEKd+7+vIU="
+    }
+  ],
+  "signature": {
+    "@type": "OnvifSignature",
+    "digestAlgorithm": "SHA256",
+    "signatureAlgorithm": "ECDSA_P256_SHA256",
+    "created": "2026-11-03T10:15:00.180Z",
+    "key": {
+      "@type": "PublicKeyIdentifier",
+      "keyId": "cam-entry-signing-1",
+      "fingerprints": [
+        {
+          "algorithm": "SHA256",
+          "value": "HFGdPwxF7Cj6qHCPEMwGHKWZQLQeA3VTehFzwPm5oQo="
+        }
+      ]
+    },
+    "envelopeDigest": "X6blQAZ98CthP+s2gfUVc/WPmKALU4FEC1R0mH+VGe8=",
+    "signatureValue": "cNlFmZzg7LlBH9yXopTW0mo+YLynd8N8HNj77y5yd43Dl7JW6DyZXUWlSJ+UPhXPSEhgwm5Gswyx94dSPyukQCdNrbQBQDc="
+  }
+}</programlisting>
+      <para>The key that signed the envelope, <code>cam-entry-signing-1</code>, is the same key the
+        provenance declares in <code>publicKeys</code>. The two identifiers are drawn from the same
+        keystore identifier space, as specified in <xref linkend="sec_declared_keys"/>, so an
+        ONVIF Client can establish that the envelope was signed with a key the producing device
+        claims as its own, and can look that key up through the Advanced Security Service.</para>
+    </section>
+
+    <section xml:id="sec_annex_hk_exit_camera">
+      <title>Exit camera</title>
+      <para>The same vehicle passes the second camera ten seconds later, at 10:15:10.000 UTC. The
+        item has the same shape as the one above and differs in what was observed and in who
+        observed it.</para>
+      <para>The two cameras are separate devices here, so what distinguishes the two detections is
+        the provenance itself: a different <code>serialNumber</code> and a different signing key.
+        Were the two cameras channels of one device, the provenance would name the same device twice
+        and the <code>entity</code> field would be what told the two video sources apart.</para>
+      <programlisting>{
+  "@context": "https://www.onvif.org/ver10/agentic/linkml/",
+  "@type": "InformationEnvelope",
+  "id": "9d2e6b14-7f05-4c83-ae62-1b48d07f5c29",
+  "items": [
+    {
+      "@type": "VehicleDetectionObservation",
+      "id": "c87f2a90-3e61-4d58-b0a4-6f19e5c72d3b",
+      "confidence": 0.94,
+      "productionTime": {
+        "@type": "ISO8601Timestamp",
+        "timestamp": "2026-11-03T10:15:10.140Z"
+      },
+      "provenance": {
+        "@type": "ONVIFDevice",
+        "manufacturer": "ACME Corporation",
+        "model": "AC-4200",
+        "firmwareVersion": "3.1.4",
+        "serialNumber": "AC42-00193902",
+        "hardwareId": "AC4200-RevB",
+        "entity": { "token": "VideoSource_1" },
+        "publicKeys": [
+          {
+            "keyId": "cam-exit-signing-1",
+            "fingerprints": [
+              {
+                "algorithm": "SHA256",
+                "value": "3zdKvmpJ4z/Q1DXI0kj18dC9huBJKIhn+7/FRhPxxVM="
+              }
+            ]
+          }
+        ]
+      },
+      "featureOfInterest": { "onvif": "Vehicle" },
+      "procedure": { "onvif": "Analytics" },
+      "observedTime": {
+        "@type": "ISO8601Timestamp",
+        "timestamp": "2026-11-03T10:15:10.000Z"
+      },
+      "observedSpace": {
+        "@type": "GeoPoint",
+        "latitude": 19.434397,
+        "longitude": -99.1332,
+        "horizontalAccuracy": 2.5
+      },
+      "result": {
+        "@type": "VehicleDetectionResult",
+        "plate": "NPA-518-C",
+        "trackId": "exit-track-2207"
+      }
+    }
+  ],
+  "hashes": [
+    {
+      "item": "c87f2a90-3e61-4d58-b0a4-6f19e5c72d3b",
+      "digest": "0ehRReQPOGm6HyH0s9COh71lpJ2nY6C/jDRIS+b+Wrw="
+    }
+  ],
+  "signature": {
+    "@type": "OnvifSignature",
+    "digestAlgorithm": "SHA256",
+    "signatureAlgorithm": "ECDSA_P256_SHA256",
+    "created": "2026-11-03T10:15:10.200Z",
+    "key": {
+      "@type": "PublicKeyIdentifier",
+      "keyId": "cam-exit-signing-1",
+      "fingerprints": [
+        {
+          "algorithm": "SHA256",
+          "value": "3zdKvmpJ4z/Q1DXI0kj18dC9huBJKIhn+7/FRhPxxVM="
+        }
+      ]
+    },
+    "envelopeDigest": "Tti8rmmMG8eFfYG9dhtg/6Q1LCrn4MFr7KlW87UIee0=",
+    "signatureValue": "aRs9G+Xb8mf9Z3zzqqWe4yMlf2K3Maki9HKm+C/5uGi4b8HOIiA1kUrNniz0fl8rqRxCouH8BlbVDfWvwJxv/Vh5mU1BrnA="
+  }
+}</programlisting>
+      <para>The two detections carry the same plate, and that is the whole of what ties them to one
+        vehicle in this use case. The claim that the two are the same vehicle is not made by either
+        camera: it is made by the analytics box in the next section, and it is made by the act of
+        computing a speed from the pair.</para>
+    </section>
+
+    <section xml:id="sec_annex_hk_analytics_box">
+      <title>Analytics box</title>
+      <para>The analytics box has received the two envelopes above and has verified them. It matches
+        the two detections by plate, orders them by <code>observedTime</code>, takes the distance
+        between the two <code>observedSpace</code> values and the difference of the two instants, and
+        obtains two hundred metres in ten seconds, which is 72.0 km/h.</para>
+      <para>It publishes two information items in one envelope of its own. The first is the
+        <code>SpeedEstimateObservation</code> it computed, which cites the two detections in
+        <code>supportedBy</code>. The second is an <code>ObservationsCollection</code> that groups
+        the three observations, so that a later item can cite one identifier instead of three.</para>
+      <para>The two detections are not repeated here. A collection carries identifiers and not
+        observations, as specified in <xref linkend="sec_observations_collection"/>, and each
+        identifier resolves to an observation the ONVIF Client has already received — in this case
+        from the two envelopes of the previous sections, each signed by the camera that produced it.
+        Nothing would be gained by the box re-publishing them: an item does not carry a signature of
+        its own, so a detection copied into this envelope would be covered by the signature of the
+        box and would no longer be evidence of what the camera said.</para>
+      <programlisting>{
+  "@context": "https://www.onvif.org/ver10/agentic/linkml/",
+  "@type": "InformationEnvelope",
+  "id": "5a6d0c31-8b74-4e12-97f3-2c50ad81e46f",
+  "items": [
+    {
+      "@type": "SpeedEstimateObservation",
+      "id": "e2b95f47-1a68-4c30-8d59-73f04b2ea915",
+      "confidence": 0.9,
+      "productionTime": {
+        "@type": "ISO8601Timestamp",
+        "timestamp": "2026-11-03T10:15:10.480Z"
+      },
+      "provenance": {
+        "@type": "AnalyticsModule",
+        "token": "SpeedEstimate_1",
+        "algorithm": "two-point-transit-speed",
+        "version": "1.4.2",
+        "publicKeys": [
+          {
+            "keyId": "box-signing-1",
+            "fingerprints": [
+              {
+                "algorithm": "SHA256",
+                "value": "dg31BITnDIDZqt8dJsHSU6UPwtja+sGG1/hY1gGgBlQ="
+              }
+            ]
+          }
+        ]
+      },
+      "featureOfInterest": { "onvif": "Vehicle" },
+      "procedure": {
+        "custom": "urn:onvif-hackathon:procedure:two-point-transit-speed"
+      },
+      "observedTime": {
+        "@type": "ISO8601Interval",
+        "intervalString": "2026-11-03T10:15:00.000Z/2026-11-03T10:15:10.000Z"
+      },
+      "observedSpace": {
+        "@type": "GeoPoint",
+        "latitude": 19.434397,
+        "longitude": -99.1332,
+        "horizontalAccuracy": 2.5
+      },
+      "supportedBy": [
+        "b41c7e58-0d93-4a26-8f71-52ac9e3d6810",
+        "c87f2a90-3e61-4d58-b0a4-6f19e5c72d3b"
+      ],
+      "result": {
+        "@type": "SpeedEstimateResult",
+        "speed": 72.0,
+        "travelTime": 10.0,
+        "baselineDistance": 200.0
+      }
+    },
+    {
+      "@type": "ObservationsCollection",
+      "id": "7c3d81f6-4b20-49ae-b165-0e8a2d94f37c",
+      "confidence": 1.0,
+      "productionTime": {
+        "@type": "ISO8601Timestamp",
+        "timestamp": "2026-11-03T10:15:10.520Z"
+      },
+      "provenance": {
+        "@type": "AnalyticsModule",
+        "token": "SpeedEstimate_1",
+        "algorithm": "two-point-transit-speed",
+        "version": "1.4.2",
+        "publicKeys": [
+          {
+            "keyId": "box-signing-1",
+            "fingerprints": [
+              {
+                "algorithm": "SHA256",
+                "value": "dg31BITnDIDZqt8dJsHSU6UPwtja+sGG1/hY1gGgBlQ="
+              }
+            ]
+          }
+        ]
+      },
+      "observations": [
+        "b41c7e58-0d93-4a26-8f71-52ac9e3d6810",
+        "c87f2a90-3e61-4d58-b0a4-6f19e5c72d3b",
+        "e2b95f47-1a68-4c30-8d59-73f04b2ea915"
+      ]
+    }
+  ],
+  "hashes": [
+    {
+      "item": "7c3d81f6-4b20-49ae-b165-0e8a2d94f37c",
+      "digest": "m941qCxXj+e3+7lXpyvoxIdGAtH9SRm8iOV4aCmKEf8="
+    },
+    {
+      "item": "e2b95f47-1a68-4c30-8d59-73f04b2ea915",
+      "digest": "u8y5wALV7VmUeJ/Y04qK84JfdpHhDETKybB9xUsVwu4="
+    }
+  ],
+  "signature": {
+    "@type": "OnvifSignature",
+    "digestAlgorithm": "SHA256",
+    "signatureAlgorithm": "ECDSA_P256_SHA256",
+    "created": "2026-11-03T10:15:10.560Z",
+    "key": {
+      "@type": "PublicKeyIdentifier",
+      "keyId": "box-signing-1",
+      "fingerprints": [
+        {
+          "algorithm": "SHA256",
+          "value": "dg31BITnDIDZqt8dJsHSU6UPwtja+sGG1/hY1gGgBlQ="
+        }
+      ]
+    },
+    "envelopeDigest": "I3mS8wyCt8VOzMZUDdjfWfe3IE+jI98UIFkyImhsnWI=",
+    "signatureValue": "D0Sw8lGDQS0ieoB1jcVvki7fANoegzFllmJC0x8RTaE+wDcqkRyBlgoFVzAbZ7Y0Td8qxPs4NP8zXWnvTDXeexsZh2gqZjY="
+  }
+}</programlisting>
+      <para>Three details of this envelope are worth reading closely.</para>
+      <para>The <code>provenance</code> of both items is an <code>AnalyticsModule</code> and not an
+        <code>ONVIFDevice</code>, because an algorithm produced them: the box did not look at the
+        road. Its <code>version</code> is what makes the estimate reproducible, since a change in the
+        computation changes the speed without changing either detection.</para>
+      <para>The <code>procedure</code> carries a <code>custom</code> URI and no
+        <code>onvif</code> value, because <code>ProcedureType</code> names no two-point transit
+        computation. This is the extension branch of an open vocabulary, as specified in <xref
+        linkend="sec_open_vocabulary"/>, and the URI is in the namespace of the hackathon.</para>
+      <para>The two entries of <code>hashes</code> are sorted by their <code>item</code> field and
+        not by the order of the items in the envelope: the collection precedes the estimate here,
+        while in <code>items</code> the estimate comes first. The ordering of <code>hashes</code> is
+        normative, for the reason given in <xref linkend="sec_information_envelope"/>.</para>
+      <para>The <code>confidence</code> of the collection is 1.0. A collection states nothing about
+        the physical world that its members do not state, so there is nothing for a confidence to
+        qualify; the field is inherited from <code>InformationItem</code> and is mandatory there, and
+        1.0 is the only value that adds no claim of its own.</para>
+    </section>
+
+    <section xml:id="sec_annex_hk_assessment_service">
+      <title>Assessment service on the server</title>
+      <para>The service on the server has received the envelope of the analytics box and verified it.
+        It reads the speed, compares it with the limit of 50.0 km/h in force on that road, allows a
+        tolerance of 3.0 km/h, finds 72.0 above 53.0, and issues one
+        <code>SpeedingAssessment</code>.</para>
+      <para>The assessment cites the <code>ObservationsCollection</code> in
+        <code>supportedBy</code>, and that one identifier is what a collection is for: it stands for
+        the speed estimate and the two detections at once, and an ONVIF Client that resolves it
+        reaches all three. The assessment restates the measured speed, the limit and the plate on its
+        own result, so that it can be read and acted upon without any reference being
+        resolved.</para>
+      <programlisting>{
+  "@context": "https://www.onvif.org/ver10/agentic/linkml/",
+  "@type": "InformationEnvelope",
+  "id": "1f40e7b3-5d92-4a68-8c07-b3e1459da280",
+  "items": [
+    {
+      "@type": "SpeedingAssessment",
+      "id": "a5e18c62-9f43-4b07-8d21-6c70e21fb945",
+      "confidence": 0.99,
+      "productionTime": {
+        "@type": "ISO8601Timestamp",
+        "timestamp": "2026-11-03T10:15:12.000Z"
+      },
+      "provenance": {
+        "@type": "SoftwareService",
+        "name": "speeding-assessment-service",
+        "vendor": "ACME Corporation",
+        "version": "2.0.1",
+        "instanceId": "cdmx-node-3",
+        "publicKeys": [
+          {
+            "keyId": "fines-service-signing-1",
+            "fingerprints": [
+              {
+                "algorithm": "SHA256",
+                "value": "Ndu2GgBv9MCj6YYig2x8l5rqIqn7cRkSx/IncnTTGt4="
+              }
+            ]
+          }
+        ]
+      },
+      "supportedBy": [
+        "7c3d81f6-4b20-49ae-b165-0e8a2d94f37c"
+      ],
+      "result": {
+        "@type": "SpeedingAssessmentResult",
+        "measuredSpeed": 72.0,
+        "speedLimit": 50.0,
+        "plate": "NPA-518-C",
+        "excess": 22.0,
+        "tolerance": 3.0,
+        "rule": "urn:onvif-hackathon:rule:urban-speed-limit"
+      }
+    }
+  ],
+  "hashes": [
+    {
+      "item": "a5e18c62-9f43-4b07-8d21-6c70e21fb945",
+      "digest": "Iw2O2FLRmwW1XpRcCPCJqlCUVzWPUcmIEJ4KYZyUP9U="
+    }
+  ],
+  "signature": {
+    "@type": "OnvifSignature",
+    "digestAlgorithm": "SHA256",
+    "signatureAlgorithm": "ECDSA_P256_SHA256",
+    "created": "2026-11-03T10:15:12.080Z",
+    "key": {
+      "@type": "PublicKeyIdentifier",
+      "keyId": "fines-service-signing-1",
+      "fingerprints": [
+        {
+          "algorithm": "SHA256",
+          "value": "Ndu2GgBv9MCj6YYig2x8l5rqIqn7cRkSx/IncnTTGt4="
+        }
+      ]
+    },
+    "envelopeDigest": "tWbAjwC8+rh73Zxx1usTXMEk7b5hkdljN2wAd+zwYG0=",
+    "signatureValue": "CIX9Ti56QGhgfcmHLLdFpVEyCqfSr9MSKGk54YKlIS6Wr6R0Xf+WLSOZy+iuW9gzkLvB1m0VRPO4xhJMD74fMcVkaj3b0h0="
+  }
+}</programlisting>
+      <para>The item is an <code>Assessment</code> and not an <code>Observation</code> because the
+        limit is not contained in anything the cameras or the box measured: it comes from a provision
+        in force at that place, and the same speed yields an assessment on one road and none on
+        another. No assessment is emitted where the limit was respected, so the existence of this
+        item is itself the statement that it was exceeded, as specified in <xref
+        linkend="sec_assessment_result"/>.</para>
+      <para>The <code>provenance</code> is a <code>SoftwareService</code> and not an
+        <code>ONVIFDevice</code>: the party that issues the fine is not the party that watched the
+        road, and an ONVIF Client shall be able to tell the two apart. The service is not obliged to
+        hold a keystore, which is why its <code>publicKeys</code> field is optional; this one does
+        hold keys and declares them, so the same comparison between the signing key and the declared
+        key that was made for the entry camera can be made here.</para>
+      <para>An ONVIF Client that has received all four envelopes holds a chain it can walk backwards
+        without trusting any single party twice: the assessment names the collection, the collection
+        names the estimate and the two detections, the estimate names the two detections, and each of
+        the four envelopes carries a signature made with a key the producer of its items declares as
+        its own. Each link is a reference to an identifier, and the acyclicity and
+        <code>productionTime</code> ordering of the chain hold throughout, as specified in <xref
+        linkend="sec_derived_observation"/>.</para>
+    </section>
+    <section xml:id="sec_annex_hk_function_lifecycle">
+      <title>Driving the assessment service — configure, start and stop</title>
+      <para>The envelope of the preceding section is the output of a function execution, and this
+        section shows the three calls that bring that execution about: the criterion is configured
+        once, an execution is started, and the execution is stopped when it is no longer wanted. The
+        party that exposes the Agentic Service endpoint plays the role this specification calls the
+        ONVIF Device, whether it is a camera or, as here, a service running on a server; the ONVIF
+        Client is the console of the traffic authority. The four classes exercised below —
+        <code>SpeedingAssessmentConfig</code>, <code>SpeedingAssessmentCapabilities</code>,
+        <code>SpeedingAssessmentExecutionParameters</code> and
+        <code>SpeedingAssessmentExecutionResult</code> — belong to the hackathon module, not to this
+        specification.</para>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
+        <code>list_functions</code> first, as required by <xref
+        linkend="sec_tool_list_functions"/>, because it needs the local name to call and the schema
+        URIs that govern what it may send.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 20,
+  "method": "tools/call",
+  "params": {
+    "name": "list_functions",
+    "arguments": {},
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> The service supports one function of
+        its own, plus the function this specification reserves.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 20,
+  "result": {
+    "resultType": "complete",
+    "content": [{ "type": "text", "text": "2 function(s) available." }],
+    "structuredContent": {
+      "functions": [
+        {
+          "name": "speeding_assessment",
+          "canonicalUri": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/function/speeding_assessment",
+          "description": "Assess speed estimates against the limit in force and issue speeding assessments.",
+          "enabled": false,
+          "configSchema": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/#/$defs/SpeedingAssessmentConfig",
+          "executionSchema": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/#/$defs/SpeedingAssessmentExecutionParameters",
+          "resultSchema": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/#/$defs/SpeedingAssessmentExecutionResult",
+          "capabilitiesSchema": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/#/$defs/SpeedingAssessmentCapabilities"
+        },
+        {
+          "name": "set_event_stream_parameters",
+          "canonicalUri": "https://www.onvif.org/ver10/agentic/function/set_event_stream_parameters",
+          "description": "Set the keep-alive interval of the event stream.",
+          "enabled": true,
+          "executionSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/SetEventStreamParametersRequest",
+          "resultSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/SetEventStreamParametersResponse",
+          "capabilitiesSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/EventStreamCapabilities"
+        }
+      ]
+    }
+  }
+}</programlisting>
+      <para>The <code>canonicalUri</code> of <code>speeding_assessment</code> lies in the hackathon
+        namespace and not in <code>https://www.onvif.org/ver10/agentic/function/</code>, which is
+        reserved to the functions this specification defines, as set out in <xref
+        linkend="sec_function_catalogue"/>. The entry is listed with <code>enabled: false</code>:
+        the function exists on this instance but no criterion has been applied to it yet, so the
+        client can see that speeding assessments are obtainable here and knows that
+        <code>configure_function</code> has to come first.</para>
+      <para><emphasis>Request (Client to Device):</emphasis> The client reads the capabilities
+        before configuring, so that it learns the bounds rather than discovering them through a
+        rejected configuration.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 21,
+  "method": "tools/call",
+  "params": {
+    "name": "get_function_capabilities",
+    "arguments": {
+      "function": "speeding_assessment"
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> The <code>capabilities</code> object
+        is an instance of <code>SpeedingAssessmentCapabilities</code>, the class named in
+        <code>capabilitiesSchema</code> above. These values are invariant for this instance: they
+        are the same before and after any execution.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 21,
+  "result": {
+    "resultType": "complete",
+    "content": [{ "type": "text",
+                  "text": "Limits 10.0-130.0 km/h, tolerance up to 10.0 km/h, 4 concurrent executions." }],
+    "structuredContent": {
+      "function": "speeding_assessment",
+      "capabilities": {
+        "minimumSpeedLimit": 10.0,
+        "maximumSpeedLimit": 130.0,
+        "maximumTolerance": 10.0,
+        "supportsDryRun": true,
+        "maximumConcurrentExecutions": 4
+      }
+    }
+  }
+}</programlisting>
+      <para><emphasis>Request (Client to Device):</emphasis> The <code>config</code> object is an
+        instance of <code>SpeedingAssessmentConfig</code>, the class named in
+        <code>configSchema</code>, and the client validates it against the compiled schema before
+        sending it.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 22,
+  "method": "tools/call",
+  "params": {
+    "name": "configure_function",
+    "arguments": {
+      "function": "speeding_assessment",
+      "config": {
+        "speedLimit": 50.0,
+        "tolerance": 3.0,
+        "rule": "urn:onvif-hackathon:rule:urban-speed-limit",
+        "minimumConfidence": 0.75,
+        "emitOnlyWhenExceeded": true
+      }
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> The device confirms the applied
+        configuration and does not start the function.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 22,
+  "result": {
+    "resultType": "complete",
+    "content": [{ "type": "text", "text": "speeding_assessment configured: limit 50.0 km/h, tolerance 3.0 km/h." }],
+    "structuredContent": {
+      "function": "speeding_assessment",
+      "applied": {
+        "speedLimit": 50.0,
+        "tolerance": 3.0,
+        "rule": "urn:onvif-hackathon:rule:urban-speed-limit",
+        "minimumConfidence": 0.75,
+        "emitOnlyWhenExceeded": true
+      }
+    }
+  }
+}</programlisting>
+      <para>These five values are the criterion, and they are configured rather than passed per
+        execution for a reason that can be read off the assessment of <xref
+        linkend="sec_annex_hk_assessment_service"/>: that item restates
+        <code>speedLimit</code> 50.0, <code>tolerance</code> 3.0 and the same <code>rule</code> on
+        its own result, so a client can check the claim against the configuration that produced it.
+        A criterion that changed from one execution to the next could not be stated that way, and two
+        assessments of the same service would not be comparable. <code>minimumConfidence</code> is
+        the lowest confidence a <code>SpeedEstimateObservation</code> may carry to be assessed at
+        all: the estimate of the analytics box carries 0.9 and is above it, and an estimate
+        below 0.75 would be ignored rather than assessed, since a fine cannot rest on a measurement
+        its own producer does not stand behind. <code>emitOnlyWhenExceeded</code> is left at its
+        default of <code>true</code>, which is what makes the mere existence of an assessment the
+        statement that the limit was exceeded.</para>
+      <para><emphasis>Request (Client to Device):</emphasis> The function is now configured, so it
+        can be started. The <code>parameters</code> object is an instance of
+        <code>SpeedingAssessmentExecutionParameters</code>, the class named in
+        <code>executionSchema</code>.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 23,
+  "method": "tools/call",
+  "params": {
+    "name": "execute_function",
+    "arguments": {
+      "function": "speeding_assessment",
+      "parameters": {
+        "validity": {
+          "@type": "ISO8601Interval",
+          "intervalString": "2026-11-03T08:00:00Z/2026-11-03T20:00:00Z"
+        },
+        "dryRun": false
+      }
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> The
+        <code>structuredContent</code> is an instance of
+        <code>SpeedingAssessmentExecutionResult</code>, the class named in
+        <code>resultSchema</code>.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 23,
+  "result": {
+    "resultType": "complete",
+    "content": [{ "type": "text", "text": "Execution exec_speeding_001 started." }],
+    "structuredContent": {
+      "executionId": "exec_speeding_001",
+      "startedAt": "2026-11-03T09:58:41Z"
+    }
+  }
+}</programlisting>
+      <para>The response reports the start of the execution and nothing about its outcome. Where
+        starting is asynchronous the device may return a task instead, in the form shown in <xref
+        linkend="sec_annex_tool_execute_function"/>; that task represents the start alone and reaches
+        a terminal state once the execution is running, rather than staying
+        <code>working</code> for as long as the function is active. The assessments themselves arrive
+        afterwards as metadata events, each in a signed envelope of its own: the envelope of <xref
+        linkend="sec_annex_hk_assessment_service"/> is one of them, produced at 10:15:12 by this
+        execution. <code>validity</code> bears on the run and not on the criterion, which is why it
+        is an execution parameter; where it is omitted the execution runs until it is stopped.
+        <code>dryRun</code> is <code>false</code> here, so the assessments are real; with
+        <code>true</code> the service would evaluate the same criterion and report what it would have
+        produced without emitting any <code>SpeedingAssessment</code>, which is how a limit can be
+        tried against live traffic before any fine follows from it. The client may ask for a dry run
+        only because <code>supportsDryRun</code> was <code>true</code> in the capabilities.</para>
+      <para><emphasis>Request (Client to Device):</emphasis> The shift ends early and the execution
+        is stopped before its validity expires. <code>stop_function</code> takes the execution
+        identifier the start returned, and no per-function parameters: stopping needs none, which is
+        why the hackathon module declares no class for it.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 24,
+  "method": "tools/call",
+  "params": {
+    "name": "stop_function",
+    "arguments": {
+      "function": "speeding_assessment",
+      "executionId": "exec_speeding_001"
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> No field of the descriptor names a
+        class for the result of a stop, so the device reports the outcome in the textual content and
+        the absence of an error is the confirmation.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 24,
+  "result": {
+    "resultType": "complete",
+    "content": [{ "type": "text", "text": "Execution exec_speeding_001 stopped." }]
+  }
+}</programlisting>
+      <para>Stopping the execution ends the emission of assessments; it does not withdraw the ones
+        already emitted, nor does it discard the configuration. The criterion stays applied, so the
+        client can start a further execution over another interval without configuring again, and the
+        entry would now be listed with <code>enabled: true</code>. Nothing in this exchange touches
+        the envelopes of the preceding sections: an assessment already published remains verifiable
+        after the execution that produced it is over, because what carries the signature is the
+        envelope it was delivered in and what binds the signature to that one item is its own digest,
+        as specified in <xref linkend="sec_information_item"/>.</para>
     </section>
   </appendix>
 

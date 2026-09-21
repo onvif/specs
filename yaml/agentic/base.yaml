@@ -20,6 +20,40 @@ classes:
     description: >-
       Abstract base container for a single unit of information.
     attributes:
+      '@type':
+        designates_type: true
+        range: string
+        required: true
+        description: >-
+          The local name of the concrete class this object instantiates, for
+          example ObservationsCollection. It is the field by which an ONVIF
+          Client determines what it has received.
+
+          Every abstract class of this model that is used as the range of a
+          nested slot declares a slot of this kind, and only such classes do.
+          The rule has a single reason: a range that names an abstract class
+          says nothing about the contents of the object, since an abstract
+          class carries no fields of its own beyond this designator. Without
+          the designator the compiled JSON Schema admits nothing at all, and an
+          ONVIF Client that received such an object would have no way of
+          learning which concrete class it is looking at. With it, the schema
+          admits exactly the concrete descendants of the abstract class, each
+          recognised by the value of this field, and the ONVIF Client reads the
+          class from the object rather than guessing it from the fields that
+          happen to be present.
+
+          A class whose range is already concrete does not declare it: the
+          class is then fixed by the schema itself, and the field would only
+          repeat what is already known.
+
+          The value is the local name of the class, written exactly as this
+          specification spells it, without a namespace prefix.
+
+          An item cited by another item through its identifier carries this
+          field as well, which is what allows the citing ONVIF Client to
+          determine the class of the cited item once it resolves the reference;
+          the reference itself carries only the identifier, as specified for the
+          UUID type.
       id:
         range: UUID
         identifier: true
@@ -66,6 +100,43 @@ classes:
       Optional container that groups one or more information items and may
       carry a single envelope-level signature.
     attributes:
+      '@context':
+        range: uri
+        required: true
+        equals_string: 'https://www.onvif.org/ver10/agentic/linkml/'
+        description: >-
+          The vocabulary namespace the bare class names in this payload belong
+          to. It appears once per envelope and nowhere else: an enclosed item
+          declares its class and not its vocabulary, because every item in one
+          envelope draws its classes from the same bundle.
+
+          The value is fixed to the namespace of this specification and is the
+          same for every ONVIF Device, since every device draws its types from
+          the same bundle. It is fixed here rather than left to the producer
+          because a payload that named another vocabulary would give the bare
+          names in it another meaning, and an ONVIF Client validating against
+          this bundle would be validating the wrong thing. Declaring the slot
+          with a uri range alone would not constrain it: a uri range admits any
+          string whatsoever, so the constant is stated as the value of the slot.
+
+          The URI is not required to be dereferenceable. An ONVIF Client that
+          performs full JSON-LD processing builds the context itself from the
+          LinkML modules the ONVIF Device serves as resources, which it has
+          already loaded when it established the session.
+      '@type':
+        designates_type: true
+        range: string
+        required: true
+        description: >-
+          The class of the envelope, being the name InformationEnvelope. The
+          slot is present although the class of this object is never in doubt,
+          because the envelope is the outermost object of a payload and nothing
+          encloses it that could state its class: an ONVIF Client routes what
+          arrives on the strength of what the payload says about itself.
+
+          This is the same slot, and the same obligation, that InformationItem
+          declares for the items inside; see the description there for what the
+          designator does and why a nested object carries it.
       id:
         range: UUID
         identifier: true
@@ -106,6 +177,14 @@ classes:
       question of who is asserting the information, and is specialised by
       concrete classes describing a particular kind of producer.
     attributes:
+      '@type':
+        designates_type: true
+        range: string
+        required: true
+        description: >-
+          The local name of the concrete provenance descriptor this object
+          instantiates. It is required for the reason given for the type
+          designator of InformationItem.
       extensible:
         range: Extensible
         required: false
@@ -122,6 +201,14 @@ classes:
       future revision of this specification or by a vendor extension, without
       changing Observation.
     attributes:
+      '@type':
+        designates_type: true
+        range: string
+        required: true
+        description: >-
+          The local name of the concrete spatial descriptor this object
+          instantiates. It is required for the reason given for the type
+          designator of InformationItem.
       extensible:
         range: Extensible
         required: false
@@ -268,6 +355,21 @@ classes:
       observation class that declares it, and is not shared between observation
       classes that happen to measure something similar.
     attributes:
+      '@type':
+        designates_type: true
+        range: string
+        required: true
+        description: >-
+          The local name of the concrete result class this object instantiates.
+          It is required for the reason given for the type designator of
+          InformationItem.
+
+          The field is present even though the class of the result follows from
+          the class of the observation that carries it, because the slot is
+          declared on the abstract Observation with an abstract range: what the
+          concrete observation narrows in slot_usage is not what the abstract
+          declaration admits, and an ONVIF Client validating against the
+          abstract form relies on this field alone.
       extensible:
         range: Extensible
         required: false
@@ -376,7 +478,7 @@ classes:
         required: false
         description: Spatial context observed by this observation.
       supportedBy:
-        range: InformationItem
+        range: UUID
         any_of:
           - range: Observation
           - range: ObservationsCollection
@@ -391,9 +493,11 @@ classes:
 
           Each identifier shall resolve either to an observation or to an
           ObservationsCollection, whose members are then taken in its place. The
-          declared range is InformationItem because it is the common ancestor of
-          the two; the any_of constraint states which of its descendants are
-          admissible, and no other kind of item may be cited here.
+          range is UUID, which imposes the shape of an identifier and nothing
+          more; the any_of constraint states which classes are
+          admissible, and no other kind of item may be cited here. Which of the
+          two an identifier resolved to is read from the @type of the item
+          itself, as specified for InformationItem.
 
           The observations are referenced, not nested. The references shall be
           directed and acyclic, the productionTime of a derived observation shall
@@ -418,7 +522,9 @@ classes:
       carries, and it obeys the same uniqueness and non-reuse rules.
     attributes:
       observations:
-        range: Observation
+        range: UUID
+        any_of:
+          - range: Observation
         multivalued: true
         inlined: false
         required: true
@@ -428,6 +534,51 @@ classes:
           observation shall be present. The observations are referenced, not
           nested: each identifier shall resolve to an observation the ONVIF
           Client has already received.
+
+          The range is UUID, which imposes the shape of an identifier; the
+          any_of constraint states that only an observation may be
+          collected. An item of any other class shall not be cited here, and an
+          ONVIF Client determines the class of a cited item from the @type it
+          carries.
+
+  AssessmentResult:
+    abstract: true
+    description: >-
+      Abstract container for the judgement an assessment reached: the
+      interpretation itself, as opposed to the items it was reached from, which
+      the Assessment carries in supportedBy, or to the circumstances of the
+      interpretation, which it carries in productionTime and provenance.
+
+      The class is abstract for the same reason ObservationResult is: there is
+      nothing a generic judgement can state. What a result contains depends
+      entirely on the criterion applied - a speed compared against a limit, a
+      presence compared against an authorisation - so every concrete Assessment
+      is paired with a concrete subclass of AssessmentResult describing its own
+      kind of judgement. The pairing is one to one: a result class belongs to
+      the assessment class that declares it, and is not shared between
+      assessment classes that happen to apply similar criteria.
+
+      A result states what the criterion yielded, and it does so by what it
+      contains. The existence of the item is already the affirmative
+      conclusion: an assessment is emitted where the criterion was met, so a
+      result carries the quantities and the references that make the conclusion
+      checkable - the measured value, the threshold it was compared against, the
+      rule that fixed the threshold - and not a flag repeating that the
+      conclusion was reached.
+    attributes:
+      '@type':
+        designates_type: true
+        range: string
+        required: true
+        description: >-
+          The local name of the concrete result class this object instantiates.
+          It is required for the reason given for the type designator of
+          InformationItem, and for the reason given for the type designator of
+          ObservationResult.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
 
   Assessment:
     abstract: true
@@ -449,8 +600,28 @@ classes:
       items may be assessed differently by two Assessments, or by a later
       Assessment of the same kind, without any observation being revised.
     attributes:
+      result:
+        range: AssessmentResult
+        inlined: true
+        required: false
+        value_presence: ABSENT
+        description: >-
+          The judgement the assessment reached. The result is nested inside the
+          assessment and not referenced by identifier, for the reason given for
+          the result of an Observation: it is not an information item of its own,
+          it has no independent existence, and it is meaningless apart from the
+          assessment that reached it.
+
+          The slot is declared ABSENT here, on the abstract class, for exactly
+          the reason set out for Observation.result, and everything stated there
+          applies unchanged: a concrete Assessment shall refine this slot in
+          slot_usage, naming its own AssessmentResult subclass as the range and
+          restating value_presence as PRESENT where the result is mandatory or
+          UNCOMMITTED where it is optional. An assessment that refines only
+          range and required inherits the prohibition and is a class no payload
+          can satisfy.
       supportedBy:
-        range: InformationItem
+        range: UUID
         multivalued: true
         inlined: false
         required: true
@@ -459,9 +630,13 @@ classes:
           Identifiers of one or more supporting information items. At least one
           item shall be present. An Assessment may cite observations, other
           assessments, or both, because the criterion it applies can bear on an
-          earlier interpretation as much as on a measurement. The range is
-          therefore InformationItem and is not restricted further, unlike the
-          supportedBy of an Observation.
+          earlier interpretation as much as on a measurement. Any information
+          item may therefore be cited here, and the admissible classes are not
+          restricted further, unlike the supportedBy of an Observation.
+
+          The range is UUID, which imposes the shape of an identifier; the class
+          of a cited item is read from the @type it carries, as specified for
+          InformationItem.
 
           The items are referenced, not nested: each identifier shall resolve to
           an information item the ONVIF Client has already received. The
