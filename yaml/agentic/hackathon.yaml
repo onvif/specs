@@ -649,16 +649,21 @@ classes:
       configSchema field of the descriptor list_functions returns for that
       function.
 
-      The class declares no type designator, unlike the abstract classes of the
-      information model. It is not used as the range of a nested slot: the concrete
-      class is already fixed, out of band, by the configSchema URI of the
-      descriptor, so an ONVIF Client validating a config knows which class it is
-      validating against before it reads the object.
-
       The class is declared in this module because the root module it imports
       declares no base for a configuration, whereas FunctionExecutionParameters
       and FunctionCapabilities are taken from there and are not restated here.
     attributes:
+      '@type':
+        designates_type: true
+        range: string
+        required: true
+        description: >-
+          The local name of the concrete configuration class this object
+          instantiates, for example SpeedingAssessmentConfig. It is declared for
+          the reason given for the type designator of
+          FunctionExecutionParameters in the root module: the configSchema URI of
+          the descriptor already fixes the class out of band, and the designator
+          is what lets the schema check that the object agrees with it.
       extensible:
         range: Extensible
         required: false
@@ -749,6 +754,7 @@ classes:
           follow from it.
 
   SpeedingAssessmentExecutionResult:
+    is_a: FunctionExecutionResult
     description: >-
       Structured content execute_function returns when it starts the
       speeding_assessment function. It is the class the descriptor names in
@@ -759,19 +765,20 @@ classes:
       Device may return for the call represents the start operation alone: it
       reaches a terminal state once the execution is running, and does not stay
       working for as long as the function is active.
-    attributes:
+    slot_usage:
       executionId:
-        range: string
-        required: true
         description: >-
           Identifier of the execution that was started. It is the value the ONVIF
           Client passes to stop_function, which takes it and nothing else: stopping
           an execution needs no per-function parameters, so no class is declared
           for it.
+    attributes:
       startedAt:
-        range: datetime
+        range: Iso8601UtcInstant
         required: false
-        description: Time at which the execution started.
+        description: >-
+          Time at which the execution started, produced by the ONVIF Device and
+          therefore carrying the UTC designator.
 
   SpeedingAssessmentCapabilities:
     is_a: FunctionCapabilities
@@ -809,3 +816,55 @@ classes:
         description: >-
           Number of executions the service can hold active at one time. It bounds
           how many limits can be watched at once on one instance.
+
+  SpeedingAssessmentInvocation:
+    is_a: FunctionInvocation
+    description: >-
+      Declaration of the speeding_assessment function: it is invoked through the
+      execute_function Tool, it accepts SpeedingAssessmentExecutionParameters, it
+      returns SpeedingAssessmentExecutionResult, its capabilities are
+      SpeedingAssessmentCapabilities and it is configured with
+      SpeedingAssessmentConfig.
+
+      The class carries no field of its own and no payload instantiates it. It is
+      here because the binding between the function and its four classes is
+      otherwise stated only in the descriptions of those classes and in the
+      examples of the specification, whereas FunctionInvocation is the construct
+      through which this model states such a binding; a module that defines a
+      function and omits it leaves the binding unstated where a reader looks for
+      it.
+
+      The configuration class is not a slot of FunctionInvocation, configuration
+      not being part of an invocation, and is named in this description and in the
+      configSchema field of the descriptor the ONVIF Device returns.
+    annotations:
+      mcp_tool: execute_function
+      access_class: ACTUATE
+    slot_usage:
+      function:
+        equals_string: "speeding_assessment"
+        required: true
+        description: >-
+          Local name of the function on this ONVIF Device. It is arbitrated by
+          the device and this module claims it; the identifier that is stable
+          across devices is the canonicalUri stated for
+          SpeedingAssessmentConfig.
+      parameters:
+        range: SpeedingAssessmentExecutionParameters
+        required: false
+        description: >-
+          Execution parameters accepted by the function. They are optional: an
+          execution with no validity interval and no dry run carries no
+          parameters at all.
+      result:
+        range: SpeedingAssessmentExecutionResult
+        required: false
+        description: >-
+          Result returned by the function, reporting the identifier of the
+          execution it started.
+      capabilities:
+        range: SpeedingAssessmentCapabilities
+        required: false
+        description: >-
+          Capabilities of the function on this instance, bounding what a
+          configuration may ask for.

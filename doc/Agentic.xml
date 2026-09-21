@@ -129,7 +129,7 @@
     <para>MCP Events Extension — Design Sketch Proposal</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://github.com/modelcontextprotocol/experimental-ext-triggers-events/blob/main/docs/design-sketch-proposal.md">https://github.com/modelcontextprotocol/experimental-ext-triggers-events/blob/main/docs/design-sketch-proposal.md</link>&gt;</para>
     <para>ONVIF Core Specification</para>
-    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="hhttps://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf">https://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf</link>&gt;</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf">https://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf</link>&gt;</para>
     <para>ONVIF Media Signing Specification</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/stream/ONVIF-MediaSigning-Spec.pdf">https://www.onvif.org/specs/stream/ONVIF-MediaSigning-Spec.pdf</link>&gt;</para>
     <para>ONVIF Schema</para>
@@ -749,7 +749,11 @@
           </listitem>
           <listitem>
             <para><code>agentic/time</code>: <code>Time</code> and its concrete forms,
-                <code>ISO8601Timestamp</code> and <code>ISO8601Interval</code>.</para>
+                <code>ISO8601Timestamp</code> and <code>ISO8601Interval</code>, together with the
+              three types that hold the lexical form of a temporal value —
+                <code>Iso8601Instant</code>, <code>Iso8601UtcInstant</code> and
+                <code>Iso8601IntervalString</code>. Every constraint on the form of an instant or
+              of an interval is declared in this module and nowhere else.</para>
           </listitem>
           <listitem>
             <para><code>agentic/signature</code>: the signing and integrity classes —
@@ -843,6 +847,16 @@
           signature, a key descriptor and an extension container are all of that kind. An object whose
           place is declared in terms of a concrete class, such as a feature of interest or a procedure,
           shall not carry it.</para>
+        <para>The same obligation applies outside the information model, to the objects of the function
+          layer carried in the arguments and the results of the Tools: a <code>config</code>, an
+          execution <code>parameters</code> object, an execution result and a
+          <code>capabilities</code> object each instantiate a concrete subclass of an abstract base,
+          and each shall carry <code>@type</code> naming that subclass. The class is already fixed out
+          of band, by the schema URI the function descriptor publishes in
+          <code>configSchema</code>, <code>executionSchema</code>, <code>resultSchema</code> or
+          <code>capabilitiesSchema</code>; the keyword is what allows the object to be validated
+          against the bundle alone, by an ONVIF Client that holds the payload and not the descriptor
+          that announced it.</para>
         <para>The division is not a stylistic one. Where the declared class is abstract it names a
           family and not a structure, and the fields of the object are the only other evidence of what
           it is; an ONVIF Client would have to guess the class from the fields it happens to find, and
@@ -1241,14 +1255,20 @@
                 the same on every ONVIF Device that implements it.</para>
             </listitem>
             <listitem>
+              <para><code>description</code> — OPTIONAL human-readable description of what the
+                function does, for an operator reading the catalogue or for an ONVIF Client
+                presenting it.</para>
+            </listitem>
+            <listitem>
               <para><code>enabled</code> — boolean indicating whether this function is configured
                 and available for execution.</para>
             </listitem>
             <listitem>
-              <para><code>configSchema</code> — URI of the LinkML class in the schema bundle
-                (retrieved in <xref linkend="sec_schema_retrieval"/>) that defines the structure of
-                the <code>config</code> argument accepted by <code>configure_function</code> for
-                this function.</para>
+              <para><code>configSchema</code> — OPTIONAL URI of the LinkML class in the schema
+                bundle (retrieved in <xref linkend="sec_schema_retrieval"/>) that defines the
+                structure of the <code>config</code> argument accepted by
+                <code>configure_function</code> for this function. It shall be present when the
+                function accepts a configuration.</para>
             </listitem>
             <listitem>
               <para><code>executionSchema</code> — OPTIONAL URI of the LinkML class in the schema
@@ -1354,6 +1374,12 @@
           <code>configSchema</code> URI returned by <code>list_functions</code> for that function.
           The ONVIF Client shall validate <code>config</code> against the compiled JSON Schema
           (the <code>inputSchema</code> of the Tool) before sending the request.</para>
+        <para>A function whose descriptor omits <code>configSchema</code> accepts no configuration,
+          and is configured, if at all, by the parameters of its execution; the reserved
+          <code>set_event_stream_parameters</code> function is of that kind. An ONVIF Device shall
+          reject a <code>configure_function</code> call naming such a function with
+          <code>-32014 Unsupported</code>, there being no class that would define the
+          <code>config</code> the call has to carry.</para>
         <para>The <code>configure_function</code> Tool arguments are: <itemizedlist>
             <listitem>
               <para><code>function</code> (string, required) — the function identifier, as returned
@@ -1562,10 +1588,13 @@
           Streamable HTTP the keep-alive shall be sent as an SSE <code>data:</code> frame; the SSE
           comment form (<code>: keepalive</code>) shall not be used, as it cannot carry cursor
           state.</para>
-        <para>The default keep-alive interval is 30 seconds. An ONVIF Device shall send a
-          keep-alive at least once per keep-alive interval on every stream on which no event was
-          delivered during that interval. An ONVIF Client shall not apply its default request
-          timeout to an <code>events/stream</code> request; the keep-alive is the liveness signal.
+        <para>An ONVIF Device shall send a keep-alive at least once per keep-alive interval on every
+          stream on which no event was delivered during that interval. The interval a device uses
+          when none has been requested of it is a property of the device, declared in
+            <code>defaultKeepaliveIntervalMs</code>; this specification fixes no value for it. An
+          ONVIF Client applies a default request timeout to a JSON-RPC request as specified in MCP,
+          and shall not apply it to an <code>events/stream</code> request; the keep-alive is the
+          liveness signal, and a device is expected to choose its default interval accordingly.
           An ONVIF Client that has received neither an event nor a keep-alive for more than twice
           the current keep-alive interval shall treat the stream as dead and reopen it with its
           last persisted cursor.</para>
@@ -1576,9 +1605,10 @@
             <code>SetEventStreamParametersRequest</code> in the schema bundle, which declares:
           <itemizedlist>
             <listitem>
-              <para><code>keepaliveIntervalMs</code> (integer, optional, default
-                <code>30000</code>) — the requested interval between two consecutive keep-alive
-                notifications, in milliseconds.</para>
+              <para><code>keepaliveIntervalMs</code> (integer, optional) — the requested interval
+                between two consecutive keep-alive notifications, in milliseconds. When it is
+                omitted the ONVIF Device applies the interval it declares in
+                <code>defaultKeepaliveIntervalMs</code>.</para>
             </listitem>
             <listitem>
               <para><code>subscriptionId</code> (integer, optional) — the JSON-RPC <code>id</code>
@@ -1605,7 +1635,7 @@
             linkend="sec_tool_get_function_capabilities"/>) for the
             <code>set_event_stream_parameters</code> function, whose capabilities are defined by the
           LinkML class <code>EventStreamCapabilities</code>:
-            <code>defaultKeepaliveIntervalMs</code> (30000),
+            <code>defaultKeepaliveIntervalMs</code>,
             <code>minKeepaliveIntervalMs</code>, <code>maxKeepaliveIntervalMs</code>, and
             <code>maxConcurrentStreams</code>. An ONVIF
           Client that reads the capabilities before calling the function can choose a value that
@@ -1621,17 +1651,24 @@
         <para>A change of keep-alive interval takes effect on the affected streams without
           interrupting them, and shall not affect event delivery or cursor semantics. The interval
           applied to a stream does not survive that stream: a stream reopened after an interruption
-          starts from the value most recently set for the principal, or from the 30 second default
-          if none was set.</para>
-        <para>The function as a whole — its identifier, the class of its input, and the class of its
-          output — is declared by the LinkML class <code>SetEventStreamParametersInvocation</code>, a
-          specialization of the abstract <code>FunctionInvocation</code> class. It fixes
-            <code>function</code> to the constant <code>set_event_stream_parameters</code>, narrows
-            <code>parameters</code> to <code>SetEventStreamParametersRequest</code>, and narrows
-            <code>result</code> to <code>SetEventStreamParametersResponse</code>. This binding is
-          normative: an <code>execute_function</code> call naming
-            <code>set_event_stream_parameters</code> and the response it produces shall together validate
-          against it.</para>
+          starts from the value most recently set for the principal, or from the interval the device
+          declares in <code>defaultKeepaliveIntervalMs</code> if none was set.</para>
+        <para>The function as a whole — its identifier, the class of its input, the class of its
+          output and the class of its capabilities — is declared by the LinkML class
+            <code>SetEventStreamParametersInvocation</code>, a specialization of the abstract
+            <code>FunctionInvocation</code> class. It fixes <code>function</code> to the constant
+            <code>set_event_stream_parameters</code>, narrows <code>parameters</code> to
+            <code>SetEventStreamParametersRequest</code>, narrows <code>result</code> to
+            <code>SetEventStreamParametersResponse</code>, and narrows <code>capabilities</code> to
+            <code>EventStreamCapabilities</code>. This binding is normative: an
+            <code>execute_function</code> call naming <code>set_event_stream_parameters</code> and the
+          response it produces shall together validate against it.</para>
+        <para>Every function an ONVIF Device serves shall be declared by such a class: a concrete
+          specialization of <code>FunctionInvocation</code> that fixes the function identifier and
+          names the classes bound to it. An instance of the class never appears on the wire — the
+          Tools carry the parameters, the result and the capabilities separately — so the class is a
+          declaration of the binding and not a payload. <xref
+            linkend="app_hackathon_wire_format"/> shows the one written for a vendor function.</para>
         <para>See <xref linkend="sec_annex_event_keepalive"/> for a wire format example.</para>
       </section>
       <section xml:id="sec_webhook_based_delivery">
@@ -1711,8 +1748,10 @@
               <row>
                 <entry><para><code>-32014</code></para></entry>
                 <entry><para><code>Unsupported</code></para></entry>
-                <entry><para>The request is well-formed but a requested delivery mode is not
-                  offered for this event type.</para></entry>
+                <entry><para>The request is well-formed but what it asks for is not offered — a
+                  delivery mode not offered for this event type, or a configuration for a function
+                  whose descriptor omits <code>configSchema</code> and which therefore accepts
+                  none.</para></entry>
               </row>
               <row>
                 <entry><para><code>-32015</code></para></entry>
@@ -2018,9 +2057,19 @@
 
     <section xml:id="sec_object_identifiers">
       <title>Object identifiers</title>
-      <para>Every object defined in this chapter carries an identifier. In the LinkML schema the
-        identifier is declared as a slot named <code>id</code>, and it appears on the wire under that
-        name as a plain string.</para>
+      <para>Every information item carries an identifier, and so does the
+        <code>InformationEnvelope</code> that encloses items. In the LinkML schema the identifier is
+        declared as a slot named <code>id</code>, and it appears on the wire under that name as a
+        plain string.</para>
+      <para>The objects nested inside an item carry none. A production time, a provenance, an
+        observed location, an observation result, an assessment result, a signature, a key
+        descriptor and an extension container exist only inside the item or the envelope that
+        carries them: nothing cites them, nothing resolves a reference to them, and they are reached
+        only by reading the object that encloses them. An identifier on such an object would name
+        something that has no existence of its own, while having to be canonicalised and covered by
+        every digest computed over its container. What such an object is is stated by its
+        <code>@type</code>, as specified in <xref linkend="sec_context_and_type_annotations"/>, and
+        that is all an ONVIF Client needs of it.</para>
       <para>The value of every such identifier shall be a UUID as specified in RFC 9562, written in
         the canonical lowercase hyphenated form, for example
         <code>3f2b8c1e-6a4d-4f7b-9e21-5c8d0a1b2e3f</code>. Uppercase forms, the URN form
@@ -2329,7 +2378,7 @@
           <code>Observation</code> or to an <code>ObservationsCollection</code>, whose members are
           then taken in its place, as described in <xref linkend="sec_observations_collection"/>. No
           other kind of information item may be cited: a measurement is not computed from an
-          interpretation. The sanity checks of <xref linkend="sec_assessment_sanity_checks"/> apply
+          interpretation. The sanity checks of <xref linkend="sec_support_graph_sanity_checks"/> apply
           to these references as they do to those of an assessment, and in particular a derived
           observation shall be more recent in <code>productionTime</code> than every observation it
           cites, the graph shall remain acyclic, and every chain shall terminate in direct
@@ -2436,39 +2485,40 @@
           silence.</para>
       </section>
 
-      <section xml:id="sec_assessment_sanity_checks">
-        <title>Support graph sanity checks</title>
-        <para>To achieve robust and reliable parsers, the following sanity checks are required for
-          every item that carries a <code>supportedBy</code> field. They apply to an
-          <code>Assessment</code> and, with the additional restriction on what may be cited stated in
-          <xref linkend="sec_derived_observation"/>, to a derived <code>Observation</code>; the item
-          that carries the field is called the citing item below:</para>
-        <orderedlist>
-          <listitem>
-            <para>Every identifier listed in <code>supportedBy</code> shall resolve to an
-              <code>InformationItem</code> the ONVIF Client has already received.</para>
-          </listitem>
-          <listitem>
-            <para>The <code>productionTime</code> of the citing item shall be more recent than the
-              <code>productionTime</code> of every supporting item.</para>
-          </listitem>
-          <listitem>
-            <para>The graph formed by taking information items as nodes and
-              <code>supportedBy</code> references as edges shall be directed and acyclic. An
-              <code>ObservationsCollection</code> cited in that field is a node of this graph like any
-              other, and its <code>observations</code> field forms edges of the same kind.</para>
-          </listitem>
-          <listitem>
-            <para>By traversing that graph, each citing item shall be traceable back to one or more
-              direct observations, which are the only items of the model that cite nothing.</para>
-          </listitem>
-        </orderedlist>
-        <para>An ONVIF Client that receives an item citing an identifier it cannot resolve
-          shall not treat the citing item as invalid on that basis alone: the supporting item may
-          still be in transit, or may have been delivered on a stream the client did not subscribe
-          to. The client should defer evaluation until the reference can be resolved, and apply its
-          own policy if it never is.</para>
-      </section>
+    </section>
+
+    <section xml:id="sec_support_graph_sanity_checks">
+      <title>Support graph sanity checks</title>
+      <para>To achieve robust and reliable parsers, the following sanity checks are required for
+        every item that carries a <code>supportedBy</code> field. They apply to an
+        <code>Assessment</code> and, with the additional restriction on what may be cited stated in
+        <xref linkend="sec_derived_observation"/>, to a derived <code>Observation</code>; the item
+        that carries the field is called the citing item below:</para>
+      <orderedlist>
+        <listitem>
+          <para>Every identifier listed in <code>supportedBy</code> shall resolve to an
+            <code>InformationItem</code> the ONVIF Client has already received.</para>
+        </listitem>
+        <listitem>
+          <para>The <code>productionTime</code> of the citing item shall be more recent than the
+            <code>productionTime</code> of every supporting item.</para>
+        </listitem>
+        <listitem>
+          <para>The graph formed by taking information items as nodes and
+            <code>supportedBy</code> references as edges shall be directed and acyclic. An
+            <code>ObservationsCollection</code> cited in that field is a node of this graph like any
+            other, and its <code>observations</code> field forms edges of the same kind.</para>
+        </listitem>
+        <listitem>
+          <para>By traversing that graph, each citing item shall be traceable back to one or more
+            direct observations, which are the only items of the model that cite nothing.</para>
+        </listitem>
+      </orderedlist>
+      <para>An ONVIF Client that receives an item citing an identifier it cannot resolve
+        shall not treat the citing item as invalid on that basis alone: the supporting item may
+        still be in transit, or may have been delivered on a stream the client did not subscribe
+        to. The client should defer evaluation until the reference can be resolved, and apply its
+        own policy if it never is.</para>
     </section>
 
     <section xml:id="sec_signature">
@@ -2648,7 +2698,9 @@
               <para><emphasis>certificateChain</emphasis> (mandatory) — the chain in PEM format,
                 ordered from the leaf certificate towards the certification authority. The leaf
                 certificate contains the public key. As in the ONVIF Media Signing Specification,
-                the certification authority certificate itself shall not be included.</para>
+                the certification authority certificate itself shall not be included. At least the
+                leaf certificate shall be present, since without it this descriptor identifies no
+                key at all.</para>
             </listitem>
             <listitem>
               <para><emphasis>userProvisioned</emphasis> (optional, default <code>false</code>) —
@@ -2700,8 +2752,11 @@
                 sign the envelope digest.</para>
             </listitem>
             <listitem>
-              <para><emphasis>created</emphasis> (mandatory) — ISO 8601 UTC datetime at which the
-                signature was created.</para>
+              <para><emphasis>created</emphasis> (mandatory) — the instant at which the signature was
+                created. The value shall be an ISO 8601 date and time carrying the UTC designator
+                <code>Z</code>, and shall not use an explicit offset, not even
+                <code>+00:00</code>: the value is covered by the signature itself and compared by a
+                verifier, so one lexical form is fixed rather than left to the producer.</para>
             </listitem>
             <listitem>
               <para><emphasis>key</emphasis> (mandatory) — the <code>SigningKey</code> describing
@@ -2898,13 +2953,15 @@
               ISO 8601 time interval string.</para>
           </listitem>
         </itemizedlist>
-        <para>ISO 8601 admits several interval forms, all of which are carried in this one field: a
-          start and an end instant
-          (<code>2026-09-09T15:00:00Z/2026-09-09T16:00:00Z</code>); a start instant and a duration
-          (<code>2026-09-09T15:00:00Z/P1M</code>); and a repeating interval
-          (<code>R5/2026-09-09T15:00:00Z/P1M</code>). The instants appearing in the string are
-          subject to the same disambiguation requirement stated for
-          <code>ISO8601Timestamp</code>.</para>
+        <para>Three ISO 8601 interval forms are admitted, all carried in this one field: a start and
+          an end instant (<code>2026-09-09T15:00:00Z/2026-09-09T16:00:00Z</code>); a start instant and
+          a duration (<code>2026-09-09T15:00:00Z/P1M</code>); and either of the two preceded by a
+          repetition marker (<code>R5/2026-09-09T15:00:00Z/P1M</code>). Every instant appearing in the
+          string shall carry the UTC designator or an explicit offset, as required for
+          <code>ISO8601Timestamp</code>. The duration-then-end form ISO 8601 also defines, such as
+          <code>P1M/2026-09-09T16:00:00Z</code>, shall not be used: every interval of this model begins
+          at a known instant, and admitting a form whose start has to be computed backwards from its
+          end would make two strings denoting the same span indistinguishable in kind.</para>
         <para>This is the representation to use when the information item refers to a condition
           that holds over a period, such as a dwell time or an aggregation window, rather than to a
           single instant.</para>
@@ -3432,6 +3489,7 @@
     "structuredContent": {
       "function": "set_event_stream_parameters",
       "capabilities": {
+        "@type": "EventStreamCapabilities",
         "defaultKeepaliveIntervalMs": 30000,
         "minKeepaliveIntervalMs": 5000,
         "maxKeepaliveIntervalMs": 300000,
@@ -3467,6 +3525,7 @@
     "arguments": {
       "function": "vehicle_detection",
       "config": {
+        "@type": "VehicleDetectionConfig",
         "sensitivity": 0.80,
         "channel": "ch1",
         "classifyUse": true
@@ -3492,6 +3551,7 @@
     "structuredContent": {
       "function": "vehicle_detection",
       "applied": {
+        "@type": "VehicleDetectionConfig",
         "sensitivity": 0.80,
         "channel": "ch1",
         "classifyUse": true
@@ -3583,7 +3643,8 @@
     <section xml:id="sec_annex_event_keepalive">
       <title>Tool invocation — execute_function for set_event_stream_parameters</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client shortens the
-        keep-alive interval of its push streams from the 30 second default to 10 seconds. The
+        keep-alive interval of its push streams from the 30 seconds this device declares as its
+        default to 10 seconds. The
           <code>parameters</code> object is an instance of the LinkML class
           <code>SetEventStreamParametersRequest</code>.</para>
       <programlisting>{
@@ -3595,6 +3656,7 @@
     "arguments": {
       "function": "set_event_stream_parameters",
       "parameters": {
+        "@type": "SetEventStreamParametersRequest",
         "keepaliveIntervalMs": 10000
       }
     },
@@ -3615,6 +3677,7 @@
     "resultType": "complete",
     "content": [{ "type": "text", "text": "Keep-alive interval set to 10000 ms." }],
     "structuredContent": {
+      "@type": "SetEventStreamParametersResponse",
       "executionId": "exec_keepalive_001",
       "appliedKeepaliveIntervalMs": 10000,
       "clamped": false,
@@ -3632,6 +3695,7 @@
     "resultType": "complete",
     "content": [{ "type": "text", "text": "Requested 1000 ms clamped to the device minimum." }],
     "structuredContent": {
+      "@type": "SetEventStreamParametersResponse",
       "executionId": "exec_keepalive_002",
       "appliedKeepaliveIntervalMs": 5000,
       "clamped": true,
@@ -3947,8 +4011,8 @@ data: }}</programlisting>
         strings. An implementation MAY equally emit each notification on a single
         <code>data:</code> line; the two forms are indistinguishable to the receiver. A blank line
         terminates the event.</para>
-      <para>The keep-alive frame is sent once per keep-alive interval — 30 seconds by default — on
-        a stream that delivered no event during that interval. See <xref
+      <para>The keep-alive frame is sent once per keep-alive interval, whatever interval is in force
+        on the stream, when that stream delivered no event during the interval. See <xref
           linkend="sec_annex_event_keepalive"/> for how the ONVIF Client changes that
         interval.</para>
       <para>Neither envelope above carries a <code>signature</code>. Signing is optional, and on a
@@ -4948,7 +5012,7 @@ classes:
         the four envelopes carries a signature made with a key the producer of its items declares as
         its own. Each link is a reference to an identifier, and the acyclicity and
         <code>productionTime</code> ordering of the chain hold throughout, as specified in <xref
-        linkend="sec_derived_observation"/>.</para>
+        linkend="sec_support_graph_sanity_checks"/>.</para>
     </section>
     <section xml:id="sec_annex_hk_function_lifecycle">
       <title>Driving the assessment service — configure, start and stop</title>
@@ -4961,7 +5025,11 @@ classes:
         <code>SpeedingAssessmentConfig</code>, <code>SpeedingAssessmentCapabilities</code>,
         <code>SpeedingAssessmentExecutionParameters</code> and
         <code>SpeedingAssessmentExecutionResult</code> — belong to the hackathon module, not to this
-        specification.</para>
+        specification. The module binds the four to the function name with a fifth class,
+        <code>SpeedingAssessmentInvocation</code>, a specialization of
+        <code>FunctionInvocation</code> as required by <xref
+        linkend="sec_event_keepalive"/>; that class is a declaration and appears in no
+        payload below.</para>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
         <code>list_functions</code> first, as required by <xref
         linkend="sec_tool_list_functions"/>, because it needs the local name to call and the schema
@@ -5049,6 +5117,7 @@ classes:
     "structuredContent": {
       "function": "speeding_assessment",
       "capabilities": {
+        "@type": "SpeedingAssessmentCapabilities",
         "minimumSpeedLimit": 10.0,
         "maximumSpeedLimit": 130.0,
         "maximumTolerance": 10.0,
@@ -5071,6 +5140,7 @@ classes:
     "arguments": {
       "function": "speeding_assessment",
       "config": {
+        "@type": "SpeedingAssessmentConfig",
         "speedLimit": 50.0,
         "tolerance": 3.0,
         "rule": "urn:onvif-hackathon:rule:urban-speed-limit",
@@ -5099,6 +5169,7 @@ classes:
     "structuredContent": {
       "function": "speeding_assessment",
       "applied": {
+        "@type": "SpeedingAssessmentConfig",
         "speedLimit": 50.0,
         "tolerance": 3.0,
         "rule": "urn:onvif-hackathon:rule:urban-speed-limit",
@@ -5134,6 +5205,7 @@ classes:
     "arguments": {
       "function": "speeding_assessment",
       "parameters": {
+        "@type": "SpeedingAssessmentExecutionParameters",
         "validity": {
           "@type": "ISO8601Interval",
           "intervalString": "2026-11-03T08:00:00Z/2026-11-03T20:00:00Z"
@@ -5162,6 +5234,7 @@ classes:
     "resultType": "complete",
     "content": [{ "type": "text", "text": "Execution exec_speeding_001 started." }],
     "structuredContent": {
+      "@type": "SpeedingAssessmentExecutionResult",
       "executionId": "exec_speeding_001",
       "startedAt": "2026-11-03T09:58:41Z"
     }

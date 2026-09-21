@@ -29,14 +29,27 @@ classes:
       FunctionDescriptor.executionSchema. Execution parameters are what applies
       to a single run, as opposed to a configuration, which persists until it is
       replaced.
-
-      The class declares no type designator, unlike the abstract classes of the
-      information model. It is not used as the range of a nested slot the
-      concrete class of which has to be read from the object itself: the class is
-      already fixed, out of band, by the executionSchema URI of the descriptor,
-      so an ONVIF Client knows which class it is validating against before it
-      reads the object.
     attributes:
+      '@type':
+        designates_type: true
+        range: string
+        required: true
+        description: >-
+          The local name of the concrete parameters class this object
+          instantiates, for example SetEventStreamParametersRequest. It is
+          required for the reason given for the type designator of
+          InformationItem.
+
+          The descriptor of the function already names the class in
+          executionSchema, so an ONVIF Client knows what it is sending before it
+          builds the object, and the designator is in that sense redundant. It
+          is declared all the same, because without it this abstract class
+          cannot be used as the range of a nested slot at all: the compiled
+          schema resolves such a slot to this class and to nothing below it, and
+          rejects every concrete instance. With it the slot resolves to the
+          concrete descendants, and the class named out of band and the class
+          stated by the object are checked against each other rather than
+          assumed to agree.
       extensible:
         range: Extensible
         required: false
@@ -46,8 +59,18 @@ classes:
     abstract: true
     description: >-
       Abstract base class for the structuredContent object returned by the
-      execute_function Tool.
+      execute_function Tool. A concrete subclass exists for every function that
+      returns a structured result, and the class that applies to a given
+      function is named by FunctionDescriptor.resultSchema.
     attributes:
+      '@type':
+        designates_type: true
+        range: string
+        required: true
+        description: >-
+          The local name of the concrete result class this object instantiates,
+          for example SetEventStreamParametersResponse. It is required for the
+          reason given for the type designator of FunctionExecutionParameters.
       executionId:
         range: string
         required: true
@@ -71,10 +94,20 @@ classes:
       function is named by FunctionDescriptor.capabilitiesSchema.
 
       A concrete subclass exists for every function that has capabilities an
-      ONVIF Client can read. The class declares no type designator, for the
-      reason given for FunctionExecutionParameters: the concrete class is fixed
-      by the capabilitiesSchema URI of the descriptor.
+      ONVIF Client can read.
     attributes:
+      '@type':
+        designates_type: true
+        range: string
+        required: true
+        description: >-
+          The local name of the concrete capabilities class this object
+          instantiates, for example EventStreamCapabilities. It is required for
+          the reason given for the type designator of
+          FunctionExecutionParameters, and here the reason bites hardest: this
+          class is the range of the capabilities slot of
+          GetFunctionCapabilitiesResponse, which without the designator would
+          admit no capabilities object at all.
       extensible:
         range: Extensible
         required: false
@@ -88,9 +121,25 @@ classes:
       the function identifier and narrows the parameters and result ranges to
       the classes that apply to that function. LinkML has no construct for
       declaring an operation, so this class is the normative way in which this
-      schema states which parameters a function accepts and which result it
-      returns.
+      schema states which parameters a function accepts, which result it returns
+      and which capabilities it exposes.
+
+      An instance of this class never appears on the wire. It is a declaration
+      about a function, not a message: the three slots below name classes, and
+      the payloads that instantiate those classes travel as the arguments and
+      the structuredContent of the MCP Tools. Every function this specification
+      or a vendor module defines shall be declared by a concrete subclass, so
+      that the binding between a function and its classes is stated in the
+      schema and not only in the prose or in an example.
     attributes:
+      '@type':
+        designates_type: true
+        range: string
+        required: true
+        description: >-
+          The local name of the concrete invocation class, for example
+          SetEventStreamParametersInvocation. It is declared for the reason given
+          for the type designator of FunctionExecutionParameters.
       function:
         range: string
         required: true
@@ -109,6 +158,20 @@ classes:
         description: >-
           Result returned by this function in the structuredContent of the
           execute_function response.
+      capabilities:
+        range: FunctionCapabilities
+        required: false
+        description: >-
+          Capabilities returned for this function by the get_function_capabilities
+          Tool. The slot is present so that the third of the three classes a
+          function is bound to is declared in the same place as the other two: a
+          concrete subclass that narrows parameters and result but leaves this
+          slot alone would state where its input and its output are defined and
+          leave its capabilities to be found in prose.
+
+          It is optional, because a function need not have capabilities an ONVIF
+          Client can read; a function that has them shall narrow this slot to the
+          class its descriptor names in capabilitiesSchema.
 
   # --- Function catalogue and capabilities Tools ---------------------------
 
@@ -162,7 +225,9 @@ classes:
         required: false
         description: >-
           URI of the LinkML class that defines the config argument accepted by
-          configure_function for this function.
+          configure_function for this function. Present when the function
+          accepts a configuration. A function that omits it accepts none, and a
+          configure_function call naming it is rejected.
       executionSchema:
         range: uri
         required: false
@@ -175,7 +240,8 @@ classes:
         required: false
         description: >-
           URI of the LinkML class that defines the structuredContent returned
-          by execute_function for this function.
+          by execute_function for this function. Present when the function
+          returns a structured result.
       capabilitiesSchema:
         range: uri
         required: false
@@ -201,9 +267,13 @@ classes:
         multivalued: true
         inlined_as_list: true
         required: true
+        minimum_cardinality: 1
         description: >-
-          Zero or more function descriptors. The catalogue always contains the
-          reserved set_event_stream_parameters function.
+          One or more function descriptors. The catalogue is never empty: it
+          always contains the reserved set_event_stream_parameters function, and
+          an ONVIF Device that exposes no function of its own returns that entry
+          alone. The minimum cardinality is stated because required alone does
+          not forbid an empty list.
       extensible:
         range: Extensible
         required: false
@@ -266,15 +336,17 @@ classes:
       keepaliveIntervalMs:
         range: integer
         required: false
-        ifabsent: int(30000)
         minimum_value: 1000
         maximum_value: 3600000
         unit:
           ucum_code: ms
         description: >-
           Requested interval, in milliseconds, between two consecutive
-          keep-alive notifications on an events/stream response. Defaults to
-          30000 (30 seconds). The ONVIF Device clamps the requested value to
+          keep-alive notifications on an events/stream response. When it is
+          omitted the ONVIF Device applies the interval it declares in
+          EventStreamCapabilities.defaultKeepaliveIntervalMs; no default value
+          is fixed here, because the value is a property of the device and not
+          of this specification. The ONVIF Device clamps the requested value to
           the range it supports and reports the value actually applied in
           SetEventStreamParametersResponse.appliedKeepaliveIntervalMs.
       subscriptionId:
@@ -342,12 +414,15 @@ classes:
       defaultKeepaliveIntervalMs:
         range: integer
         required: true
-        ifabsent: int(30000)
         unit:
           ucum_code: ms
         description: >-
-          Keep-alive interval used by the ONVIF Device when none was
-          requested, in milliseconds. It is 30000 (30 seconds).
+          Keep-alive interval used by the ONVIF Device when none was requested,
+          in milliseconds. This specification fixes no value for it: an ONVIF
+          Device chooses one and declares it here, which is why the slot is
+          mandatory while its value is not prescribed. The choice is normally
+          made with the default request timeout of an ONVIF Client in mind,
+          which is a matter for MCP and not for this specification.
       minKeepaliveIntervalMs:
         range: integer
         required: true
@@ -388,7 +463,8 @@ classes:
       SetEventStreamParametersResponse, and its capabilities are
       EventStreamCapabilities. The function sets the interval at which the ONVIF
       Device emits notifications/events/heartbeat keep-alive messages on open
-      events/stream responses, whose default is 30000 milliseconds.
+      events/stream responses, overriding for the streams concerned the interval
+      the device declares in EventStreamCapabilities.defaultKeepaliveIntervalMs.
     annotations:
       mcp_tool: execute_function
       access_class: ACTUATE
@@ -409,3 +485,9 @@ classes:
         description: >-
           Keep-alive result returned by the function, reporting the interval
           actually applied.
+      capabilities:
+        range: EventStreamCapabilities
+        required: false
+        description: >-
+          Capabilities of the event stream returned for this function by the
+          get_function_capabilities Tool.

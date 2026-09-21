@@ -10,6 +10,71 @@ imports:
 default_prefix: onvif
 default_range: string
 
+# Every lexical constraint on a temporal value of this model is declared here, on
+# a type, and never on a slot: the three types below are the three temporal forms
+# the model admits, and a slot that carries one of them declares only its range.
+#
+# All three restate the same instant sub-expression instead of sharing it,
+# because LinkML offers no working way to factor a fragment of a pattern:
+# settings together with structured_pattern emit no pattern at all, and a type
+# declared with typeof does not carry over the pattern of the type it refers to.
+# The repetition is therefore deliberate, and the three patterns have to be kept
+# in step by hand.
+types:
+
+  Iso8601Instant:
+    typeof: datetime
+    description: >-
+      An instant expressed in the ISO 8601 extended form, carrying either the
+      UTC designator or an explicit offset, for example 2026-09-09T15:54:00Z,
+      2026-09-09T15:54:00.120Z or 2026-09-09T17:54:00+02:00. A fractional part
+      is admitted. What is not admitted is a local time without designator and
+      without offset, which denotes a different instant for every recipient.
+
+      This type and Iso8601UtcInstant exist because a datetime range alone
+      constrains nothing. A datetime range compiles to the JSON Schema
+      annotation "format": "date-time", which a validator is not obliged to
+      apply and which by default is not applied, so a slot declared with a
+      datetime range accepts any string whatsoever. The pattern below is what
+      actually holds the lexical form.
+    pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$'
+
+  Iso8601UtcInstant:
+    typeof: datetime
+    description: >-
+      An instant expressed in the ISO 8601 extended form with the UTC
+      designator, for example 2026-09-09T15:54:00Z or
+      2026-09-09T15:54:00.120Z. A fractional part is admitted and an offset
+      other than Z is not.
+
+      It is the narrower of the two instant types of this model, admitting
+      exactly the subset of Iso8601Instant that carries Z, and is used where a
+      single lexical form matters and not merely an unambiguous one: on the
+      creation time of a signature, which is covered by that signature and is
+      compared by a verifier, and on the timestamps an ONVIF Device produces for
+      its own executions. Where the model accepts an instant produced elsewhere
+      it uses Iso8601Instant instead, which also admits an explicit offset.
+    pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$'
+
+  Iso8601IntervalString:
+    typeof: string
+    description: >-
+      A time interval expressed as a single ISO 8601 string, for example
+      2026-09-09T15:00:00Z/2026-09-09T16:00:00Z, 2026-09-09T15:00:00Z/P1M or
+      R5/2026-09-09T15:00:00Z/P1M.
+
+      Three of the interval forms ISO 8601 admits are carried in one string, and
+      the pattern admits exactly those three: a start and an end instant, a start
+      instant and a duration, and either of the two preceded by a repetition
+      marker. An interval that begins with a duration and ends with an instant is
+      a fourth ISO 8601 form and is not used by this model, so the pattern
+      rejects it: every interval of this model begins at a known instant.
+
+      Every instant appearing in the string is subject to the same requirement
+      Iso8601Instant states, and shall carry the UTC designator or an explicit
+      offset.
+    pattern: '^(R\d*/)?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})|P((\d+[YMWD])+(T(\d+(\.\d+)?[HMS])+)?|T(\d+(\.\d+)?[HMS])+))$'
+
 classes:
 
   Time:
@@ -40,9 +105,13 @@ classes:
       and machines
     attributes:
       timestamp:
-        range: datetime
+        range: Iso8601Instant
         required: true
-        description: The ISO 8601 timestamp
+        description: >-
+          The ISO 8601 timestamp. It shall carry the UTC designator or an
+          explicit offset, so that the instant it denotes is unambiguous for a
+          recipient in another time zone; the Iso8601Instant type is what
+          enforces that form, a datetime range alone enforcing nothing.
 
   ISO8601Interval:
     abstract: false
@@ -53,6 +122,11 @@ classes:
       '2026-09-09T15:00:00Z/P1M' or 'R5/2026-09-09T15:00:00Z/P1M').
     attributes:
       intervalString:
-        range: string
+        range: Iso8601IntervalString
         required: true
-        description: The time interval formatted according to the ISO 8601 standard.
+        description: >-
+          The time interval formatted according to the ISO 8601 standard. The
+          three forms admitted, the fourth one excluded and the requirement that
+          every instant in the string carry the UTC designator or an explicit
+          offset are all stated by the Iso8601IntervalString type, which is what
+          enforces them.
