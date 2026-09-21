@@ -52,7 +52,19 @@ types:
     description: >-
       Binary value encoded with the standard base64 alphabet defined in
       RFC 4648, including padding.
-    pattern: '^[A-Za-z0-9+/]+={0,2}$'
+
+      The pattern enforces what RFC 4648 requires of the encoded form: the
+      value is a whole number of four-character groups, and padding appears
+      only in the last group, as one '=' after three characters or two after
+      two. A value whose length is not a multiple of four, or that carries
+      padding anywhere else, is not a base64 encoding of anything and is
+      rejected.
+
+      The empty string is rejected as well, although it is the encoding of zero
+      octets, because no slot of this model that uses this type admits an empty
+      value: a digest, a signature and a public key all have content by
+      construction.
+    pattern: '^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$'
 
   ReferenceToken:
     typeof: string

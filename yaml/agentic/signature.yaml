@@ -8,6 +8,9 @@ imports:
   - linkml:types
   - enums
   - common
+  # For Iso8601UtcInstant, the range of created. Every lexical constraint on a
+  # temporal value of this model is declared in that module.
+  - time
 default_prefix: onvif
 default_range: string
 
@@ -93,10 +96,16 @@ classes:
         range: string
         multivalued: true
         required: true
+        minimum_cardinality: 1
         description: >-
           Certificate chain in PEM format, ordered from the leaf certificate
           towards the certification authority. The certification authority
           certificate itself shall not be included.
+
+          At least the leaf certificate shall be present: it carries the public
+          key, without which this descriptor identifies no key at all. The
+          minimum cardinality is stated because required alone does not forbid
+          an empty list.
       userProvisioned:
         range: boolean
         required: false
@@ -227,9 +236,15 @@ classes:
           below, is authoritative on which algorithms are allowed at any
           given time.
       created:
-        range: datetime
+        range: Iso8601UtcInstant
         required: true
-        description: Time at which the signature was created, in ISO 8601 UTC.
+        description: >-
+          Time at which the signature was created. It shall be an ISO 8601
+          instant carrying the UTC designator, and not an offset: the value is
+          covered by the signature itself and is compared by a verifier, so one
+          lexical form is fixed rather than left to the producer. The
+          Iso8601UtcInstant type is what enforces that form, a datetime range
+          alone enforcing nothing.
       key:
         range: SigningKey
         required: true
