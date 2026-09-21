@@ -665,8 +665,8 @@
             <para>The <emphasis>vocabulary namespace</emphasis> is the expansion of
               <code>default_prefix</code>, which is
                 <code>https://www.onvif.org/ver10/agentic/linkml/</code> for every module of this
-              specification. It is the namespace in which a bare class name is interpreted, and it is
-              the value carried by <code>@context</code> in a payload, as specified in
+              specification. It is bound to the <code>onvif</code> prefix and to
+              <code>@vocab</code> in the inline <code>@context</code>, as specified in
               <xref linkend="sec_context_and_type_annotations"/>.</para>
           </listitem>
           <listitem>
@@ -800,44 +800,59 @@
       <section xml:id="sec_context_and_type_annotations">
         <title>Context and Type Annotations</title>
         <para>Every metadata payload emitted by an ONVIF Device shall carry two JSON-LD keywords.</para>
-        <para><code>@context</code> shall be the vocabulary namespace defined in
-          <xref linkend="sec_schema_uri_roles"/>, namely
-            <code>https://www.onvif.org/ver10/agentic/linkml/</code>. It appears once per
-            <code>InformationEnvelope</code> and its value is the same for every ONVIF Device, since
-          every device draws its types from the same bundle. It states which vocabulary the bare names
-          in the payload belong to.</para>
-        <para>This URI is not required to be dereferenceable, and an ONVIF Client shall not depend on
-          being able to retrieve a JSON-LD context document from it. The mapping from names to
-          identifiers is not fetched at runtime: it is derived from the LinkML modules the ONVIF
-          Device serves as resources, which an ONVIF Client has already loaded when it established the
-          session (see <xref linkend="sec_annex_schema_retrieval"/>). Where an ONVIF Client wishes to
-          perform full JSON-LD processing, it constructs the context itself from those modules, by the
-          rules below, and supplies it to its own processor.</para>
-        <para>A context derived from a LinkML module shall bind:</para>
+        <para><code>@context</code> shall be an inline JSON-LD context object. It appears once per
+            <code>InformationEnvelope</code> and contains every mapping needed to expand the CURIEs
+          and unqualified JSON property names used anywhere in that envelope. Keeping the context
+          with the payload makes a stored or forwarded envelope interpretable by a JSON-LD 1.1
+          processor without access to the originating ONVIF Device.</para>
+        <para>The ONVIF Device shall derive the inline context from the same closure of LinkML
+          modules against which it validates the envelope. It shall not maintain a separate,
+          manually authored vocabulary map. The modules have already been exposed as resources
+          during session establishment (see <xref linkend="sec_annex_schema_retrieval"/>), and
+          their <code>prefixes</code>, <code>default_prefix</code>, <code>class_uri</code> and
+          <code>slot_uri</code> declarations are the authoritative source of the context.</para>
+        <para>The inline context shall bind:</para>
         <itemizedlist>
           <listitem>
-            <para><code>@vocab</code> to the expansion of the <code>default_prefix</code> of the
-              module;</para>
+            <para><code>@version</code> to <code>1.1</code>, because the context uses type-scoped
+              contexts;</para>
           </listitem>
           <listitem>
-            <para>each class to its own local name within that namespace;</para>
+            <para><code>@vocab</code> to
+                <code>https://www.onvif.org/ver10/agentic/linkml/</code>, so that unqualified terms
+              of the Agentic Service bundle expand in the ONVIF vocabulary;</para>
           </listitem>
           <listitem>
-            <para>each prefix declared in <code>prefixes</code> to the namespace URI it is declared
-              with.</para>
+            <para><code>onvif</code> to
+                <code>https://www.onvif.org/ver10/agentic/linkml/</code> with prefix semantics;</para>
+          </listitem>
+          <listitem>
+            <para>each additional prefix used by a module represented in the envelope to the
+              namespace URI declared by that module;</para>
+          </listitem>
+          <listitem>
+            <para>each concrete third-party class used in the envelope as an expanded term
+              definition whose <code>@id</code> is that class's CURIE and whose type-scoped
+                <code>@context</code> maps every locally declared, unqualified JSON property name to
+              its <code>slot_uri</code>. Inherited ONVIF properties continue to use the outer
+                <code>@vocab</code> mapping.</para>
           </listitem>
         </itemizedlist>
-        <para>These three rules are stated normatively so that an ONVIF Device and an ONVIF Client
-          agree on the meaning of a payload without depending on any particular version of the LinkML
-          toolchain. A context produced by a LinkML context generator satisfies them; so does one
-          written by hand.</para>
+        <para>The type-scoped context is necessary because two modules can use the same JSON
+          property name with different <code>slot_uri</code> values. A single global term mapping
+          could represent only one of them. The context shall be generated from the LinkML schema
+          model; it may be assembled from the output of the LinkML JSON-LD context generator, but
+          the type-scoped mappings are an additional required step because that generator does not
+          generate nested type directives. An implementation may remove class and property mappings
+          that are not needed by that envelope, provided that expansion of every class and property
+          used in the envelope is unchanged.</para>
         <para><code>@type</code> shall name the class of the node it appears on. For a class declared
-          by the ONVIF Agentic Schema Bundle the value is the bare local name, for example
-            <code>ObservationsCollection</code>, which the vocabulary namespace resolves. For a class
-          declared by a vendor extension the value shall be a compact URI formed with a prefix that
-          the vendor module declares, for example <code>acme:ThermalObservation</code>; a bare name
-          shall not be used for a class outside the bundle. The reasoning is given in
-          <xref linkend="sec_vendor_class_extensions"/>.</para>
+          by the ONVIF Agentic Schema Bundle the value is an <code>onvif</code> CURIE, for example
+            <code>onvif:ObservationsCollection</code>. For a class declared by a third-party module
+          the value uses the prefix declared by that module, for example
+            <code>acme:ThermalObservation</code>. In both cases the expanded URI shall equal the
+            <code>class_uri</code> of the concrete LinkML class. A bare class name shall not be used.
+          The reasoning is given in <xref linkend="sec_vendor_class_extensions"/>.</para>
         <para>The keyword appears on more nodes than the information item itself. It appears on the
           <code>InformationEnvelope</code>, which is the outermost object of a payload and has nothing
           enclosing it that could state its class. Every object nested
@@ -856,7 +871,9 @@
           <code>configSchema</code>, <code>executionSchema</code>, <code>resultSchema</code> or
           <code>capabilitiesSchema</code>; the keyword is what allows the object to be validated
           against the bundle alone, by an ONVIF Client that holds the payload and not the descriptor
-          that announced it.</para>
+          that announced it. These Tool arguments and results are not standalone JSON-LD documents
+          and carry no <code>@context</code>; their CURIEs are resolved with the prefix declarations
+          of the schema closure identified by the applicable schema URI.</para>
         <para>The division is not a stylistic one. Where the declared class is abstract it names a
           family and not a structure, and the fields of the object are the only other evidence of what
           it is; an ONVIF Client would have to guess the class from the fields it happens to find, and
@@ -871,14 +888,15 @@
           revision of this specification that makes an abstract family out of what is now a single
           concrete class shall introduce the keyword on the objects concerned.</para>
         <para>The prefixes declared by the modules a single ONVIF Device serves shall be mutually
-          distinct. Where two independently authored extensions would claim the same prefix, the
-          device shall rename one of them before serving it, in the same way and for the same reason
-          that it arbitrates function names.</para>
+          distinct and stable. Where two independently authored modules assign the same prefix to
+          different namespace URIs, the device shall reject the conflicting module set and shall not
+          rewrite either prefix. A prefix occurs in type designators covered by signatures and is
+          therefore part of the wire representation, unlike a local function name that a device may
+          arbitrate.</para>
         <para>Together, <code>@context</code> and <code>@type</code> make each item
-            <emphasis>self-describing</emphasis> with respect to a bundle the ONVIF Client already
-          holds: the first says which vocabulary is in force, the second says which class in that
-          vocabulary the item instantiates, and the ONVIF Client routes and validates the item on the
-          strength of the two together.</para>
+            <emphasis>self-describing</emphasis>: the first supplies the mappings needed to expand
+          the payload, the second identifies the concrete class by a CURIE, and the ONVIF Client
+          routes and validates the item after resolving that CURIE to its class URI.</para>
       </section>
 
       <section xml:id="sec_self_describing_events">
@@ -888,11 +906,9 @@
           keys its registry on the schema identifier of each module. In steady state, therefore, every
           class an ONVIF Client encounters is already known to it.</para>
         <para>The workflow below handles the case where it is not: an ONVIF Client receives an item
-          whose <code>@type</code> it cannot resolve, either because the bare name is not declared by
-          any module it holds or because the prefix of a compact URI is not bound by any of them. The
-          trigger is the unresolved <code>@type</code> and not the value of <code>@context</code>,
-          which is a constant and therefore never signals that anything new has appeared. An ONVIF
-          Client shall:</para>
+          whose <code>@type</code> CURIE expands, through the inline context, to a class URI that no
+          module it holds declares. The trigger is the unresolved class URI, not the mere presence of
+          a prefix mapping in <code>@context</code>. An ONVIF Client shall:</para>
         <para>1. Suspend validation of the triggering item.</para>
         <para>2. Re-enumerate the resources of the originating ONVIF Device with
             <code>resources/list</code> and read any module it does not already hold.</para>
@@ -926,11 +942,10 @@
           applications such as knowledge graph ingestion or cross-vendor correlation, and the payload
           is shaped so that it can. Two consequences of the preceding sections apply to an ONVIF
           Client that chooses to do so, and are stated here because they are easy to discover late.</para>
-        <para>First, a general-purpose JSON-LD processor cannot be pointed at an ONVIF payload as it
-          stands, because it would attempt to dereference <code>@context</code> and fail. An ONVIF
-          Client shall instead supply the context it derived from the LinkML modules of the device, by
-          the rules of <xref linkend="sec_context_and_type_annotations"/>, associating it with the
-          vocabulary namespace in the document loader of its processor.</para>
+        <para>First, a general-purpose JSON-LD 1.1 processor can process an ONVIF payload directly,
+          because the context required to expand its types and properties is embedded in the
+          envelope. An ONVIF Client shall verify that the mappings in that context agree with the
+          LinkML modules served by the device before relying on the resulting graph.</para>
         <para>Second, the identifiers of information items are plain UUID strings and are not JSON-LD
           node identifiers, as stated in <xref linkend="sec_object_identifiers"/>. The references that
           one item makes to another — the <code>supportedBy</code> field of an
@@ -1453,25 +1468,23 @@
         <para>An ONVIF Device shall advertise its event types via <code>events/list</code>. Each
           entry shall include: <itemizedlist>
             <listitem>
-              <para><code>name</code> — the local name of the event type on this ONVIF Device. It
-                shall be the same string that appears as the <code>@type</code> of an item of that
-                class in a delivered payload: the bare class name for a class of the ONVIF Agentic
-                Schema Bundle, for example <code>ObservationsCollection</code>, and a compact URI for a
-                class introduced by a vendor extension, for example
+              <para><code>name</code> — the CURIE of the event type. It shall be the same string
+                that appears as the <code>@type</code> of an item of that class in a delivered
+                payload, for example <code>onvif:ObservationsCollection</code> or
                 <code>acme:ThermalObservation</code>.</para>
-              <para>Because the prefixes an ONVIF Device serves are mutually distinct (see <xref
-                  linkend="sec_context_and_type_annotations"/>), this value is unique within the
-                device. It is not unique beyond it: two vendors may independently define a class of
-                the same local name, and an ONVIF Client shall therefore not use <code>name</code> as
-                a key across devices.</para>
+              <para>Because the prefixes an ONVIF Device serves are mutually distinct and stable
+                (see <xref linkend="sec_context_and_type_annotations"/>), this value is unique
+                within the device. An ONVIF Client shall expand it and use the resulting
+                <code>canonicalUri</code>, rather than the CURIE string, as the key across
+                devices.</para>
             </listitem>
             <listitem>
               <para><code>canonicalUri</code> — the class identifier of the event type, as defined in
                 <xref linkend="sec_schema_uri_roles"/>: an absolute URI such as
                   <code>https://www.onvif.org/ver10/agentic/linkml/ObservationsCollection</code>. This
                 is the identity of the event type. It is the same on every ONVIF Device that emits the
-                class, it is unaffected by any renaming of a prefix, and it is the value an ONVIF
-                Client shall use to decide whether two devices report the same kind of thing.</para>
+                class, it is independent of the compact prefix representation, and it is the value an
+                ONVIF Client shall use to decide whether two devices report the same kind of thing.</para>
               <para>The value is redundant, in that an ONVIF Client holding the schema modules of the
                 device can derive it from <code>name</code>. It is carried explicitly because it
                 appears once per catalogue entry rather than once per event, and because it allows a
@@ -1826,11 +1839,11 @@
         <para>An ONVIF Client holds the schema modules of a device from the moment the session was
           established. The mechanism below covers the case where a class appears that those modules do
           not define — typically after a firmware update that adds one.</para>
-        <para>The trigger is an <code>@type</code> the ONVIF Client cannot resolve: a bare name that no
-          module it holds declares, or a compact URI whose prefix no module it holds binds. It is not
-          the value of <code>@context</code>, which is a constant and therefore never changes when a new
-          class is introduced. If the ONVIF Client receives an item whose <code>@type</code> it cannot
-          resolve, it shall: <orderedlist>
+        <para>The trigger is an <code>@type</code> CURIE that the ONVIF Client cannot resolve to a
+          class in the modules it holds, or whose expanded URI is not the <code>class_uri</code> of
+          a loaded class. The inline <code>@context</code> supplies the prefix mapping but not the
+          class definition. If the ONVIF Client receives an item whose <code>@type</code> it cannot
+          resolve to a loaded class, it shall: <orderedlist>
             <listitem>
               <para>Suspend validation of that item without discarding it, and without discarding the
                 enclosing <code>InformationEnvelope</code>, whose other items it may be able to
@@ -2209,11 +2222,11 @@
         linkend="sec_object_identifiers"/>, the mandatory list of enclosed <code>items</code>, an
         optional list of <code>hashes</code>, and the optional <code>signature</code>.</para>
       <para>The two keywords are fields of the envelope and not of the delivery that carried it.
-        <code>@context</code> has the single value given in <xref
-        linkend="sec_context_and_type_annotations"/> and is fixed by the schema, so an envelope that
-        names another vocabulary is invalid; <code>@type</code> has the value
-        <code>InformationEnvelope</code>. The envelope carries them because it is the outermost
-        object of a payload and nothing encloses it that could state what it is.</para>
+        <code>@context</code> is the inline context derived from the modules represented in the
+        payload, as specified in <xref linkend="sec_context_and_type_annotations"/>;
+        <code>@type</code> has the value <code>onvif:InformationEnvelope</code>. The envelope
+        carries them because it is the outermost object of a payload and nothing encloses it that
+        could state what it is.</para>
       <para>The <code>hashes</code> field holds one <code>ItemDigest</code> per enclosed item, as
         defined in <xref linkend="sec_item_digest"/>. The entries shall be sorted by their
         <code>item</code> field in ascending order, comparing the canonical lowercase UUID strings
@@ -3037,14 +3050,36 @@
           defines is formed from a namespace the vendor controls, and two vendors that independently
           choose the same local name for a class still define two distinct classes. The
           <code>@type</code> of an instance of a vendor class is written as a CURIE using that
-          prefix, as specified in <xref linkend="sec_context_and_type_annotations"/>; only the classes
-          of the ONVIF Agentic Schema Bundle are written as bare local names.</para>
+          prefix, as specified in <xref linkend="sec_context_and_type_annotations"/>. Classes of the
+          ONVIF Agentic Schema Bundle use the same rule with the <code>onvif</code> prefix.</para>
         <para>The prefixes served by one ONVIF Device shall be mutually distinct. Where two vendor
-          modules a device serves declare the same prefix for different namespaces, the device
-          arbitrates: it renames one of them in the context it derives and in the <code>@type</code>
-          values it emits. A prefix is therefore local to one device, and an ONVIF Client shall
-          resolve a CURIE through the context of the session in which it was received rather than
-          treat the prefix as a global name.</para>
+          modules a device serves declare the same prefix for different namespaces, the modules are
+          incompatible in one schema closure and the device shall reject that combination. It shall
+          not rename a prefix, because the CURIE occurs in the payload and is covered by an envelope
+          signature. An ONVIF Client shall resolve the CURIE through the inline context and compare
+          the expanded URI, not the prefix spelling, when establishing class identity.</para>
+        <para>A third-party module shall therefore declare, at minimum, an <code>id</code> for the
+          schema document, a prefix bound to a namespace controlled by its author, that prefix as its
+            <code>default_prefix</code>, and an import of the Agentic Service module it extends. For
+          example:</para>
+        <programlisting>id: https://vendor.example/agentic/example/linkml/
+name: vendor-agentic-example
+prefixes:
+  linkml: https://w3id.org/linkml/
+  onvif: https://www.onvif.org/ver10/agentic/linkml/
+  vendor: https://vendor.example/agentic/example/linkml/
+imports:
+  - linkml:types
+  - agentic
+default_prefix: vendor
+default_range: string</programlisting>
+        <para>A class named <code>ExampleObservation</code> in that module has class URI
+            <code>https://vendor.example/agentic/example/linkml/ExampleObservation</code> and is
+          written on the wire as <code>vendor:ExampleObservation</code>. An explicit
+            <code>class_uri</code> may override this derivation when necessary. Attributes declared
+          by the module similarly receive slot URIs from its default prefix unless they declare an
+          explicit <code>slot_uri</code>; the inline context represents those mappings with a
+          type-scoped context for the class.</para>
         <para>Two consequences follow from the structure of a LinkML module and shall be taken into
           account by anyone defining a vendor class.</para>
         <orderedlist>
@@ -3084,7 +3119,8 @@
       <code>LicensePlateObservation</code>, <code>FunctionalLocation</code>,
       <code>VehicleReidentification</code> and <code>acme:ThermalObservation</code>; one
       <code>signatureValue</code> is also abbreviated with an ellipsis, which the
-      <code>Base64Binary</code> type does not admit. The call sequence itself, the order of the
+      <code>Base64Binary</code> type does not admit. The examples also retain the obsolete string
+        <code>@context</code> and unqualified type names. The call sequence itself, the order of the
       operations and the shape of the MCP messages remain correct and are the point of the annex; it
       is only the metadata carried inside them that has to be brought back into line with the
       bundle. <xref linkend="app_hackathon_wire_format"/> shows payloads that do validate against
@@ -3489,7 +3525,7 @@
     "structuredContent": {
       "function": "set_event_stream_parameters",
       "capabilities": {
-        "@type": "EventStreamCapabilities",
+        "@type": "onvif:EventStreamCapabilities",
         "defaultKeepaliveIntervalMs": 30000,
         "minKeepaliveIntervalMs": 5000,
         "maxKeepaliveIntervalMs": 300000,
@@ -3656,7 +3692,7 @@
     "arguments": {
       "function": "set_event_stream_parameters",
       "parameters": {
-        "@type": "SetEventStreamParametersRequest",
+        "@type": "onvif:SetEventStreamParametersRequest",
         "keepaliveIntervalMs": 10000
       }
     },
@@ -3677,7 +3713,7 @@
     "resultType": "complete",
     "content": [{ "type": "text", "text": "Keep-alive interval set to 10000 ms." }],
     "structuredContent": {
-      "@type": "SetEventStreamParametersResponse",
+      "@type": "onvif:SetEventStreamParametersResponse",
       "executionId": "exec_keepalive_001",
       "appliedKeepaliveIntervalMs": 10000,
       "clamped": false,
@@ -3695,7 +3731,7 @@
     "resultType": "complete",
     "content": [{ "type": "text", "text": "Requested 1000 ms clamped to the device minimum." }],
     "structuredContent": {
-      "@type": "SetEventStreamParametersResponse",
+      "@type": "onvif:SetEventStreamParametersResponse",
       "executionId": "exec_keepalive_002",
       "appliedKeepaliveIntervalMs": 5000,
       "clamped": true,
@@ -4348,9 +4384,9 @@ X-MCP-Subscription-Id: sub_9f2a1c7e0b4d3f6a
         <xref linkend="sec_dynamic_schema_reregistration"/>. The device has been updated and now
         emits a vendor class, <code>acme:ThermalObservation</code>, which the ONVIF Client does not
         hold: the prefix <code>acme</code> is bound by no module the client loaded when it
-        established the session. The trigger is that unresolvable <code>@type</code>, not the value
-        of <code>@context</code>, which is a constant and is the same here as in every other
-        payload.</para>
+        established the session. The inline context binds the <code>acme</code> prefix, but the
+        client does not yet hold a module declaring the expanded class URI; that unresolved class is
+        the trigger.</para>
       <para><emphasis>Event notification with an unresolvable type (Device to Client):</emphasis> the
         notification is delivered on the open <code>events/stream</code> response. The envelope
         carries two items, only one of which the client can interpret.</para>
@@ -4572,6 +4608,12 @@ classes:
       well-formed base64 of the right length but are not real: they were not computed over these
       payloads, and a participant reproducing this annex shall compute its own by the procedure of
       <xref linkend="sec_onvif_signature"/>.</para>
+    <para>The inline context of each envelope binds both <code>onvif</code> and
+        <code>hackathon2026</code>. It also defines type-scoped contexts for the hackathon classes
+      that declare attributes of their own. Consequently every <code>@type</code> expands to the
+      class URI assigned by its LinkML module, while an unqualified property such as
+        <code>algorithm</code> expands according to the class on which it occurs and cannot be
+      confused with an ONVIF property having the same JSON spelling.</para>
 
     <section xml:id="sec_annex_hk_entry_camera">
       <title>Entry camera</title>
@@ -4585,20 +4627,62 @@ classes:
         the <code>productionTime</code> is the later instant at which the item was assembled; the
         speed is computed from the first and never from the second.</para>
       <programlisting>{
-  "@context": "https://www.onvif.org/ver10/agentic/linkml/",
-  "@type": "InformationEnvelope",
+  "@context": {
+    "@version": 1.1,
+    "@vocab": "https://www.onvif.org/ver10/agentic/linkml/",
+    "onvif": {
+      "@id": "https://www.onvif.org/ver10/agentic/linkml/",
+      "@prefix": true
+    },
+    "hackathon2026": {
+      "@id": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/",
+      "@prefix": true
+    },
+    "hackathon2026:ONVIFDevice": {
+      "@id": "hackathon2026:ONVIFDevice",
+      "@context": {
+        "manufacturer": "hackathon2026:manufacturer",
+        "model": "hackathon2026:model",
+        "firmwareVersion": "hackathon2026:firmwareVersion",
+        "serialNumber": "hackathon2026:serialNumber",
+        "hardwareId": "hackathon2026:hardwareId",
+        "entity": {
+          "@id": "hackathon2026:entity",
+          "@context": { "token": "hackathon2026:token" }
+        },
+        "publicKeys": "hackathon2026:publicKeys"
+      }
+    },
+    "hackathon2026:GeoPoint": {
+      "@id": "hackathon2026:GeoPoint",
+      "@context": {
+        "latitude": "hackathon2026:latitude",
+        "longitude": "hackathon2026:longitude",
+        "altitude": "hackathon2026:altitude",
+        "horizontalAccuracy": "hackathon2026:horizontalAccuracy"
+      }
+    },
+    "hackathon2026:VehicleDetectionResult": {
+      "@id": "hackathon2026:VehicleDetectionResult",
+      "@context": {
+        "plate": "hackathon2026:plate",
+        "trackId": "hackathon2026:trackId"
+      }
+    }
+  },
+  "@type": "onvif:InformationEnvelope",
   "id": "3f8a1d02-6c47-4b9e-9a15-7d2e04c81b63",
   "items": [
     {
-      "@type": "VehicleDetectionObservation",
+      "@type": "hackathon2026:VehicleDetectionObservation",
       "id": "b41c7e58-0d93-4a26-8f71-52ac9e3d6810",
       "confidence": 0.96,
       "productionTime": {
-        "@type": "ISO8601Timestamp",
+        "@type": "onvif:ISO8601Timestamp",
         "timestamp": "2026-11-03T10:15:00.120Z"
       },
       "provenance": {
-        "@type": "ONVIFDevice",
+        "@type": "hackathon2026:ONVIFDevice",
         "manufacturer": "ACME Corporation",
         "model": "AC-4200",
         "firmwareVersion": "3.1.4",
@@ -4620,17 +4704,17 @@ classes:
       "featureOfInterest": { "onvif": "Vehicle" },
       "procedure": { "onvif": "Analytics" },
       "observedTime": {
-        "@type": "ISO8601Timestamp",
+        "@type": "onvif:ISO8601Timestamp",
         "timestamp": "2026-11-03T10:15:00.000Z"
       },
       "observedSpace": {
-        "@type": "GeoPoint",
+        "@type": "hackathon2026:GeoPoint",
         "latitude": 19.4326,
         "longitude": -99.1332,
         "horizontalAccuracy": 2.5
       },
       "result": {
-        "@type": "VehicleDetectionResult",
+        "@type": "hackathon2026:VehicleDetectionResult",
         "plate": "NPA-518-C",
         "trackId": "entry-track-8841"
       }
@@ -4643,12 +4727,12 @@ classes:
     }
   ],
   "signature": {
-    "@type": "OnvifSignature",
+    "@type": "onvif:OnvifSignature",
     "digestAlgorithm": "SHA256",
     "signatureAlgorithm": "ECDSA_P256_SHA256",
     "created": "2026-11-03T10:15:00.180Z",
     "key": {
-      "@type": "PublicKeyIdentifier",
+      "@type": "onvif:PublicKeyIdentifier",
       "keyId": "cam-entry-signing-1",
       "fingerprints": [
         {
@@ -4678,20 +4762,62 @@ classes:
         Were the two cameras channels of one device, the provenance would name the same device twice
         and the <code>entity</code> field would be what told the two video sources apart.</para>
       <programlisting>{
-  "@context": "https://www.onvif.org/ver10/agentic/linkml/",
-  "@type": "InformationEnvelope",
+  "@context": {
+    "@version": 1.1,
+    "@vocab": "https://www.onvif.org/ver10/agentic/linkml/",
+    "onvif": {
+      "@id": "https://www.onvif.org/ver10/agentic/linkml/",
+      "@prefix": true
+    },
+    "hackathon2026": {
+      "@id": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/",
+      "@prefix": true
+    },
+    "hackathon2026:ONVIFDevice": {
+      "@id": "hackathon2026:ONVIFDevice",
+      "@context": {
+        "manufacturer": "hackathon2026:manufacturer",
+        "model": "hackathon2026:model",
+        "firmwareVersion": "hackathon2026:firmwareVersion",
+        "serialNumber": "hackathon2026:serialNumber",
+        "hardwareId": "hackathon2026:hardwareId",
+        "entity": {
+          "@id": "hackathon2026:entity",
+          "@context": { "token": "hackathon2026:token" }
+        },
+        "publicKeys": "hackathon2026:publicKeys"
+      }
+    },
+    "hackathon2026:GeoPoint": {
+      "@id": "hackathon2026:GeoPoint",
+      "@context": {
+        "latitude": "hackathon2026:latitude",
+        "longitude": "hackathon2026:longitude",
+        "altitude": "hackathon2026:altitude",
+        "horizontalAccuracy": "hackathon2026:horizontalAccuracy"
+      }
+    },
+    "hackathon2026:VehicleDetectionResult": {
+      "@id": "hackathon2026:VehicleDetectionResult",
+      "@context": {
+        "plate": "hackathon2026:plate",
+        "trackId": "hackathon2026:trackId"
+      }
+    }
+  },
+  "@type": "onvif:InformationEnvelope",
   "id": "9d2e6b14-7f05-4c83-ae62-1b48d07f5c29",
   "items": [
     {
-      "@type": "VehicleDetectionObservation",
+      "@type": "hackathon2026:VehicleDetectionObservation",
       "id": "c87f2a90-3e61-4d58-b0a4-6f19e5c72d3b",
       "confidence": 0.94,
       "productionTime": {
-        "@type": "ISO8601Timestamp",
+        "@type": "onvif:ISO8601Timestamp",
         "timestamp": "2026-11-03T10:15:10.140Z"
       },
       "provenance": {
-        "@type": "ONVIFDevice",
+        "@type": "hackathon2026:ONVIFDevice",
         "manufacturer": "ACME Corporation",
         "model": "AC-4200",
         "firmwareVersion": "3.1.4",
@@ -4713,17 +4839,17 @@ classes:
       "featureOfInterest": { "onvif": "Vehicle" },
       "procedure": { "onvif": "Analytics" },
       "observedTime": {
-        "@type": "ISO8601Timestamp",
+        "@type": "onvif:ISO8601Timestamp",
         "timestamp": "2026-11-03T10:15:10.000Z"
       },
       "observedSpace": {
-        "@type": "GeoPoint",
+        "@type": "hackathon2026:GeoPoint",
         "latitude": 19.434397,
         "longitude": -99.1332,
         "horizontalAccuracy": 2.5
       },
       "result": {
-        "@type": "VehicleDetectionResult",
+        "@type": "hackathon2026:VehicleDetectionResult",
         "plate": "NPA-518-C",
         "trackId": "exit-track-2207"
       }
@@ -4736,12 +4862,12 @@ classes:
     }
   ],
   "signature": {
-    "@type": "OnvifSignature",
+    "@type": "onvif:OnvifSignature",
     "digestAlgorithm": "SHA256",
     "signatureAlgorithm": "ECDSA_P256_SHA256",
     "created": "2026-11-03T10:15:10.200Z",
     "key": {
-      "@type": "PublicKeyIdentifier",
+      "@type": "onvif:PublicKeyIdentifier",
       "keyId": "cam-exit-signing-1",
       "fingerprints": [
         {
@@ -4778,20 +4904,61 @@ classes:
         its own, so a detection copied into this envelope would be covered by the signature of the
         box and would no longer be evidence of what the camera said.</para>
       <programlisting>{
-  "@context": "https://www.onvif.org/ver10/agentic/linkml/",
-  "@type": "InformationEnvelope",
+  "@context": {
+    "@version": 1.1,
+    "@vocab": "https://www.onvif.org/ver10/agentic/linkml/",
+    "onvif": {
+      "@id": "https://www.onvif.org/ver10/agentic/linkml/",
+      "@prefix": true
+    },
+    "hackathon2026": {
+      "@id": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/",
+      "@prefix": true
+    },
+    "hackathon2026:AnalyticsModule": {
+      "@id": "hackathon2026:AnalyticsModule",
+      "@context": {
+        "token": "hackathon2026:token",
+        "algorithm": "hackathon2026:algorithm",
+        "version": "hackathon2026:version",
+        "entity": {
+          "@id": "hackathon2026:entity",
+          "@context": { "token": "hackathon2026:token" }
+        },
+        "publicKeys": "hackathon2026:publicKeys"
+      }
+    },
+    "hackathon2026:GeoPoint": {
+      "@id": "hackathon2026:GeoPoint",
+      "@context": {
+        "latitude": "hackathon2026:latitude",
+        "longitude": "hackathon2026:longitude",
+        "altitude": "hackathon2026:altitude",
+        "horizontalAccuracy": "hackathon2026:horizontalAccuracy"
+      }
+    },
+    "hackathon2026:SpeedEstimateResult": {
+      "@id": "hackathon2026:SpeedEstimateResult",
+      "@context": {
+        "speed": "hackathon2026:speed",
+        "travelTime": "hackathon2026:travelTime",
+        "baselineDistance": "hackathon2026:baselineDistance"
+      }
+    }
+  },
+  "@type": "onvif:InformationEnvelope",
   "id": "5a6d0c31-8b74-4e12-97f3-2c50ad81e46f",
   "items": [
     {
-      "@type": "SpeedEstimateObservation",
+      "@type": "hackathon2026:SpeedEstimateObservation",
       "id": "e2b95f47-1a68-4c30-8d59-73f04b2ea915",
       "confidence": 0.9,
       "productionTime": {
-        "@type": "ISO8601Timestamp",
+        "@type": "onvif:ISO8601Timestamp",
         "timestamp": "2026-11-03T10:15:10.480Z"
       },
       "provenance": {
-        "@type": "AnalyticsModule",
+        "@type": "hackathon2026:AnalyticsModule",
         "token": "SpeedEstimate_1",
         "algorithm": "two-point-transit-speed",
         "version": "1.4.2",
@@ -4812,11 +4979,11 @@ classes:
         "custom": "urn:onvif-hackathon:procedure:two-point-transit-speed"
       },
       "observedTime": {
-        "@type": "ISO8601Interval",
+        "@type": "onvif:ISO8601Interval",
         "intervalString": "2026-11-03T10:15:00.000Z/2026-11-03T10:15:10.000Z"
       },
       "observedSpace": {
-        "@type": "GeoPoint",
+        "@type": "hackathon2026:GeoPoint",
         "latitude": 19.434397,
         "longitude": -99.1332,
         "horizontalAccuracy": 2.5
@@ -4826,22 +4993,22 @@ classes:
         "c87f2a90-3e61-4d58-b0a4-6f19e5c72d3b"
       ],
       "result": {
-        "@type": "SpeedEstimateResult",
+        "@type": "hackathon2026:SpeedEstimateResult",
         "speed": 72.0,
         "travelTime": 10.0,
         "baselineDistance": 200.0
       }
     },
     {
-      "@type": "ObservationsCollection",
+      "@type": "onvif:ObservationsCollection",
       "id": "7c3d81f6-4b20-49ae-b165-0e8a2d94f37c",
       "confidence": 1.0,
       "productionTime": {
-        "@type": "ISO8601Timestamp",
+        "@type": "onvif:ISO8601Timestamp",
         "timestamp": "2026-11-03T10:15:10.520Z"
       },
       "provenance": {
-        "@type": "AnalyticsModule",
+        "@type": "hackathon2026:AnalyticsModule",
         "token": "SpeedEstimate_1",
         "algorithm": "two-point-transit-speed",
         "version": "1.4.2",
@@ -4875,12 +5042,12 @@ classes:
     }
   ],
   "signature": {
-    "@type": "OnvifSignature",
+    "@type": "onvif:OnvifSignature",
     "digestAlgorithm": "SHA256",
     "signatureAlgorithm": "ECDSA_P256_SHA256",
     "created": "2026-11-03T10:15:10.560Z",
     "key": {
-      "@type": "PublicKeyIdentifier",
+      "@type": "onvif:PublicKeyIdentifier",
       "keyId": "box-signing-1",
       "fingerprints": [
         {
@@ -4925,20 +5092,52 @@ classes:
         own result, so that it can be read and acted upon without any reference being
         resolved.</para>
       <programlisting>{
-  "@context": "https://www.onvif.org/ver10/agentic/linkml/",
-  "@type": "InformationEnvelope",
+  "@context": {
+    "@version": 1.1,
+    "@vocab": "https://www.onvif.org/ver10/agentic/linkml/",
+    "onvif": {
+      "@id": "https://www.onvif.org/ver10/agentic/linkml/",
+      "@prefix": true
+    },
+    "hackathon2026": {
+      "@id": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/",
+      "@prefix": true
+    },
+    "hackathon2026:SoftwareService": {
+      "@id": "hackathon2026:SoftwareService",
+      "@context": {
+        "name": "hackathon2026:name",
+        "vendor": "hackathon2026:vendor",
+        "version": "hackathon2026:version",
+        "instanceId": "hackathon2026:instanceId",
+        "publicKeys": "hackathon2026:publicKeys"
+      }
+    },
+    "hackathon2026:SpeedingAssessmentResult": {
+      "@id": "hackathon2026:SpeedingAssessmentResult",
+      "@context": {
+        "measuredSpeed": "hackathon2026:measuredSpeed",
+        "speedLimit": "hackathon2026:speedLimit",
+        "plate": "hackathon2026:plate",
+        "excess": "hackathon2026:excess",
+        "tolerance": "hackathon2026:tolerance",
+        "rule": "hackathon2026:rule"
+      }
+    }
+  },
+  "@type": "onvif:InformationEnvelope",
   "id": "1f40e7b3-5d92-4a68-8c07-b3e1459da280",
   "items": [
     {
-      "@type": "SpeedingAssessment",
+      "@type": "hackathon2026:SpeedingAssessment",
       "id": "a5e18c62-9f43-4b07-8d21-6c70e21fb945",
       "confidence": 0.99,
       "productionTime": {
-        "@type": "ISO8601Timestamp",
+        "@type": "onvif:ISO8601Timestamp",
         "timestamp": "2026-11-03T10:15:12.000Z"
       },
       "provenance": {
-        "@type": "SoftwareService",
+        "@type": "hackathon2026:SoftwareService",
         "name": "speeding-assessment-service",
         "vendor": "ACME Corporation",
         "version": "2.0.1",
@@ -4959,7 +5158,7 @@ classes:
         "7c3d81f6-4b20-49ae-b165-0e8a2d94f37c"
       ],
       "result": {
-        "@type": "SpeedingAssessmentResult",
+        "@type": "hackathon2026:SpeedingAssessmentResult",
         "measuredSpeed": 72.0,
         "speedLimit": 50.0,
         "plate": "NPA-518-C",
@@ -4976,12 +5175,12 @@ classes:
     }
   ],
   "signature": {
-    "@type": "OnvifSignature",
+    "@type": "onvif:OnvifSignature",
     "digestAlgorithm": "SHA256",
     "signatureAlgorithm": "ECDSA_P256_SHA256",
     "created": "2026-11-03T10:15:12.080Z",
     "key": {
-      "@type": "PublicKeyIdentifier",
+      "@type": "onvif:PublicKeyIdentifier",
       "keyId": "fines-service-signing-1",
       "fingerprints": [
         {
@@ -5117,7 +5316,7 @@ classes:
     "structuredContent": {
       "function": "speeding_assessment",
       "capabilities": {
-        "@type": "SpeedingAssessmentCapabilities",
+        "@type": "hackathon2026:SpeedingAssessmentCapabilities",
         "minimumSpeedLimit": 10.0,
         "maximumSpeedLimit": 130.0,
         "maximumTolerance": 10.0,
@@ -5140,7 +5339,7 @@ classes:
     "arguments": {
       "function": "speeding_assessment",
       "config": {
-        "@type": "SpeedingAssessmentConfig",
+        "@type": "hackathon2026:SpeedingAssessmentConfig",
         "speedLimit": 50.0,
         "tolerance": 3.0,
         "rule": "urn:onvif-hackathon:rule:urban-speed-limit",
@@ -5169,7 +5368,7 @@ classes:
     "structuredContent": {
       "function": "speeding_assessment",
       "applied": {
-        "@type": "SpeedingAssessmentConfig",
+        "@type": "hackathon2026:SpeedingAssessmentConfig",
         "speedLimit": 50.0,
         "tolerance": 3.0,
         "rule": "urn:onvif-hackathon:rule:urban-speed-limit",
@@ -5205,9 +5404,9 @@ classes:
     "arguments": {
       "function": "speeding_assessment",
       "parameters": {
-        "@type": "SpeedingAssessmentExecutionParameters",
+        "@type": "hackathon2026:SpeedingAssessmentExecutionParameters",
         "validity": {
-          "@type": "ISO8601Interval",
+          "@type": "onvif:ISO8601Interval",
           "intervalString": "2026-11-03T08:00:00Z/2026-11-03T20:00:00Z"
         },
         "dryRun": false
@@ -5234,7 +5433,7 @@ classes:
     "resultType": "complete",
     "content": [{ "type": "text", "text": "Execution exec_speeding_001 started." }],
     "structuredContent": {
-      "@type": "SpeedingAssessmentExecutionResult",
+      "@type": "hackathon2026:SpeedingAssessmentExecutionResult",
       "executionId": "exec_speeding_001",
       "startedAt": "2026-11-03T09:58:41Z"
     }

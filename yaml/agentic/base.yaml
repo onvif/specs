@@ -22,12 +22,13 @@ classes:
     attributes:
       '@type':
         designates_type: true
-        range: string
+        range: curie
         required: true
         description: >-
-          The local name of the concrete class this object instantiates, for
-          example ObservationsCollection. It is the field by which an ONVIF
-          Client determines what it has received.
+          The CURIE of the concrete class this object instantiates, for example
+          onvif:ObservationsCollection or
+          hackathon2026:VehicleDetectionObservation. It is the field by which
+          an ONVIF Client determines what it has received.
 
           Every abstract class of this model that is used as the range of a
           nested slot declares a slot of this kind, and only such classes do.
@@ -46,8 +47,10 @@ classes:
           class is then fixed by the schema itself, and the field would only
           repeat what is already known.
 
-          The value is the local name of the class, written exactly as this
-          specification spells it, without a namespace prefix.
+          The value shall expand, through the inline JSON-LD context of the
+          enclosing InformationEnvelope, to the class_uri of the concrete
+          class. The prefix is therefore part of the wire representation and
+          distinguishes classes with the same local name in different modules.
 
           An item cited by another item through its identifier carries this
           field as well, which is what allows the citing ONVIF Client to
@@ -101,38 +104,36 @@ classes:
       carry a single envelope-level signature.
     attributes:
       '@context':
-        range: uri
+        range: Any
         required: true
-        equals_string: 'https://www.onvif.org/ver10/agentic/linkml/'
         description: >-
-          The vocabulary namespace the bare class names in this payload belong
-          to. It appears once per envelope and nowhere else: an enclosed item
-          declares its class and not its vocabulary, because every item in one
-          envelope draws its classes from the same bundle.
+          Inline JSON-LD context for the envelope. It appears once per envelope
+          and provides every prefix and term mapping needed to expand the
+          CURIE-valued @type fields and the unqualified JSON property names in
+          the payload.
 
-          The value is fixed to the namespace of this specification and is the
-          same for every ONVIF Device, since every device draws its types from
-          the same bundle. It is fixed here rather than left to the producer
-          because a payload that named another vocabulary would give the bare
-          names in it another meaning, and an ONVIF Client validating against
-          this bundle would be validating the wrong thing. Declaring the slot
-          with a uri range alone would not constrain it: a uri range admits any
-          string whatsoever, so the constant is stated as the value of the slot.
-
-          The URI is not required to be dereferenceable. An ONVIF Client that
-          performs full JSON-LD processing builds the context itself from the
-          LinkML modules the ONVIF Device serves as resources, which it has
-          already loaded when it established the session.
+          The context is generated from the same closure of LinkML modules
+          against which the envelope is validated. It shall select JSON-LD 1.1,
+          bind @vocab and the onvif prefix to
+          https://www.onvif.org/ver10/agentic/linkml/, and shall include every
+          additional prefix used by a third-party module represented in the
+          envelope. A third-party class that declares attributes of its own is
+          represented by a type-scoped context mapping those unqualified JSON
+          property names to their slot_uri values. Its shape is intentionally
+          open because those modules and their terms are not known by this
+          schema in advance; JSON-LD validation checks that its mappings agree
+          with the class_uri and slot_uri values of the loaded modules.
       '@type':
         designates_type: true
-        range: string
+        range: curie
         required: true
         description: >-
-          The class of the envelope, being the name InformationEnvelope. The
-          slot is present although the class of this object is never in doubt,
-          because the envelope is the outermost object of a payload and nothing
-          encloses it that could state its class: an ONVIF Client routes what
-          arrives on the strength of what the payload says about itself.
+          The class of the envelope, being the CURIE
+          onvif:InformationEnvelope. The slot is present although the class of
+          this object is never in doubt, because the envelope is the outermost
+          object of a payload and nothing encloses it that could state its
+          class: an ONVIF Client routes what arrives on the strength of what the
+          payload says about itself.
 
           This is the same slot, and the same obligation, that InformationItem
           declares for the items inside; see the description there for what the
@@ -179,10 +180,10 @@ classes:
     attributes:
       '@type':
         designates_type: true
-        range: string
+        range: curie
         required: true
         description: >-
-          The local name of the concrete provenance descriptor this object
+          The CURIE of the concrete provenance descriptor this object
           instantiates. It is required for the reason given for the type
           designator of InformationItem.
       extensible:
@@ -203,10 +204,10 @@ classes:
     attributes:
       '@type':
         designates_type: true
-        range: string
+        range: curie
         required: true
         description: >-
-          The local name of the concrete spatial descriptor this object
+          The CURIE of the concrete spatial descriptor this object
           instantiates. It is required for the reason given for the type
           designator of InformationItem.
       extensible:
@@ -357,10 +358,10 @@ classes:
     attributes:
       '@type':
         designates_type: true
-        range: string
+        range: curie
         required: true
         description: >-
-          The local name of the concrete result class this object instantiates.
+          The CURIE of the concrete result class this object instantiates.
           It is required for the reason given for the type designator of
           InformationItem.
 
@@ -568,10 +569,10 @@ classes:
     attributes:
       '@type':
         designates_type: true
-        range: string
+        range: curie
         required: true
         description: >-
-          The local name of the concrete result class this object instantiates.
+          The CURIE of the concrete result class this object instantiates.
           It is required for the reason given for the type designator of
           InformationItem, and for the reason given for the type designator of
           ObservationResult.
@@ -642,4 +643,3 @@ classes:
           an information item the ONVIF Client has already received. The
           acyclicity, productionTime ordering and traceability rules stated for
           Observation.supportedBy apply here as well.
-
