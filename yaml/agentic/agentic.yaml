@@ -339,8 +339,6 @@ classes:
       keepaliveIntervalMs:
         range: integer
         required: false
-        minimum_value: 1000
-        maximum_value: 3600000
         unit:
           ucum_code: ms
         description: >-
@@ -349,8 +347,9 @@ classes:
           omitted the ONVIF Device applies the interval it declares in
           EventStreamCapabilities.defaultKeepaliveIntervalMs; no default value
           is fixed here, because the value is a property of the device and not
-          of this specification. The ONVIF Device clamps the requested value to
-          the range it supports and reports the value actually applied in
+          of this specification. This specification defines no global supported
+          range; the ONVIF Device declares its range in EventStreamCapabilities,
+          clamps the requested value to that range, and reports the value actually applied in
           SetEventStreamParametersResponse.appliedKeepaliveIntervalMs.
       subscriptionId:
         range: integer
@@ -423,9 +422,10 @@ classes:
           Keep-alive interval used by the ONVIF Device when none was requested,
           in milliseconds. This specification fixes no value for it: an ONVIF
           Device chooses one and declares it here, which is why the slot is
-          mandatory while its value is not prescribed. The choice is normally
-          made with the default request timeout of an ONVIF Client in mind,
-          which is a matter for MCP and not for this specification.
+          mandatory while its value is not prescribed. The MCP Events draft
+          recommends that a server send a heartbeat at least every 30 seconds;
+          that recommendation does not prescribe an ONVIF Device default or
+          supported range.
       minKeepaliveIntervalMs:
         range: integer
         required: true
