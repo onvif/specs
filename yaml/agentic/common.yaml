@@ -89,6 +89,24 @@ types:
       allows a key named here to be looked up in the keystore of the device.
     pattern: '^[A-Za-z_][A-Za-z0-9._-]{0,63}$'
 
+slots:
+
+  '@type':
+    designates_type: true
+    range: curie
+    required: true
+    description: >-
+      CURIE of the concrete class instantiated by this object. The value shall
+      expand through the applicable JSON-LD context to the class_uri of that
+      class. It lets an ONVIF Client select and validate a concrete descendant
+      where the declared range is abstract, without inferring the class from
+      the fields present in the object.
+
+  extensible:
+    range: Extensible
+    required: false
+    description: Optional vendor extension container.
+
 classes:
 
   Extensible:
@@ -104,11 +122,10 @@ classes:
     comments:
       - 'Declare an optional slot "extensible" with range Extensible on a class
         that supports vendor extensions. Do not inherit it with is_a.'
-    attributes:
+    slots:
+      - '@type'
+    slot_usage:
       '@type':
-        designates_type: true
-        range: curie
-        required: true
         description: >-
           The CURIE of the concrete extension container this object
           instantiates, onvif:VendorExtension or onvif:VendorExtensible. It is

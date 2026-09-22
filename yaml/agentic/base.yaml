@@ -13,67 +13,44 @@ imports:
 default_prefix: onvif
 default_range: string
 
+slots:
+
+  id:
+    range: UUID
+    identifier: true
+    required: true
+    description: >-
+      Identifier of the information item or envelope. It shall be unique across
+      every item or envelope the ONVIF Device emits, and shall never be reused.
+
+      It is carried on the wire as a bare UUID string and is the JSON-LD node
+      identifier of the item or envelope. A bare UUID is a relative IRI
+      reference; the inline context of the envelope aliases id to @id and
+      declares a fixed @base, https://www.onvif.org/ver10/agentic/id/, against
+      which it resolves, so the item or envelope designates the same node
+      wherever the envelope is read. The references that items make to it
+      resolve against the same base. JSON-LD processing remains optional: an
+      ONVIF Client may equally resolve references by comparing identifier
+      strings.
+
+  supportedBy:
+    range: UUID
+    multivalued: true
+    inlined: false
+    required: false
+    description: Identifiers of information items supporting this item.
+
 classes:
 
   InformationItem:
     abstract: true
     description: >-
       Abstract base container for a single unit of information.
+    slots:
+      - '@type'
+      - id
+      - extensible
     attributes:
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The CURIE of the concrete class this object instantiates, for example
-          onvif:ObservationsCollection or
-          hackathon2026:VehicleDetectionObservation. It is the field by which
-          an ONVIF Client determines what it has received.
-
-          Every abstract class of this model that is used as the range of a
-          nested slot declares a slot of this kind, and only such classes do.
-          The rule has a single reason: a range that names an abstract class
-          says nothing about the contents of the object, since an abstract
-          class carries no fields of its own beyond this designator. Without
-          the designator the compiled JSON Schema admits nothing at all, and an
-          ONVIF Client that received such an object would have no way of
-          learning which concrete class it is looking at. With it, the schema
-          admits exactly the concrete descendants of the abstract class, each
-          recognised by the value of this field, and the ONVIF Client reads the
-          class from the object rather than guessing it from the fields that
-          happen to be present.
-
-          A class whose range is already concrete does not declare it: the
-          class is then fixed by the schema itself, and the field would only
-          repeat what is already known.
-
-          The value shall expand, through the inline JSON-LD context of the
-          enclosing InformationEnvelope, to the class_uri of the concrete
-          class. The prefix is therefore part of the wire representation and
-          distinguishes classes with the same local name in different modules.
-
-          An item cited by another item through its identifier carries this
-          field as well, which is what allows the citing ONVIF Client to
-          determine the class of the cited item once it resolves the reference;
-          the reference itself carries only the identifier, as specified for the
-          UUID type.
-      id:
-        range: UUID
-        identifier: true
-        required: true
-        description: >-
-          Identifier of the information item. It shall be unique across every
-          item the ONVIF Device emits, and shall never be reused.
-
-          It is carried on the wire as a bare UUID string and is the JSON-LD
-          node identifier of the item. A bare UUID is a relative IRI reference;
-          the inline context of the enclosing envelope aliases id to @id and
-          declares a fixed @base, https://www.onvif.org/ver10/agentic/id/,
-          against which it resolves, so the item designates the same node
-          wherever the envelope is read. The references that other items make
-          to it resolve against the same base. JSON-LD processing remains
-          optional: an ONVIF Client may equally resolve references by comparing
-          identifier strings.
       confidence:
         range: Likelihood
         required: true
@@ -95,10 +72,6 @@ classes:
         range: Provenance
         required: true
         description: Provenance of the information item.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
 
   InformationEnvelope:
     abstract: false
@@ -106,6 +79,9 @@ classes:
     description: >-
       Optional container that groups one or more information items and may
       carry a single envelope-level signature.
+    slots:
+      - '@type'
+      - id
     attributes:
       '@context':
         range: Any
@@ -135,30 +111,6 @@ classes:
           schema in advance; JSON-LD validation checks that its mappings agree
           with the class_uri and slot_uri values of the loaded modules, and
           that the identifier mappings are exactly those specified.
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The class of the envelope, being the CURIE
-          onvif:InformationEnvelope. The slot is present although the class of
-          this object is never in doubt, because the envelope is the outermost
-          object of a payload and nothing encloses it that could state its
-          class: an ONVIF Client routes what arrives on the strength of what the
-          payload says about itself.
-
-          This is the same slot, and the same obligation, that InformationItem
-          declares for the items inside; see the description there for what the
-          designator does and why a nested object carries it.
-      id:
-        range: UUID
-        identifier: true
-        required: true
-        description: >-
-          Identifier of the envelope. It is carried on the wire as a bare UUID
-          string and is the JSON-LD node identifier of the envelope, resolved
-          against the fixed base of the inline context, as described for the
-          identifier of InformationItem.
       items:
         range: InformationItem
         multivalued: true
@@ -201,19 +153,9 @@ classes:
       Abstract provenance descriptor for an InformationItem. It answers the
       question of who is asserting the information, and is specialised by
       concrete classes describing a particular kind of producer.
-    attributes:
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The CURIE of the concrete provenance descriptor this object
-          instantiates. It is required for the reason given for the type
-          designator of InformationItem.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - '@type'
+      - extensible
 
   Location:
     abstract: true
@@ -225,19 +167,9 @@ classes:
       or by its geometry. Either form is introduced as a concrete subclass, by a
       future revision of this specification or by a vendor extension, without
       changing Observation.
-    attributes:
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The CURIE of the concrete spatial descriptor this object
-          instantiates. It is required for the reason given for the type
-          designator of InformationItem.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - '@type'
+      - extensible
 
   FeatureOfInterest:
     abstract: false
@@ -379,26 +311,9 @@ classes:
       kind of result. The pairing is one to one: a result class belongs to the
       observation class that declares it, and is not shared between observation
       classes that happen to measure something similar.
-    attributes:
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The CURIE of the concrete result class this object instantiates.
-          It is required for the reason given for the type designator of
-          InformationItem.
-
-          The field is present even though the class of the result follows from
-          the class of the observation that carries it, because the slot is
-          declared on the abstract Observation with an abstract range: what the
-          concrete observation narrows in slot_usage is not what the abstract
-          declaration admits, and an ONVIF Client validating against the
-          abstract form relies on this field alone.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - '@type'
+      - extensible
 
   Observation:
     abstract: true
@@ -425,6 +340,8 @@ classes:
       items can feed both: an average speed of 82 km/h is an Observation derived
       from positions and times, while the statement that this speed exceeds the
       limit in force at that place is an Assessment.
+    slots:
+      - supportedBy
     attributes:
       result:
         range: ObservationResult
@@ -502,14 +419,11 @@ classes:
         range: Location
         required: false
         description: Spatial context observed by this observation.
+    slot_usage:
       supportedBy:
-        range: UUID
         any_of:
           - range: Observation
           - range: ObservationsCollection
-        multivalued: true
-        inlined: false
-        required: false
         description: >-
           Identifiers of the observations this observation was derived from. The
           field is omitted, or carries an empty list, for a direct observation;
@@ -602,20 +516,9 @@ classes:
       checkable - the measured value, the threshold it was compared against, the
       rule that fixed the threshold - and not a flag repeating that the
       conclusion was reached.
-    attributes:
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The CURIE of the concrete result class this object instantiates.
-          It is required for the reason given for the type designator of
-          InformationItem, and for the reason given for the type designator of
-          ObservationResult.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - '@type'
+      - extensible
 
   Assessment:
     abstract: true
@@ -636,6 +539,8 @@ classes:
       Because a criterion can change while the data do not, the same supporting
       items may be assessed differently by two Assessments, or by a later
       Assessment of the same kind, without any observation being revised.
+    slots:
+      - supportedBy
     attributes:
       result:
         range: AssessmentResult
@@ -657,10 +562,8 @@ classes:
           UNCOMMITTED where it is optional. An assessment that refines only
           range and required inherits the prohibition and is a class no payload
           can satisfy.
+    slot_usage:
       supportedBy:
-        range: UUID
-        multivalued: true
-        inlined: false
         required: true
         minimum_cardinality: 1
         description: >-
