@@ -1548,7 +1548,7 @@ h3 {
    <xsl:template match="xsd:sequence" mode="operations.message.part">
 	     <xsl:param name="anti.recursion"/>
    	<ul type="square" style='margin-top:2px'>
-		       <xsl:apply-templates select="xsd:element|xsd:complextType" mode="operations.message.part">
+		       <xsl:apply-templates select="xsd:element|xsd:complexType" mode="operations.message.part">
 			         <xsl:with-param name="anti.recursion" select="$anti.recursion"/>
 		       </xsl:apply-templates>
 	     	<xsl:text xml:space="preserve"> </xsl:text> <!-- trick to avoid empty <ul/> sections -->
