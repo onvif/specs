@@ -881,7 +881,7 @@
 				</xs:attribute>
 				<xs:attribute name="SetupDuration" type="xs:duration">
 					<xs:annotation>
-						<xs:documentation>Indicates the maximum time taken for updated TLS server settings to take effect.</xs:documentation>
+						<xs:documentation>Indicates the maximum time taken for updated TLS server settings, including secure streaming TLS certificate assignments, to take effect.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<!-- ========================================= -->
@@ -1064,6 +1064,23 @@
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
+			<xs:complexType name="SecureStreamingTLSCapabilities">
+				<xs:annotation>
+					<xs:documentation>The capabilities of certificate provisioning for the secure streaming TLS server on a device.</xs:documentation>
+				</xs:annotation>
+				<xs:attribute name="SecureStreamingTLSSupported" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates whether the device supports provisioning of certificates (certification paths) for the secure streaming TLS server, e.g. for RTSPS as defined in the ONVIF Streaming Specification.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="MaximumNumberOfSecureStreamingTLSCertificationPaths" type="xs:positiveInteger">
+					<xs:annotation>
+						<xs:documentation>Indicates the maximum number of certification paths that may be assigned to the secure streaming TLS server simultaneously.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->
 			<xs:complexType name="Capabilities">
 				<xs:annotation>
 					<xs:documentation>The capabilities of a Security Configuration Service implementation on a device.</xs:documentation>
@@ -1092,6 +1109,11 @@
 					<xs:element name="MediaSigning" type="tas:MediaSigningCapabilities" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>The capabilities of the media signing implementation.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="SecureStreamingTLS" type="tas:SecureStreamingTLSCapabilities" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The capabilities of the secure streaming TLS server implementation.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="lax"/>   <!-- first ONVIF then Vendor -->
@@ -2486,6 +2508,63 @@
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:element name="AddSecureStreamingCertificateAssignment">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="AddSecureStreamingCertificateAssignmentResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="RemoveSecureStreamingCertificateAssignment">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="RemoveSecureStreamingCertificateAssignmentResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="ReplaceSecureStreamingCertificateAssignment">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="OldCertificationPathID" type="tas:CertificationPathID"/>
+						<xs:element name="NewCertificationPathID" type="tas:CertificationPathID"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="ReplaceSecureStreamingCertificateAssignmentResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetAssignedSecureStreamingCertificates">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetAssignedSecureStreamingCertificatesResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>The IDs of all certification paths that are assigned to the secure streaming TLS server on the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
 			<xs:element name="GetAuthorizationServerConfigurations">
 				<xs:complexType>
 					<xs:sequence>
@@ -2892,6 +2971,30 @@
 	</wsdl:message>
 	<wsdl:message name="GetAssignedMediaSigningCertificatesResponse">
 		<wsdl:part name="parameters" element="tas:GetAssignedMediaSigningCertificatesResponse"/>
+	</wsdl:message>
+	<wsdl:message name="AddSecureStreamingCertificateAssignmentRequest">
+		<wsdl:part name="parameters" element="tas:AddSecureStreamingCertificateAssignment"/>
+	</wsdl:message>
+	<wsdl:message name="AddSecureStreamingCertificateAssignmentResponse">
+		<wsdl:part name="parameters" element="tas:AddSecureStreamingCertificateAssignmentResponse"/>
+	</wsdl:message>
+	<wsdl:message name="RemoveSecureStreamingCertificateAssignmentRequest">
+		<wsdl:part name="parameters" element="tas:RemoveSecureStreamingCertificateAssignment"/>
+	</wsdl:message>
+	<wsdl:message name="RemoveSecureStreamingCertificateAssignmentResponse">
+		<wsdl:part name="parameters" element="tas:RemoveSecureStreamingCertificateAssignmentResponse"/>
+	</wsdl:message>
+	<wsdl:message name="ReplaceSecureStreamingCertificateAssignmentRequest">
+		<wsdl:part name="parameters" element="tas:ReplaceSecureStreamingCertificateAssignment"/>
+	</wsdl:message>
+	<wsdl:message name="ReplaceSecureStreamingCertificateAssignmentResponse">
+		<wsdl:part name="parameters" element="tas:ReplaceSecureStreamingCertificateAssignmentResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetAssignedSecureStreamingCertificatesRequest">
+		<wsdl:part name="parameters" element="tas:GetAssignedSecureStreamingCertificates"/>
+	</wsdl:message>
+	<wsdl:message name="GetAssignedSecureStreamingCertificatesResponse">
+		<wsdl:part name="parameters" element="tas:GetAssignedSecureStreamingCertificatesResponse"/>
 	</wsdl:message>
 	<wsdl:message name="GetAuthorizationServerConfigurationsRequest">
 		<wsdl:part name="parameters" element="tas:GetAuthorizationServerConfigurations"/>
@@ -3578,6 +3681,52 @@
 			<wsdl:output message="tas:GetAssignedMediaSigningCertificatesResponse"/>
 		</wsdl:operation>
   </wsdl:portType>
+	<wsdl:portType name="SecureStreamingTLS">
+		<wsdl:documentation>Secure streaming TLS server certificate provisioning operations. A device signaling the SecureStreamingTLSSupported capability shall support the operations defined by this port type. The operations manage the certification paths that the secure streaming TLS server shall present during setup of secure media streaming sessions, e.g. RTSPS sessions as defined in the ONVIF Streaming Specification. Changes to certification path assignments made by these operations may not take effect immediately for new TLS handshakes. The maximum time for these changes to take effect is indicated by the SetupDuration capability defined for the TLS server.</wsdl:documentation>
+		<wsdl:operation name="AddSecureStreamingCertificateAssignment">
+			<wsdl:documentation>
+				This operation assigns a key pair and certificate along with a certification path (certificate chain) to the secure streaming TLS server on the device. The secure streaming TLS server shall use this information for key exchange during the TLS handshake, particularly for constructing server certificate messages.<br/>
+				Certification paths are identified by their certification path IDs in the keystore. The first certificate in the certification path must be the secure streaming server certificate.<br/>
+				Since each certificate has exactly one associated key pair, a reference to the key pair that is associated with the server certificate is not supplied explicitly.<br/>
+				In order to use the server certificate during the TLS handshake, the corresponding private key is required. Therefore, if the key pair that is associated with the server certificate, i.e., the first certificate in the certification path, does not have an associated private key, the NoPrivateKey fault is produced and the certification path is not associated to the secure streaming TLS server.<br/>
+				A secure streaming TLS server may present different certification paths to different clients during the TLS handshake instead of presenting the same certification path to all clients. Therefore more than one certification path may be assigned to the secure streaming TLS server.<br/>
+				If the maximum number of certification paths that may be assigned to the secure streaming TLS server simultaneously is reached, the device shall generate a MaximumNumberOfSecureStreamingTLSCertificationPathsReached fault and the requested certification path shall not be assigned to the secure streaming TLS server.<br/>
+				If no certification path is assigned to the secure streaming TLS server, the device may present the certification path(s) assigned to the TLS server on the device as specified by AddServerCertificateAssignment.<br/>
+				A device shall support this command if the SecureStreamingTLSSupported capability is true.
+			</wsdl:documentation>
+			<wsdl:input message="tas:AddSecureStreamingCertificateAssignmentRequest"/>
+			<wsdl:output message="tas:AddSecureStreamingCertificateAssignmentResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="RemoveSecureStreamingCertificateAssignment">
+			<wsdl:documentation>
+				This operation removes a key pair and certificate assignment (including certification path) to the secure streaming TLS server on the device.<br/>
+				Certification paths are identified using certification path IDs. If the supplied certification path ID is not associated to the secure streaming TLS server, an InvalidArgVal fault is produced.<br/>
+				A device shall support this command if the SecureStreamingTLSSupported capability is true.
+			</wsdl:documentation>
+			<wsdl:input message="tas:RemoveSecureStreamingCertificateAssignmentRequest"/>
+			<wsdl:output message="tas:RemoveSecureStreamingCertificateAssignmentResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="ReplaceSecureStreamingCertificateAssignment">
+			<wsdl:documentation>
+				This operation replaces an existing key pair and certificate assignment to the secure streaming TLS server on the device by a new key pair and certificate assignment (including certification paths).<br/>
+				After the replacement, the secure streaming TLS server shall use the new certificate and certification path exactly in those cases in which it would have used the old certificate and certification path.<br/>
+				Certification paths are identified using certification path IDs. If the supplied old certification path ID is not associated to the secure streaming TLS server, or no certification path exists under the new certification path ID, the corresponding InvalidArgVal faults are produced and the associations are unchanged.<br/>
+				The first certificate in the new certification path must be the secure streaming server certificate.<br/>
+				A device shall support this command if the SecureStreamingTLSSupported capability is true.
+			</wsdl:documentation>
+			<wsdl:input message="tas:ReplaceSecureStreamingCertificateAssignmentRequest"/>
+			<wsdl:output message="tas:ReplaceSecureStreamingCertificateAssignmentResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetAssignedSecureStreamingCertificates">
+			<wsdl:documentation>
+				This operation returns the IDs of all certification paths that are assigned to the secure streaming TLS server on the device.<br/>
+				This operation may be used, e.g., if a client lost track of the certification path assignments on the device. If no certification path is assigned to the secure streaming TLS server, an empty list is returned.<br/>
+				A device shall support this command if the SecureStreamingTLSSupported capability is true.
+			</wsdl:documentation>
+			<wsdl:input message="tas:GetAssignedSecureStreamingCertificatesRequest"/>
+			<wsdl:output message="tas:GetAssignedSecureStreamingCertificatesResponse"/>
+		</wsdl:operation>
+	</wsdl:portType>
 	<wsdl:portType name="AuthorizationServer">
 		<wsdl:documentation>Configuration of external authorization servers.</wsdl:documentation>
 		<wsdl:operation name="GetAuthorizationServerConfigurations">
@@ -4194,6 +4343,45 @@
 		</wsdl:operation>
 		<wsdl:operation name="GetAssignedMediaSigningCertificates">
 			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetAssignedMediaSigningCertificates"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:binding name="SecureStreamingTLSBinding" type="tas:SecureStreamingTLS">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="AddSecureStreamingCertificateAssignment">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/AddSecureStreamingCertificateAssignment"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="RemoveSecureStreamingCertificateAssignment">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/RemoveSecureStreamingCertificateAssignment"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="ReplaceSecureStreamingCertificateAssignment">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/ReplaceSecureStreamingCertificateAssignment"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetAssignedSecureStreamingCertificates">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetAssignedSecureStreamingCertificates"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
