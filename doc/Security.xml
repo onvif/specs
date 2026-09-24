@@ -244,6 +244,10 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"
         >http://www.onvif.org/specs/stream/ONVIF-MediaSigning-Specification.pdf</link>&gt;</para>
+    <para>ONVIF Streaming Specification</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
+        xlink:href="http://www.onvif.org/specs/stream/ONVIF-Streaming-Specification.pdf"
+        >http://www.onvif.org/specs/stream/ONVIF-Streaming-Specification.pdf</link>&gt;</para>
     <para>IETF RFC 2898 PKCS#5 Password-based Cryptography Specification v2.0</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink"
         xlink:href="http://www.ietf.org/rfc/rfc2898.txt"
@@ -4536,6 +4540,234 @@
           CertificationPathID, followed by GetCertificates.</para>
       </section>
     </section>
+    <section xml:id="section_secure_streaming_tls">
+      <title>Secure Streaming TLS Server</title>
+      <section>
+        <title>Overview</title>
+        <para>Secure real-time streaming sessions are protected using TLS. In particular, RTSPS
+          sessions as defined in the [ONVIF Streaming Specification] use TLS for the RTSP
+          control channel and are signaled by the SecureRTSPStreaming capability of the Media2
+          Service.</para>
+        <para>The secure streaming TLS server terminates the TLS handshake of such secure
+          streaming sessions. This section defines how to manage the associations between
+          certification paths and the secure streaming TLS server, so that a client can provision
+          a certificate dedicated to secure streaming. All other secure streaming TLS server
+          configuration actions are outside the scope of this specification.</para>
+        <para>A device that supports secure streaming shall present the certification path(s)
+          assigned to the secure streaming TLS server to clients during setup of a secure
+          streaming session. If no certification path is assigned to the secure streaming TLS
+          server, the device may present the certification path(s) assigned to the TLS server on
+          the device as specified in AddServerCertificateAssignment.</para>
+        <para>Changes to certification path assignments made by the operations in this section
+          may not take effect immediately for new TLS handshakes. The maximum time for these
+          changes to take effect is indicated by the SetupDuration capability defined for the
+          TLS server.</para>
+        <para>A device shall support the operations defined in this section if the
+          SecureStreamingTLSSupported capability is true.</para>
+      </section>
+      <section>
+        <title>AddSecureStreamingCertificateAssignment</title>
+        <para>This operation assigns a key pair and certificate along with a certification path
+          (certificate chain) to the secure streaming TLS server on the device. The secure
+          streaming TLS server shall use this information for key exchange during the TLS
+          handshake, particularly for constructing server certificate messages.</para>
+        <para>Certification paths are identified by their certification path IDs in the
+          keystore. The first certificate in the certification path shall be the secure
+          streaming server certificate.</para>
+        <para>Since each certificate has exactly one associated key pair, a reference to the key
+          pair that is associated with the server certificate is not supplied explicitly.
+          Devices shall obtain the private key or results of operations under the private key
+          by suitable internal interaction with the keystore.</para>
+        <para>In order to use the server certificate during the TLS handshake, the
+          corresponding private key is required. Therefore, if the key pair that is associated
+          with the server certificate, i.e., the first certificate in the certification path,
+          does not have an associated private key, the NoPrivateKey fault is produced and the
+          certification path is not associated with the secure streaming TLS server.</para>
+        <para>A secure streaming TLS server may present different certification paths to
+          different clients during the TLS handshake instead of presenting the same
+          certification path to all clients. Therefore more than one certification path may be
+          assigned to the secure streaming TLS server. If the maximum number of certification
+          paths that may be assigned to the secure streaming TLS server simultaneously is
+          reached, the device shall generate a
+          MaximumNumberOfSecureStreamingTLSCertificationPathsReached fault and the requested
+          certification path shall not be assigned to the secure streaming TLS server.</para>
+        <para>If the certification path identified by the supplied certification path ID is
+          already assigned to the secure streaming TLS server, this command shall have no
+          effect.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">CertificationPathID - [tas:CertificationPathID]</para>
+              <para role="text">The ID of the certification path to assign to the secure
+                streaming TLS server.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This message is empty.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificationPathID</para>
+              <para role="text">No certification path is stored in the keystore under the given
+                certification path ID.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPrivateKey</para>
+              <para role="text">The key pair that is associated with the first certificate in
+                the certificate chain does not have an associated private key.</para>
+              <para role="param">env:Receiver - ter:Action -
+                ter:MaximumNumberOfSecureStreamingTLSCertificationPathsReached</para>
+              <para role="text">The maximum number of certification paths that may be assigned
+                to the secure streaming TLS server simultaneously is reached.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>RemoveSecureStreamingCertificateAssignment</title>
+        <para>This operation removes a key pair and certificate assignment (including
+          certification path) to the secure streaming TLS server on the device.</para>
+        <para>Certification paths are identified using certification path IDs. If the supplied
+          certification path ID is not associated with the secure streaming TLS server, an
+          InvalidArgVal fault is produced.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">CertificationPathID - [tas:CertificationPathID]</para>
+              <para role="text">The ID of the certification path to remove from the secure
+                streaming TLS server.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This message is empty.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:CertificationPathID</para>
+              <para role="text">No certification path under the given certification path ID is
+                associated with the secure streaming TLS server.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>ReplaceSecureStreamingCertificateAssignment</title>
+        <para>This operation replaces an existing key pair and certificate assignment to the
+          secure streaming TLS server on the device by a new key pair and certificate
+          assignment (including certification paths).</para>
+        <para>After the replacement, the secure streaming TLS server shall use the new
+          certificate and certification path exactly in those cases in which it would have used
+          the old certificate and certification path. Therefore, especially in the case that
+          several server certificates are assigned to the secure streaming TLS server, clients
+          that wish to replace an old certificate assignment by a new assignment should use this
+          operation instead of a combination of the Add Secure Streaming TLS Server Certificate
+          Assignment and the Remove Secure Streaming TLS Server Certificate Assignment
+          operations.</para>
+        <para>Certification paths are identified using certification path IDs. If the supplied
+          old certification path ID is not associated with the secure streaming TLS server, or
+          no certification path exists under the new certification path ID, the corresponding
+          InvalidArgVal faults are produced and the associations are unchanged.</para>
+        <para>The first certificate in the new certification path shall be the secure streaming
+          server certificate.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="param">OldCertificationPathID - [tas:CertificationPathID]</para>
+              <para role="text">The ID of the certification path to remove from the secure
+                streaming TLS server.</para>
+              <para role="param">NewCertificationPathID - [tas:CertificationPathID]</para>
+              <para role="text">The ID of the certification path to assign to the secure
+                streaming TLS server.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="text">This message is empty.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:OldCertificationPathID</para>
+              <para role="text">No certification path under the given certification path ID is
+                associated with the secure streaming TLS server.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NewCertificationPathID</para>
+              <para role="text">No certification path is stored in the keystore under the given
+                certification path ID.</para>
+              <para role="param">env:Sender - ter:InvalidArgVal - ter:NoPrivateKey</para>
+              <para role="text">The key pair that is associated with the leaf certificate in
+                the certificate chain does not have an associated private key.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">WRITE_SYSTEM</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+      <section>
+        <title>GetAssignedSecureStreamingCertificates</title>
+        <para>This operation returns the IDs of all certification paths that are assigned to the
+          secure streaming TLS server on the device.</para>
+        <para>This operation may be used, e.g., if a client lost track of the certification path
+          assignments on the device.</para>
+        <para>If no certification path is assigned to the secure streaming TLS server, an empty
+          list is returned.</para>
+        <variablelist role="op">
+          <varlistentry>
+            <term>request</term>
+            <listitem>
+              <para role="text">This message is empty.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>response</term>
+            <listitem>
+              <para role="param">CertificationPathID - optional, unbounded
+                [tas:CertificationPathID]</para>
+              <para role="text">List of certification path IDs assigned to the secure
+                streaming TLS server.</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>faults</term>
+            <listitem>
+              <para role="text">None</para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>access class</term>
+            <listitem>
+              <para role="access">READ_SYSTEM_SECRET</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
     <section xml:id="section_hd2_5r4_rwb">
       <title>Authorization Server Configuration</title>
       <para>This chapter describes configuration of external authorization servers. For an overview
@@ -5095,7 +5327,8 @@
               </row>
               <row>
                 <entry>SetupDuration</entry>
-                <entry><para>Indicates the maximum time taken for updated TLS server settings to take effect.</para></entry>
+                <entry><para>Indicates the maximum time taken for updated TLS server settings,
+                  including secure streaming TLS certificate assignments, to take effect.</para></entry>
               </row>
             </tbody>
           </tgroup>
@@ -5180,6 +5413,50 @@
                 <entry>
                   <para>Indicates whether the device supports signing of media using a user
                     provisioned key.</para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </section>
+      <section>
+        <title>Secure Streaming TLS Server Capabilities</title>
+        <para>The secure streaming TLS server capabilities reflect optional functionality
+          regarding certificate provisioning for the secure streaming TLS server. The following
+          capabilities are defined:</para>
+        <table>
+          <title>Secure Streaming TLS Server Capabilities</title>
+          <tgroup cols="2">
+            <colspec colname="c1" colwidth="50*"/>
+            <colspec colname="c2" colwidth="50*"/>
+            <thead>
+              <row>
+                <entry>
+                  <para>Capability Name</para>
+                </entry>
+                <entry>
+                  <para>Capability Semantics</para>
+                </entry>
+              </row>
+            </thead>
+            <tbody valign="top">
+              <row>
+                <entry>
+                  <para>SecureStreamingTLSSupported</para>
+                </entry>
+                <entry>
+                  <para>Indicates whether the device supports provisioning of certificates
+                    (certification paths) for the secure streaming TLS server, e.g. for RTSPS as
+                    defined in the [ONVIF Streaming Specification].</para>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <para>MaximumNumberOfSecureStreamingTLSCertificationPaths</para>
+                </entry>
+                <entry>
+                  <para>Indicates the maximum number of certification paths that may be assigned
+                    to the secure streaming TLS server simultaneously.</para>
                 </entry>
               </row>
             </tbody>
