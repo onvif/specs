@@ -643,14 +643,14 @@
 
         </section>
         <section xml:id="_Ref213038219">
-          <title>RTP/RTSP/HTTP/TCP</title>
-          <para>The data stream shall be sent via HTTP to traverse a firewall. A device shall support media transfer using RTP/RTSP/HTTP/TCP. If a device supports TLS, the data stream shall support transmission via HTTPS to traverse a firewall, and a device shall support media transfer using RTP/RTSP/HTTPS/TCP.</para>
+          <title>RTP/RTSP over HTTP or HTTPS/TCP</title>
+          <para>To traverse a firewall, a device shall support one or both of the following media transfer transports: RTP/RTSP/HTTP/TCP and RTP/RTSP/HTTPS/TCP. A device that supports TLS shall support RTP/RTSP/HTTPS/TCP; a device that does not support TLS shall support RTP/RTSP/HTTP/TCP.</para>
           <para>This protocol shall conform to [RFC 2326] Section 10.12.</para>
           <para>This traversal method shall conform to [RTSP over HTTP]. Note that according to this specification all data sent from the client via POST must be base64 encoded.</para>
         </section>
         <section>
           <title>RTP/RTSP/TCP/WebSocket</title>
-          <para>The device indicating support for RTSP over WebSocket, as explained in section 5.11 of the ONVIF Media2 Service Specification and section 5.5 of the ONVIF Replay Control Service Specification, shall support streaming media using WebSocket protocol according to this specification. The provided URI shall set the hierarchical part (hier_part) to absolute path (abs_path) [RFC 2396]. For example, if the WebSocket URI with network path is "ws://1.2.3.4/my-websocket-uri", the provided URI shall be "ws:/my-websocket-uri".</para>
+          <para>The device indicating support for RTSP over WebSocket, as explained in section 5.11 of the ONVIF Media2 Service Specification and section 5.5 of the ONVIF Replay Control Service Specification, shall support streaming media using WebSocket protocol according to this specification. The scheme of the WebSocket URI returned in the service capabilities shall match the scheme used to retrieve those capabilities: the device shall return a <literal>ws</literal> URI when the capabilities are retrieved over HTTP and a <literal>wss</literal> URI when they are retrieved over HTTPS. The provided URI shall set the hierarchical part (hier_part) to absolute path (abs_path) [RFC 2396]. For example, if the WebSocket URI with network path is "ws://1.2.3.4/my-websocket-uri", the provided URI shall be "ws:/my-websocket-uri"; if it is "wss://1.2.3.4/my-websocket-uri", the provided URI shall be "wss:/my-websocket-uri".</para>
           <para>For RTSP tunneling over WebSocket a device shall support RTP/RTSP/TCP interleaved binary data as defined in [RFC 2326] Section 10.12.</para>
           <para>WebSocket protocol implementation shall conform to [RFC 6455] - The WebSocket Protocol.</para>
           <para>The mechanism to be used for establishing a WebSocket connection between a client and server is explained in detail in Section 7.</para>
@@ -1368,7 +1368,7 @@ server->client:     RTSP/1.0 200 OK
       </section>
         <section>
           <title>RTSP over HTTP</title>
-          <para>The RTSP over HTTP/HTTPS shall be supported in order to traverse a firewall. See Section <xref linkend="_Ref213038219"/> RTP/RTSP/HTTP/TCP.</para>
+          <para>RTSP tunneling over the HTTP or HTTPS transport required by Section <xref linkend="_Ref213038219"/> shall be supported in order to traverse a firewall.</para>
         </section>
       <section>
         <title>Secure RTSPS</title>
@@ -1624,7 +1624,7 @@ Server - Client:  RTSP/1.0 200 OK
       <para>This standard makes the following stipulations on the usage of RTSP:</para>
       <orderedlist>
         <listitem>
-          <para>RTP/RTSP/HTTP/TCP shall be supported by the server. This is the same transport protocol as a device that implements media streaming through the media service shall support, and the same requirements shall apply to replay streaming.</para>
+          <para>The server shall support replay streaming using the HTTP or HTTPS transport required by Section <xref linkend="_Ref213038219"/>. The same transport requirements apply to replay streaming as to media streaming.</para>
         </listitem>
         <listitem>
           <para>The server shall support the unicast RTP/UDP transport for streaming.</para>
@@ -2149,7 +2149,7 @@ Immediate: yes</programlisting>
         </section>
         <section>
           <title>Example: WebSocket Handshake</title>
-          <para>This example shows the message transfer between a Web client (client) and a Web server (server). The client requests the server to initiate a WebSocket connection using the WebSocket URI. The WebSocket Uri can be retrieved using the GetServiceCapabilities command of the ONVIF Media2 Service. An example WebSocket URI may look like, "ws:/webSocketServer"</para>
+          <para>This example shows the message transfer between a Web client (client) and a Web server (server). The client requests the server to initiate a WebSocket connection using the WebSocket URI. The WebSocket URI can be retrieved using the GetServiceCapabilities command of the ONVIF Media2 Service. The example shows a URI returned for capabilities retrieved over HTTP; when capabilities are retrieved over HTTPS, the URI shall use the <literal>wss</literal> scheme, for example "wss:/webSocketServer".</para>
           <programlisting><![CDATA[client->server:  	GET /webSocketServer HTTP/1.1
 Host: 192.168.0.1
 Upgrade: websocket
