@@ -39,7 +39,7 @@
 * Description:
 * 		wsdl-viewer.xsl is a lightweight XSLT 1.0 transformation with minimal
 * 		usage of any hacks that extend the possibilities of the transformation
-* 		over the XSLT 1.0 constraints but eventually would harm the engine independance.
+* 		over the XSLT 1.0 constraints but eventually would harm the engine independence.
 *
 * 		The transformation has to run even in the browser offered XSLT engines
 * 		(tested in IE 6 and Firefox) and in ANT "batch" processing.
@@ -63,7 +63,7 @@
 * 	2. Namespace support
 * 		2.1 Namespaces are not taken in account by processing (references with NS)
 * 	3. Source code
-* 		3.1 Only the source code allready processed by the XML parser is rendered - implications:
+* 		3.1 Only the source code already processed by the XML parser is rendered - implications:
 * 			== no access to the XML head line (<?xml version="1.0" encoding="utf-8"?>)
 * 			== "expanded" CDATA blocks (parser processes the CDATA,
 * 				XSLT does not have access to the original code)
@@ -88,7 +88,7 @@
 * 			- Is it meaningful?
 * 			- Maybe more distribution alternatives (modular, fat monolithic, thin performance monolithic)?
 * 			- Distribution build automatization
-* 		+ Dynamic page: JavaSript
+* 		+ Dynamic page: JavaScript
 * 		+ Performance
 * 		- Better code comments / documentation
 * 		- SOAP client form - for testing the web service (AJAX based)
@@ -122,7 +122,7 @@
 * 	2006-12-14 - Displays all fault elements (not just the first one)
 * 	2006-12-28 - W3C replaced silently the James Clark's XT engine with Michael Kay's closed-source Saxon!
 * 				wsdl-viewer.xsl will no longer support XT engine
-* 	2007-02-28 - Stack-overflow bug (if the XSD element @name and @type are identic)
+* 	2007-02-28 - Stack-overflow bug (if the XSD element @name and @type are identical)
 * 	2007-03-08 - 3.0.00 - New parsing, new layout
 * 	2007-03-28 - 3.0.01 - Fix: New anti-recursion defense (no error message by recursion
 * 						because of dirty solution of namespace processing)
@@ -144,7 +144,7 @@
 * 	2007-12-23 - 3.1.01 - Terminating message by WS without interface or service definition was removed
 * 						  (seems to be a correct state)
 * 	2008-08-20 - 3.1.02 - Woden-214: Anti-recursion bypassed in xsd:choice element
-*	2010-08-10            HB: removed information not relevant for ONVIF and improved readiblity
+*	2010-08-10            HB: removed information not relevant for ONVIF and improved readability
 *	2016-04-22            HS+HB: improve  expansion ComplexType which has attribute and extension
 *	2016-04-28            HS: improve recursive trace beyond namespaces
 * ====================================================================
@@ -1548,7 +1548,7 @@ h3 {
    <xsl:template match="xsd:sequence" mode="operations.message.part">
 	     <xsl:param name="anti.recursion"/>
    	<ul type="square" style='margin-top:2px'>
-		       <xsl:apply-templates select="xsd:element|xsd:complextType" mode="operations.message.part">
+		       <xsl:apply-templates select="xsd:element|xsd:complexType" mode="operations.message.part">
 			         <xsl:with-param name="anti.recursion" select="$anti.recursion"/>
 		       </xsl:apply-templates>
 	     	<xsl:text xml:space="preserve"> </xsl:text> <!-- trick to avoid empty <ul/> sections -->
@@ -2430,7 +2430,7 @@ h3 {
 <xsl:template name="footer.render">
       <div id="footer">
 	  <table width="100%"><tr><td style="font-size:125%">
-	  This informative document is based on the ONVIF Core Secification - Copyright ONVIF.
+	  This informative document is based on the ONVIF Core Specification - Copyright ONVIF.
 	  </td><td align="right">
       	Page generation based on wsdl-viewer.xsl (<a href="http://tomi.vanek.sk">http://tomi.vanek.sk</a>)
 		</td></tr>
