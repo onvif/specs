@@ -311,6 +311,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>Indicates support for firmware upgrade through the cloud.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="AvailableFirmwareListing" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Specifies support for retrieving the list of available firmware through GetAvailableFirmwares.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:attribute name="HttpFirmwareUpgrade" type="xs:boolean">
 					<xs:annotation>
 						<xs:documentation>Indicates support for firmware upgrade through HTTP.</xs:documentation>
@@ -2489,6 +2494,70 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>	 		
 			<!--===============================-->
+			<xs:element name="GetAvailableFirmwares">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="IncludeBeta" type="xs:boolean" minOccurs="0" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation>Optional flag to include beta firmware versions in the response. If not passed, only stable firmware versions would be listed. Note that beta versions may not be available for devices via this channel.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="IncludePreviousVersions" type="xs:boolean" minOccurs="0" maxOccurs="1">
+							<xs:annotation>
+								<xs:documentation> Optional flag to include previous firmware versions in the response (for downgrade or rollback). If not passed, only newer firmware versions would be listed. </xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetAvailableFirmwaresResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="FirmwareInfo" type="tds:FirmwareInfo" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>List of available firmware versions. If no valid upgrade or downgrade target exists, the list shall be empty.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:complexType name="FirmwareInfo">
+				<xs:sequence>
+					<xs:element name="FirmwareVersion" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>Version identifier of the firmware.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="FirmwareDescription" type="xs:string" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>Description of the firmware version.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="ReleaseDate" type="xs:dateTime" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>The release date of the firmware version.</xs:documentation>	
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="ReleaseInfoUri" type="xs:anyURI" minOccurs="0" maxOccurs="1">
+						<xs:annotation>
+							<xs:documentation>URI of release information for the firmware version, such as a release letter or release notes.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+				</xs:sequence>
+				<xs:attribute name="Beta" type="xs:boolean" use="optional">
+					<xs:annotation>
+						<xs:documentation>Indicates whether the firmware version is a beta release.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="IsLatest" type="xs:boolean" use="optional">
+					<xs:annotation>
+						<xs:documentation>Indicates whether the firmware version is the latest official release.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->
 			<!--===============================-->
 		</xs:schema>
 	</wsdl:types>
@@ -3110,6 +3179,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</wsdl:message>
 	<wsdl:message name="SetHashingAlgorithmResponse">
 		<wsdl:part name="parameters" element="tds:SetHashingAlgorithmResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetAvailableFirmwaresRequest">
+		<wsdl:part name="parameters" element="tds:GetAvailableFirmwares"/>
+	</wsdl:message>
+	<wsdl:message name="GetAvailableFirmwaresResponse">
+		<wsdl:part name="parameters" element="tds:GetAvailableFirmwaresResponse"/>
 	</wsdl:message>
 	
 	<wsdl:portType name="Device">
@@ -3765,6 +3840,13 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</wsdl:documentation>
 			<wsdl:input message="tds:SetHashingAlgorithmRequest"/>
 			<wsdl:output message="tds:SetHashingAlgorithmResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetAvailableFirmwares">
+			<wsdl:documentation>
+				This operation returns the list of firmware versions available for the device. The returned firmware version strings shall be valid values for the Version parameter of the UpgradeFirmware operation.
+			</wsdl:documentation>
+			<wsdl:input message="tds:GetAvailableFirmwaresRequest"/>
+			<wsdl:output message="tds:GetAvailableFirmwaresResponse"/>
 		</wsdl:operation>
 
 		<!--===============================-->
@@ -4771,6 +4853,15 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="SetHashingAlgorithm">
 			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/SetHashingAlgorithm"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetAvailableFirmwares">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetAvailableFirmwares"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
