@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WSDL viewer</title>
+    <!-- needed for adaptive design -->
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" language="javascript" src="SaxonJS2.rt.js"></script>
+    <script>
+		const urlParams = new URLSearchParams(window.location.search);
+		const filepath = urlParams.get('file');
+        window.onload = function() {
+            console.log(SaxonJS.getProcessorInfo().productName + " " +
+            SaxonJS.getProcessorInfo().productVersion + " " + SaxonJS.getProcessorInfo().releaseDate);
+
+            const result = SaxonJS.transform({
+                stylesheetLocation: "onvif-wsdl-viewer.sef.json",
+		sourceLocation: filepath,
+		logLevel: 2,
+		deliverMessage: function(message) {
+                    console.warn("XSLT DEBUG MESSAGE:", message);
+		},
+                stylesheetParams: {
+                    // Increase the depth limit (default is 3)
+                    "Q{}ANTIRECURSION-DEPTH": 30,
+                    "ANTIRECURSION-DEPTH": 30,
+                },
+                destination: "document",
+                logLevel: 2
+                },
+                "sync");
+
+            const contentDiv = document.getElementById('content');
+
+            if (result.principalResult) {
+                const importedContent = document.importNode(result.principalResult.documentElement || result.principalResult, true);
+                contentDiv.appendChild(importedContent);
+				const link = document.getElementById("filepath");
+				link.setAttribute("href", filepath);
+            }
+        }
+    </script>
+  </head>
+  <body>
+    <div id="content"></div>
+  </body>
+</html>

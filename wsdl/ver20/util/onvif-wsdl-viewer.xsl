@@ -181,6 +181,7 @@
    <xsl:param name="ENABLE-OPERATIONS-PARAGRAPH" select="true()"/>
    <xsl:param name="ENABLE-SRC-CODE-PARAGRAPH" select="false()"/>
    <xsl:param name="ENABLE-ABOUT-PARAGRAPH" select="true()"/>
+   <xsl:param name="ENABLE-DATATYPES-PARAGRAPH" select="true()"/>
    <xsl:param name="ENABLE-OPERATIONS-TYPE" select="true()"/>
    <xsl:param name="ENABLE-LINK" select="true()"/>
    <xsl:param name="ENABLE-INOUTFAULT" select="true()"/>
@@ -200,15 +201,15 @@
    <xsl:variable name="PORT-PREFIX">port.</xsl:variable>
    <xsl:variable name="IFACE-PREFIX">iface.</xsl:variable>
 	<xsl:variable name="global.wsdl-names"
-		select="/*/*[(local-name() = 'import' or local-name() = 'include') and @location]/@location"/>
+		select="/*/*[(local-name() = 'import' or local-name() = 'include') and @location]/@location[doc-available(resolve-uri(string(.), base-uri(.)))]"/>
 	<xsl:variable name="global.wsdl-name"
                  select="/*/*[(local-name() = 'import' or local-name() = 'include') and @location][1]/@location"/>
    <xsl:variable name="consolidated-wsdl" select="/*"/>
 	<xsl:variable name="extended-wsdl" select="/* | document($global.wsdl-names)/*"/>
 	<xsl:variable name="global.xsd-name"
-                 select="($consolidated-wsdl/*[local-name() = 'types']//xsd:import[@schemaLocation] | $consolidated-wsdl/*[local-name() = 'types']//xsd:include[@schemaLocation])/@schemaLocation"/>
+                 select="($consolidated-wsdl//xsd:import[@schemaLocation] | $consolidated-wsdl//xsd:include[@schemaLocation])/@schemaLocation[doc-available(resolve-uri(string(.), base-uri(.)))]"/>
    <xsl:variable name="consolidated-xsd"
-                 select="(document($global.xsd-name)/xsd:schema/xsd:*|/*/*[local-name() = 'types']/xsd:schema/xsd:*)[local-name() = 'complexType' or local-name() = 'element' or local-name() = 'simpleType']"/>
+                 select="(document($global.xsd-name)/xsd:schema/xsd:*|/*/*[local-name() = 'types']/xsd:schema/xsd:*|/xsd:schema/xsd:*)[local-name() = 'complexType' or local-name() = 'element' or local-name() = 'simpleType']"/>
    <xsl:variable name="exclude-local-xsd"
                  select="(document($global.xsd-name)/xsd:schema/xsd:*)[local-name() = 'complexType' or local-name() = 'element' or local-name() = 'simpleType']"/>
 	<xsl:variable name="target-prefix" select="substring-before(/ws:definitions/ws:message/ws:part/@element,':')"/>
@@ -2350,7 +2351,7 @@ h3 {
 	     	<table>
 	     		<tr valign="middle">
 	     			<td><a href="http://www.onvif.org"><img align="left" src="/logo.gif" style="border-width: 0px;" alt="ONVIF" height="60" /></a></td> 
-	     			<td width="100%" align="center"><xsl:value-of select="$consolidated-wsdl/@targetNamespace"/><br /></td>
+	     			<td width="100%" align="center"><a id='filepath'><xsl:value-of select="$consolidated-wsdl/@targetNamespace"/></a><br /></td>
 	     			<td width="100%" align="right"><xsl:value-of select="$consolidated-wsdl/ws:types/xsd:schema/@version"/></td>
 	     		</tr>
 	     	</table>
@@ -2402,11 +2403,14 @@ h3 {
 
 <xsl:template name="content.render">
       <div id="content">
-	        <xsl:if test="$ENABLE-SERVICE-PARAGRAPH">
+	        <xsl:if test="$ENABLE-SERVICE-PARAGRAPH and not($consolidated-wsdl/self::xsd:schema)">
 		          <xsl:call-template name="service.render"/>
 	        </xsl:if>
-	        <xsl:if test="$ENABLE-OPERATIONS-PARAGRAPH">
+	        <xsl:if test="$ENABLE-OPERATIONS-PARAGRAPH and not($consolidated-wsdl/self::xsd:schema)">
 		          <xsl:call-template name="operations.render"/>
+	        </xsl:if>
+	        <xsl:if test="$ENABLE-DATATYPES-PARAGRAPH and $consolidated-wsdl/self::xsd:schema">
+		          <xsl:call-template name="datatypes.render"/>
 	        </xsl:if>
 	        <xsl:if test="$ENABLE-SRC-CODE-PARAGRAPH">
 		          <xsl:call-template name="src.render"/>
@@ -2515,6 +2519,40 @@ h3 {
 		          </xsl:choose>
 	        </ul>
       </div>
+   </xsl:template>
+
+
+
+   <!--
+==================================================================
+	Rendering: XSD schema data types (standalone .xsd files)
+==================================================================
+-->
+
+<xsl:template name="datatypes.render">
+      <xsl:if test="$consolidated-wsdl/self::xsd:schema">
+         <div class="page">
+            <a class="target" name="page.datatypes">
+               <h2>Data types</h2>
+            </a>
+            <ul>
+               <xsl:apply-templates select="$consolidated-wsdl/xsd:element | $consolidated-wsdl/xsd:complexType | $consolidated-wsdl/xsd:simpleType"
+                                    mode="datatypes">
+                  <xsl:sort select="@name"/>
+               </xsl:apply-templates>
+            </ul>
+         </div>
+      </xsl:if>
+   </xsl:template>
+
+   <xsl:template match="xsd:element | xsd:complexType | xsd:simpleType" mode="datatypes">
+      <li class="operation">
+         <big><b><a name="type.{@name}"><xsl:value-of select="@name"/></a></b></big>
+         <xsl:apply-templates select="xsd:annotation/xsd:documentation" mode="documentation.render"/>
+         <div class="value box" style="margin: 3px">
+            <xsl:apply-templates select="." mode="operations.message.part"/>
+         </div>
+      </li>
    </xsl:template>
 
 
