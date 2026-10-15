@@ -1,0 +1,668 @@
+id: https://www.onvif.org/ver10/agentic/base/linkml/
+name: onvif-agentic-base
+description: ONVIF Agentic Service base schema
+prefixes:
+  linkml: https://w3id.org/linkml/
+  onvif: https://www.onvif.org/ver10/agentic/linkml/
+imports:
+  - linkml:types
+  - enums
+  - common
+  - time
+  - signature
+default_prefix: onvif
+default_range: string
+
+classes:
+
+  InformationItem:
+    abstract: true
+    description: >-
+      Abstract base container for a single unit of information.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        description: >-
+          The CURIE of the concrete class this object instantiates, for example
+          onvif:ObservationsCollection or
+          hackathon2026:VehicleDetectionObservation. It is the field by which
+          an ONVIF Client determines what it has received.
+
+          Every abstract class of this model that is used as the range of a
+          nested slot declares a slot of this kind, and only such classes do.
+          The rule has a single reason: a range that names an abstract class
+          says nothing about the contents of the object, since an abstract
+          class carries no fields of its own beyond this designator. Without
+          the designator the compiled JSON Schema admits nothing at all, and an
+          ONVIF Client that received such an object would have no way of
+          learning which concrete class it is looking at. With it, the schema
+          admits exactly the concrete descendants of the abstract class, each
+          recognised by the value of this field, and the ONVIF Client reads the
+          class from the object rather than guessing it from the fields that
+          happen to be present.
+
+          A class whose range is already concrete does not declare it: the
+          class is then fixed by the schema itself, and the field would only
+          repeat what is already known.
+
+          The value shall expand, through the inline JSON-LD context of the
+          enclosing InformationEnvelope, to the class_uri of the concrete
+          class. The prefix is therefore part of the wire representation and
+          distinguishes classes with the same local name in different modules.
+
+          An item cited by another item through its identifier carries this
+          field as well, which is what allows the citing ONVIF Client to
+          determine the class of the cited item once it resolves the reference;
+          the reference itself carries only the identifier, as specified for the
+          UUID type.
+      id:
+        range: UUID
+        identifier: true
+        required: true
+        description: >-
+          Identifier of the information item. It shall be unique across every
+          item the ONVIF Device emits, and shall never be reused.
+
+          It is carried on the wire as a plain UUID string and not as a JSON-LD
+          node identifier: a bare UUID is not an IRI, and binding it to @id
+          would require every identifier to be rewritten in urn:uuid form. The
+          cross-references between items are therefore resolved by an ONVIF
+          Client according to this specification, and are not RDF edges.
+      confidence:
+        range: Likelihood
+        required: true
+        description: >-
+          Confidence level associated with the information, in the range 0.0 to
+          1.0 inclusive. The range is Likelihood, the same type used by every
+          other confidence-bearing slot of this model, whether it qualifies a
+          whole item or a single value inside an observation result, so that a
+          single interpretation applies wherever a confidence appears.
+
+          The confidence of an item is the confidence of that item alone. It is
+          not derived from, and shall not be propagated to, any item that cites
+          it in supportedBy.
+      productionTime:
+        range: Time
+        required: true
+        description: Production timestamp of the information item.
+      provenance:
+        range: Provenance
+        required: true
+        description: Provenance of the information item.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  InformationEnvelope:
+    abstract: false
+    tree_root: true
+    description: >-
+      Optional container that groups one or more information items and may
+      carry a single envelope-level signature.
+    attributes:
+      '@context':
+        range: Any
+        required: true
+        description: >-
+          Inline JSON-LD context for the envelope. It appears once per envelope
+          and provides every prefix and term mapping needed to expand the
+          CURIE-valued @type fields and the unqualified JSON property names in
+          the payload.
+
+          The context is generated from the same closure of LinkML modules
+          against which the envelope is validated. It shall select JSON-LD 1.1,
+          bind @vocab and the onvif prefix to
+          https://www.onvif.org/ver10/agentic/linkml/, and shall include every
+          additional prefix used by a third-party module represented in the
+          envelope. A third-party class that declares attributes of its own is
+          represented by a type-scoped context mapping those unqualified JSON
+          property names to their slot_uri values. Its shape is intentionally
+          open because those modules and their terms are not known by this
+          schema in advance; JSON-LD validation checks that its mappings agree
+          with the class_uri and slot_uri values of the loaded modules.
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        description: >-
+          The class of the envelope, being the CURIE
+          onvif:InformationEnvelope. The slot is present although the class of
+          this object is never in doubt, because the envelope is the outermost
+          object of a payload and nothing encloses it that could state its
+          class: an ONVIF Client routes what arrives on the strength of what the
+          payload says about itself.
+
+          This is the same slot, and the same obligation, that InformationItem
+          declares for the items inside; see the description there for what the
+          designator does and why a nested object carries it.
+      id:
+        range: UUID
+        identifier: true
+        required: true
+        description: >-
+          Identifier of the envelope. It is carried on the wire as a plain UUID
+          string and not as a JSON-LD node identifier, for the reason given for
+          the identifier of InformationItem.
+      items:
+        range: InformationItem
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          One or more enclosed information items. At least one item shall be
+          present.
+      hashes:
+        range: ItemDigest
+        multivalued: true
+        inlined_as_list: true
+        required: false
+        minimum_cardinality: 1
+        description: >-
+          One digest per enclosed information item, sorted by the item field
+          in ascending order. When signature is present, this list is required:
+          the signature authenticates the list of digests, and each digest is
+          required to verify the corresponding enclosed item. The list may be
+          omitted only when the envelope is unsigned.
+      signature:
+        range: Signature
+        required: false
+        description: Optional envelope-level signature.
+    rules:
+      - title: Signature requires item digests
+        preconditions:
+          slot_conditions:
+            signature:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            hashes:
+              value_presence: PRESENT
+
+  Provenance:
+    abstract: true
+    description: >-
+      Abstract provenance descriptor for an InformationItem. It answers the
+      question of who is asserting the information, and is specialised by
+      concrete classes describing a particular kind of producer.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        description: >-
+          The CURIE of the concrete provenance descriptor this object
+          instantiates. It is required for the reason given for the type
+          designator of InformationItem.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  Location:
+    abstract: true
+    description: >-
+      Abstract spatial descriptor for an InformationItem.
+
+      The class is abstract because a place can be given in two irreducibly
+      different ways: by the function it serves, such as a named entrance or lane,
+      or by its geometry. Either form is introduced as a concrete subclass, by a
+      future revision of this specification or by a vendor extension, without
+      changing Observation.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        description: >-
+          The CURIE of the concrete spatial descriptor this object
+          instantiates. It is required for the reason given for the type
+          designator of InformationItem.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  FeatureOfInterest:
+    abstract: false
+    description: >-
+      The kind of real-world entity an observation is about, as opposed to what
+      was found about it, which is the ObservationResult.
+
+      The entity is named in one of two ways, and exactly one of them is used by
+      any given instance: by the vocabulary of this specification, in the onvif
+      slot, or by the vendor, in the custom slot. Expressing that choice is the
+      only reason the class exists; a FeatureOfInterest that carries both slots,
+      or neither, is invalid.
+
+      The arrangement keeps the common vocabulary closed while leaving the set of
+      observable entities open. An ONVIF Client that receives a value it does not
+      implement can always tell which of the two cases it is in - a value of this
+      specification it does not support, or a vendor value it does not know - and
+      an ONVIF Device can name entities of its own without any risk of a future
+      value of this specification taking the same name.
+
+      The class is concrete and is not specialised. The vocabulary grows in two
+      ways only: a new value of FeatureOfInterestType, added by a future version
+      of this specification, or a URI of a vendor's own in the custom slot. An
+      ONVIF Client therefore never encounters a subclass of FeatureOfInterest,
+      and the two slots are the whole of what it has to interpret.
+    attributes:
+      onvif:
+        range: FeatureOfInterestType
+        required: false
+        description: >-
+          The entity, named by the vocabulary of this specification. An ONVIF
+          Device shall use this slot wherever a value of FeatureOfInterestType
+          applies to what is being observed.
+      custom:
+        range: uri
+        pattern: '^[A-Za-z][A-Za-z0-9+.\-]*:[^\s]+$'
+        required: false
+        description: >-
+          The entity, named by the vendor, for an entity FeatureOfInterestType
+          does not name. The value shall be an absolute URI in a namespace the
+          vendor controls, in the same sense as the vendor_namespace of a
+          VendorExtension.
+
+          The pattern imposes that shape, and each of its two parts carries a
+          distinct meaning. The leading production, [A-Za-z][A-Za-z0-9+.\-]*
+          followed by a colon, is the URI scheme, and it is what identifies the
+          namespace the proprietary extension belongs to: it tells an ONVIF
+          Client that the value is a vendor's own and under which naming
+          authority it is to be resolved. Where the scheme is a generic one, such
+          as https, the authority that follows it participates in identifying the
+          namespace as well, and it is then the vendor's registered domain that
+          makes the namespace its own. The remainder, [^\s]+, is the vendor's own
+          name for the entity within that namespace; it is opaque to this
+          specification, and only the vendor owning the namespace assigns meaning
+          to it. Whitespace is excluded throughout so that the value remains a
+          single token.
+    exactly_one_of:
+      - slot_conditions:
+          onvif:
+            value_presence: PRESENT
+      - slot_conditions:
+          custom:
+            value_presence: PRESENT
+
+  Procedure:
+    abstract: false
+    description: >-
+      How an observation was produced: the method that turned the physical world
+      into a result, as opposed to the entity observed, which is the
+      featureOfInterest, or to what was found, which is the ObservationResult.
+
+      The procedure is named in one of two ways, and exactly one of them is used
+      by any given instance: by the vocabulary of this specification, in the
+      onvif slot, or by the vendor, in the custom slot. The class is deliberately
+      built the same way as FeatureOfInterest, and for the same reasons, so that
+      an ONVIF Client handles a procedure it does not recognise exactly as it
+      handles a feature of interest it does not recognise.
+
+      Naming a procedure is not describing it. The class states which method was
+      used, and neither how that method works nor with what parameters it was
+      configured; those belong to the provenance of the information item, or to a
+      vendor extension.
+
+      The class is concrete and is not specialised, for the reason given for
+      FeatureOfInterest: the set of methods grows through a new value of
+      ProcedureType or through a URI of a vendor's own, and never through a
+      subclass.
+    attributes:
+      onvif:
+        range: ProcedureType
+        required: false
+        description: >-
+          The method, named by the vocabulary of this specification. An ONVIF
+          Device shall use this slot wherever a value of ProcedureType applies to
+          how the observation was produced.
+      custom:
+        range: uri
+        pattern: '^[A-Za-z][A-Za-z0-9+.\-]*:[^\s]+$'
+        required: false
+        description: >-
+          The method, named by the vendor, for a method ProcedureType does not
+          name. The value shall be an absolute URI in a namespace the vendor
+          controls, in the same sense as the vendor_namespace of a
+          VendorExtension.
+
+          The pattern imposes that shape, and each of its two parts carries a
+          distinct meaning. The leading production, [A-Za-z][A-Za-z0-9+.\-]*
+          followed by a colon, is the URI scheme, and it is what identifies the
+          namespace the proprietary extension belongs to: it tells an ONVIF
+          Client that the value is a vendor's own and under which naming
+          authority it is to be resolved. Where the scheme is a generic one, such
+          as https, the authority that follows it participates in identifying the
+          namespace as well, and it is then the vendor's registered domain that
+          makes the namespace its own. The remainder, [^\s]+, is the vendor's own
+          name for the method within that namespace; it is opaque to this
+          specification, and only the vendor owning the namespace assigns meaning
+          to it. Whitespace is excluded throughout so that the value remains a
+          single token.
+    exactly_one_of:
+      - slot_conditions:
+          onvif:
+            value_presence: PRESENT
+      - slot_conditions:
+          custom:
+            value_presence: PRESENT
+
+  ObservationResult:
+    abstract: true
+    description: >-
+      Abstract container for what an observation of the physical world found: the
+      measured quantity itself, as opposed to the circumstances of the
+      measurement, which the Observation carries in observedTime, observedSpace,
+      productionTime and provenance.
+
+      The class is abstract because there is nothing a generic result can state.
+      What a result contains depends entirely on what was observed - a plate
+      reading, a vehicle classification, a speed - so every concrete Observation
+      is paired with a concrete subclass of ObservationResult describing its own
+      kind of result. The pairing is one to one: a result class belongs to the
+      observation class that declares it, and is not shared between observation
+      classes that happen to measure something similar.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        description: >-
+          The CURIE of the concrete result class this object instantiates.
+          It is required for the reason given for the type designator of
+          InformationItem.
+
+          The field is present even though the class of the result follows from
+          the class of the observation that carries it, because the slot is
+          declared on the abstract Observation with an abstract range: what the
+          concrete observation narrows in slot_usage is not what the abstract
+          declaration admits, and an ONVIF Client validating against the
+          abstract form relies on this field alone.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  Observation:
+    abstract: true
+    is_a: InformationItem
+    description: >-
+      Abstract InformationItem representing a measurement of the physical world
+      generated by an ONVIF Device.
+
+      An observation is either direct or derived. A direct observation is what a
+      sensor produced by looking at the physical world, and cites nothing. A
+      derived observation is computed from other observations and lists them in
+      supportedBy: a speed, for example, is obtained from two observations of the
+      same subject by dividing the distance between their observedSpace values by
+      the interval between their observedTime values. Both forms are measurements
+      of the same physical world, expressed in the units they would have had if a
+      sensor had measured them directly; the derivation is arithmetic over
+      measurements and introduces no criterion that the measurements do not
+      already contain.
+
+      This is what separates an Observation that cites other items from an
+      Assessment that cites other items. An Assessment applies a criterion
+      external to the measurement, and its result is an interpretation that
+      cannot be reached from the supporting data by computation alone. The same
+      items can feed both: an average speed of 82 km/h is an Observation derived
+      from positions and times, while the statement that this speed exceeds the
+      limit in force at that place is an Assessment.
+    attributes:
+      result:
+        range: ObservationResult
+        inlined: true
+        required: false
+        value_presence: ABSENT
+        description: >-
+          What the observation found. The result is nested inside the observation
+          and not referenced by identifier: it is not an information item of its
+          own, it has no independent existence, and it is meaningless apart from
+          the observation that produced it.
+
+          The slot is declared ABSENT here, on the abstract class, and this is
+          deliberate. Its purpose is to force every concrete Observation to
+          declare the result class that belongs to it, by refining this slot in
+          slot_usage:
+
+            ExampleObservation:
+              is_a: Observation
+              slot_usage:
+                result:
+                  range: ExampleObservationResult
+                  value_presence: PRESENT
+                  required: true
+
+          LinkML has no way to mandate that a subclass refine an inherited slot:
+          a slot marked abstract is inherited as an ordinary optional slot, and
+          neither the validator nor any generator reports the omission. ABSENT
+          supplies what is missing. A concrete Observation that fails to refine
+          the slot inherits the prohibition and is therefore unable to carry any
+          result at all - which is a visible defect, caught by the first payload
+          the class is used for, rather than a silent one. The prohibition is
+          what makes the omission impossible to overlook; it is not a statement
+          that observations have no results.
+
+          A subclass that refines the slot shall restate value_presence, as
+          PRESENT where the result is mandatory or UNCOMMITTED where it is
+          optional. Refining only range and required leaves the inherited ABSENT
+          in force, and the result is a class no payload can satisfy: the
+          compiled JSON Schema then requires the field and forbids it at the same
+          time, and rejects every instance either way.
+
+          Because the refined range is a concrete result class, the nested object
+          is unambiguous: the compiled schema points at exactly one class, and an
+          ONVIF Client parsing the observation knows what the result contains
+          from the class of the observation alone.
+      featureOfInterest:
+        range: FeatureOfInterest
+        inlined: true
+        required: false
+        description: >-
+          The entity this observation is about. It is nested inside the
+          observation and not referenced by identifier: it is not an information
+          item of its own, it has no independent existence, and it names the
+          subject of this observation only.
+      procedure:
+        range: Procedure
+        inlined: true
+        required: false
+        description: >-
+          The method by which this observation was produced, nested for the same
+          reason the featureOfInterest is.
+
+          The slot describes a direct observation, where there is a method that
+          turned the physical world into the result. A derived observation is
+          computed from the observations it lists in supportedBy, and the method
+          that applies to it is the arithmetic stated there; it therefore omits
+          this slot, unless the derivation is itself a named method of this
+          specification or of the vendor.
+      observedTime:
+        range: Time
+        required: false
+        description: Temporal context observed by this observation.
+      observedSpace:
+        range: Location
+        required: false
+        description: Spatial context observed by this observation.
+      supportedBy:
+        range: UUID
+        any_of:
+          - range: Observation
+          - range: ObservationsCollection
+        multivalued: true
+        inlined: false
+        required: false
+        description: >-
+          Identifiers of the observations this observation was derived from. The
+          field is omitted, or carries an empty list, for a direct observation;
+          the two forms have the same meaning. It carries one or more identifiers
+          for a derived observation.
+
+          Each identifier shall resolve either to an observation or to an
+          ObservationsCollection, whose members are then taken in its place, and
+          no other kind of item may be cited here. Which of the two an identifier
+          resolved to is read from the @type of the item itself, as specified for
+          InformationItem.
+
+          The range is UUID, which imposes the shape of an identifier and nothing
+          more, and the any_of records the two admissible classes in
+          machine-readable form. It does not impose them, and no compiled schema
+          can: the slot carries the identifier of an item and not the item, so
+          neither the JSON Schema nor the SHACL shapes derived from this module
+          constrain the class of what the identifier resolves to. The restriction
+          is referential, and is one of the checks an ONVIF Client performs
+          against the items it has received.
+
+          The observations are referenced, not nested. The references shall be
+          directed and acyclic, the productionTime of a derived observation shall
+          be more recent than the productionTime of every observation it cites,
+          and every chain shall terminate in direct observations.
+
+          The confidence of a derived observation is its own, as stated for
+          InformationItem.confidence: it is neither computed from, nor propagated
+          to, the observations it cites.
+
+  ObservationsCollection:
+    abstract: false
+    is_a: InformationItem
+    description: >-
+      Concrete InformationItem collecting several observations, so that multiple
+      observations can be referenced in an efficient way: a slot that would
+      otherwise have to carry a long list of identifiers carries the single
+      identifier of the collection instead, and the collection can be cited
+      again by any later item without repeating its members.
+
+      The identifier of the collection is the identifier every InformationItem
+      carries, and it obeys the same uniqueness and non-reuse rules.
+    attributes:
+      observations:
+        range: UUID
+        any_of:
+          - range: Observation
+        multivalued: true
+        inlined: false
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          Identifiers of one or more collected observations. At least one
+          observation shall be present. The observations are referenced, not
+          nested: each identifier shall resolve to an observation the ONVIF
+          Client has already received.
+
+          Only an observation may be collected: an item of any other class shall
+          not be cited here, and an ONVIF Client determines the class of a cited
+          item from the @type it carries.
+
+          The range is UUID, which imposes the shape of an identifier and nothing
+          more, and the any_of records the single admissible class in
+          machine-readable form. It does not impose it, for the reason given for
+          Observation.supportedBy: the slot carries the identifier of an item and
+          not the item, so the restriction is referential and is checked by an
+          ONVIF Client against the items it has received.
+
+  AssessmentResult:
+    abstract: true
+    description: >-
+      Abstract container for the judgement an assessment reached: the
+      interpretation itself, as opposed to the items it was reached from, which
+      the Assessment carries in supportedBy, or to the circumstances of the
+      interpretation, which it carries in productionTime and provenance.
+
+      The class is abstract for the same reason ObservationResult is: there is
+      nothing a generic judgement can state. What a result contains depends
+      entirely on the criterion applied - a speed compared against a limit, a
+      presence compared against an authorisation - so every concrete Assessment
+      is paired with a concrete subclass of AssessmentResult describing its own
+      kind of judgement. The pairing is one to one: a result class belongs to
+      the assessment class that declares it, and is not shared between
+      assessment classes that happen to apply similar criteria.
+
+      A result states what the criterion yielded, and it does so by what it
+      contains. The existence of the item is already the affirmative
+      conclusion: an assessment is emitted where the criterion was met, so a
+      result carries the quantities and the references that make the conclusion
+      checkable - the measured value, the threshold it was compared against, the
+      rule that fixed the threshold - and not a flag repeating that the
+      conclusion was reached.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        description: >-
+          The CURIE of the concrete result class this object instantiates.
+          It is required for the reason given for the type designator of
+          InformationItem, and for the reason given for the type designator of
+          ObservationResult.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  Assessment:
+    abstract: true
+    is_a: InformationItem
+    description: >-
+      Abstract InformationItem representing an interpretation of one or more
+      information items.
+
+      An Assessment does not measure the physical world: it judges what has
+      already been measured, by applying a criterion the measurements do not
+      themselves contain - a provision of law, a rule on the admissibility or the
+      sufficiency of evidence, an operational policy. Its result cannot be
+      obtained from the supporting items by computation, and this is what
+      distinguishes it from a derived Observation: a derived observation restates
+      the physical world in other quantities, while an assessment states what the
+      physical world means under a given criterion.
+
+      Because a criterion can change while the data do not, the same supporting
+      items may be assessed differently by two Assessments, or by a later
+      Assessment of the same kind, without any observation being revised.
+    attributes:
+      result:
+        range: AssessmentResult
+        inlined: true
+        required: false
+        value_presence: ABSENT
+        description: >-
+          The judgement the assessment reached. The result is nested inside the
+          assessment and not referenced by identifier, for the reason given for
+          the result of an Observation: it is not an information item of its own,
+          it has no independent existence, and it is meaningless apart from the
+          assessment that reached it.
+
+          The slot is declared ABSENT here, on the abstract class, for exactly
+          the reason set out for Observation.result, and everything stated there
+          applies unchanged: a concrete Assessment shall refine this slot in
+          slot_usage, naming its own AssessmentResult subclass as the range and
+          restating value_presence as PRESENT where the result is mandatory or
+          UNCOMMITTED where it is optional. An assessment that refines only
+          range and required inherits the prohibition and is a class no payload
+          can satisfy.
+      supportedBy:
+        range: UUID
+        multivalued: true
+        inlined: false
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          Identifiers of one or more supporting information items. At least one
+          item shall be present. An Assessment may cite observations, other
+          assessments, or both, because the criterion it applies can bear on an
+          earlier interpretation as much as on a measurement. Any information
+          item may therefore be cited here, and the admissible classes are not
+          restricted further, unlike the supportedBy of an Observation.
+
+          The range is UUID, which imposes the shape of an identifier; the class
+          of a cited item is read from the @type it carries, as specified for
+          InformationItem.
+
+          The items are referenced, not nested: each identifier shall resolve to
+          an information item the ONVIF Client has already received. The
+          acyclicity, productionTime ordering and traceability rules stated for
+          Observation.supportedBy apply here as well.

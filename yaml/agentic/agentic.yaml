@@ -1,0 +1,661 @@
+id: https://www.onvif.org/ver10/agentic/linkml/
+name: onvif-agentic-service
+description: ONVIF Agentic Service base schema
+prefixes:
+  linkml: https://w3id.org/linkml/
+  onvif: https://www.onvif.org/ver10/agentic/linkml/
+imports:
+  - linkml:types
+  - base
+default_prefix: onvif
+default_range: string
+
+# Classes are declared in dependency order: no class refers to a class declared
+# below it. The three groups are, in order: the abstract bases that every
+# function specialises, the generic classes that describe functions as data, and
+# the classes of the reserved set_event_stream_parameters function.
+
+classes:
+
+  # --- Abstract bases -------------------------------------------------------
+
+  FunctionExecutionParameters:
+    abstract: true
+    description: >-
+      Abstract base class for the execution-specific parameters object carried
+      in the parameters argument of the execute_function Tool. A concrete
+      subclass exists for every function that accepts execution parameters, and
+      the class that applies to a given function is named by
+      FunctionDescriptor.executionSchema. Execution parameters are what applies
+      to a single run, as opposed to a configuration, which persists until it is
+      replaced.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        description: >-
+          The CURIE of the concrete parameters class this object instantiates,
+          for example onvif:SetEventStreamParametersRequest. It is
+          required for the reason given for the type designator of
+          InformationItem.
+
+          The descriptor of the function already names the class in
+          executionSchema, so an ONVIF Client knows what it is sending before it
+          builds the object, and the designator is in that sense redundant. It
+          is declared all the same, because without it this abstract class
+          cannot be used as the range of a nested slot at all: the compiled
+          schema resolves such a slot to this class and to nothing below it, and
+          rejects every concrete instance. With it the slot resolves to the
+          concrete descendants, and the class named out of band and the class
+          stated by the object are checked against each other rather than
+          assumed to agree.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  FunctionConfig:
+    abstract: true
+    description: >-
+      Abstract base of the configuration object an ONVIF Client passes in the
+      config argument of configure_function. A concrete subclass exists for every
+      function that accepts a configuration, and the ONVIF Device names it in the
+      configSchema field of the descriptor list_functions returns for that
+      function.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        description: >-
+          The CURIE of the concrete configuration class this object instantiates,
+          for example hackathon2026:SpeedingAssessmentConfig. It is declared for
+          the reason given for the type designator of FunctionExecutionParameters:
+          the configSchema URI of the descriptor already fixes the class out of
+          band, and the designator is what lets the schema check that the object
+          agrees with it.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  FunctionExecutionResult:
+    abstract: true
+    description: >-
+      Abstract base class for the structuredContent object returned by the
+      execute_function Tool. A concrete subclass exists for every function that
+      returns a structured result, and the class that applies to a given
+      function is named by FunctionDescriptor.resultSchema.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        description: >-
+          The CURIE of the concrete result class this object instantiates, for
+          example onvif:SetEventStreamParametersResponse. It is required for
+          the reason given for the type designator of
+          FunctionExecutionParameters.
+      executionId:
+        range: string
+        required: true
+        description: >-
+          Identifier of the function execution started, or affected, by the
+          execute_function call.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  FunctionCapabilities:
+    abstract: true
+    description: >-
+      Abstract base class for the static capabilities of a function: the
+      invariant properties that describe what a device instance supports for
+      that function, such as the ranges it accepts. Capabilities do not depend
+      on any particular invocation and are therefore never returned in the
+      result of execute_function. They are read with the
+      get_function_capabilities Tool, and the class that applies to a given
+      function is named by FunctionDescriptor.capabilitiesSchema.
+
+      A concrete subclass exists for every function that has capabilities an
+      ONVIF Client can read.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        description: >-
+          The CURIE of the concrete capabilities class this object
+          instantiates, for example onvif:EventStreamCapabilities. It is
+          required for the reason given for the type designator of
+          FunctionExecutionParameters, and here the reason bites hardest: this
+          class is the range of the capabilities slot of
+          GetFunctionCapabilitiesResponse, which without the designator would
+          admit no capabilities object at all.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  FunctionInvocation:
+    abstract: true
+    description: >-
+      Abstract binding between a function exposed by an ONVIF Device and the
+      classes that define its input and its output. A concrete subclass fixes
+      the function identifier and narrows the parameters and result ranges to
+      the classes that apply to that function. LinkML has no construct for
+      declaring an operation, so this class is the normative way in which this
+      schema states which parameters a function accepts, which result it returns
+      and which capabilities it exposes.
+
+      An instance of this class never appears on the wire. It is a declaration
+      about a function, not a message: the three slots below name classes, and
+      the payloads that instantiate those classes travel as the arguments and
+      the structuredContent of the MCP Tools. Every function this specification
+      or a vendor module defines shall be declared by a concrete subclass, so
+      that the binding between a function and its classes is stated in the
+      schema and not only in the prose or in an example.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        description: >-
+          The CURIE of the concrete invocation class, for example
+          onvif:SetEventStreamParametersInvocation. It is declared for the
+          reason given for the type designator of FunctionExecutionParameters.
+      function:
+        range: string
+        required: true
+        description: >-
+          Function identifier, as returned by the list_functions Tool and as
+          passed in the function argument of execute_function.
+      parameters:
+        range: FunctionExecutionParameters
+        required: false
+        description: >-
+          Parameters accepted by this function in the parameters argument of
+          execute_function.
+      result:
+        range: FunctionExecutionResult
+        required: false
+        description: >-
+          Result returned by this function in the structuredContent of the
+          execute_function response.
+      capabilities:
+        range: FunctionCapabilities
+        required: false
+        description: >-
+          Capabilities returned for this function by the get_function_capabilities
+          Tool. The slot is present so that the third of the three classes a
+          function is bound to is declared in the same place as the other two: a
+          concrete subclass that narrows parameters and result but leaves this
+          slot alone would state where its input and its output are defined and
+          leave its capabilities to be found in prose.
+
+          It is optional, because a function need not have capabilities an ONVIF
+          Client can read; a function that has them shall narrow this slot to the
+          class its descriptor names in capabilitiesSchema.
+
+  # --- Function catalogue and capabilities Tools ---------------------------
+
+  GetStatus:
+    description: >-
+      Empty arguments object accepted by the get_status Tool. The Tool takes
+      no arguments, so its JSON Schema accepts an empty object and no
+      properties.
+    annotations:
+      mcp_tool: get_status
+      access_class: READ_SYSTEM
+
+  ActiveFunctionExecution:
+    description: >-
+      A function execution active when the ONVIF Device answers get_status.
+    attributes:
+      function:
+        range: string
+        required: true
+        description: Local function identifier of the active execution.
+      executionId:
+        range: string
+        required: true
+        description: Identifier of the active execution.
+
+  GetStatusResponse:
+    description: >-
+      Structured result returned by the get_status Tool.
+    attributes:
+      state:
+        range: AgenticEngineState
+        required: true
+        description: Current operational state of the analytics engine.
+      activeFunctions:
+        range: ActiveFunctionExecution
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: Active function executions, or an empty list when none is active.
+      engineVersion:
+        range: string
+        required: true
+        description: Version of the agentic engine firmware.
+
+  ListFunctions:
+    description: >-
+      Empty arguments object accepted by the list_functions Tool. The Tool
+      takes no arguments, so its JSON Schema accepts an empty object and no
+      properties.
+    annotations:
+      mcp_tool: list_functions
+      access_class: READ_SYSTEM
+
+  FunctionDescriptor:
+    description: >-
+      A single entry of the function catalogue returned by the list_functions
+      Tool. Each entry names a function and points at the LinkML classes that
+      define its configuration, its execution parameters, and its result.
+    attributes:
+      name:
+        range: string
+        required: true
+        description: >-
+          Local name of the function on this ONVIF Device, for example
+          vehicle_detection or set_event_stream_parameters. It is the value passed in
+          the function argument of configure_function, execute_function,
+          stop_function and get_function_capabilities.
+
+          The name is unique within a single list_functions response and is
+          arbitrated by the ONVIF Device: where two independently defined
+          functions would claim the same local name, the device renames one of
+          them. It is therefore not a global identifier, and an ONVIF Client
+          shall not use it as a key across devices; canonicalUri serves that
+          purpose.
+      canonicalUri:
+        range: uri
+        required: true
+        description: >-
+          Canonical identifier of the function, which is the same on every
+          ONVIF Device that implements it. It is the value an ONVIF Client uses
+          to recognise a function and to correlate it across devices, and it is
+          stable under any renaming of the local name.
+
+          For a function reserved by this specification the value is
+          https://www.onvif.org/ver10/agentic/function/ followed by the reserved
+          name, for example
+          https://www.onvif.org/ver10/agentic/function/set_event_stream_parameters. For
+          any other function the value shall lie in a namespace controlled by
+          the party that defined the function.
+      description:
+        range: string
+        required: false
+        description: Human-readable description of what the function does.
+      enabled:
+        range: boolean
+        required: true
+        description: >-
+          Whether this function is configured and available for execution.
+      configSchema:
+        range: uri
+        required: false
+        description: >-
+          URI of the LinkML class that defines the config argument accepted by
+          configure_function for this function. Present when the function
+          accepts a configuration. A function that omits it accepts none, and a
+          configure_function call naming it is rejected.
+      executionSchema:
+        range: uri
+        required: false
+        description: >-
+          URI of the LinkML class that defines the parameters argument accepted
+          by execute_function for this function. Present when the function
+          accepts execution parameters.
+      resultSchema:
+        range: uri
+        required: false
+        description: >-
+          URI of the LinkML class that defines the structuredContent returned
+          by execute_function for this function. Present when the function
+          returns a structured result.
+      capabilitiesSchema:
+        range: uri
+        required: false
+        description: >-
+          URI of the LinkML class, derived from FunctionCapabilities, that
+          defines the structure of the capabilities returned by
+          get_function_capabilities for this function. It is present when the
+          function has capabilities that an ONVIF Client can read.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  ListFunctionsResult:
+    description: >-
+      Structured result returned by the list_functions Tool: the authoritative
+      machine-readable catalogue of the functions supported by a device
+      instance. This class is a root of the schema: it is the shape of a Tool
+      response and is therefore not referenced by any other class.
+    attributes:
+      functions:
+        range: FunctionDescriptor
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          One or more function descriptors. The catalogue is never empty: it
+          always contains the reserved set_event_stream_parameters function, and
+          an ONVIF Device that exposes no function of its own returns that entry
+          alone. The minimum cardinality is stated because required alone does
+          not forbid an empty list.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  GetFunctionCapabilities:
+    description: >-
+      Arguments accepted by the get_function_capabilities Tool.
+    annotations:
+      mcp_tool: get_function_capabilities
+      access_class: READ_SYSTEM
+    attributes:
+      function:
+        range: string
+        required: true
+        description: >-
+          Function identifier whose capabilities are requested, as returned by
+          the list_functions Tool.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  GetFunctionCapabilitiesResponse:
+    description: >-
+      Structured result returned by the get_function_capabilities Tool. It
+      carries the invariant properties of a single function, kept separate from
+      the result of any execution of that function.
+    attributes:
+      function:
+        range: string
+        required: true
+        description: Function identifier to which the capabilities apply.
+      capabilities:
+        range: FunctionCapabilities
+        required: false
+        description: >-
+          Capabilities of the named function. This slot is present if and only
+          if the function catalogue names a capabilitiesSchema for the function;
+          when present, it is an instance of the class derived from
+          FunctionCapabilities that capabilitiesSchema identifies. It is absent
+          when the function has no readable capabilities.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  ConfigureFunction:
+    description: >-
+      Arguments accepted by the configure_function Tool. The config value is
+      validated against the class identified by the named function's
+      FunctionDescriptor.configSchema, rather than against a fixed generic
+      class.
+    annotations:
+      mcp_tool: configure_function
+      access_class: ACTUATE
+    attributes:
+      function:
+        range: string
+        required: true
+        description: Function identifier whose configuration is applied.
+      config:
+        range: FunctionConfig
+        required: true
+        description: >-
+          Configuration object validated against the named function's
+          configSchema.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  ConfigureFunctionResponse:
+    description: >-
+      Structured result returned when configure_function has synchronously
+      applied a configuration.
+    attributes:
+      function:
+        range: string
+        required: true
+        description: Function identifier to which the applied configuration belongs.
+      applied:
+        range: FunctionConfig
+        required: true
+        description: >-
+          Configuration object applied by the ONVIF Device, conforming to the
+          named function's configSchema.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  ExecuteFunction:
+    description: >-
+      Arguments accepted by the execute_function Tool. When parameters is
+      present, it is validated against the class identified by the named
+      function's FunctionDescriptor.executionSchema.
+    annotations:
+      mcp_tool: execute_function
+      access_class: ACTUATE
+    attributes:
+      function:
+        range: string
+        required: true
+        description: Function identifier to execute.
+      parameters:
+        range: FunctionExecutionParameters
+        required: false
+        description: Execution-specific parameters for the named function.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  StopFunction:
+    description: >-
+      Arguments accepted by the stop_function Tool.
+    annotations:
+      mcp_tool: stop_function
+      access_class: ACTUATE
+    attributes:
+      function:
+        range: string
+        required: true
+        description: Function identifier of the execution to stop.
+      executionId:
+        range: string
+        required: true
+        description: Identifier of the execution to stop.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  # --- Reserved function: set_event_stream_parameters ------------------------
+
+  SetEventStreamParametersRequest:
+    abstract: false
+    is_a: FunctionExecutionParameters
+    description: >-
+      Execution parameters of the reserved set_event_stream_parameters
+      function. The function sets the settable parameters of the event stream;
+      at present the only one is the interval at which the ONVIF Device emits
+      notifications/events/heartbeat keep-alive messages on open events/stream
+      responses.
+
+      The invariant properties of the event stream, such as the number of
+      concurrent streams the ONVIF Device supports, are not set here. They are
+      read with the get_function_capabilities Tool, which for this function
+      returns EventStreamCapabilities.
+    attributes:
+      keepaliveIntervalMs:
+        range: integer
+        required: false
+        unit:
+          ucum_code: ms
+        description: >-
+          Requested interval, in milliseconds, between two consecutive
+          keep-alive notifications on an events/stream response. When it is
+          omitted the ONVIF Device applies the interval it declares in
+          EventStreamCapabilities.defaultKeepaliveIntervalMs; no default value
+          is fixed here, because the value is a property of the device and not
+          of this specification. This specification defines no global supported
+          range; the ONVIF Device declares its range in EventStreamCapabilities,
+          clamps the requested value to that range, and reports the value actually applied in
+          SetEventStreamParametersResponse.appliedKeepaliveIntervalMs.
+      subscriptionId:
+        range: integer
+        required: false
+        description: >-
+          JSON-RPC id of the events/stream request to which the new interval
+          applies. When omitted, the new interval applies to every stream
+          opened by the authenticated principal, including streams opened
+          after this call.
+
+  SetEventStreamParametersResponse:
+    abstract: false
+    is_a: FunctionExecutionResult
+    description: >-
+      Structured result returned by the execute_function Tool when it is
+      invoked for the reserved set_event_stream_parameters function.
+    slot_usage:
+      executionId:
+        description: Identifier of the execution that applied the new interval.
+    attributes:
+      appliedKeepaliveIntervalMs:
+        range: integer
+        required: true
+        unit:
+          ucum_code: ms
+        description: >-
+          Keep-alive interval actually applied by the ONVIF Device, in
+          milliseconds. This value is authoritative and may differ from the
+          requested one when the request was clamped.
+      clamped:
+        range: boolean
+        required: false
+        ifabsent: 'boolean(false)'
+        description: >-
+          Whether the requested interval was clamped to the range supported by
+          the ONVIF Device. When true, appliedKeepaliveIntervalMs differs from
+          the requested value. The supported range itself is read with the
+          get_function_capabilities Tool.
+      affectedStreams:
+        range: integer
+        multivalued: true
+        inlined_as_list: true
+        required: false
+        description: >-
+          JSON-RPC ids of the events/stream requests to which the applied
+          interval was propagated.
+
+  EventStreamCapabilities:
+    abstract: false
+    is_a: FunctionCapabilities
+    description: >-
+      Static capabilities of the reserved set_event_stream_parameters function,
+      which are the invariant properties of the event stream of an ONVIF Device:
+      the keep-alive interval range it supports, the interval it uses when none
+      was requested, and the number of concurrent streams it can serve. These
+      values do not depend on any invocation and are read with the
+      get_function_capabilities Tool.
+
+      The class covers the event stream as a whole and not the keep-alive
+      mechanism alone, because an ONVIF Client has to know the stream limits
+      before it opens a stream, and the reserved function that configures the
+      stream is the one place in this model where those limits have an owner.
+    attributes:
+      defaultKeepaliveIntervalMs:
+        range: integer
+        required: true
+        unit:
+          ucum_code: ms
+        description: >-
+          Keep-alive interval used by the ONVIF Device when none was requested,
+          in milliseconds. This specification fixes no value for it: an ONVIF
+          Device chooses one and declares it here, which is why the slot is
+          mandatory while its value is not prescribed. The MCP Events draft
+          recommends that a server send a heartbeat at least every 30 seconds;
+          that recommendation does not prescribe an ONVIF Device default or
+          supported range.
+      minKeepaliveIntervalMs:
+        range: integer
+        required: true
+        unit:
+          ucum_code: ms
+        description: >-
+          Shortest keep-alive interval supported by the ONVIF Device, in
+          milliseconds. A shorter requested interval is clamped to this value.
+      maxKeepaliveIntervalMs:
+        range: integer
+        required: true
+        unit:
+          ucum_code: ms
+        description: >-
+          Longest keep-alive interval supported by the ONVIF Device, in
+          milliseconds. A longer requested interval is clamped to this value.
+      maxConcurrentStreams:
+        range: integer
+        required: true
+        minimum_value: 1
+        description: >-
+          Greatest number of events/stream requests the ONVIF Device serves
+          concurrently for the authenticated principal. An ONVIF Client holds
+          one stream per subscription, so this value bounds the number of
+          subscriptions it can receive by push at any one time.
+
+          The value is at least 1. A request that would exceed it is rejected
+          with -32013 ResourceExhausted, which an ONVIF Client can avoid
+          entirely by reading this value before it opens a stream.
+
+  SetEventStreamParametersInvocation:
+    abstract: false
+    is_a: FunctionInvocation
+    description: >-
+      Declaration of the reserved set_event_stream_parameters function: it is
+      invoked through the execute_function Tool, it accepts
+      SetEventStreamParametersRequest, it returns
+      SetEventStreamParametersResponse, and its capabilities are
+      EventStreamCapabilities. The function sets the interval at which the ONVIF
+      Device emits notifications/events/heartbeat keep-alive messages on open
+      events/stream responses, overriding for the streams concerned the interval
+      the device declares in EventStreamCapabilities.defaultKeepaliveIntervalMs.
+    annotations:
+      mcp_tool: execute_function
+      access_class: ACTUATE
+    slot_usage:
+      function:
+        equals_string: "set_event_stream_parameters"
+        required: true
+        description: >-
+          Reserved function identifier. It is always
+          set_event_stream_parameters for this invocation.
+      parameters:
+        range: SetEventStreamParametersRequest
+        required: true
+        description: Keep-alive parameters accepted by the function.
+      result:
+        range: SetEventStreamParametersResponse
+        required: false
+        description: >-
+          Keep-alive result returned by the function, reporting the interval
+          actually applied.
+      capabilities:
+        range: EventStreamCapabilities
+        required: false
+        description: >-
+          Capabilities of the event stream returned for this function by the
+          get_function_capabilities Tool.
