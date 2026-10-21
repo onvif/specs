@@ -126,8 +126,8 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://modelcontextprotocol.io/specification/2026-07-28">https://modelcontextprotocol.io/specification/2026-07-28</link>&gt;</para>
     <para>Model Context Protocol Tasks Extension</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://modelcontextprotocol.io/extensions/tasks/overview">https://modelcontextprotocol.io/extensions/tasks/overview</link>&gt;</para>
-    <para>MCP Events Extension — Design Sketch Proposal</para>
-    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://github.com/modelcontextprotocol/experimental-ext-triggers-events/blob/main/docs/design-sketch-proposal.md">https://github.com/modelcontextprotocol/experimental-ext-triggers-events/blob/main/docs/design-sketch-proposal.md</link>&gt;</para>
+    <para>MCP Events Extension — SEP-3415 (Draft)</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://github.com/modelcontextprotocol/modelcontextprotocol/blob/2ec39b9c49c583411b73cb460dea5f52b5c541a6/seps/0000-events-extension.md">https://github.com/modelcontextprotocol/modelcontextprotocol/blob/2ec39b9c49c583411b73cb460dea5f52b5c541a6/seps/0000-events-extension.md</link>&gt;</para>
     <para>ONVIF Core Specification</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf">https://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf</link>&gt;</para>
     <para>ONVIF Media Signing Specification</para>
@@ -574,7 +574,10 @@
           implement <code>server/discover</code>. The ONVIF Client may call
             <code>server/discover</code> before issuing other requests to learn supported versions
           and capabilities, but it is not required to call it first and may invoke any operation
-          directly and handle <code>UnsupportedProtocolVersionError</code>.</para>
+          directly and handle <code>UnsupportedProtocolVersionError</code>. Before sending any
+          <code>events/*</code> request, however, the ONVIF Client shall establish that the ONVIF
+          Device advertises the Events extension, as specified in <xref
+            linkend="sec_session_initialization"/>.</para>
         <para>The stateless model is the correct choice for the ONVIF Agentic Service use case:
           ONVIF Devices are deployed as horizontally-scalable endpoints behind load balancers, and
           pinning a ONVIF Client to a specific server instance via a session identifier would
@@ -1127,7 +1130,8 @@
             <code>server/discover</code> JSON-RPC method as required by MCP 2026-07-28. The ONVIF
           Client MAY call <code>server/discover</code> as its first request on a new connection to
           obtain the device's protocol version, server identity, and capability flags.
-          Alternatively, the ONVIF Client MAY call any other operation directly and handle
+          Alternatively, except for the Events extension discovery prerequisite below, the ONVIF
+          Client MAY call another operation directly and handle
             <code>UnsupportedProtocolVersionError</code> (JSON-RPC error code <code>-32022</code>)
           if the protocol version is not supported. In that case the ONVIF Device shall include a
             <code>supported</code> list in the error response and the ONVIF Client shall retry using
@@ -1139,6 +1143,12 @@
             <code>prompts</code>, and supported extensions). The ONVIF Client shall use the returned
             <code>capabilities</code> flags to determine which subsequent operations are available
           before invoking them.</para>
+        <para>The ONVIF Device shall advertise the Events extension as
+          <code>capabilities.extensions["io.modelcontextprotocol/events"]</code> in its
+          <code>server/discover</code> response, with <code>listChanged: true</code>. An ONVIF
+          Client shall not send an <code>events/*</code> request unless the ONVIF Device has
+          advertised this extension. The optional client declaration uses the same identifier in
+          <code>params._meta["io.modelcontextprotocol/clientCapabilities"].extensions</code>.</para>
         <para>To receive metadata events the ONVIF Client opens a long-lived
             <code>events/stream</code> request per subscription, or subscribes for webhook
           delivery via <code>events/subscribe</code>, as defined in <xref
@@ -1394,7 +1404,7 @@
             If the descriptor omits <code>capabilitiesSchema</code>, the response shall omit
             <code>capabilities</code>.</para>
         <para>An ONVIF Device shall reject a request naming a function it does not support with
-            <code>-32011 NotFound</code>. A function that has no readable capabilities shall omit
+            <code>-32023 NotFound</code>. A function that has no readable capabilities shall omit
             <code>capabilitiesSchema</code> from its descriptor; an ONVIF Device shall respond
           successfully to this Tool for such a function without a <code>capabilities</code>
           field.</para>
@@ -1425,7 +1435,7 @@
           and is configured, if at all, by the parameters of its execution; the reserved
           <code>set_event_stream_parameters</code> function is of that kind. An ONVIF Device shall
           reject a <code>configure_function</code> call naming such a function with
-          <code>-32014 Unsupported</code>, there being no class that would define the
+          <code>-32026 Unsupported</code>, there being no class that would define the
           <code>config</code> the call has to carry.</para>
         <para>The <code>configure_function</code> Tool arguments are: <itemizedlist>
             <listitem>
@@ -1500,6 +1510,19 @@
         Events extension (see <xref linkend="ch_normative_references"/>). This specification does
         not define, and an ONVIF Device conforming to it shall not require, a poll-based
         (<code>events/poll</code>) delivery mode.</para>
+      <para>The MCP Events extension reference is pinned to the SEP-3415 draft at commit
+        <code>2ec39b9c49c583411b73cb460dea5f52b5c541a6</code>. Its error-code allocations are
+        provisional. Implementations shall follow that revision for the mechanisms used here;
+        later changes to the draft require review before this specification is updated.</para>
+      <para>The ONVIF Client shall call <code>events/list</code> and select, for each event type,
+        a mode it supports from the advertised <code>delivery</code> array. It uses
+        <code>events/stream</code> for <code>"push"</code> and <code>events/subscribe</code> for
+        <code>"webhook"</code>. The array does not define a preference order. Selection and
+        subscription lifecycle management are performed by the ONVIF Client implementation;
+        they do not require a model Tool call. If the ONVIF Client cannot use any advertised mode,
+        it cannot subscribe to that event type.</para>
+      <para>Every result returned by the Events extension shall carry
+        <code>resultType: "complete"</code>.</para>
       <section xml:id="sec_event_type_catalogue">
         <title>Event Type Catalogue</title>
         <para>An event type of this specification is a metadata class. An ONVIF Device declares an
@@ -1572,9 +1595,26 @@
             <code>eventId</code> of the occurrence, which is per-delivery. Item identifiers are unique
           and never reused, as specified in <xref linkend="sec_object_identifiers"/>, which makes this
           deduplication exact.</para>
-        <para>If the set of event types, or the descriptor of any of them, changes at runtime, the
-          ONVIF Device shall send <code>notifications/events/list_changed</code> and the ONVIF
-          Client shall re-call <code>events/list</code> to refresh its registry.</para>
+        <para>To receive catalogue-change notifications, the ONVIF Client shall open a
+          <code>subscriptions/listen</code> request with <code>eventsListChanged: true</code> in
+          its <code>notifications</code> filter. The ONVIF Device shall echo the accepted flag
+          in <code>notifications/subscriptions/acknowledged</code>. If the set of event types,
+          or the descriptor of any of them, changes at runtime, the ONVIF Device shall send
+          <code>notifications/events/list_changed</code> on that opted-in stream. On receipt,
+          the ONVIF Client shall re-call <code>events/list</code> to refresh its registry.
+          These notifications are not sent on an <code>events/stream</code> response.</para>
+      </section>
+      <section xml:id="sec_event_routing_headers">
+        <title>Streamable HTTP Routing Headers</title>
+        <para>For <code>events/stream</code>, <code>events/subscribe</code>, and
+          <code>events/unsubscribe</code>, the ONVIF Client shall set <code>Mcp-Name</code> to
+          <code>params.name</code> and <code>Mcp-Method</code> to the JSON-RPC method name.
+          The encoding and validation rules of the MCP Streamable HTTP transport apply, including
+          the Base64 sentinel representation for names that cannot be safely represented as plain
+          ASCII header values. A missing or mismatched <code>Mcp-Name</code> shall be rejected
+          with HTTP 400 and <code>-32020 HeaderMismatch</code>. The <code>events/list</code>
+          request has no <code>params.name</code> and shall carry no <code>Mcp-Name</code>
+          header; its <code>Mcp-Method</code> is <code>events/list</code>.</para>
       </section>
       <section xml:id="sec_push_based_delivery">
         <title>Push-Based Delivery</title>
@@ -1627,7 +1667,7 @@
           <code>get_function_capabilities</code> Tool for the reserved
           <code>set_event_stream_parameters</code> function (see <xref
             linkend="sec_event_keepalive"/>); it shall reject a request exceeding that limit with
-          <code>-32013 ResourceExhausted</code>. An ONVIF Client that reads that value before
+          <code>-32025 ResourceExhausted</code>. An ONVIF Client that reads that value before
           opening its streams need never provoke that error.</para>
         <para>If the stream is interrupted, the ONVIF Client shall reopen an
             <code>events/stream</code> request with the same <code>name</code> and
@@ -1682,7 +1722,7 @@
             <code>clamped</code> shall be <code>true</code> when that value differs from the one
           requested. An ONVIF Device
           shall reject a request whose <code>subscriptionId</code> does not identify an open stream
-          of the authenticated principal with <code>-32011 NotFound</code>.</para>
+          of the authenticated principal with <code>-32023 NotFound</code>.</para>
         <para>The supported range itself is not part of that result: it is a static property of the
           ONVIF Device, not an outcome of the call. An ONVIF Client reads it with the
             <code>get_function_capabilities</code> Tool (see <xref
@@ -1735,6 +1775,11 @@
             <code>cursor</code>, and a suggested lifetime <code>ttlMs</code>. The ONVIF Device
           returns a server-derived subscription <code>id</code>, the granted expiry
             <code>refreshBefore</code>, and a safe-to-persist <code>cursor</code>.</para>
+        <para>Before activating webhook delivery, the ONVIF Device shall confirm the endpoint's
+          intent to receive deliveries using one of the endpoint-verification mechanisms defined by
+          SEP-3415. Where a verification challenge is used, the callback endpoint answers it in its
+          HTTP response; the challenge is not an event for the model. Webhook delivery shall follow
+          the extension's security, retry, gap, termination, and subscription-identity rules.</para>
         <para>The ONVIF Device shall then POST each matching <code>EventOccurrence</code> to the
           registered callback URL, signed per Standard Webhooks (<code>webhook-id</code>,
             <code>webhook-timestamp</code>, <code>webhook-signature</code> headers) and carrying
@@ -1746,7 +1791,7 @@
           subscription; otherwise it lapses at TTL expiry.</para>
         <para><code>events/subscribe</code> and <code>events/unsubscribe</code> shall only be
           accepted from an authenticated principal; an ONVIF Device shall reject unauthenticated
-          calls to either method with <code>-32012 Forbidden</code> (see <xref
+          calls to either method with <code>-32024 Forbidden</code> (see <xref
             linkend="sec_event_error_codes"/>).</para>
       </section>
       <section xml:id="sec_event_error_codes">
@@ -1778,7 +1823,7 @@
                     <code>delivery.secret</code> is not a valid <code>whsec_</code> value.</para></entry>
               </row>
               <row>
-                <entry><para><code>-32011</code></para></entry>
+                <entry><para><code>-32023</code></para></entry>
                 <entry><para><code>NotFound</code></para></entry>
                 <entry><para>An unknown event <code>name</code>, no subscription matching the
                   key on <code>events/unsubscribe</code>, a <code>subscriptionId</code> that
@@ -1787,20 +1832,20 @@
                     <code>get_function_capabilities</code>.</para></entry>
               </row>
               <row>
-                <entry><para><code>-32012</code></para></entry>
+                <entry><para><code>-32024</code></para></entry>
                 <entry><para><code>Forbidden</code></para></entry>
                 <entry><para>The authenticated principal is not permitted for this event/arguments
                   combination, or its access was revoked, or the call was unauthenticated.</para></entry>
               </row>
               <row>
-                <entry><para><code>-32013</code></para></entry>
+                <entry><para><code>-32025</code></para></entry>
                 <entry><para><code>ResourceExhausted</code></para></entry>
                 <entry><para>A device-imposed limit or quota was reached (for example, the maximum
                   number of concurrent <code>events/stream</code> requests or webhook
                   subscriptions).</para></entry>
               </row>
               <row>
-                <entry><para><code>-32014</code></para></entry>
+                <entry><para><code>-32026</code></para></entry>
                 <entry><para><code>Unsupported</code></para></entry>
                 <entry><para>The request is well-formed but what it asks for is not offered — a
                   delivery mode not offered for this event type, or a configuration for a function
@@ -1808,7 +1853,7 @@
                   none.</para></entry>
               </row>
               <row>
-                <entry><para><code>-32015</code></para></entry>
+                <entry><para><code>-32027</code></para></entry>
                 <entry><para><code>CallbackEndpointError</code></para></entry>
                 <entry><para>A client-supplied callback endpoint failed verification or could not
                   be reached (webhook mode only).</para></entry>
@@ -1908,7 +1953,8 @@
         <para>This mechanism allows the ONVIF Device to introduce new classes without requiring the
           ONVIF Client to have prior knowledge of them. It is a recovery path and not the normal one:
           an ONVIF Device shall announce a change to its schema bundle with
-            <code>notifications/events/list_changed</code>, so that an ONVIF Client learns of it by
+            <code>notifications/events/list_changed</code> on an opted-in
+          <code>subscriptions/listen</code> stream, so that an ONVIF Client learns of it by
           being told rather than by failing to interpret an item. An ONVIF Device shall keep every
           module needed to interpret the classes it emits readable through
             <code>resources/read</code> for as long as it emits them.</para>
@@ -2076,7 +2122,8 @@
               <entry><para><code>onvif:Administrator</code></para></entry>
             </row>
             <row>
-              <entry><para><code>events/list</code> and <code>events/stream</code></para></entry>
+              <entry><para><code>events/list</code>, <code>events/stream</code>, and
+                  <code>subscriptions/listen</code> for event catalogue-change notifications</para></entry>
               <entry><para>READ_SYSTEM</para></entry>
               <entry><para><code>onvif:User</code></para></entry>
             </row>
@@ -3217,6 +3264,7 @@ default_range: string</programlisting>
       },
       "io.modelcontextprotocol/clientCapabilities": {
         "extensions": {
+          "io.modelcontextprotocol/events": {},
           "io.modelcontextprotocol/tasks": {}
         }
       }
@@ -3238,10 +3286,10 @@ default_range: string</programlisting>
     "capabilities": {
       "resources": {},
       "tools": {},
-      "events": {
-        "listChanged": true
-      },
       "extensions": {
+        "io.modelcontextprotocol/events": {
+          "listChanged": true
+        },
         "io.modelcontextprotocol/tasks": {}
       }
     }
@@ -3609,7 +3657,7 @@ default_range: string</programlisting>
   "jsonrpc": "2.0",
   "id": 13,
   "error": {
-    "code": -32011,
+    "code": -32023,
     "message": "NotFound",
     "data": { "function": "thermal_drift_detection" }
   }
@@ -3858,6 +3906,7 @@ default_range: string</programlisting>
   "jsonrpc": "2.0",
   "id": 20,
   "result": {
+    "resultType": "complete",
     "events": [
       {
         "name": "VehicleObservation",
@@ -3914,6 +3963,8 @@ default_range: string</programlisting>
 Host: 192.0.2.10
 Accept: text/event-stream
 Content-Type: application/json
+Mcp-Method: events/stream
+Mcp-Name: VehicleObservation
 MCP-Protocol-Version: 2026-07-28
 Authorization: Bearer &lt;ES256 JWT&gt;
 
@@ -4220,6 +4271,7 @@ data: }}</programlisting>
   "jsonrpc": "2.0",
   "id": 22,
   "result": {
+    "resultType": "complete",
     "id": "sub_9f2a1c7e0b4d3f6a",
     "refreshBefore": "2026-08-04T14:05:00Z",
     "cursor": "historyId_10040",
