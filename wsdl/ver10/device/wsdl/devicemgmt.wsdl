@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="../../../ver20/util/onvif-wsdl-viewer.xsl"?>
 <!--
-Copyright (c) 2008-2023 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2026 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
@@ -10,7 +10,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tds="http://www.onvif.org/ver10/device/wsdl" targetNamespace="http://www.onvif.org/ver10/device/wsdl">
 	<wsdl:types>
-		<xs:schema targetNamespace="http://www.onvif.org/ver10/device/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:tds="http://www.onvif.org/ver10/device/wsdl" elementFormDefault="qualified" version="23.06">
+		<xs:schema targetNamespace="http://www.onvif.org/ver10/device/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:tds="http://www.onvif.org/ver10/device/wsdl" elementFormDefault="qualified" version="26.06">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../../ver10/schema/onvif.xsd"/>
 			<!--===============================-->
 			<xs:element name="GetServices">
@@ -232,6 +232,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>Indicates support for WS-Security REL token.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="JsonWebToken" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for JWT-based authentication with WS-Security Binary Security token.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:attribute name="SupportedEAPMethods" type="tt:IntList">
 					<xs:annotation>
 						<xs:documentation>EAP Methods supported by the device. The int values refer to the <a href="http://www.iana.org/assignments/eap-numbers/eap-numbers.xhtml">IANA EAP Registry</a>.</xs:documentation>
@@ -267,6 +272,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
                     				<xs:documentation>Supported hashing algorithms as part of HTTP and RTSP Digest authentication.Example: MD5,SHA-256</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="MaxUserRoles" type="xs:int">
+					<xs:annotation>
+						<xs:documentation>Whenever set to an integer greater than zero, it signals that the device supports editable user roles. It indicates the maximum number of editable user roles.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
@@ -296,9 +306,9 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>Indicates support for retrieval of system logging through MTOM.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
-				<xs:attribute name="FirmwareUpgrade" type="xs:boolean">
+				<xs:attribute name="CloudFirmwareUpgrade" type="xs:boolean">
 					<xs:annotation>
-						<xs:documentation>Indicates support for firmware upgrade through MTOM.</xs:documentation>
+						<xs:documentation>Indicates support for firmware upgrade through the cloud.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="HttpFirmwareUpgrade" type="xs:boolean">
@@ -329,6 +339,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:attribute name="MaxStorageConfigurations" type="xs:int">
 					<xs:annotation>
 						<xs:documentation>Indicates maximum number of storage configurations supported.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="StorageConfigurationRenewal" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for renewal of storage configuration.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="GeoLocationEntries" type="xs:int">
@@ -366,6 +381,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>List of supported Addons by the device.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="HardwareType" type="xs:string">
+					<xs:annotation>
+						<xs:documentation>Indicates what type of device this is. See tt:HardwareTypes for available options.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
@@ -384,6 +404,64 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:enumeration value="Leveling">
 						<xs:annotation>	
 							<xs:documentation>Automatic adjustment of the deviation from the horizon also called pitch and roll.</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+				</xs:restriction>
+			</xs:simpleType>
+			<!--===============================-->
+			<xs:simpleType name="HardwareTypes">
+				<xs:annotation>
+					<xs:documentation>All hardware types specified are related to network devices supporting ONVIF specification.</xs:documentation>
+				</xs:annotation>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="Camera">
+						<xs:annotation>
+							<xs:documentation>Single sensor camera. Ex. bullet, PTZ or fisheye camera.</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="MultiSensorCamera">
+						<xs:annotation>
+							<xs:documentation>Multiple sensors device.</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="Encoder">
+						<xs:annotation>
+							<xs:documentation>Analog encoder. Can have 1 or more encoders.</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="Intercom">
+						<xs:annotation>
+							<xs:documentation>Intercom device, which has both a microphone and a speaker.</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="AccessControl">
+						<xs:annotation>
+							<xs:documentation>Access control device.</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="Speaker">
+						<xs:annotation>
+							<xs:documentation>A speaker which is not an intercom.</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="Recorder">
+						<xs:annotation>
+							<xs:documentation>Network video recorder (NVR/DVR)</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="Microphone">
+						<xs:annotation>
+							<xs:documentation>A microphone which is not an intercom.</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="Display">
+						<xs:annotation>
+							<xs:documentation>A display for a device mainly supporting the Display service.</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="IO-Device">
+						<xs:annotation>
+							<xs:documentation>A device which only has DigitalInputs and RelayOutputs.</xs:documentation>
 						</xs:annotation>
 					</xs:enumeration>
 				</xs:restriction>
@@ -571,7 +649,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:sequence>
 						<xs:element name="SupportInformation" type="tt:SupportInformation">
 							<xs:annotation>
-								<xs:documentation>Contains the arbitary device diagnostics information.</xs:documentation>
+								<xs:documentation>Contains the arbitrary device diagnostics information.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 					</xs:sequence>
@@ -895,6 +973,53 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>
 			<xs:element name="SetUserResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetUserRoles">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="UserRole" type="xs:string" minOccurs="0" maxOccurs="1">
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetUserRolesResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="UserRole" type="tt:UserRole" minOccurs="0" maxOccurs="unbounded">
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetUserRole">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="UserRole" type="tt:UserRole" minOccurs="1" maxOccurs="1">
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetUserRoleResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="DeleteUserRole">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="UserRole" type="xs:string" minOccurs="1" maxOccurs="1">
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="DeleteUserRoleResponse">
 				<xs:complexType>
 					<xs:sequence>
 					</xs:sequence>
@@ -2045,6 +2170,21 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:element name="UpgradeFirmware">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Version" type="xs:string"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="UpgradeFirmwareResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ExpectedDownTime" type="xs:duration"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
 			<xs:element name="StartSystemRestore">
 				<xs:complexType>
 					<xs:sequence/>
@@ -2089,16 +2229,22 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					</xs:element>
 					<xs:element name="Password" type="xs:string" minOccurs="0">
 						<xs:annotation>	
-							<xs:documentation> optional password</xs:documentation> 
+							<xs:documentation> optional password, device shall not return the credentials (password) in the reply. </xs:documentation> 
 						</xs:annotation>
 					</xs:element>
-					<xs:element name="Extension" minOccurs="0">
+					<xs:element name="Extension" minOccurs="0">	<!-- deprecated -->
 						<xs:complexType>
 							<xs:sequence>
-								<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+								<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- Vendor only -->
 							</xs:sequence>
 						</xs:complexType>
 					</xs:element>
+					<xs:element name="Token" type="xs:string" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation> optional access token, device shall not return the credentials (token) in the reply. </xs:documentation>
+						</xs:annotation>
+					</xs:element>					
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
 				</xs:sequence>
 			</xs:complexType>
 			
@@ -2154,13 +2300,48 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 							<xs:documentation>User credential for the storage server</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element name="Extension" minOccurs="0">
+					<xs:element name="Extension" minOccurs="0">	<!-- deprecated -->
 						<xs:complexType>
 							<xs:sequence>
-								<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+								<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- Vendor only -->
 							</xs:sequence>
 						</xs:complexType>
 					</xs:element>
+					<xs:element name="CertPathValidationPolicyID" type="xs:string" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The unique identifier of the certification path validation policy to be used for validating the server certificate as declared in the security service.</xs:documentation>
+							<xs:documentation>If not configured, server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="ConfigurationRenewal" minOccurs="0">
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="RenewalEndpoint" type="xs:anyURI">
+									<xs:annotation>
+										<xs:documentation>Remote URL to be queried by the device to renew the storage configuration.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+								<xs:element name="AuthorizationServer" type="tt:ReferenceToken">
+									<xs:annotation>
+										<xs:documentation>AuthorizationServer token referring to the server that provides access tokens to authorize with the the renewal endpoint.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+								<xs:element name="CertPathValidationPolicyID" type="xs:string" minOccurs="0">
+									<xs:annotation>
+										<xs:documentation>CertPathValidationPolicyID used to validate the renewal endpoint server certificate.
+											If not configured, server certificate validation behavior is undefined and the device may either apply
+											a vendor specific default validation policy or skip validation at all.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+								<xs:element name="Error" type="xs:string" minOccurs="0">
+									<xs:annotation>
+										<xs:documentation>Optional user readable error information (readonly).</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+							</xs:sequence>
+						</xs:complexType>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	   <!-- first ONVIF then Vendor -->
 				</xs:sequence>
 				<xs:attribute name="type" type="xs:string" use="required">
 					<xs:annotation>
@@ -2266,6 +2447,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:sequence/>
 				</xs:complexType>
 			</xs:element>	 		
+
 			<!--===============================-->
 			<xs:element name="GetGeoLocation">
 				<xs:complexType>
@@ -2483,6 +2665,24 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</wsdl:message>
 	<wsdl:message name="SetUserResponse">
 		<wsdl:part name="parameters" element="tds:SetUserResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetUserRolesRequest">
+		<wsdl:part name="parameters" element="tds:GetUserRoles"/>
+	</wsdl:message>
+	<wsdl:message name="GetUserRolesResponse">
+		<wsdl:part name="parameters" element="tds:GetUserRolesResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetUserRoleRequest">
+		<wsdl:part name="parameters" element="tds:SetUserRole"/>
+	</wsdl:message>
+	<wsdl:message name="SetUserRoleResponse">
+		<wsdl:part name="parameters" element="tds:SetUserRoleResponse"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteUserRoleRequest">
+		<wsdl:part name="parameters" element="tds:DeleteUserRole"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteUserRoleResponse">
+		<wsdl:part name="parameters" element="tds:DeleteUserRoleResponse"/>
 	</wsdl:message>
 	<wsdl:message name="GetWsdlUrlRequest">
 		<wsdl:part name="parameters" element="tds:GetWsdlUrl"/>
@@ -2844,6 +3044,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="StartFirmwareUpgradeResponse">
 		<wsdl:part name="parameters" element="tds:StartFirmwareUpgradeResponse"/>
 	</wsdl:message>
+	<wsdl:message name="UpgradeFirmwareRequest">
+		<wsdl:part name="parameters" element="tds:UpgradeFirmware"/>
+	</wsdl:message>
+	<wsdl:message name="UpgradeFirmwareResponse">
+		<wsdl:part name="parameters" element="tds:UpgradeFirmwareResponse"/>
+	</wsdl:message>
 	<wsdl:message name="StartSystemRestoreRequest">
 		<wsdl:part name="parameters" element="tds:StartSystemRestore"/>
 	</wsdl:message>
@@ -2880,8 +3086,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	</wsdl:message>
 	<wsdl:message name="DeleteStorageConfigurationResponse">
 		<wsdl:part name="parameters" element="tds:DeleteStorageConfigurationResponse"/>
-	</wsdl:message>	
-	
+	</wsdl:message>
 	<wsdl:message name="GetGeoLocationRequest">
 		<wsdl:part name="parameters" element="tds:GetGeoLocation"/>
 	</wsdl:message>
@@ -2985,7 +3190,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<wsdl:output message="tds:GetSystemLogResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="GetSystemSupportInformation">
-			<wsdl:documentation>This operation gets arbitary device diagnostics information from the device.</wsdl:documentation>
+			<wsdl:documentation>This operation gets arbitrary device diagnostics information from the device.</wsdl:documentation>
 			<wsdl:input message="tds:GetSystemSupportInformationRequest"/>
 			<wsdl:output message="tds:GetSystemSupportInformationResponse"/>
 		</wsdl:operation>
@@ -3080,17 +3285,35 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<wsdl:input message="tds:GetEndpointReferenceRequest"/>
 			<wsdl:output message="tds:GetEndpointReferenceResponse"/>
 		</wsdl:operation>
+		<wsdl:operation name="GetUserRoles">
+			<wsdl:documentation>This operation returns the editable user levels configured in the device. Whenever an editable
+				user level is passed in the request, information only about that level is returned.</wsdl:documentation>
+			<wsdl:input message="tds:GetUserRolesRequest"/>
+			<wsdl:output message="tds:GetUserRolesResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetUserRole">
+			<wsdl:documentation>This operation configures an editable user level in the device. If the level
+				passed in UserRole already exists in the device, its configuration is overwritten. Otherwise,
+				a new editable user level is created.</wsdl:documentation>
+			<wsdl:input message="tds:SetUserRoleRequest"/>
+			<wsdl:output message="tds:SetUserRoleResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteUserRole">
+			<wsdl:documentation>This operation deletes an editable user level in the device.</wsdl:documentation>
+			<wsdl:input message="tds:DeleteUserRoleRequest"/>
+			<wsdl:output message="tds:DeleteUserRoleResponse"/>
+		</wsdl:operation>
 		<wsdl:operation name="GetRemoteUser">
 			<wsdl:documentation>This operation returns the configured remote user (if any). A device supporting remote user
 				handling shall support this operation. The user is only valid for the WS-UserToken profile or
-				as a HTTP / RTSP user.<br/>
+				as an HTTP / RTSP user.<br/>
 				The algorithm to use for deriving the password is described in section 5.12.2.1 of the core specification.</wsdl:documentation>
 			<wsdl:input message="tds:GetRemoteUserRequest"/>
 			<wsdl:output message="tds:GetRemoteUserResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="SetRemoteUser">
 			<wsdl:documentation>This operation sets the remote user. A device supporting remote user handling shall support this
-				operation. The user is only valid for the WS-UserToken profile or as a HTTP / RTSP user.<br/>
+				operation. The user is only valid for the WS-UserToken profile or as an HTTP / RTSP user.<br/>
 				The password that is set shall always be the original (not derived) password.<br/>
 				If UseDerivedPassword is set password derivation shall be done by the device when connecting to a
 				remote device.The algorithm to use for deriving the password is described in section 5.12.2.1 of the core specification.<br/>
@@ -3191,7 +3414,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<wsdl:operation name="SetHostname">
 			<wsdl:documentation>This operation sets the hostname on a device. It shall be possible to set the device hostname
 				configurations through the SetHostname command.<br/>
-				A device shall accept string formated according to RFC 1123 section 2.1 or alternatively to RFC 952, 
+				A device shall accept string formatted according to RFC 1123 section 2.1 or alternatively to RFC 952, 
 				other string shall be considered as invalid strings. 
 			</wsdl:documentation>
 			<wsdl:input message="tds:SetHostnameRequest"/>
@@ -3223,7 +3446,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<wsdl:operation name="SetNTP">
 			<wsdl:documentation>This operation sets the NTP settings on a device. If the device supports NTP, it shall be
 				possible to set the NTP server settings through the SetNTP command.<br/>
-				A device shall accept string formated according to RFC 1123 section 2.1 or alternatively to RFC 952, 
+				A device shall accept string formatted according to RFC 1123 section 2.1 or alternatively to RFC 952, 
 				other string shall be considered as invalid strings. <br/>
 				Changes to the NTP server list will not affect the clock mode DateTimeType. Use SetSystemDateAndTime to activate NTP operation.
 			</wsdl:documentation>
@@ -3433,11 +3656,29 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<li>Server reprograms itself using the uploaded image, then reboots.</li>
 				</ol>
 				If the firmware upgrade fails because the upgrade file was invalid, the HTTP POST response
-				shall be “415 Unsupported Media Type”. If the firmware upgrade fails due to an error at the
-				device, the HTTP POST response shall be “500 Internal Server Error”.<br/>
-				The value of the Content-Type header in the HTTP POST request shall be “application/octetstream”.</wsdl:documentation>
+				shall be "415 Unsupported Media Type". If the firmware upgrade fails due to an error at the
+				device, the HTTP POST response shall be "500 Internal Server Error".<br/>
+				The value of the Content-Type header in the HTTP POST request shall be "application/octetstream".</wsdl:documentation>
 			<wsdl:input message="tds:StartFirmwareUpgradeRequest"/>
 			<wsdl:output message="tds:StartFirmwareUpgradeResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="UpgradeFirmware">
+			<wsdl:documentation>This operation initiates a firmware upgrade using between the device
+				and the MCS, without further actions from the client. Cloud firmware upgrade may be
+				achieved using the following steps:
+				<ol>
+					<li>Client retrieves the list of available firmware versions from the MCS.</li>
+					<li>Client calls UpgradeFirmware, selecting the desired FW version.</li>
+					<li>Device service responds with a downtime value.</li>
+					<li>Device and MCS perform the firmware upgrade procedure without further interaction from the Client</li>
+					<li>Device notifies the Client of the result by emitting the appropriate CloudFirmwareUpgrade event</li>
+				</ol>
+				After applying a firmware upgrade the device shall keep the basic network configuration
+				like IP address, subnet mask and gateway or DHCP settings, as well as all the parameters
+				of the Uplink and Security service unchanged, so that it can connect to the cloud.
+				Additionally a firmware upgrade shall not change user credentials.</wsdl:documentation>
+			<wsdl:input message="tds:UpgradeFirmwareRequest"/>
+			<wsdl:output message="tds:UpgradeFirmwareResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="StartSystemRestore">
 			<wsdl:documentation>This operation initiates a system restore from backed up configuration data using the HTTP
@@ -3453,9 +3694,9 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<li>Server applies the uploaded configuration, then reboots if necessary.</li>
 				</ol>
 				If the system restore fails because the uploaded file was invalid, the HTTP POST response
-				shall be “415 Unsupported Media Type”. If the system restore fails due to an error at the
-				device, the HTTP POST response shall be “500 Internal Server Error”.<br/>
-				The value of the Content-Type header in the HTTP POST request shall be “application/octetstream”.</wsdl:documentation>
+				shall be "415 Unsupported Media Type". If the system restore fails due to an error at the
+				device, the HTTP POST response shall be "500 Internal Server Error".<br/>
+				The value of the Content-Type header in the HTTP POST request shall be "application/octetstream".</wsdl:documentation>
 			<wsdl:input message="tds:StartSystemRestoreRequest"/>
 			<wsdl:output message="tds:StartSystemRestoreResponse"/>
 		</wsdl:operation>
@@ -3853,6 +4094,33 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="SetUser">
 			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/SetUser"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetUserRoles">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/GetUserRoles"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetUserRole">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/SetUserRole"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteUserRole">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/DeleteUserRole"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
@@ -4402,6 +4670,15 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		</wsdl:operation>
 		<wsdl:operation name="StartFirmwareUpgrade">
 			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/StartFirmwareUpgrade"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="UpgradeFirmware">
+			<soap:operation soapAction="http://www.onvif.org/ver10/device/wsdl/UpgradeFirmware"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>

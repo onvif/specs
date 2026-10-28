@@ -1,0 +1,54 @@
+name: gsoap-wsdl-check
+run-name: "WSDL files syntax check with gSoap"
+
+on:
+  push:
+    paths:
+      - '**.wsdl'
+      - '**.xsd'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gsoap-wsdl-check:
+    strategy:
+      fail-fast: true
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check that remote files are reachable
+        id: vars
+        run: |
+          export MISSING_FILES=0
+          curl --head http://docs.oasis-open.org/wsn/b-2.xsd ||  export MISSING_FILES=$((MISSING_FILES+1))
+          echo "MISSING_FILES=$MISSING_FILES" >> $GITHUB_OUTPUT
+          echo "MISSING_FILES=$MISSING_FILES"
+      - name: Install missing software
+        if: ${{ steps.vars.outputs.MISSING_FILES == 0 }}
+        run: |
+          sudo apt update && sudo apt install gcc g++ curl autoconf automake cmake bison flex libssl-dev zlib1g-dev make 
+      - name: Checkout tools repo
+        uses: actions/checkout@v6
+        if: ${{ steps.vars.outputs.MISSING_FILES == 0 }}
+        with:
+          repository: onvif/gsoap-wsdl-checker
+          path: gsoap-wsdl-checker
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Get branch names.
+        if: ${{ steps.vars.outputs.MISSING_FILES == 0 }}
+        id: branch-names
+        uses: tj-actions/branch-names@v9.0.2
+      - name: Install gsoap
+        if: ${{ steps.vars.outputs.MISSING_FILES == 0 }}
+        run: |
+          cd gsoap-wsdl-checker
+          cmake CMakeLists.txt -DBRANCH=${{ steps.branch-names.outputs.current_branch }}
+          make gsoap
+      - name: Compile the WDSL files
+        if: ${{ steps.vars.outputs.MISSING_FILES == 0 }}
+        run: |
+          cd gsoap-wsdl-checker
+          make
+

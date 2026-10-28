@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="../../../ver20/util/onvif-wsdl-viewer.xsl"?>
 <!--
-Copyright (c) 2008-2023 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+Copyright (c) 2008-2026 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 
 Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 
@@ -10,7 +10,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tr2="http://www.onvif.org/ver20/media/wsdl" targetNamespace="http://www.onvif.org/ver20/media/wsdl">
 	<wsdl:types>
-		<xs:schema targetNamespace="http://www.onvif.org/ver20/media/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="23.06">
+		<xs:schema targetNamespace="http://www.onvif.org/ver20/media/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="26.06">
 			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../../ver10/schema/onvif.xsd"/>
 			<!--  Message Request/Responses elements  -->
 			<!--===============================-->
@@ -41,6 +41,16 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 					<xs:element name="StreamingCapabilities" type="tr2:StreamingCapabilities">
 						<xs:annotation>
 							<xs:documentation>Streaming capabilities.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioClipCapabilities" type="tr2:AudioClipCapabilities" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Audio clip capabilities.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MulticastAudioDecoderCapabilities" type="tr2:MulticastAudioDecoderCapabilities" minOccurs="0" > 
+						<xs:annotation>
+							<xs:documentation>MulticastAudioDecoder capabilities.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
@@ -80,6 +90,16 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 						<xs:documentation>Indicates that privacy masks are only supported at the video source level and not the video source configuration level. 
 							If this is true any addition, deletion or change of a privacy mask done for one video source configuration will automatically be 
 							applied by the device to a corresponding privacy mask for all other video source configuration associated with the same video source.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="WebRTC" type="xs:int">
+					<xs:annotation>
+						<xs:documentation>Indicates number of supported WebRTC configurations.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="WebRTC_codecs" type="tt:StringList">
+					<xs:annotation>
+						<xs:documentation>List of supported video and audio media types as defined by IANA. E.g. "video/H264 audio/opus".</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
@@ -144,7 +164,105 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
+
 			<!--===============================-->
+			<xs:complexType name="MulticastAudioDecoderCapabilities">
+				<xs:sequence>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:attribute name="MulticastAudioDecoder" type="xs:boolean">
+        		<xs:annotation>
+            		<xs:documentation>Indicates support for multicast audio decoder.</xs:documentation>
+        		</xs:annotation>
+    			</xs:attribute>
+				<xs:attribute name="SRTP" type="xs:boolean">
+        		<xs:annotation>
+            		<xs:documentation>Indicates whether the SRTP is supported in MulticastAudioDecoder or not.</xs:documentation>
+        		</xs:annotation>
+    			</xs:attribute>
+					<xs:attribute name="IPv6" type="xs:boolean">
+        		<xs:annotation>
+            		<xs:documentation>Indicates whether the IPv6 is supported in MulticastAudioDecoder or not.</xs:documentation>
+        		</xs:annotation>
+    			</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:complexType name="AudioClipCapabilities">
+				<xs:sequence>
+                  <!--==============TTS Capability=================-->
+                  <xs:element name="TTSCapabilities" type="tr2:TTSCapabilities" minOccurs="0">
+                     <xs:annotation>
+                        <xs:documentation>Indicates device has TTS capability.</xs:documentation>
+                     </xs:annotation>
+                  </xs:element>
+                 <!--=============================================-->
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:attribute name="MaxAudioClipLimit" type="xs:int">
+					<xs:annotation>
+						<xs:documentation> Indicates the maximum number of audio clips that can be uploaded to the device.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="MaxAudioClipSize" type="xs:float">
+					<xs:annotation>
+						<xs:documentation> Indicates the maximum size of the audio clip that can be uploaded, in KB.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="SupportedAudioClipFormat" type="tt:StringAttrList">
+					<xs:annotation>
+						<xs:documentation>Enumerates the supported audio clip formats. See tr2: SupportedAudioClipFormat.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>				
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->
+            <!--=============TTS Capability=================-->
+            <xs:complexType name="TTSCapabilities">
+				<xs:sequence>
+                   <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+                </xs:sequence>
+				<xs:attribute name="MaxContentLength" type="xs:int">
+                   <xs:annotation>
+                       <xs:documentation> Indicates the maximum length of content of a text for device to convert to an audio clip.</xs:documentation>
+                   </xs:annotation>
+                 </xs:attribute>
+                 <xs:attribute name="TTSLanguage" type="tt:StringAttrList">
+                    <xs:annotation>
+                        <xs:documentation> 
+                            List of supported languages. Uses ISO 639-1 alpha-2 language codes, such as"en" for English. See <a href="https://www.loc.gov/standards/iso639-2/php/English_list.php">Codes for the Representation of Names of Languages</a>.
+                            Optionally combined with ISO 3166-1 alpha-2 country codes using the "language-country" format to specify regional variations, such as"en-US" for American English. For country codes, see <a href="https://www.iso.org/obp/ui/#search/code/">ISO 3166-1 Country Codes</a>.
+                        </xs:documentation>
+                   </xs:annotation>
+                 </xs:attribute>
+                 <xs:attribute name="TTSVoiceType" type="tt:StringAttrList">
+                   <xs:annotation>
+                        <xs:documentation> List of supported voice types. See tr2: TTSVoiceType.</xs:documentation>     
+                   </xs:annotation>
+                 </xs:attribute>
+                <xs:anyAttribute processContents="lax"/>
+            </xs:complexType>
+          <!--=============TTS Voice Type==================-->
+          <xs:simpleType name="TTSVoiceType">
+              <xs:restriction base="xs:string">
+              <xs:enumeration value="male"/>
+              <xs:enumeration value="female"/>
+              </xs:restriction>
+          </xs:simpleType>
+         <!--==============TTS End===============-->
+         <!--====================================-->
+			<xs:simpleType name="SupportedAudioClipFormat">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="audio/vnd.wave;codec=1"/>
+					<xs:enumeration value="audio/vnd.wave;codec=7"/>
+					<xs:enumeration value="audio/mpeg"/>
+					<xs:enumeration value="audio/ogg;codecs=opus"/>
+					<xs:enumeration value="audio/ogg;codecs=vorbis"/>
+					<xs:enumeration value="audio/ogg;codecs=flac"/>
+					<xs:enumeration value="audio/ogg;codecs=speex"/>
+				</xs:restriction>
+			</xs:simpleType>
+			<!--==========================================-->
 			<xs:simpleType name="ConfigurationEnumeration">
 				<xs:restriction base="xs:string">
 					<xs:enumeration value="All"/> 			<!-- For matching all configurations -->
@@ -613,6 +731,19 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				</xs:complexType>
 			</xs:element>
 			<xs:element name="SetAudioDecoderConfigurationResponse" type="tr2:SetConfigurationResponse"/>
+
+			<xs:element name="SetEQPresetConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configuration" type="tt:EQPreset">
+							<xs:annotation>
+								<xs:documentation>Contains the modified EQ Preset configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetEQPresetConfigurationResponse" type="tr2:SetConfigurationResponse"/>
 			<!--===============================-->
 			<xs:element name="GetVideoSourceConfigurationOptions" type="tr2:GetConfiguration"/>
 			<xs:element name="GetVideoSourceConfigurationOptionsResponse">
@@ -698,11 +829,11 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			<!--===============================-->
 			<xs:simpleType name="TransportProtocol">
 				<xs:restriction base="xs:string">
-					<xs:enumeration value="RtspUnicast"/>		<!-- RTSP straming RTP as UDP Unicast. -->
-					<xs:enumeration value="RtspMulticast"/>		<!-- RTSP straming RTP as UDP Multicast. -->
-					<xs:enumeration value="RtspsUnicast"/>		<!-- Secure RTSP straming SRTP as UDP Unicast. -->
-					<xs:enumeration value="RtspsMulticast"/>	<!-- Secure RTSP straming SRTP as UDP Multicast. -->
-					<xs:enumeration value="RTSP"/>				<!-- RTSP straming RTP over TCP. -->
+					<xs:enumeration value="RtspUnicast"/>		<!-- RTSP streaming RTP as UDP Unicast. -->
+					<xs:enumeration value="RtspMulticast"/>		<!-- RTSP streaming RTP as UDP Multicast. -->
+					<xs:enumeration value="RtspsUnicast"/>		<!-- Secure RTSP streaming SRTP as UDP Unicast. -->
+					<xs:enumeration value="RtspsMulticast"/>	<!-- Secure RTSP streaming SRTP as UDP Multicast. -->
+					<xs:enumeration value="RTSP"/>			<!-- RTSP streaming RTP over TCP. -->
 					<xs:enumeration value="RtspOverHttp"/>		<!-- Tunneling both the RTSP control channel and the RTP stream over HTTP or HTTPS. -->
 				</xs:restriction>
 			</xs:simpleType>
@@ -723,7 +854,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 				<xs:sequence>
 					<xs:element name="Encoding" type="xs:string">
 						<xs:annotation>
-					<xs:documentation>Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and <a href="https://www.iana.org/assignments/media-types/media-types.xhtml#video"> IANA Media Types</a>.</xs:documentation>
+							<xs:documentation>Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and <a href="https://www.iana.org/assignments/media-types/media-types.xhtml#video"> IANA Media Types</a>.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:element name="Number" type="xs:int">
@@ -1217,6 +1348,451 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 			</xs:element>
 			<xs:element name="DeleteMaskResponse" type="tr2:SetConfigurationResponse"/>
 			<!--============Mask Schema End================-->
+			<!--============WebRTC===================-->
+			<xs:complexType name="WebRTCConfiguration">
+				<xs:sequence>
+					<xs:element name="SignalingServer" type="xs:anyURI">
+						<xs:annotation>
+							<xs:documentation>The signaling server URI.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="CertPathValidationPolicyID" type="xs:string" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The CertPathValidationPolicyID for validating the signaling server certificate.</xs:documentation>
+							<xs:documentation>If not configured, server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AuthorizationServer" type="tt:ReferenceToken">
+						<xs:annotation>
+							<xs:documentation>The Authorization Server to use for getting access tokens. This refers to an entity in the list of configured Authorization Servers in the [ONVIF Security Service Specification].</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="DefaultProfile" type="tt:ReferenceToken">
+						<xs:annotation>
+							<xs:documentation>The default media profile to use for streaming if no specific profile is specified when initializing a session.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Enabled" type="xs:boolean">
+						<xs:annotation>
+							<xs:documentation> Enables/disables the configuration.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Connected" type="xs:boolean" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Indicates if the device is connected to the server. This parameter is read-only.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Error" type="xs:string" minOccurs="0">
+						<xs:annotation><xs:documentation>Optional user readable error information (readonly).</xs:documentation></xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			
+			<xs:element name="GetWebRTCConfigurations">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			
+			<xs:element name="GetWebRTCConfigurationsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="WebRTCConfiguration" type="tr2:WebRTCConfiguration" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Video Source Configuration Token that specifies an existing video source configuration that the options shall be compatible with.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetWebRTCConfigurations">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="WebRTCConfiguration" type="tr2:WebRTCConfiguration" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>This message contains the WebRTC configurations to use for the device. If empty, existing WebRTC configurations are deleted.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetWebRTCConfigurationsResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<!--============AudioClipManagement===================-->
+			<xs:complexType name="AudioClip">
+				<xs:sequence>					
+					<xs:element name="Enabled" type="xs:boolean">
+						<xs:annotation>
+							<xs:documentation> Enables/disables the audio clip.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Name" type="xs:string">
+					<xs:annotation>
+						<xs:documentation> Name of the audio clip.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioOutputToken" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation> Optional token list of physical audio outputs.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="Type" type="xs:string">
+					<xs:annotation>
+						<xs:documentation> Format of the audio clip. For definitions see tr2:SupportedAudioClipFormat parameter.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="RepeatCycles" type="xs:int">
+					<xs:annotation>
+						<xs:documentation> The number of times the audio clip can be repeated when it is played. A value of 0 means no repeat (i.e., the audio clip plays once and does not repeat). A value of 1 means the audio clip plays once and repeats once after the first play. A value of -1 means the audio clip repeats infinitely after the first play until it is stopped by the user.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="RepeatInterval" type="xs:int" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Optional time interval, in seconds, between audio clips when the audio clip is repeated.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioOutputLevel" type="xs:int" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation> Optional level to control the volume of the audio clip when it is played.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="ScheduleToken" type="tt:ReferenceToken" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation> Optional schedule token associated with the audio clip configuration. The audio clip shall be played when the configured schedule is triggered.</xs:documentation>
+					</xs:annotation>
+					</xs:element>					
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+             <!--=========TTS Audio======================-->
+			 <xs:complexType name="TTSAudio">
+				<xs:sequence>					
+				 <xs:element name="Content" type="xs:string">
+                     <xs:annotation>
+                         <xs:documentation>Content of the audio clip.</xs:documentation>
+                     </xs:annotation>
+                 </xs:element>
+                 <xs:element name="Language" type="xs:string">
+                     <xs:annotation>
+                         <xs:documentation>
+                             The language that is supported by the device and used for TTS audio clip playback. 
+                             Uses ISO 639-1 alpha-2 language codes for definition, such as"en" for English. See <a href="https://www.loc.gov/standards/iso639-2/php/English_list.php">Codes for the Representation of Names of Languages</a>.
+                             Optionally combined with ISO 3166-1 alpha-2 country codes using the "language-country" format to specify regional variations, such as"en-US" for American English. For country codes, see <a href="https://www.iso.org/obp/ui/#search/code/">ISO 3166-1 Country Codes</a>.
+                         </xs:documentation>
+                     </xs:annotation>
+                 </xs:element>
+                 <xs:element name="VoiceType" type="xs:string">
+                     <xs:annotation>
+                         <xs:documentation>The voice type that is supported by the device and used for TTS audio clip playback. See tr2: TTSVoiceType.</xs:documentation>
+                     </xs:annotation>
+                 </xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--=========TTS Audio END=======================-->
+            <!--===============================-->
+			<xs:complexType name="GetAudioClipsResponseItem">
+				<xs:sequence>
+					<xs:element name="Token" type="tt:ReferenceToken">
+						<xs:annotation>
+							<xs:documentation>Unique token associated with the audio clip.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Configuration" type="tr2:AudioClip">
+						<xs:annotation>
+							<xs:documentation>Configuration of the audio clip.</xs:documentation>
+						</xs:annotation>
+					</xs:element>					
+			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first Vendor then ONVIF -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->			
+			<xs:complexType name="PlayingAudioClips">
+				<xs:sequence>					
+					<xs:element name="Token" type="tt:ReferenceToken">
+						<xs:annotation>
+							<xs:documentation>Unique token associated with the audio clip.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Name" type="xs:string">
+					<xs:annotation>
+						<xs:documentation> Name of the audio clip.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioOutputToken" type="tt:ReferenceToken" minOccurs="1" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Token list of physical audio outputs.</xs:documentation>
+					</xs:annotation>
+					</xs:element>
+					<xs:element name="AudioOutputLevel" type="xs:int">
+					<xs:annotation>
+						<xs:documentation> Output level to control the volume of the audio clip when it is played.</xs:documentation>
+					</xs:annotation>
+					</xs:element>					
+					<xs:element name="RepeatsLeft" type="xs:int">
+					<xs:annotation>
+						<xs:documentation>Number of repeat cycles left while playing the audio clip.</xs:documentation>
+					</xs:annotation>
+					</xs:element>										
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--======================================================================-->
+			<xs:element name="GetAudioClips">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Audio clip token.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>			
+			<xs:element name="GetAudioClipsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="AudioClipItem" type="tr2:GetAudioClipsResponseItem" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>List of audio clip items.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			
+			<xs:element name="AddAudioClip">
+				<xs:complexType>				
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken" minOccurs="0">				
+							<xs:annotation>
+								<xs:documentation>Optional token associated with the audio clip.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Configuration" type="tr2:AudioClip">
+							<xs:annotation>
+								<xs:documentation>Audio clip configuration to add.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>			
+			<xs:element name="AddAudioClipResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken">						
+							<xs:annotation>
+								<xs:documentation>Unique token of the audio clip to be uploaded.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="UploadUri" type="xs:anyURI">						
+							<xs:annotation>
+								<xs:documentation>A URL to which the audio clip can be uploaded.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="ExpiryTime" type="xs:dateTime">						
+							<xs:annotation>
+								<xs:documentation>Expiry time by which the client should upload the audio clip to the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>				
+			</xs:element>
+			
+			<xs:element name="SetAudioClip">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken">						
+							<xs:annotation>
+								<xs:documentation>Unique token associated with the audio clip.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Configuration" type="tr2:AudioClip">
+							<xs:annotation>
+								<xs:documentation>Audio clip configuration to modify.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>			
+			<xs:element name="SetAudioClipResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+        <!--==============TTS=================-->
+         <xs:element name="AddTTSAudioClip">
+				<xs:complexType>				
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken" minOccurs="0">				
+							<xs:annotation>
+								<xs:documentation>Optional token associated with the audio clip.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Configuration" type="tr2:AudioClip">
+							<xs:annotation>
+								<xs:documentation>Audio clip configuration to add.</xs:documentation>
+							</xs:annotation>
+					    </xs:element>
+                        <xs:element name="TTSConfiguration" type="tr2:TTSAudio">
+                        <xs:annotation>
+                        <xs:documentation>The configuration for the TTS audio clip to add.</xs:documentation>
+                        </xs:annotation>
+                       </xs:element>        
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>			
+			<xs:element name="AddTTSAudioClipResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken">						
+							<xs:annotation>
+								<xs:documentation>Unique token assigned by device for the TTS audio clip.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>				
+			</xs:element>
+<!--==============TTS END=================-->
+			<xs:element name="DeleteAudioClip">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Token of the audio clip to be deleted from the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>			
+			<xs:element name="DeleteAudioClipResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<xs:element name="PlayAudioClip">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken">
+							<xs:annotation>
+								<xs:documentation>Token of the audio clip to be played or stopped.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="AudioOutputToken" type="tt:ReferenceToken" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Optional token list of physical audio outputs. If the AudioOutputToken is not provided in the API request, the AudioOutputToken from the audio clip configuration will be used.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Play" type="xs:boolean">
+							<xs:annotation>
+								<xs:documentation>If it is true, play the audio clip; if it is false, stop the ongoing audio clip.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="RepeatCycles" type="xs:int" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Optional RepeatCycles to be used for the current play operation. If RepeatCycles is not provided in the API request, the RepeatCycles specified in the audio clip configuration will be used for the current play operation.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>				
+			</xs:element>			
+			<xs:element name="PlayAudioClipResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			
+			<xs:element name="GetPlayingAudioClips">
+				<xs:complexType>
+					<xs:sequence>						
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>			
+			<xs:element name="GetPlayingAudioClipsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="PlayingAudioClips" type="tr2:PlayingAudioClips"  minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>List of audio clips currently playing in the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			
+			<xs:element name="GetMulticastAudioDecoderConfigurations">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ConfigurationToken" type="tt:ReferenceToken"  minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Unique token of the multicast audio decoder configuration. If not passed, device shall respond with all configurations.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>	
+			<xs:element name="GetMulticastAudioDecoderConfigurationsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configurations" type="tt:MulticastAudioDecoderConfiguration" minOccurs="0" maxOccurs="unbounded" >
+							<xs:annotation>
+								<xs:documentation>This message contains the list of multicast audio decoder configurations.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			
+			<xs:element name="GetMulticastAudioDecoderConfigurationOptions">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ConfigurationToken" type="tt:ReferenceToken"  minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>This response contains the available MulticastAudioDecoderConfigurationOptions. If a multicast audio decoder configuration is specified, the options shall concern that particular configuration.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetMulticastAudioDecoderConfigurationOptionsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Options" type="tt:MulticastAudioDecoderConfigurationOptions" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+
+			<xs:element name="SetMulticastAudioDecoderConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configuration" type="tt:MulticastAudioDecoderConfiguration">
+							<xs:annotation>
+								<xs:documentation>Contains the modified multicast audio decoder configuration. The configuration shall exist in the device.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetMulticastAudioDecoderConfigurationResponse" type="tr2:SetConfigurationResponse"/>
+
 			<!--============ Schema End================-->
 		</xs:schema>
 	</wsdl:types>
@@ -1348,6 +1924,12 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="SetAudioDecoderConfigurationResponse">
 		<wsdl:part name="parameters" element="tr2:SetAudioDecoderConfigurationResponse"/>
 	</wsdl:message>
+	<wsdl:message name="SetEQPresetConfigurationRequest">
+    	<wsdl:part name="parameters" element="tr2:SetEQPresetConfiguration"/>
+    </wsdl:message>
+	<wsdl:message name="SetEQPresetConfigurationResponse">
+    	<wsdl:part name="parameters" element="tr2:SetEQPresetConfigurationResponse"/>
+    </wsdl:message>
 	<!--===============================-->
 	<wsdl:message name="GetVideoSourceConfigurationOptionsRequest">
 		<wsdl:part name="parameters" element="tr2:GetVideoSourceConfigurationOptions"/>
@@ -1500,6 +2082,80 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 	<wsdl:message name="DeleteMaskResponse">
 		<wsdl:part name="parameters" element="tr2:DeleteMaskResponse"/>
 	</wsdl:message>
+	<wsdl:message name="GetWebRTCConfigurationsRequest">
+		<wsdl:part name="parameters" element="tr2:GetWebRTCConfigurations"/>
+	</wsdl:message>
+	<wsdl:message name="GetWebRTCConfigurationsResponse">
+		<wsdl:part name="parameters" element="tr2:GetWebRTCConfigurationsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetWebRTCConfigurationsRequest">
+		<wsdl:part name="parameters" element="tr2:SetWebRTCConfigurations"/>
+	</wsdl:message>
+	<wsdl:message name="SetWebRTCConfigurationsResponse">
+		<wsdl:part name="parameters" element="tr2:SetWebRTCConfigurationsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetAudioClipsRequest">
+		<wsdl:part name="parameters" element="tr2:GetAudioClips"/>
+	</wsdl:message>
+	<wsdl:message name="GetAudioClipsResponse">
+		<wsdl:part name="parameters" element="tr2:GetAudioClipsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="AddAudioClipRequest">
+		<wsdl:part name="parameters" element="tr2:AddAudioClip"/>
+	</wsdl:message>
+	<wsdl:message name="AddAudioClipResponse">
+		<wsdl:part name="parameters" element="tr2:AddAudioClipResponse"/>
+	</wsdl:message>
+<!--==============TTS=================--> 
+    <wsdl:message name="AddTTSAudioClipRequest">
+		<wsdl:part name="parameters" element="tr2:AddTTSAudioClip"/>
+	</wsdl:message>
+	<wsdl:message name="AddTTSAudioClipResponse">
+		<wsdl:part name="parameters" element="tr2:AddTTSAudioClipResponse"/>
+	</wsdl:message>
+<!--==============================--> 
+	<wsdl:message name="SetAudioClipRequest">
+		<wsdl:part name="parameters" element="tr2:SetAudioClip"/>
+	</wsdl:message>
+	<wsdl:message name="SetAudioClipResponse">
+		<wsdl:part name="parameters" element="tr2:SetAudioClipResponse"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteAudioClipRequest">
+		<wsdl:part name="parameters" element="tr2:DeleteAudioClip"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteAudioClipResponse">
+		<wsdl:part name="parameters" element="tr2:DeleteAudioClipResponse"/>
+	</wsdl:message>
+	<wsdl:message name="PlayAudioClipRequest">
+		<wsdl:part name="parameters" element="tr2:PlayAudioClip"/>
+	</wsdl:message>
+	<wsdl:message name="PlayAudioClipResponse">
+		<wsdl:part name="parameters" element="tr2:PlayAudioClipResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetPlayingAudioClipsRequest">
+		<wsdl:part name="parameters" element="tr2:GetPlayingAudioClips"/>
+	</wsdl:message>
+	<wsdl:message name="GetPlayingAudioClipsResponse">
+		<wsdl:part name="parameters" element="tr2:GetPlayingAudioClipsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetMulticastAudioDecoderConfigurationsRequest">
+		<wsdl:part name="parameters" element="tr2:GetMulticastAudioDecoderConfigurations"/>
+	</wsdl:message>
+	<wsdl:message name="GetMulticastAudioDecoderConfigurationsResponse">
+		<wsdl:part name="parameters" element="tr2:GetMulticastAudioDecoderConfigurationsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetMulticastAudioDecoderConfigurationOptionsRequest">
+		<wsdl:part name="parameters" element="tr2:GetMulticastAudioDecoderConfigurationOptions"/>
+	</wsdl:message>
+	<wsdl:message name="GetMulticastAudioDecoderConfigurationOptionsResponse">
+		<wsdl:part name="parameters" element="tr2:GetMulticastAudioDecoderConfigurationOptionsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetMulticastAudioDecoderConfigurationRequest">
+		<wsdl:part name="parameters" element="tr2:SetMulticastAudioDecoderConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetMulticastAudioDecoderConfigurationResponse">
+		<wsdl:part name="parameters" element="tr2:SetMulticastAudioDecoderConfigurationResponse"/>
+	</wsdl:message>
 	<wsdl:portType name="Media2">
 		<!--===============================-->
 		<!--===============================-->
@@ -1512,7 +2168,7 @@ IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FO
 		<wsdl:operation name="CreateProfile">
 			<wsdl:documentation>This operation creates a new media profile. 
 				A created profile created via this method may be deleted via the DeleteProfile method.
-				Optionally Configurations can be assinged to the profile on creation. For details regarding profile assignement
+				Optionally Configurations can be assigned to the profile on creation. For details regarding profile assignment
 				check also the method AddConfiguration.
 			</wsdl:documentation>
 			<wsdl:input message="tr2:CreateProfileRequest"/>
@@ -1675,7 +2331,7 @@ support streaming video data of such a profile.<br/>
 			<wsdl:output message="tr2:GetMetadataConfigurationOptionsResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="GetAudioOutputConfigurationOptions">
-			<wsdl:documentation>This operation returns the available options (supported values and ranges for audio output configuration parameters) for configuring an audio output.</wsdl:documentation>
+			<wsdl:documentation>This operation returns the available options (supported values and ranges for audio output configuration parameters) for configuring an audio output. To retrieve the EQPresetList, a valid ConfigurationToken must be provided. If EQPreset is supported and isFrequencyDecibelEditable is signaled as true, the response shall include the FrequencyDecibelPair.</wsdl:documentation>
 			<wsdl:input message="tr2:GetAudioOutputConfigurationOptionsRequest"/>
 			<wsdl:output message="tr2:GetAudioOutputConfigurationOptionsResponse"/>
 		</wsdl:operation>
@@ -1684,6 +2340,11 @@ support streaming video data of such a profile.<br/>
 				device.</wsdl:documentation>
 			<wsdl:input message="tr2:GetAudioDecoderConfigurationOptionsRequest"/>
 			<wsdl:output message="tr2:GetAudioDecoderConfigurationOptionsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetEQPresetConfiguration">
+			<wsdl:documentation>This command is to configure Audio EQPreset.</wsdl:documentation>
+    		<wsdl:input message="tr2:SetEQPresetConfigurationRequest"/>
+    		<wsdl:output message="tr2:SetEQPresetConfigurationResponse"/>
 		</wsdl:operation>
 		<!--===============================-->
 		<wsdl:operation name="GetVideoEncoderInstances">
@@ -1701,7 +2362,9 @@ support streaming video data of such a profile.<br/>
 				 <ul>
 				 	<li>RtspUnicast		RTSP streaming RTP as UDP Unicast.</li>
 				 	<li>RtspMulticast	RTSP streaming RTP as UDP Multicast.</li>
-				 	<li>RTSP			RTSP streaming RTP over TCP.</li>
+				 	<li>RtspsUnicast	Secure RTSP streaming with SRTP as UDP Unicast.</li>
+				 	<li>RtspsMulticast	Secure RTSP streaming with SRTP as UDP Multicast.</li>
+				 	<li>RTSP		RTSP streaming RTP over TCP.</li>
 				 	<li>RtspOverHttp	Tunneling both the RTSP control channel and the RTP stream over HTTP or HTTPS.</li>
 				 </ul>
 				If a multicast stream is requested at least one of VideoEncoder2Configuration, AudioEncoder2Configuration and MetadataConfiguration shall have a valid multicast setting.<br/>
@@ -1743,7 +2406,7 @@ the PTZ position shall be repeated within the metadata stream.</wsdl:documentati
 		<wsdl:operation name="GetSnapshotUri">
 			<wsdl:documentation>A client uses the GetSnapshotUri command to obtain a JPEG snapshot from the
 device. The returned URI shall remain valid indefinitely even if the profile is changed. The URI can be used for
-acquiring a JPEG image through a HTTP GET operation. The image encoding will always be
+acquiring a JPEG image through an HTTP GET operation. The image encoding will always be
 JPEG regardless of the encoding setting in the media profile. The Jpeg settings
 (like resolution or quality) may be taken from the profile if suitable. The provided
 image will be updated automatically and independent from calls to GetSnapshotUri.</wsdl:documentation>
@@ -1825,7 +2488,73 @@ image will be updated automatically and independent from calls to GetSnapshotUri
 			<wsdl:input message="tr2:DeleteMaskRequest"/>
 			<wsdl:output message="tr2:DeleteMaskResponse"/>
 		</wsdl:operation>
+		<wsdl:operation name="GetWebRTCConfigurations">
+			<wsdl:documentation>This operation gets the current WebRTC configuration for the device.</wsdl:documentation>
+			<wsdl:input message="tr2:GetWebRTCConfigurationsRequest"/>
+			<wsdl:output message="tr2:GetWebRTCConfigurationsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetWebRTCConfigurations">
+			<wsdl:documentation>This operation sets the WebRTC configuration for the device.</wsdl:documentation>
+			<wsdl:input message="tr2:SetWebRTCConfigurationsRequest"/>
+			<wsdl:output message="tr2:SetWebRTCConfigurationsResponse"/>
+		</wsdl:operation>
 		<!--==============Mask Operation End=================-->
+		<!--==============AudioClipManagement Operation Begin=================-->
+		<wsdl:operation name="GetAudioClips">
+			<wsdl:documentation>This operation retrieves audio clip configurations from the device. If an audio clip token is provided, the device shall return the audio clip configuration associated with that token. If no token is provided, the device shall return all audio clip configurations that exist on the device.</wsdl:documentation>
+			<wsdl:input message="tr2:GetAudioClipsRequest"/>
+			<wsdl:output message="tr2:GetAudioClipsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="AddAudioClip">
+			<wsdl:documentation>This operation adds audio clip configuration to the device and provides audio clip upload URI to the client. The response to the command includes an HTTP URL to which the audio clip may be uploaded within the expiry time. If the client is unable to upload the audio clip within the URL's expiry time, the associated audio clip configuration will be permanently removed from the device.</wsdl:documentation>
+			<wsdl:input message="tr2:AddAudioClipRequest"/>
+			<wsdl:output message="tr2:AddAudioClipResponse"/>
+		</wsdl:operation>
+        <!--==============TTS=================--> 
+        <wsdl:operation name="AddTTSAudioClip">
+			<wsdl:documentation>This operation sends a text and its configuration to device that supports TTS function, so that device could convert the text into an audio clip and play it according to audio clip Configuration and TTS Configuration.</wsdl:documentation>
+			<wsdl:input message="tr2:AddTTSAudioClipRequest"/>
+			<wsdl:output message="tr2:AddTTSAudioClipResponse"/>
+		</wsdl:operation>
+        <!--=============================--> 
+		<wsdl:operation name="SetAudioClip">
+			<wsdl:documentation>This operation modifies the existing audio clip configuration on the device.</wsdl:documentation>
+			<wsdl:input message="tr2:SetAudioClipRequest"/>
+			<wsdl:output message="tr2:SetAudioClipResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteAudioClip">
+			<wsdl:documentation>This operation deletes the audio clip configuration and the associated audio clip on the device. The audio clip should be de-associated from the event or schedule trigger if it was previously associated before this operation. This operation will fail if the device is playing the audio clip at the same time due to user operation, schedule, or event trigger.</wsdl:documentation>
+			<wsdl:input message="tr2:DeleteAudioClipRequest"/>
+			<wsdl:output message="tr2:DeleteAudioClipResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="PlayAudioClip">
+			<wsdl:documentation>This operation plays or stops the ongoing audio clip on the device.</wsdl:documentation>
+			<wsdl:input message="tr2:PlayAudioClipRequest"/>
+			<wsdl:output message="tr2:PlayAudioClipResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetPlayingAudioClips">
+			<wsdl:documentation>This operation retrieves audio clips information which are playing currently in the device.</wsdl:documentation>
+			<wsdl:input message="tr2:GetPlayingAudioClipsRequest"/>
+			<wsdl:output message="tr2:GetPlayingAudioClipsResponse"/>
+		</wsdl:operation>
+		<!--==============AudioClipManagement Operation End=================-->
+			<!--==============MulticastAudioDecoder Operation=================-->
+		<wsdl:operation name="GetMulticastAudioDecoderConfigurations">
+			<wsdl:documentation>This operation gets the list of multicast audio decoder configurations.</wsdl:documentation>
+			<wsdl:input message="tr2:GetMulticastAudioDecoderConfigurationsRequest"/>
+			<wsdl:output message="tr2:GetMulticastAudioDecoderConfigurationsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetMulticastAudioDecoderConfigurationOptions">
+			<wsdl:documentation>This operation gets the available options for the MulticastAudioDecoder configuration.</wsdl:documentation>
+			<wsdl:input message="tr2:GetMulticastAudioDecoderConfigurationOptionsRequest"/>
+			<wsdl:output message="tr2:GetMulticastAudioDecoderConfigurationOptionsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetMulticastAudioDecoderConfiguration">
+			<wsdl:documentation>This operation sets the MulticastAudioDecoderConfiguration.</wsdl:documentation>
+			<wsdl:input message="tr2:SetMulticastAudioDecoderConfigurationRequest"/>
+			<wsdl:output message="tr2:SetMulticastAudioDecoderConfigurationResponse"/>
+		</wsdl:operation>
+		<!--===========MulticastAudioDecoder Operation End ===============-->
 	</wsdl:portType>
 	<wsdl:binding name="Media2Binding" type="tr2:Media2">
 		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
@@ -2022,6 +2751,15 @@ image will be updated automatically and independent from calls to GetSnapshotUri
 		</wsdl:operation>
 		<wsdl:operation name="SetAudioDecoderConfiguration">
 			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/SetAudioDecoderConfiguration"/>
+			<wsdl:input>
+				<soap:body parts="parameters" use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body parts="parameters" use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetEQPresetConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/SetEQPresetConfiguration"/>
 			<wsdl:input>
 				<soap:body parts="parameters" use="literal"/>
 			</wsdl:input>
@@ -2268,5 +3006,121 @@ image will be updated automatically and independent from calls to GetSnapshotUri
 			</wsdl:output>
 		</wsdl:operation>
 		<!--==============Mask Operation End=================-->
+		<!--==============WebRTC=================-->
+		<wsdl:operation name="GetWebRTCConfigurations">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/GetWebRTCConfigurations"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetWebRTCConfigurations">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/SetWebRTCConfigurations"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<!--==============WebRTC End=================-->
+		<!--==============AudioClipManagement=================-->
+		<wsdl:operation name="GetAudioClips">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/GetAudioClips"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="AddAudioClip">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/AddAudioClip"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+        <!--==============TTS=================-->
+        <wsdl:operation name="AddTTSAudioClip">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/AddTTSAudioClip"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+       <!--=================================-->
+		<wsdl:operation name="SetAudioClip">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/SetAudioClip"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteAudioClip">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/DeleteAudioClip"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="PlayAudioClip">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/PlayAudioClip"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetPlayingAudioClips">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/GetPlayingAudioClips"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<!--==============AudioClipManagement End=================-->
+		<!--==============Multicast Audio Decoder Configuration =================-->
+		<wsdl:operation name="GetMulticastAudioDecoderConfigurations">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/GetMulticastAudioDecoderConfigurations"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetMulticastAudioDecoderConfigurationOptions">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/GetMulticastAudioDecoderConfigurationOptions"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetMulticastAudioDecoderConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver20/media/wsdl/SetMulticastAudioDecoderConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<!--==============Multicast Audio Decoder Configuration End =================-->
 	</wsdl:binding>
 </wsdl:definitions>

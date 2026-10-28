@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="../../../ver20/util/onvif-wsdl-viewer.xsl"?>
 <!--
-	Copyright (c) 2013 - 2019 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+	Copyright (c) 2013 - 2026 by ONVIF: Open Network Video Interface Forum. All rights reserved.
 	
 	Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
 	
@@ -10,7 +10,8 @@
 -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tas="http://www.onvif.org/ver10/advancedsecurity/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl">
 	<wsdl:types>
-		<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl" version="19.12">
+		<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tt="http://www.onvif.org/ver10/schema" elementFormDefault="qualified" targetNamespace="http://www.onvif.org/ver10/advancedsecurity/wsdl" version="26.06">
+			<xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../schema/onvif.xsd"/>
 			<!--===================================================-->
 			<!-- Data types used by the security configuration features -->
 			<!--===================================================-->
@@ -79,6 +80,12 @@
 							<xs:documentation>Key has not been successfully generated and cannot be used.</xs:documentation>
 						</xs:annotation>
 					</xs:enumeration>
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType name="KeyPairAlgorithm">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="RSA"/>
+					<xs:enumeration value="ECC"/>
 				</xs:restriction>
 			</xs:simpleType>
 			<!--===============================-->
@@ -427,6 +434,11 @@
 							<xs:documentation>The base64-encoded DER representation of the X.509 certificate.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
+					<xs:element name="HasPrivateKey" type="xs:boolean" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The keystore has a matching private key.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
 					<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="lax"/>   <!-- first ONVIF then Vendor -->
 				</xs:sequence>
 				<xs:anyAttribute processContents="lax"/>
@@ -548,6 +560,12 @@
 						<xs:documentation>The authentication method for this stage (e.g., "EAP-PEAP").</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="CertPathValidationPolicyID" type="tas:CertPathValidationPolicyID">
+					<xs:annotation>
+						<xs:documentation>The unique identifier of the certification path validation policy to be used for validating the authorization server certificate.
+							If not configured, authorization server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<xs:complexType name="Dot1XStageExtension">
@@ -656,6 +674,12 @@
 				</xs:annotation>
 				<xs:list itemType="xs:nonNegativeInteger"/>
 			</xs:simpleType>
+			<xs:simpleType name="EllipticCurves">
+				<xs:annotation>
+					<xs:documentation>A list of elliptic curves.</xs:documentation>
+				</xs:annotation>
+				<xs:list itemType="xs:string"/>
+			</xs:simpleType>
 			<xs:simpleType name="X509Versions">
 				<xs:annotation>
 					<xs:documentation>A list of X.509 versions.</xs:documentation>
@@ -701,7 +725,7 @@
 				</xs:sequence>
 				<xs:attribute name="MaximumNumberOfKeys" type="xs:positiveInteger">
 					<xs:annotation>
-						<xs:documentation>Indicates the maximum number of keys that the device can store simultaneously.</xs:documentation>
+						<xs:documentation>Indicates the maximum number of private keys that the device can store simultaneously.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="MaximumNumberOfCertificates" type="xs:positiveInteger">
@@ -714,9 +738,24 @@
 						<xs:documentation>Indicates the maximum number of certification paths that the device can store simultaneously.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="SetCertPath" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for modifying an existing certification path or certification path validation policy.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:attribute name="RSAKeyPairGeneration" type="xs:boolean">
 					<xs:annotation>
-						<xs:documentation>Indication that the device supports on-board RSA key pair generation.</xs:documentation>
+						<xs:documentation>Deprecated - Indication that the device supports on-board ECC key pair generation.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="ECCKeyPairGeneration" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Deprecated - Indication that the device supports on-board ECC key pair generation.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="KeyPairGeneration" type="tt:StringList">
+					<xs:annotation>
+						<xs:documentation>List of supported key algorithm like 'RSA' and 'ECC'. For a full list of definitions see tas:KeyPairAlgorithm.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="RSAKeyLengths" type="tas:RSAKeyLengths">
@@ -724,14 +763,29 @@
 						<xs:documentation>Indicates which RSA key lengths are supported by the device.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="EllipticCurves" type="tas:EllipticCurves">
+					<xs:annotation>
+						<xs:documentation>Indicates which elliptic curves are supported by the device. Supported curve names can be found in the IANA TLS Supported Groups section, under the Description field.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:attribute name="PKCS10ExternalCertificationWithRSA" type="xs:boolean">
 					<xs:annotation>
-						<xs:documentation>Indicates support for creating PKCS#10 requests for RSA keys and uploading the certificate obtained from a CA..</xs:documentation>
+						<xs:documentation>Deprecated - Indicates support for creating PKCS#10 requests for RSA keys and uploading the certificate obtained from a CA..</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="PKCS10" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for creating PKCS#10 requests for keypairs and uploading the certificate obtained from a CA.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="SelfSignedCertificateCreationWithRSA" type="xs:boolean">
 					<xs:annotation>
-						<xs:documentation>Indicates support for creating self-signed certificates for RSA keys.</xs:documentation>
+						<xs:documentation>Deprecated - Indicates support for creating self-signed certificates for RSA keys.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="SelfSignedCertificateCreation" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for creating self-signed certificates.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="X509Versions" type="tas:X509Versions">
@@ -746,12 +800,22 @@
 				</xs:attribute>
 				<xs:attribute name="PKCS8RSAKeyPairUpload" type="xs:boolean">
 					<xs:annotation>
-						<xs:documentation>Indicates support for uploading an RSA key pair in a PKCS#8 data structure.</xs:documentation>
+						<xs:documentation>Deprecated - Indicates support for uploading an RSA key pair in a PKCS#8 data structure.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="PKCS8" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Deprecated - Indicates support for uploading a key pair in a PKCS#8 data structure.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="PKCS12CertificateWithRSAPrivateKeyUpload" type="xs:boolean">
 					<xs:annotation>
-						<xs:documentation>Indicates support for uploading a certificate along with an RSA private key in a PKCS#12 data structure.</xs:documentation>
+						<xs:documentation>Deprecated - Indicates support for uploading a certificate along with an RSA private key in a PKCS#12 data structure.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="PKCS12" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates support for uploading a certificate along with a private key in a PKCS#12 data structure.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<xs:attribute name="PasswordBasedEncryptionAlgorithms" type="tas:PasswordBasedEncryptionAlgorithms">
@@ -761,7 +825,7 @@
 				</xs:attribute>
 				<xs:attribute name="PasswordBasedMACAlgorithms" type="tas:PasswordBasedMACAlgorithms">
 					<xs:annotation>
-						<xs:documentation>Indicates which password-based MAC algorithms are supported by the device.</xs:documentation>
+						<xs:documentation>Deprecated - Indicates which password-based MAC algorithms are supported by the device.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
 				<!-- ========================================= -->
@@ -790,6 +854,11 @@
 						<xs:documentation>Indicates the device requires that each certificate with private key has its own unique key.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="AutoDeleteKey" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates whether the device automatically deletes the associated key during DeleteCertificate operation when the key is no longer referenced.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
@@ -815,6 +884,11 @@
 						<xs:documentation>Indicates the maximum number of certification paths that may be assigned to the TLS server simultaneously.</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
+				<xs:attribute name="SetupDuration" type="xs:duration">
+					<xs:annotation>
+						<xs:documentation>Indicates the maximum time taken for updated TLS server settings to take effect.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<!-- ========================================= -->
 				<!-- Begin cert-based client auth capabilities -->
 				<!-- ========================================= -->
@@ -836,6 +910,162 @@
 				<!-- ========================================= -->
 				<!-- End cert-based client auth capabilities   -->
 				<!-- ========================================= -->
+			</xs:complexType>
+			<!--===============================-->
+			<xs:simpleType name="AuthorizationServerConfigurationType">
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="OAuthAuthorizationCode">
+						<xs:annotation>
+							<xs:documentation>OAuth2 authorization code flow per RFC 6749</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="OAuthClientCredentials">
+						<xs:annotation>
+							<xs:documentation>OAuth2 client credentials grant flow per RFC 6749</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="OIDC2AuthorizationCode">
+						<xs:annotation>
+							<xs:documentation>OpenID Connect authorization code flow per Open ID Connect Core</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+				</xs:restriction>
+			</xs:simpleType>
+			<!--===============================-->
+			<xs:simpleType name="ClientAuthenticationMethod">
+				<xs:annotation>
+					<xs:documentation>Client Authentication methods listed are referenced from <a href="https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml#token-endpoint-auth-method"> IANA OAuth Token Endpoint Authentication Methods</a>.</xs:documentation>
+				</xs:annotation>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="client_secret_basic">
+						<xs:annotation>
+							<xs:documentation>Use HTTP Authorization header to specify client_secret as per RFC 6749</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="client_secret_post">
+						<xs:annotation>
+							<xs:documentation>Use HTTP POST body to specify client_secret as per RFC 6749</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="client_secret_jwt">
+						<xs:annotation>
+							<xs:documentation>Use a HMAC signed JWT using client_secret as shared secret per OpenID Connect Core</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="private_key_jwt">
+						<xs:annotation>
+							<xs:documentation>Use PKI signed JWT using private key as per OpenID Connect Core</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="tls_client_auth">
+						<xs:annotation>
+							<xs:documentation>Use PKI certificate to authenticate as per RFC 8705</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+					<xs:enumeration value="self_signed_tls_client_auth">
+						<xs:annotation>
+							<xs:documentation>Use self-signed certificate to authenticate as per RFC 8705</xs:documentation>
+						</xs:annotation>
+					</xs:enumeration>
+				</xs:restriction>
+			</xs:simpleType>
+			<!--===============================-->
+			<xs:complexType name="AuthorizationServerConfigurationData">
+				<xs:sequence>
+					<xs:element name="ServerUri" type="xs:anyURI">
+						<xs:annotation>
+							<xs:documentation>Authorization server metadata endpoint conforming to RFC8414, such as "https://your.domain/.well-known/openid-configuration"</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="ClientID" type="xs:string" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Client identifier issued by the authorization server</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="ClientSecret" type="xs:string" minOccurs="0">
+						<xs:annotation>
+								<xs:documentation>Client secret used to authenticate with the authorization server</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Scope" type="xs:string" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The requested access scope(s)</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="KeyID" type="tas:KeyID" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Key identifier for the private_key_jwt authentication method</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="CertificateID" type="tas:CertificateID" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Certificate identifier for the self_signed_tls_client_auth authentication method</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="CertPathValidationPolicyID" type="tas:CertPathValidationPolicyID" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The unique identifier of the certification path validation policy to be used for validating the server certificate.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:attribute name="Type" type="xs:string" use="required">
+					<xs:annotation>
+						<xs:documentation>The type of configuration, tas:AuthorizationServerConfigurationType lists the acceptable values</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="ClientAuth" type="xs:string">
+					<xs:annotation>
+						<xs:documentation>How to authenticate with the server, tas:ClientAuthenticationMethod lists the acceptable values</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:complexType name="AuthorizationServerConfiguration">
+				<xs:complexContent>
+					<xs:extension base="tt:DeviceEntity">
+						<xs:sequence>
+							<xs:element name="Data" type="tas:AuthorizationServerConfigurationData"/>
+							<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+						</xs:sequence>
+						<xs:anyAttribute processContents="lax"/>
+					</xs:extension>
+				</xs:complexContent>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:complexType name="AuthorizationServerConfigurationCapabilities">
+				<xs:attribute name="MaxConfigurations" type="xs:int">
+					<xs:annotation>
+						<xs:documentation>Indicates maximum number of authorization server configurations supported.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="ConfigurationTypesSupported" type="tt:StringList">
+					<xs:annotation>
+						<xs:documentation>Enumerates the supported authorization server configuration types, see tas:AuthorizationServerConfigurationType.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="ClientAuthenticationMethodsSupported" type="tt:StringList">
+					<xs:annotation>
+						<xs:documentation>Enumerates the supported client authentication methods, see tas:ClientAuthenticationMethod.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<xs:complexType name="MediaSigningCapabilities">
+				<xs:annotation>
+					<xs:documentation>The capabilities for signing media on a device.</xs:documentation>
+				</xs:annotation>
+				<xs:attribute name="MediaSigningSupported" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates whether the device supports signing of media according to the Media Signing Specification.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="UserMediaSigningKeySupported" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation>Indicates whether the device supports signing of media using another key than the factory provisioned one.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
 				<xs:anyAttribute processContents="lax"/>
 			</xs:complexType>
 			<!--===============================-->
@@ -857,6 +1087,16 @@
 					<xs:element name="Dot1XCapabilities" type="tas:Dot1XCapabilities" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>The capabilities of the 802.1X implementation.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="AuthorizationServer" type="tas:AuthorizationServerConfigurationCapabilities" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The capabilities for external authorization server capabilities.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MediaSigning" type="tas:MediaSigningCapabilities" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>The capabilities of the media signing implementation.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="lax"/>   <!-- first ONVIF then Vendor -->
@@ -884,6 +1124,83 @@
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:complexType name="CustomClaim">
+				<xs:sequence>
+					<xs:element name="Name" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>Custom claim name.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="SupportedValues" type="tt:StringList">
+						<xs:annotation>
+							<xs:documentation>List of supported custom claim values. A JWT must contain at least one of these.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	 <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:complexType name="JWTConfiguration">
+				<xs:sequence>
+					<xs:element name="Audiences" type="tt:StringList">
+						<xs:annotation>
+							<xs:documentation>List of supported aud claims. A JWT must contain at least one of these.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="TrustedIssuers" type="xs:anyURI" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>If present, this is the list to URIs pointing to the metadata file conforming to RFC8414, such as "https://your.domain/.well-known/openid-configuration" , of the trusted Open ID Connect servers issuing JWT tokens. Using metadata, the device can reach the information about the JWKS and implement the rotation of the keys accordingly.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="KeyID" type="tas:KeyID" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>If present, this is the list of keys provided out of band to verify the origin and integrity of the JWT.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="ValidationPolicy" type="tas:CertPathValidationPolicyID" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>If present, the device will validate the certification path of the Open ID Connect servers. The OIDC server iso considered to be valid if its certificate is validated by the provided certification path validation policy.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="CustomClaims" type="tas:CustomClaim" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>A list of optional custom claims to be used for JWT validation.</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>	   <!-- first ONVIF then Vendor -->
+				</xs:sequence>
+				<xs:anyAttribute processContents="lax"/>
+			</xs:complexType>
+			<!--===============================-->
+			<xs:element name="GetJWTConfiguration">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetJWTConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configuration" type="tas:JWTConfiguration"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetJWTConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configuration" type="tas:JWTConfiguration"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetJWTConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+
+			<!--===============================-->
 			<xs:element name="CreateRSAKeyPair">
 				<xs:complexType>
 					<xs:sequence>
@@ -901,6 +1218,39 @@
 				</xs:complexType>
 			</xs:element>
 			<xs:element name="CreateRSAKeyPairResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="KeyID" type="tas:KeyID">
+							<xs:annotation>
+								<xs:documentation>The key ID of the key pair being generated.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="EstimatedCreationTime" type="xs:duration">
+							<xs:annotation>
+								<xs:documentation>Best-effort estimate of how long the key generation will take.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="CreateECCKeyPair">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="EllipticCurve" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>The name of the elliptic curve to be used for generating the ECC keypair. Supported curve names can be found in the IANA TLS Supported Groups section, under the Description field.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Alias" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The client-defined alias of the key.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="CreateECCKeyPairResponse">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="KeyID" type="tas:KeyID">
@@ -985,7 +1335,7 @@
 						</xs:element>
 						<xs:element name="EncryptionPassphraseID" type="tas:PassphraseID" minOccurs="0">
 							<xs:annotation>
-								<xs:documentation>The ID of the passphrase to use for decrypting the uploaded PKCS#12 data structure.</xs:documentation>
+								<xs:documentation>The ID of the passphrase to use for decrypting the PKCS8ShroudedKeyBag and the CertBag instances.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
 						<xs:element name="Passphrase" type="xs:string" minOccurs="0">
@@ -1360,6 +1710,29 @@
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:element name="SetCertificationPath">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID">
+							<xs:annotation>
+								<xs:documentation>The ID of the certification path to be modidfied.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="CertificationPath" type="tas:CertificationPath">
+							<xs:annotation>
+								<xs:documentation>The updated certification path to be stored in the keystore.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetCertificationPathResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
 			<xs:element name="DeleteCertificationPath">
 				<xs:complexType>
 					<xs:sequence>
@@ -1413,9 +1786,6 @@
 			<xs:element name="GetAllPassphrasesResponse">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:annotation>
-							<xs:documentation>A list with information about all passphrases in the keystore.</xs:documentation>
-						</xs:annotation>
 						<xs:element name="PassphraseAttribute" type="tas:PassphraseAttribute" minOccurs="0" maxOccurs="unbounded">
 							<xs:annotation>
 								<xs:documentation>Information about a passphrase in the keystore.</xs:documentation>
@@ -1735,6 +2105,33 @@
 				</xs:complexType>
 			</xs:element>
 			<!--===============================-->
+			<xs:element name="SetCertPathValidationPolicy">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertPathValidationPolicyID" type="tas:CertPathValidationPolicyID" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>
+									This element is deprecated and ignored; the ID of the certification path validation policy being modified must be specified in the CertPathValidationPolicy structure.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="CertPathValidationPolicy" type="tas:CertPathValidationPolicy">
+							<xs:annotation>
+								<xs:documentation>
+									The updated certification path validation policy to be stored.
+								</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetCertPathValidationPolicyResponse">
+				<xs:complexType>
+					<xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
 			<xs:element name="DeleteCertPathValidationPolicy">
 				<xs:complexType>
 					<xs:sequence>
@@ -1893,7 +2290,7 @@
 				</xs:complexType>
 			</xs:element>
 			<!--=============================================-->
-			<!-- Begin Cert-based client auth message types   -->
+			<!-- Begin Cert-based client auth message types  -->
 			<!--=============================================-->
 			<!--===============================-->
 			<xs:element name="AddDot1XConfiguration">
@@ -2049,6 +2446,108 @@
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
+			<!--===============================-->
+			<xs:element name="AddMediaSigningCertificateAssignment">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="AddMediaSigningCertificateAssignmentResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="RemoveMediaSigningCertificateAssignment">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="RemoveMediaSigningCertificateAssignmentResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetAssignedMediaSigningCertificates">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetAssignedMediaSigningCertificatesResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CertificationPathID" type="tas:CertificationPathID" minOccurs="0" maxOccurs="2">
+							<xs:annotation>
+								<xs:documentation>The IDs of all certification paths that are assigned for media signing. Response list shall be ordered with factory-provisioned ID first, followed by user-provisioned ID.
+								As response structure includes just CertificationPathID, the client may retrieve the assigned media signing certificates by invoking GetCertificationPath with the CertificationPathID, followed by GetCertificates</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="GetAuthorizationServerConfigurations">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="GetAuthorizationServerConfigurationsResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configuration" type="tas:AuthorizationServerConfiguration" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="CreateAuthorizationServerConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configuration" type="tas:AuthorizationServerConfigurationData">
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="CreateAuthorizationServerConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken">
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="SetAuthorizationServerConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Configuration" type="tas:AuthorizationServerConfiguration"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="SetAuthorizationServerConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
+			<!--===============================-->
+			<xs:element name="DeleteAuthorizationServerConfiguration">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Token" type="tt:ReferenceToken"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="DeleteAuthorizationServerConfigurationResponse">
+				<xs:complexType>
+					<xs:sequence/>
+				</xs:complexType>
+			</xs:element>
 		</xs:schema>
 	</wsdl:types>
 	<wsdl:message name="GetServiceCapabilitiesRequest">
@@ -2057,11 +2556,29 @@
 	<wsdl:message name="GetServiceCapabilitiesResponse">
 		<wsdl:part name="parameters" element="tas:GetServiceCapabilitiesResponse"/>
 	</wsdl:message>
+	<wsdl:message name="GetJWTConfigurationRequest">
+		<wsdl:part name="parameters" element="tas:GetJWTConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="GetJWTConfigurationResponse">
+		<wsdl:part name="parameters" element="tas:GetJWTConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetJWTConfigurationRequest">
+		<wsdl:part name="parameters" element="tas:SetJWTConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetJWTConfigurationResponse">
+		<wsdl:part name="parameters" element="tas:SetJWTConfigurationResponse"/>
+	</wsdl:message>
 	<wsdl:message name="CreateRSAKeyPairRequest">
 		<wsdl:part name="parameters" element="tas:CreateRSAKeyPair"/>
 	</wsdl:message>
 	<wsdl:message name="CreateRSAKeyPairResponse">
 		<wsdl:part name="parameters" element="tas:CreateRSAKeyPairResponse"/>
+	</wsdl:message>
+	<wsdl:message name="CreateECCKeyPairRequest">
+		<wsdl:part name="parameters" element="tas:CreateECCKeyPair"/>
+	</wsdl:message>
+	<wsdl:message name="CreateECCKeyPairResponse">
+		<wsdl:part name="parameters" element="tas:CreateECCKeyPairResponse"/>
 	</wsdl:message>
 	<wsdl:message name="UploadKeyPairInPKCS8Request">
 		<wsdl:part name="parameters" element="tas:UploadKeyPairInPKCS8"/>
@@ -2152,6 +2669,12 @@
 	</wsdl:message>
 	<wsdl:message name="GetAllCertificationPathsResponse">
 		<wsdl:part name="parameters" element="tas:GetAllCertificationPathsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetCertificationPathRequest">
+		<wsdl:part name="parameters" element="tas:SetCertificationPath"/>
+	</wsdl:message>
+	<wsdl:message name="SetCertificationPathResponse">
+		<wsdl:part name="parameters" element="tas:SetCertificationPathResponse"/>
 	</wsdl:message>
 	<wsdl:message name="DeleteCertificationPathRequest">
 		<wsdl:part name="parameters" element="tas:DeleteCertificationPath"/>
@@ -2255,6 +2778,12 @@
 	<wsdl:message name="GetAllCertPathValidationPoliciesResponse">
 		<wsdl:part name="parameters" element="tas:GetAllCertPathValidationPoliciesResponse"/>
 	</wsdl:message>
+	<wsdl:message name="SetCertPathValidationPolicyRequest">
+		<wsdl:part name="parameters" element="tas:SetCertPathValidationPolicy"/>
+	</wsdl:message>
+	<wsdl:message name="SetCertPathValidationPolicyResponse">
+		<wsdl:part name="parameters" element="tas:SetCertPathValidationPolicyResponse"/>
+	</wsdl:message>
 	<wsdl:message name="DeleteCertPathValidationPolicyRequest">
 		<wsdl:part name="parameters" element="tas:DeleteCertPathValidationPolicy"/>
 	</wsdl:message>
@@ -2351,12 +2880,71 @@
 	<wsdl:message name="DeleteNetworkInterfaceDot1XConfigurationResponse">
 		<wsdl:part name="parameters" element="tas:DeleteNetworkInterfaceDot1XConfigurationResponse"/>
 	</wsdl:message>
+	<wsdl:message name="AddMediaSigningCertificateAssignmentRequest">
+		<wsdl:part name="parameters" element="tas:AddMediaSigningCertificateAssignment"/>
+	</wsdl:message>
+	<wsdl:message name="AddMediaSigningCertificateAssignmentResponse">
+		<wsdl:part name="parameters" element="tas:AddMediaSigningCertificateAssignmentResponse"/>
+	</wsdl:message>
+	<wsdl:message name="RemoveMediaSigningCertificateAssignmentRequest">
+		<wsdl:part name="parameters" element="tas:RemoveMediaSigningCertificateAssignment"/>
+	</wsdl:message>
+	<wsdl:message name="RemoveMediaSigningCertificateAssignmentResponse">
+		<wsdl:part name="parameters" element="tas:RemoveMediaSigningCertificateAssignmentResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetAssignedMediaSigningCertificatesRequest">
+		<wsdl:part name="parameters" element="tas:GetAssignedMediaSigningCertificates"/>
+	</wsdl:message>
+	<wsdl:message name="GetAssignedMediaSigningCertificatesResponse">
+		<wsdl:part name="parameters" element="tas:GetAssignedMediaSigningCertificatesResponse"/>
+	</wsdl:message>
+	<wsdl:message name="GetAuthorizationServerConfigurationsRequest">
+		<wsdl:part name="parameters" element="tas:GetAuthorizationServerConfigurations"/>
+	</wsdl:message>
+	<wsdl:message name="GetAuthorizationServerConfigurationsResponse">
+		<wsdl:part name="parameters" element="tas:GetAuthorizationServerConfigurationsResponse"/>
+	</wsdl:message>
+	<wsdl:message name="CreateAuthorizationServerConfigurationRequest">
+		<wsdl:part name="parameters" element="tas:CreateAuthorizationServerConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="CreateAuthorizationServerConfigurationResponse">
+		<wsdl:part name="parameters" element="tas:CreateAuthorizationServerConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="SetAuthorizationServerConfigurationRequest">
+		<wsdl:part name="parameters" element="tas:SetAuthorizationServerConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="SetAuthorizationServerConfigurationResponse">
+		<wsdl:part name="parameters" element="tas:SetAuthorizationServerConfigurationResponse"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteAuthorizationServerConfigurationRequest">
+		<wsdl:part name="parameters" element="tas:DeleteAuthorizationServerConfiguration"/>
+	</wsdl:message>
+	<wsdl:message name="DeleteAuthorizationServerConfigurationResponse">
+		<wsdl:part name="parameters" element="tas:DeleteAuthorizationServerConfigurationResponse"/>
+	</wsdl:message>
 	<wsdl:portType name="AdvancedSecurityService">
-		<wsdl:documentation>Common functionality for all security configuraiton service parts.</wsdl:documentation>
+		<wsdl:documentation>Common functionality for all security configuration service parts.</wsdl:documentation>
 		<wsdl:operation name="GetServiceCapabilities">
-			<wsdl:documentation>Returns the capabilities of the security configuraiton service. The result is returned in a typed answer.</wsdl:documentation>
+			<wsdl:documentation>Returns the capabilities of the security configuration service. The result is returned in a typed answer.</wsdl:documentation>
 			<wsdl:input message="tas:GetServiceCapabilitiesRequest"/>
 			<wsdl:output message="tas:GetServiceCapabilitiesResponse"/>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:portType name="JWT">
+		<wsdl:documentation>Json Web Token functionality.</wsdl:documentation>
+		<wsdl:operation name="GetJWTConfiguration">
+			<wsdl:documentation>
+				This operation returns the parameters of the JWT authorization used by the device.
+			</wsdl:documentation>
+			<wsdl:input message="tas:GetJWTConfigurationRequest"/>
+			<wsdl:output message="tas:GetJWTConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetJWTConfiguration">
+			<wsdl:documentation>
+				This operation sets the parameters of the JWT authorization used by the device.
+			</wsdl:documentation>
+			<wsdl:input message="tas:SetJWTConfigurationRequest"/>
+			<wsdl:output message="tas:SetJWTConfigurationResponse"/>
 		</wsdl:operation>
 	</wsdl:portType>
 	<wsdl:portType name="Keystore">
@@ -2377,9 +2965,25 @@
 			<wsdl:input message="tas:CreateRSAKeyPairRequest"/>
 			<wsdl:output message="tas:CreateRSAKeyPairResponse"/>
 		</wsdl:operation>
+		<wsdl:operation name="CreateECCKeyPair">
+			<wsdl:documentation>
+				This operation triggers the asynchronous generation of an ECC key pair using a particular elliptic curve as specified in [RFC 8422], with a suitable key generation mechanism on the device.
+				Keys, especially ECC key pairs, are uniquely identified using key IDs.<br/>
+				If the device does not have not enough storage capacity for storing the key pair to be created, the maximum number of keys reached fault shall be produced and no key pair shall be generated.
+				Otherwise, the operation generates a keyID for the new key and associates the generating status to it.<br/>
+				Immediately after key generation has started, the device shall return the keyID to the client and continue to generate the key pair.
+				The client may query the device with the GetKeyStatus operation whether the generation has finished.
+				The client may also subscribe to Key Status events to be notified about key status changes.<br/>
+				The device also returns a best-effort estimate of how much time it requires to create the key pair.
+				A client may use this information as an indication how long to wait before querying the device whether key generation is completed.<br/>
+				After the key has been successfully created, the device shall assign it the ok status. If the key generation fails, the device shall assign the key the corrupt status.
+			</wsdl:documentation>
+			<wsdl:input message="tas:CreateECCKeyPairRequest"/>
+			<wsdl:output message="tas:CreateECCKeyPairResponse"/>
+		</wsdl:operation>
 		<wsdl:operation name="UploadKeyPairInPKCS8">
 			<wsdl:documentation>
-        This operation uploads a key pair in a PKCS#8 data structure as specified in [RFC 5958, RFC 5959].<br/>
+        Deprecated method for uploading a key pair in a PKCS#8 data structure as specified in [RFC 5958, RFC 5959].<br/>
         If an encryption passphrase ID is supplied in the request, the device shall assume that the KeyPair parameter contains an EncryptedPrivateKeyInfo ASN.1
         structure that is encrypted under the passphrase in the keystore that corresponds to the supplied ID, where the EncryptedPrivateKeyInfo structure contains
         both the private key and the corresponding public key. If no encryption passphrase ID is supplied, the device shall assume that the KeyPair parameter contains a
@@ -2585,6 +3189,13 @@
 			<wsdl:input message="tas:GetAllCertificationPathsRequest"/>
 			<wsdl:output message="tas:GetAllCertificationPathsResponse"/>
 		</wsdl:operation>
+		<wsdl:operation name="SetCertificationPath">
+			<wsdl:documentation>
+				This operation allows to modify a certification path.<br/>
+			</wsdl:documentation>
+			<wsdl:input message="tas:SetCertificationPathRequest"/>
+			<wsdl:output message="tas:SetCertificationPathResponse"/>
+		</wsdl:operation>
 		<wsdl:operation name="DeleteCertificationPath">
 			<wsdl:documentation>
 				This operation deletes a certification path from the device’s keystore.<br/>
@@ -2689,6 +3300,13 @@
 			<wsdl:input message="tas:GetAllCertPathValidationPoliciesRequest"/>
 			<wsdl:output message="tas:GetAllCertPathValidationPoliciesResponse"/>
 		</wsdl:operation>
+		<wsdl:operation name="SetCertPathValidationPolicy">
+			<wsdl:documentation>
+				This operation allows to modify an existing certification path validation policy.
+			</wsdl:documentation>
+			<wsdl:input message="tas:SetCertPathValidationPolicyRequest"/>
+			<wsdl:output message="tas:SetCertPathValidationPolicyResponse"/>
+		</wsdl:operation>
 		<wsdl:operation name="DeleteCertPathValidationPolicy">
 			<wsdl:documentation>
         This operation deletes a certification path validation policy from the keystore on the device.
@@ -2708,13 +3326,14 @@
 		<wsdl:operation name="AddServerCertificateAssignment">
 			<wsdl:documentation>
 				This operation assigns a key pair and certificate along with a certification path (certificate chain) to the TLS server on the device.
-				The TLS server shall use this information for key exchange during the TLS handshake, particularly for constructing server certificate messages as specified in RFC 4346 and RFC 2246.<br/>
+				The TLS server shall use this information for key exchange during the TLS handshake, particularly for constructing server certificate messages.<br/>
+				The certification path assigned to the TLS server shall also be used for RTSPS when RTSPS is supported. No separate certificate provisioning operation is defined for RTSPS.<br/>
 				
 				Certification paths are identified by their certification path IDs in the keystore. The first certificate in the certification path must be the TLS server certificate.
 				Since each certificate has exactly one associated key pair, a reference to the key pair that is associated with the server certificate is not supplied explicitly.
 				Devices shall obtain the private key or results of operations under the private key by suitable internal interaction with the keystore.<br/>
 				If a device chooses to perform a TLS key exchange based on the supplied certification path,  it shall use the key pair that is associated with the server certificate for 
-				key exchange and transmit the certification path to TLS clients as-is, i.e., the device shall not check conformance of the certification path to RFC 4346 norRFC 2246.
+				key exchange and transmit the certification path to TLS clients as-is.
 				In order to use the server certificate during the TLS handshake, the corresponding private key is required.
 				Therefore, if the key pair that is associated with the server certificate, i.e., the first certificate in the certification path, does not have an associated private key, 
 				the NoPrivateKey fault is produced and the certification path is not associated to the TLS server.<br/>
@@ -2748,7 +3367,7 @@
 				Since each certificate has exactly one associated key pair, a reference to the key pair that is associated with the new server certificate is not supplied explicitly.
 				Devices shall obtain the private key or results of operations under the private key by suitable internal interaction with the keystore.<br/>
 				If a device chooses to perform a TLS key exchange based on the new certification path,  it shall use the key pair that is associated with the server certificate
-				for key exchange and transmit the certification path to TLS clients as-is, i.e., the device shall not check conformance of the certification path to RFC 4346 norRFC 2246.
+				for key exchange and transmit the certification path to TLS clients as-is.
 				In order to use the server certificate during the TLS handshake, the corresponding private key is required.
 				Therefore, if the key pair that is associated with the server certificate, i.e., the first certificate in the certification path, does not have an associated private key,
 				the NoPrivateKey fault is produced and the certification path is not associated to the TLS server.
@@ -2759,7 +3378,7 @@
 		<wsdl:operation name="SetEnabledTLSVersions">
 			<wsdl:documentation>
 				This operation sets the version(s) of TLS which the device shall use.  Valid values are taken from the TLSServerSupported capability.<br/>
-				A client initiates a TLS session by sending a ClientHello with the hightest TLS version it supports.  This suggests to the server that the client can accept any TLS version up to and including that version.<br/>
+				A client initiates a TLS session by sending a ClientHello with the highest TLS version it supports.  This suggests to the server that the client can accept any TLS version up to and including that version.<br/>
 				The server then chooses the TLS version to use.  This is generally the highest TLS version the server supports that is within the range of the client.  For example, if a ClientHello indicates TLS version 1.1, the server can proceed with TLS 1.0 or TLS 1.1.<br/>
 				In the event that an ONVIF installation wishes to disable certain version(s) of TLS, it may do so with this operation.  For example, to disable TLS 1.0 on a device signaling support for TLS versions 1.0, 1.1, and 1.2, the enabled version list may be set to "1.1 1.2", omitting 1.0.  If a client then attempts to connect with a ClientHello containing TLS 1.0, the server shall send a "protocol_version" alert message and close the connection.  This handshake indicates to the client that TLS 1.0 is not supported by the server.  The client must try again with a higher TLS version suggestion.<br/>
 				An empty list is not permitted.  Disabling all versions of TLS is not the intent of this operation.  See AddServerCertificateAssignment and RemoveServerCertificateAssignment.
@@ -2859,52 +3478,142 @@
 		<wsdl:documentation>802.1X configuration.</wsdl:documentation>
 		<wsdl:operation name="AddDot1XConfiguration">
 			<wsdl:documentation>
-				(to be written)
+				This operation adds an IEEE 802.1X configuration to the device.
+        		Configurations are uniquely identified using IEEE 802.1X configuration IDs. The device shall ignore Dot1XID in the request, if present, and shall generate a unique configuration ID for the added configuration.
+        		If the command was successful, the device shall return the ID of the configuration.
+        		If the device does not have capacity for the configuration, the device shall produce a MaximumNumberOfDot1XConfigurationsReached fault and shall not add the configuration.
+        		If Identity is used as an anonymous identity for the corresponding authentication method, the device shall ignore an eventually supplied passphrase ID in the same Dot1XStage. Otherwise, if the device cannot process a passphrase ID included in the configuration to be added, the device shall produce a PassphraseID fault and shall not add the configuration.
+        		If the device cannot process a certification path ID included in the configuration to be added, the device shall produce a CertificationPathID fault and shall not add the configuration.
+        		If no certification path validation policy is stored under the requested certification path validation policy ID, the device shall produce a CertPathValidationPolicyID fault.
+        		If no certification path validation policy configured, authorization server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.
+        		If the device cannot process an authentication method included in the configuration to be added (e.g., unrecognized method or missing configuration parameter), the device shall produce a Dot1XMethod fault and shall not add the configuration.
+        		A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:AddDot1XConfigurationRequest"/>
 			<wsdl:output message="tas:AddDot1XConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="GetAllDot1XConfigurations">
 			<wsdl:documentation>
-				(to be written)
+				This operation returns details of all IEEE 802.1X configurations that are on the device. This operation may be used, e.g., if a client lost track of which IEEE 802.1X configurations are present on the device.
+        		If no IEEE 802.1X configurations exist on the device, an empty list is returned.
+        		A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:GetAllDot1XConfigurationsRequest"/>
 			<wsdl:output message="tas:GetAllDot1XConfigurationsResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="GetDot1XConfiguration">
 			<wsdl:documentation>
-				(to be written)
+				This operation returns details of a specific IEEE 802.1X configuration on the device.
+        		If the device cannot process the provided IEEE 802.1X configuration ID, the device shall produce a Dot1XConfigurationID fault.
+        		A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:GetDot1XConfigurationRequest"/>
 			<wsdl:output message="tas:GetDot1XConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="DeleteDot1XConfiguration">
 			<wsdl:documentation>
-				(to be written)
+				This operation deletes an IEEE 802.1X configuration from the device.
+        		If the device cannot process the provided IEEE 802.1X configuration ID, the device shall produce a Dot1XConfigurationID fault.
+        		If a reference exists for the specified IEEE 802.1X configuration, the device shall  produce a ReferenceExists fault and shall not delete the configuration.
+        		After an IEEE 802.1X configuration has been successfully deleted, the device may assign its former ID to a new configuration.
+        		A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:DeleteDot1XConfigurationRequest"/>
 			<wsdl:output message="tas:DeleteDot1XConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="SetNetworkInterfaceDot1XConfiguration">
 			<wsdl:documentation>
-				(to be written)
+				This operation binds an IEEE 802.1X configuration to a network interface on the device. This operation shall either create a new binding or replace an existing binding. On failure when an existing binding already exists, the existing binding shall remain.
+        		The Device Management SetNetworkInterface operation provides a method of binding an IEEE 802.1X configuration to an IEEE 802.11 (wireless) interface, and that operation may still be used. But there is no ability for SetNetworkInterface to bind an IEEE 802.1X configuration to a hardwired interface. This operation is provided to bind an IEEE 802.1X configuration to either type of interface.
+        		If SetNetworkInterfaceDot1XConfiguration is used to bind an IEEE 802.1X configuration to an IEEE 802.11 (wireless) interface, then the DeviceManagement GetNetworkInterfaces operation shall return the IEEE 802.1X configuration ID along with the rest of that interface's configuration information.
+        		If the device cannot process the provided network interface token, the device shall produce an InvalidNetworkInterface fault.
+        		If the device cannot process the provided IEEE 802.1X configuration ID, the device shall produce a Dot1XConfigurationID fault.
+        		A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:SetNetworkInterfaceDot1XConfigurationRequest"/>
 			<wsdl:output message="tas:SetNetworkInterfaceDot1XConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="GetNetworkInterfaceDot1XConfiguration">
 			<wsdl:documentation>
-				(to be written)
+				This operation returns the IEEE 802.1X ID and configuration associated with a network interface on the device. If there is no IEEE 802.1X configuration associated with the specified network interface, then the response shall be empty.
+        		If the Device Management SetNetworkInterface operation was used to bind an IEEE 802.1X configuration to an IEEE 802.11 (wireless) interface, then this operation shall return the IEEE 802.1X configuration information as if the SetNetworkInterfaceDot1XConfiguration operation had been used.
+        		If the device cannot process the provided network interface token, the device shall produce an InvalidNetworkInterface fault.
+    			A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:GetNetworkInterfaceDot1XConfigurationRequest"/>
 			<wsdl:output message="tas:GetNetworkInterfaceDot1XConfigurationResponse"/>
 		</wsdl:operation>
 		<wsdl:operation name="DeleteNetworkInterfaceDot1XConfiguration">
 			<wsdl:documentation>
-				(to be written)
+				This operation unbinds the IEEE 802.1X configuration associated with a network interface on the device. If there is no IEEE 802.1X configuration associated with the specified network interface, then the operation does nothing.
+        		The Device Management SetNetworkInterface operation provides a method of unbinding an IEEE 802.1X configuration from an IEEE 802.11 (wireless) interface by omitting the configuration ID, and that operation may still be used. But there is no ability for SetNetworkInterface to unbind an IEEE 802.1X configuration from a hardwired interface. This operation is provided to unbind an IEEE 802.1X configuration from either type of interface.
+        		If the Device Management SetNetworkInterface operation was used to bind an IEEE 802.1X configuration to an IEEE 802.11 (wireless) interface, then this operation shall unbind the IEEE 802.1X configuration information as if the SetNetworkInterfaceDot1XConfiguration operation had been used.
+        		If the device cannot process the provided network interface token, the device shall produce an InvalidNetworkInterface fault.
+        		A device signalling support for IEEE 802.1X configuration with the MaximumNumberOfDot1XConfigurations capability shall support this command.
 			</wsdl:documentation>
 			<wsdl:input message="tas:DeleteNetworkInterfaceDot1XConfigurationRequest"/>
 			<wsdl:output message="tas:DeleteNetworkInterfaceDot1XConfigurationResponse"/>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:portType name="MediaSigning">
+		<wsdl:documentation>Media Signing operations.</wsdl:documentation>
+		<wsdl:operation name="AddMediaSigningCertificateAssignment">
+			<wsdl:documentation>
+				This operation assigns certification path (certificate chain) to use for media signing, replacing the one that is provisioned during factory production. The leaf certificate in the chain and its associated private key shall be used for signing media as described in the [Media Signing Specification]. This key and certificate is referred to as user provisioned key and certificate in that specification.<br/>
+				If this operation is called when there is already a user provisioned certification path configured, the existing certification path shall be replaced with the new certification path.<br/>
+				A device shall support this command if the UserMediaSigningKeySupported capability is true.
+			</wsdl:documentation>
+			<wsdl:input message="tas:AddMediaSigningCertificateAssignmentRequest"/>
+			<wsdl:output message="tas:AddMediaSigningCertificateAssignmentResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="RemoveMediaSigningCertificateAssignment">
+			<wsdl:documentation>
+				This operation removes a certificate assignment (including certification path) on the device that has been added by AddMediaSigningCertificateAssignment. The factory provisioned certification path cannot be removed.<br/>
+				If media signing on the device is enabled, the device shall produce a ReferenceExists fault and shall not remove the certificate assignment.<br/>
+				A device shall support this command if the UserMediaSigningKeySupported capability is true.
+			</wsdl:documentation>
+			<wsdl:input message="tas:RemoveMediaSigningCertificateAssignmentRequest"/>
+			<wsdl:output message="tas:RemoveMediaSigningCertificateAssignmentResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="GetAssignedMediaSigningCertificates">
+			<wsdl:documentation>
+				This operation returns the IDs of the certification paths that are assigned for media signing on the device. This operation will always return the factory provisioned certification path and can additionally return a certification path that has been added by AddMediaSigningCertificateAssignment.<br/>
+				A device shall support this command if the MediaSigningSupported capability is true.
+			</wsdl:documentation>
+			<wsdl:input message="tas:GetAssignedMediaSigningCertificatesRequest"/>
+			<wsdl:output message="tas:GetAssignedMediaSigningCertificatesResponse"/>
+		</wsdl:operation>
+  </wsdl:portType>
+	<wsdl:portType name="AuthorizationServer">
+		<wsdl:documentation>Configuration of external authorization servers.</wsdl:documentation>
+		<wsdl:operation name="GetAuthorizationServerConfigurations">
+			<wsdl:documentation>
+			This operation lists all existing authorization server configurations for the device.
+			</wsdl:documentation>
+			<wsdl:input message="tas:GetAuthorizationServerConfigurationsRequest"/>
+			<wsdl:output message="tas:GetAuthorizationServerConfigurationsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="CreateAuthorizationServerConfiguration">
+			<wsdl:documentation>
+			This operation creates a new authorization server configuration.
+			The configuration data shall be created in the device and shall be persistent (remain after reboot).
+			</wsdl:documentation>
+			<wsdl:input message="tas:CreateAuthorizationServerConfigurationRequest"/>
+			<wsdl:output message="tas:CreateAuthorizationServerConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="SetAuthorizationServerConfiguration">
+			<wsdl:documentation>
+			This operation modifies an existing authorization server configuration.
+			</wsdl:documentation>
+			<wsdl:input message="tas:SetAuthorizationServerConfigurationRequest"/>
+			<wsdl:output message="tas:SetAuthorizationServerConfigurationResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteAuthorizationServerConfiguration">
+			<wsdl:documentation>
+			This operation deletes the given authorization server configuration and configuration change shall always be persistent.
+			</wsdl:documentation>
+			<wsdl:input message="tas:DeleteAuthorizationServerConfigurationRequest"/>
+			<wsdl:output message="tas:DeleteAuthorizationServerConfigurationResponse"/>
 		</wsdl:operation>
 	</wsdl:portType>
 	<wsdl:binding name="AdvancedSecurityServiceBinding" type="tas:AdvancedSecurityService">
@@ -2919,10 +3628,40 @@
 			</wsdl:output>
 		</wsdl:operation>
 	</wsdl:binding>
+	<wsdl:binding name="JWTBinding" type="tas:JWT">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="GetJWTConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetJWTConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetJWTConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/SetJWTConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
 	<wsdl:binding name="KeystoreBinding" type="tas:Keystore">
 		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
 		<wsdl:operation name="CreateRSAKeyPair">
 			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/CreateRSAKeyPair"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="CreateECCKeyPair">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/CreateECCKeyPair"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
@@ -3065,6 +3804,15 @@
 				<soap:body use="literal"/>
 			</wsdl:output>
 		</wsdl:operation>
+		<wsdl:operation name="SetCertificationPath">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/SetCertificationPath"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
 		<wsdl:operation name="DeleteCertificationPath">
 			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/DeleteCertificationPath"/>
 			<wsdl:input>
@@ -3160,6 +3908,15 @@
 		</wsdl:operation>
 		<wsdl:operation name="GetAllCertPathValidationPolicies">
 			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetAllCertPathValidationPolicies"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetCertPathValidationPolicy">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/SetCertPathValidationPolicy"/>
 			<wsdl:input>
 				<soap:body use="literal"/>
 			</wsdl:input>
@@ -3381,7 +4138,76 @@
 			</wsdl:output>
 		</wsdl:operation>
 	</wsdl:binding>
+	<wsdl:binding name="AuthorizationServerBinding" type="tas:AuthorizationServer">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="GetAuthorizationServerConfigurations">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetAuthorizationServerConfigurations"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="CreateAuthorizationServerConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/CreateAuthorizationServerConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="SetAuthorizationServerConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/SetAuthorizationServerConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="DeleteAuthorizationServerConfiguration">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/DeleteAuthorizationServerConfiguration"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
 	<!--==========================================-->
+	<wsdl:binding name="MediaSigningBinding" type="tas:MediaSigning">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="AddMediaSigningCertificateAssignment">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/AddMediaSigningCertificateAssignment"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="RemoveMediaSigningCertificateAssignment">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/RemoveMediaSigningCertificateAssignment"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetAssignedMediaSigningCertificates">
+			<soap:operation soapAction="http://www.onvif.org/ver10/advancedsecurity/wsdl/GetAssignedMediaSigningCertificates"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
 	<!-- Begin Cert-based client auth messages    -->
 	<!--==========================================-->
 	<!--==========================================-->

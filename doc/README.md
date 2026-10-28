@@ -3,11 +3,11 @@ This folder contains the sources of the ONVIF Technical Specifications.
 
 ## Document preview
 
-For a preview of the documents visit:  
-  https://onvif.github.io/specs/doc/index.html
+For a preview of the merged documents visit:  
+  https://developer.onvif.org/pub/specs/branches/development/doc/index.html
 
-The same page is also served via a proxy fixing a github.io wsdl content-type issue:  
-  https://onvif.org/github_specs/specs/doc/index.html
+For a preview of branches select the branch via:  
+https://developer.onvif.org/pub/specs
 
 Note on branches and forks: the above links do not automatically update.
 
