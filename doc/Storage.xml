@@ -29,7 +29,7 @@
 
   <chapter>
     <title>Scope</title>
-    <para>This document defines the web service interface for discovering and controlling storage resources available to an ONVIF device. The service supports local storage, removable media such as SD cards, and network storage resources. A device may expose more than one storage resource.</para>
+    <para>This document defines the web service interface for discovering and controlling storage resources available to an ONVIF device. The service supports internal storage, removable media such as SD cards, and network storage resources. A device may expose more than one storage resource.</para>
     <para>Web service usage and common ONVIF functionality are outside the scope of this document. Please refer to the ONVIF Core Specification for more information.</para>
     <section>
       <title>Conventions</title>
@@ -101,12 +101,12 @@
     <section>
       <title>Storage resources</title>
       <para>Each storage resource is identified by a reference token. A device shall return a separate resource for each independently usable storage instance, including each inserted card in a device with multiple card slots.</para>
-      <para>The <literal>StorageType</literal> identifies the resource as <literal>Local</literal>, <literal>Removable</literal>, or <literal>Network</literal>.</para>
+      <para>The <literal>StorageType</literal> identifies the resource as <literal>Internal</literal>, <literal>Removable</literal>, or <literal>Network</literal>.</para>
       <para>A resource token shall remain stable while the corresponding resource remains associated with the device. A device may allocate a new token when a physically removed removable medium is replaced.</para>
     </section>
     <section>
       <title>Storage information</title>
-      <para>The <literal>StorageInfo</literal> structure contains the resource type, state, and resource-specific capabilities. Capacity and used space shall be expressed in bytes. Available space may be omitted when the resource is not available. A device shall not report stale values as current values.</para>
+      <para>The <literal>StorageInfo</literal> structure contains the resource type, state, and resource-specific capabilities. Capacity and used space shall be expressed in bytes. Available space may be omitted when the resource is not available. For an available resource, the <literal>Capacity</literal>, <literal>Used</literal>, and, when provided, <literal>Available</literal> values returned by the device shall be no more than 30 seconds old.</para>
       <para>The state shall be one of <literal>Available</literal>, <literal>Mounted</literal>, <literal>Formatting</literal>, <literal>Reencrypting</literal>, <literal>Error</literal>, or <literal>Unknown</literal>.</para>
       <para>The format identifies the manufacturer-specific format of the storage resource. The encryption information identifies the encryption state of the complete managed storage resource.</para>
       <para>The <literal>Capabilities</literal> element shall specify, for the individual resource, whether formatting (<literal>Format</literal>), encryption (<literal>Encryption</literal>), and passphrase changes (<literal>PassphraseChange</literal>) are supported.</para>
