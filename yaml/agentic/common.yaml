@@ -1,0 +1,147 @@
+id: https://www.onvif.org/ver10/agentic/common/linkml/
+name: onvif-agentic-common
+description: ONVIF Agentic Service common schema
+prefixes:
+  linkml: https://w3id.org/linkml/
+  onvif: https://www.onvif.org/ver10/agentic/linkml/
+imports:
+  - linkml:types
+  - enums
+default_prefix: onvif
+default_range: string
+
+types:
+  Likelihood:
+    typeof: float
+    description: >-
+      A float value representing a probability or likelihood, constrained
+      between 0.0 and 1.0.
+    minimum_value: 0.0
+    maximum_value: 1.0
+
+  UUID:
+    typeof: string
+    description: >-
+      Universally Unique Identifier in the canonical lowercase hyphenated
+      form specified in RFC 9562.
+
+      It is the range of every object identifier slot of this model, and equally
+      of every slot that cites another item instead of nesting it. The two uses
+      share one type because a reference is the identifier of the item it points
+      at and can be nothing else: the two lexical spaces cannot diverge, and
+      declaring a second type for the citing position would only put a copy of
+      the pattern below in a place where nothing checks that the two copies still
+      agree.
+
+      A citing slot carries the identifier of the cited item and nothing more. It
+      does not state the class of that item: the class is read from the cited item
+      itself, which carries it in its @type slot as specified for
+      InformationItem, so an ONVIF Client learns what it has been given at the
+      moment it resolves the reference, and the slot documents in prose, and in
+      its any_of constraint, which classes it admits.
+
+      Declaring the cited class as the range of a citing slot would give no
+      constraint at all. A slot whose range is a class and that is not inlined
+      compiles to a bare string, with no pattern and no trace of the class, so any
+      string whatsoever would pass; with this type the identifier has at least a
+      checkable shape.
+    pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+
+  Base64Binary:
+    typeof: string
+    description: >-
+      Binary value encoded with the standard base64 alphabet defined in
+      RFC 4648, including padding.
+
+      The pattern enforces what RFC 4648 requires of the encoded form: the
+      value is a whole number of four-character groups, and padding appears
+      only in the last group, as one '=' after three characters or two after
+      two. A value whose length is not a multiple of four, or that carries
+      padding anywhere else, is not a base64 encoding of anything and is
+      rejected.
+
+      The empty string is rejected as well, although it is the encoding of zero
+      octets, because no slot of this model that uses this type admits an empty
+      value: a digest, a signature and a public key all have content by
+      construction.
+    pattern: '^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$'
+
+  ReferenceToken:
+    typeof: string
+    description: >-
+      Unique identifier referencing a physical or logical resource of an
+      ONVIF Device. It mirrors tt:ReferenceToken of the ONVIF Schema, and is
+      therefore limited to 64 characters.
+    pattern: '^.{1,64}$'
+
+  KeyID:
+    typeof: string
+    description: >-
+      Unique identifier of a key in the keystore of an ONVIF Device. It
+      mirrors tas:KeyID of the ONVIF Advanced Security Service, which is an
+      XML NCName limited to 64 characters. Using the same identifier space
+      allows a key named here to be looked up in the keystore of the device.
+    pattern: '^[A-Za-z_][A-Za-z0-9._-]{0,63}$'
+
+classes:
+
+  Extensible:
+    abstract: true
+    description: >-
+      Abstract class carrying extensions. It is used as the range of an
+      optional slot named extensible, which classes that support vendor
+      extensions declare individually; it is not intended to be inherited
+      via is_a, as it carries no attributes of its own beyond the type
+      designator every abstract class of this model declares. The only
+      exceptions are VendorExtension and VendorExtensible, which are
+      themselves extension containers.
+    comments:
+      - 'Declare an optional slot "extensible" with range Extensible on a class
+        that supports vendor extensions. Do not inherit it with is_a.'
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        description: >-
+          The CURIE of the concrete extension container this object
+          instantiates, onvif:VendorExtension or onvif:VendorExtensible. It is
+          required for
+          the reason given for the type designator of InformationItem.
+
+  VendorExtension:
+    abstract: false
+    is_a: Extensible
+    description: >-
+      Container for a single vendor-specific extension entry.
+    attributes:
+      vendor_namespace:
+        range: uri
+        required: true
+        description: URI namespace that uniquely identifies the vendor.
+      name:
+        range: string
+        required: true
+        description: Local name of the extension element within the vendor namespace.
+      value:
+        range: Any
+        required: false
+        description: Vendor-specific payload.
+
+  VendorExtensible:
+    abstract: false
+    is_a: Extensible
+    description: >-
+      Concrete container for grouping multiple vendor-specific extensions.
+    attributes:
+      vendorExtensions:
+        range: VendorExtension
+        multivalued: true
+        inlined_as_list: true
+        required: false
+        description: Zero or more vendor-specific extension entries.
+
+  Any:
+    description: >-
+      A dynamic type that allows arbitrary nested data.
+    class_uri: linkml:Any
