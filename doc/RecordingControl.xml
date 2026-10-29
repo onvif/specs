@@ -468,6 +468,7 @@ Change Request 2061, 2063, 2065, 2109</revremark>
           <emphasis role="bold">MaximumRetentionTime</emphasis> specifies the maximum time that data in any track within the recording shall be stored. The device shall delete any data older than the maximum retention time. Such data shall not be accessible anymore. 
           If the MaximumRetentionPeriod is set to 0, the device shall not limit the retention time of stored data, except by resource constraints. Whatever the value of MaximumRetentionTime, the device may automatically delete recordings to free up storage space for new recordings.
           This parameter has no effect on the data stored in external targets for e.g. Object Storage.</para>
+        <para><emphasis role="bold">StorageToken</emphasis> optionally identifies the storage resource used for recording. The token shall reference a storage resource exposed by the Storage service.</para>
         <para>
           None of the other fields defined in this structure shall be used by the device.
           Instead, it simply stores this information, and it shall return it through the <emphasis>GetRecordingConfiguration</emphasis> and <emphasis>GetRecordingInformation</emphasis> (see ONVIF Recording Search Service Specification) methods.</para>
@@ -1917,7 +1918,22 @@ Change Request 2061, 2063, 2065, 2109</revremark>
 </tt:MessageDescription>
 ]]></programlisting>
         <para>The ElementItem Information shall be provided whenever the state of the different tracks is not unique. It can be omitted when the state of all tracks of a recording is consistent.</para>
-</section>
+      </section>
+      <section>
+        <title>Storage unavailable</title>
+        <para>When the storage resource identified by the recording configuration's <literal>StorageToken</literal> becomes absent or unavailable, the device shall dispatch the following event after updating the affected recording job track state to <literal>Error</literal>:</para>
+        <programlisting><![CDATA[Topic: tns1:RecordingConfig/JobState
+<tt:MessageDescription IsProperty="true">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="RecordingJobToken" Type="tt:RecordingJobReference"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription Name="State" Type="xs:string"/>
+    <tt:ElementItemDescription Name="Information" Type="tt:RecordingJobStateInformation"/>
+  </tt:Data>
+</tt:MessageDescription>]]></programlisting>
+        <para>The affected track in <literal>Information</literal> shall contain <literal>State</literal> equal to <literal>Error</literal> and <literal>Error</literal> equal to <literal>StorageProblem</literal>. When the storage resource becomes available and recording resumes, the device shall dispatch the same event with the affected track state set to <literal>Active</literal>.</para>
+      </section>
       <section>
         <title>Configuration changes</title>
         <para>If the configuration of a recording is changed, a device shall provide the following event:</para>

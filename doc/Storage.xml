@@ -1,0 +1,348 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="docbook.xsl" type="text/xsl" ?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <info>
+    <title>Storage Service Specification</title>
+    <titleabbrev>Storage</titleabbrev>
+    <releaseinfo>26.12</releaseinfo>
+    <author>
+      <orgname>ONVIF&#8482;</orgname>
+      <uri>www.onvif.org</uri>
+    </author>
+    <pubdate>November, 2026</pubdate>
+    <mediaobject><imageobject><imagedata fileref="media/logo.png" contentwidth="60mm"/></imageobject></mediaobject>
+    <copyright><year>2008-2026</year><holder>ONVIF&#8482; All rights reserved.</holder></copyright>
+    <legalnotice>
+      <para>Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.</para>
+      <para>THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.</para>
+      <para>IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.</para>
+    </legalnotice>
+    <revhistory>
+      <revision>
+        <revnumber>26.12</revnumber>
+        <date>Nov-2026</date>
+        <author><personname>Charles Piette</personname></author>
+        <revremark>Initial working draft.</revremark>
+      </revision>
+    </revhistory>
+  </info>
+
+  <chapter>
+    <title>Scope</title>
+    <para>This document defines the web service interface for discovering and controlling storage resources available to an ONVIF device. The service supports local storage, removable media such as SD cards, and network storage resources. A device may expose more than one storage resource.</para>
+    <para>Web service usage and common ONVIF functionality are outside the scope of this document. Please refer to the ONVIF Core Specification for more information.</para>
+    <section>
+      <title>Conventions</title>
+      <para>The key words “shall”, “shall not”, “should”, “should not”, “may”, “need not”, “can”, and “cannot” in this specification are to be interpreted as described in Annex H of [ISO/IEC Directives].</para>
+    </section>
+  </chapter>
+
+  <chapter>
+    <title>Normative references</title>
+    <para>ONVIF Core Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf"/>&gt;</para>
+    <para>ONVIF Recording Control Service Specification</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/specs/srv/rec/ONVIF-RecordingControl-Service-Spec.pdf"/>&gt;</para>
+    <para>ISO/IEC Directives, ISO/IEC Directives Part 2, Principles and rules for the structure and drafting of ISO and IEC documents, Edition 7.0, May 2016</para>
+    <para role="reference">&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.iec.ch/members_experts/refdocs/iec/isoiecdir-2%7Bed7.0%7Den.pdf"/>&gt;</para>
+  </chapter>
+
+  <chapter>
+    <title>Terms and Definitions</title>
+    <section>
+      <title>Definitions</title>
+      <informaltable>
+        <tgroup cols="2"><colspec colname="c1" colwidth="24*"/><colspec colname="c2" colwidth="76*"/><tbody valign="top">
+          <row><entry><para><emphasis role="bold">Storage resource</emphasis></para></entry><entry><para>An independently addressable storage instance exposed by the device.</para></entry></row>
+          <row><entry><para><emphasis role="bold">Removable storage</emphasis></para></entry><entry><para>Storage media that can be physically inserted into and removed from the device, such as an SD card.</para></entry></row>
+          <row><entry><para><emphasis role="bold">Wear</emphasis></para></entry><entry><para>The percentage of estimated remaining usable media life.</para></entry></row>
+          <row><entry><para><emphasis role="bold">Passphrase</emphasis></para></entry><entry><para>A secret used by the device to protect encryption of a complete managed storage resource.</para></entry></row>
+        </tbody></tgroup>
+      </informaltable>
+    </section>
+    <section>
+      <title>Abbreviations</title>
+      <informaltable>
+        <tgroup cols="2"><colspec colname="c1" colwidth="24*"/><colspec colname="c2" colwidth="76*"/><tbody valign="top">
+          <row><entry><para>SD</para></entry><entry><para>Secure Digital removable storage card.</para></entry></row>
+          <row><entry><para>TLS</para></entry><entry><para>Transport Layer Security.</para></entry></row>
+        </tbody></tgroup>
+      </informaltable>
+    </section>
+  </chapter>
+
+  <chapter>
+    <title>Overview</title>
+    <para>The Storage service provides a common resource model for storage that can be used for recording or other device functions. It provides resource discovery, capacity and health information, lifecycle operations, and storage events.</para>
+    <itemizedlist>
+      <listitem><para>Querying storage capability and resource availability.</para></listitem>
+      <listitem><para>Retrieving capacity, usage, format, encryption, and wear information.</para></listitem>
+      <listitem><para>Formatting a storage resource.</para></listitem>
+      <listitem><para>Setting or changing a storage encryption passphrase.</para></listitem>
+      <listitem><para>Using a storage token for recording.</para></listitem>
+      <listitem><para>Receiving storage lifecycle and operation events.</para></listitem>
+    </itemizedlist>
+    <para>The WSDL for this service is specified in <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.onvif.org/onvif/ver10/storage/wsdl/storage.wsdl">http://www.onvif.org/onvif/ver10/storage/wsdl/storage.wsdl</link>.</para>
+    <table>
+      <title>Referenced namespaces (with prefix)</title>
+      <tgroup cols="2"><colspec colname="c1" colwidth="13*"/><colspec colname="c2" colwidth="87*"/><thead><row><entry><para>Prefix</para></entry><entry><para>Namespace URI</para></entry></row></thead><tbody valign="top">
+        <row><entry><para>env</para></entry><entry><para>http://www.w3.org/2003/05/soap-envelope</para></entry></row>
+        <row><entry><para>ter</para></entry><entry><para>http://www.onvif.org/ver10/error</para></entry></row>
+        <row><entry><para>xs</para></entry><entry><para>http://www.w3.org/2001/XMLSchema</para></entry></row>
+        <row><entry><para>tt</para></entry><entry><para>http://www.onvif.org/ver10/schema</para></entry></row>
+        <row><entry><para>tns1</para></entry><entry><para>http://www.onvif.org/ver10/topics</para></entry></row>
+        <row><entry><para>ts</para></entry><entry><para>http://www.onvif.org/ver10/storage/wsdl</para></entry></row>
+      </tbody></tgroup>
+    </table>
+  </chapter>
+
+  <chapter>
+    <title>Storage Service</title>
+    <section>
+      <title>Storage resources</title>
+      <para>Each storage resource is identified by a reference token. A device shall return a separate resource for each independently usable storage instance, including each inserted card in a device with multiple card slots.</para>
+      <para>The <literal>StorageType</literal> identifies the resource as <literal>Local</literal>, <literal>Removable</literal>, or <literal>Network</literal>.</para>
+      <para>A resource token shall remain stable while the corresponding resource remains associated with the device. A device may allocate a new token when a physically removed removable medium is replaced.</para>
+    </section>
+    <section>
+      <title>Storage information</title>
+      <para>The <literal>StorageInfo</literal> structure contains the resource type, state, and resource-specific capabilities. Capacity and used space shall be expressed in bytes. Available space may be omitted when the resource is not available. A device shall not report stale values as current values.</para>
+      <para>The state shall be one of <literal>Available</literal>, <literal>Mounted</literal>, <literal>Formatting</literal>, <literal>Reencrypting</literal>, <literal>Error</literal>, or <literal>Unknown</literal>.</para>
+      <para>The format identifies the manufacturer-specific format of the storage resource. The encryption information identifies the encryption state of the complete managed storage resource.</para>
+      <para>The <literal>Capabilities</literal> element shall specify, for the individual resource, whether formatting (<literal>Format</literal>), encryption (<literal>Encryption</literal>), and passphrase changes (<literal>PassphraseChange</literal>) are supported.</para>
+      <para>If wear information is supported, <literal>Wear</literal> shall express remaining media life as a percentage in the range 0.0 through 100.0. The element shall be omitted when the device cannot provide a value.</para>
+    </section>
+    <section>
+      <title>Capabilities</title>
+      <para>A device that exposes the Storage service shall implement <literal>GetServiceCapabilities</literal>. The response may indicate support for removable and network storage and may report the number of physical removable storage slots using <literal>RemovableStorageSlotCount</literal>. Formatting, encryption, and passphrase-change support shall be reported for each resource in its <literal>StorageInfo/Capabilities</literal> element.</para>
+    </section>
+    <section>
+      <title>Persistence</title>
+      <para>Storage resource configuration and encryption state shall survive a power cycle. The presence, capacity, usage, and operational state of removable and network resources may change during device operation.</para>
+    </section>
+  </chapter>
+
+  <chapter>
+    <title>Commands</title>
+    <para>This section describes the commands offered by the Storage service.</para>
+    <section><title>GetServiceCapabilities</title>
+      <para>This operation retrieves the capabilities of the Storage service.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem><para role="text">This is an empty message.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">Capabilities [ts:Capabilities]</para>
+            <para role="text">The capabilities of the Storage service.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem><para role="text">None</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem><para role="access">PRE_AUTH</para></listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section><title>GetStorages</title>
+      <para>This operation lists all storage resources known to the service.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem><para role="text">This is an empty message.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">Storage - optional, unbounded [ts:StorageInfo]</para>
+            <para role="text">The storage resources known to the device.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem><para role="text">None</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem><para role="access">READ MEDIA</para></listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section><title>GetStorage</title>
+      <para>This operation retrieves a storage resource whose token is known to the client.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">Token [tt:ReferenceToken]</para>
+            <para role="text">The token of the requested storage resource.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">Storage [ts:StorageInfo]</para>
+            <para role="text">The requested storage resource.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:UnknownToken</para>
+            <para role="text">The requested storage resource does not exist.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem><para role="access">READ MEDIA</para></listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+    <section><title>FormatStorage</title>
+      <para>This destructive operation formats the selected storage resource. The filesystem selected by the device is manufacturer-specific.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">Token [tt:ReferenceToken]</para>
+            <para role="text">The storage resource to format.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">OperationToken [tt:ReferenceToken]</para>
+            <para role="text">The token used to monitor the asynchronous operation.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:UnknownToken</para>
+            <para role="param">env:Receiver - ter:Action - ter:OperationProhibited</para>
+            <para role="text">The resource is absent, read-only, unavailable, locked, or in use.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem><para role="access">SYSTEM WRITE</para></listitem>
+        </varlistentry>
+      </variablelist>
+      <para>The device shall not format a resource while active recording depends on it unless the device has first stopped or safely redirected that recording. Formatting shall be asynchronous whenever it cannot complete before the response is sent.</para>
+    </section>
+    <section><title>SetStoragePassphrase</title>
+      <para>This operation sets or changes the encryption passphrase for the complete managed storage resource.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem>
+            <para role="param">Token [tt:ReferenceToken]</para>
+            <para role="param">CurrentPassphrase - optional [xs:string]</para>
+            <para role="param">NewPassphrase [xs:string]</para>
+            <para role="text">The passphrases are write-only. CurrentPassphrase may be omitted only when encryption is enabled for the first time.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">OperationToken [tt:ReferenceToken]</para>
+            <para role="text">The token used to monitor re-encryption.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem>
+            <para role="param">env:Sender - ter:InvalidArgVal - ter:UnknownToken</para>
+            <para role="param">env:Sender - ter:OperationProhibited - ter:InvalidPassphrase</para>
+            <para role="text">The resource or supplied passphrase is invalid, or a conflicting operation is active.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem><para role="access">SYSTEM WRITE</para></listitem>
+        </varlistentry>
+      </variablelist>
+      <para>Changing a passphrase shall preserve readable existing data and shall re-encrypt the resource. The device shall never return a current or previous passphrase in a response, event, log, or storage information structure. Clients should use TLS.</para>
+    </section>
+    <section><title>GetOperationStatus</title>
+      <para>This operation retrieves the status of a formatting or re-encryption operation.</para>
+      <variablelist role="op">
+        <varlistentry>
+          <term>request</term>
+          <listitem><para role="param">OperationToken [tt:ReferenceToken]</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>response</term>
+          <listitem>
+            <para role="param">Status [ts:OperationStatus]</para>
+            <para role="text">The current state, progress, and optional error information.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>faults</term>
+          <listitem><para role="param">env:Sender - ter:InvalidArgVal - ter:UnknownToken</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>access class</term>
+          <listitem><para role="access">READ MEDIA</para></listitem>
+        </varlistentry>
+      </variablelist>
+      <para>Operation progress is normalized between 0.0 and 1.0. The device shall report the final result through the standard <literal>Monitoring/AsynchronousOperationStatus</literal> event.</para>
+    </section>
+  </chapter>
+
+  <chapter>
+    <title>Recording Integration</title>
+    <para>A storage resource may be referenced by the Recording service using its token. The token is supplied in the recording configuration's <literal>StorageToken</literal> element.</para>
+  </chapter>
+
+  <chapter>
+    <title>Events</title>
+      <para>The Storage service shall dispatch the events defined in this chapter through the Event service. The events are limited to storage conditions that affect recording or require client action.</para>
+    <section>
+      <title>Storage status</title>
+      <para>When the status of a storage resource changes, the device shall dispatch the following event:</para>
+      <programlisting><![CDATA[Topic: tns1:Storage/Status
+<tt:MessageDescription IsProperty="true">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="StorageToken" Type="tt:ReferenceToken"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription Name="Status" Type="ts:StorageStatus"/>
+  </tt:Data>
+</tt:MessageDescription>]]></programlisting>
+      <para>The status shall indicate whether the storage resource is <literal>available</literal>, <literal>needsFormatting</literal>, or has a <literal>wrongPassphrase</literal>.</para>
+    </section>
+    <section>
+      <title>Storage wear</title>
+      <para>When the wear value of a removable storage resource changes, the device shall dispatch the following event. The event shall not be repeatedly generated without a state change.</para>
+      <programlisting><![CDATA[Topic: tns1:Storage/Wear
+<tt:MessageDescription IsProperty="true">
+  <tt:Source>
+    <tt:SimpleItemDescription Name="StorageToken" Type="tt:ReferenceToken"/>
+  </tt:Source>
+  <tt:Data>
+    <tt:SimpleItemDescription Name="Wear" Type="xs:float"/>
+  </tt:Data>
+</tt:MessageDescription>]]></programlisting>
+      <para>The Wear value is the normalized remaining media life defined in the Storage information model.</para>
+    </section>
+    <section>
+      <title>Asynchronous storage operations</title>
+      <para>Formatting and passphrase changes shall use the standard asynchronous operation event defined by the Core Specification. The device shall dispatch progress, completion, cancellation, and failure notifications using the following topic:</para>
+      <programlisting><![CDATA[Topic: tns1:Monitoring/AsynchronousOperationStatus]]></programlisting>
+      <para>For these operations, the ServiceName field shall identify the Storage service and the OperationName field shall be <literal>FormatStorage</literal> or <literal>SetStoragePassphrase</literal>. The Token field shall contain the operation token returned by the corresponding command. Progress shall be normalized between 0.0 and 1.0. Failures shall be reported in the Error field as defined by the Core Specification.</para>
+    </section>
+  </chapter>
+
+  <appendix role="revhistory">
+    <title>Revision History</title>
+    <para />
+  </appendix>
+
+</book>

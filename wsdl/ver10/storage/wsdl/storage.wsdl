@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../../../ver20/util/onvif-wsdl-viewer.xsl"?>
+<!--
+Copyright (c) 2008-2026 by ONVIF: Open Network Video Interface Forum. All rights reserved.
+
+Recipients of this document may copy, distribute, publish, or display this document so long as this copyright notice, license and disclaimer are retained with all copies of the document. No license is granted to modify this document.
+
+THIS DOCUMENT IS PROVIDED "AS IS," AND THE CORPORATION AND ITS MEMBERS AND THEIR AFFILIATES, MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THIS DOCUMENT ARE SUITABLE FOR ANY PURPOSE; OR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+
+IN NO EVENT WILL THE CORPORATION OR ITS MEMBERS OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THIS DOCUMENT.
+-->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap12/"
+                  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                  xmlns:tt="http://www.onvif.org/ver10/schema"
+                  xmlns:ts="http://www.onvif.org/ver10/storage/wsdl"
+                  targetNamespace="http://www.onvif.org/ver10/storage/wsdl">
+  <wsdl:types>
+    <xs:schema targetNamespace="http://www.onvif.org/ver10/storage/wsdl"
+               xmlns:tt="http://www.onvif.org/ver10/schema"
+               xmlns:ts="http://www.onvif.org/ver10/storage/wsdl"
+               elementFormDefault="qualified" version="26.12">
+      <xs:import namespace="http://www.onvif.org/ver10/schema" schemaLocation="../../schema/onvif.xsd"/>
+
+      <!-- Message Request/Response elements -->
+      <!-- =============================== -->
+      <xs:element name="GetServiceCapabilities">
+        <xs:complexType><xs:sequence/></xs:complexType>
+      </xs:element>
+      <xs:element name="GetServiceCapabilitiesResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Capabilities" type="ts:Capabilities">
+              <xs:annotation><xs:documentation>The capabilities of the Storage service.</xs:documentation></xs:annotation>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      <xs:complexType name="Capabilities">
+        <xs:sequence>
+          <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="RemovableStorage" type="xs:boolean">
+          <xs:annotation><xs:documentation>Indicates support for removable storage.</xs:documentation></xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="NetworkStorage" type="xs:boolean">
+          <xs:annotation><xs:documentation>Indicates support for network storage resources.</xs:documentation></xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="RemovableStorageSlotCount" type="xs:unsignedInt">
+          <xs:annotation><xs:documentation>Number of physical slots available for removable storage media.</xs:documentation></xs:annotation>
+        </xs:attribute>
+        <xs:anyAttribute processContents="lax"/>
+      </xs:complexType>
+      <xs:element name="Capabilities" type="ts:Capabilities"/>
+
+      <!-- Storage information -->
+      <!-- =================== -->
+      <xs:simpleType name="StorageType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Local"/>
+          <xs:enumeration value="Removable"/>
+          <xs:enumeration value="Network"/>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="StorageState">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Available"/>
+          <xs:enumeration value="Mounted"/>
+          <xs:enumeration value="Formatting"/>
+          <xs:enumeration value="Reencrypting"/>
+          <xs:enumeration value="Error"/>
+          <xs:enumeration value="Unknown"/>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="StorageStatus">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="available"/>
+          <xs:enumeration value="needsFormatting"/>
+          <xs:enumeration value="wrongPassphrase"/>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="EncryptionState">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="enabled"/>
+          <xs:enumeration value="disabled"/>
+          <xs:enumeration value="changingPassphrase"/>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="OperationState">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Queued"/>
+          <xs:enumeration value="Running"/>
+          <xs:enumeration value="Completed"/>
+          <xs:enumeration value="Failed"/>
+          <xs:enumeration value="Cancelled"/>
+        </xs:restriction>
+      </xs:simpleType>
+
+      <xs:complexType name="EncryptionInfo">
+        <xs:sequence>
+          <xs:element name="State" type="ts:EncryptionState"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="StorageCapabilities">
+        <xs:attribute name="Format" type="xs:boolean" use="required">
+          <xs:annotation><xs:documentation>Indicates whether this storage resource can be formatted.</xs:documentation></xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="Encryption" type="xs:boolean" use="required">
+          <xs:annotation><xs:documentation>Indicates whether this storage resource supports encryption.</xs:documentation></xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="PassphraseChange" type="xs:boolean" use="required">
+          <xs:annotation><xs:documentation>Indicates whether the encryption passphrase for this storage resource can be changed.</xs:documentation></xs:annotation>
+        </xs:attribute>
+        <xs:anyAttribute processContents="lax"/>
+      </xs:complexType>
+      <xs:complexType name="StorageInfo">
+        <xs:complexContent>
+          <xs:extension base="tt:DeviceEntity">
+            <xs:sequence>
+              <xs:element name="Type" type="ts:StorageType"/>
+              <xs:element name="State" type="ts:StorageState"/>
+              <xs:element name="Capacity" type="xs:unsignedLong"/>
+              <xs:element name="Used" type="xs:unsignedLong"/>
+              <xs:element name="Available" type="xs:unsignedLong" minOccurs="0"/>
+              <xs:element name="Format" type="xs:string" minOccurs="0">
+                <xs:annotation><xs:documentation>Manufacturer-specific format of the storage resource.</xs:documentation></xs:annotation>
+              </xs:element>
+              <xs:element name="Wear" type="xs:float" minOccurs="0">
+                <xs:annotation><xs:documentation>Remaining media life as a percentage in the range 0.0 to 100.0. Omitted when unavailable.</xs:documentation></xs:annotation>
+              </xs:element>
+              <xs:element name="Encryption" type="ts:EncryptionInfo" minOccurs="0"/>
+              <xs:element name="Capabilities" type="ts:StorageCapabilities"/>
+              <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+
+      <!-- Storage operations -->
+      <!-- ================== -->
+      <xs:element name="GetStorages">
+        <xs:complexType><xs:sequence/></xs:complexType>
+      </xs:element>
+      <xs:element name="GetStoragesResponse">
+        <xs:complexType>
+          <xs:sequence><xs:element name="Storage" type="ts:StorageInfo" minOccurs="0" maxOccurs="unbounded"/></xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="GetStorage">
+        <xs:complexType>
+          <xs:sequence><xs:element name="Token" type="tt:ReferenceToken"/></xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="GetStorageResponse">
+        <xs:complexType>
+          <xs:sequence><xs:element name="Storage" type="ts:StorageInfo"/></xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="FormatStorage">
+        <xs:complexType>
+          <xs:sequence><xs:element name="Token" type="tt:ReferenceToken"/></xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="FormatStorageResponse">
+        <xs:complexType>
+          <xs:sequence><xs:element name="OperationToken" type="tt:ReferenceToken"/></xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="SetStoragePassphrase">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Token" type="tt:ReferenceToken"/>
+            <xs:element name="CurrentPassphrase" type="xs:string" minOccurs="0">
+              <xs:annotation><xs:documentation>Write-only current passphrase. Omit when encryption is being enabled for the first time.</xs:documentation></xs:annotation>
+            </xs:element>
+            <xs:element name="NewPassphrase" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="SetStoragePassphraseResponse">
+        <xs:complexType>
+          <xs:sequence><xs:element name="OperationToken" type="tt:ReferenceToken"/></xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="GetOperationStatus">
+        <xs:complexType>
+          <xs:sequence><xs:element name="OperationToken" type="tt:ReferenceToken"/></xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="GetOperationStatusResponse">
+        <xs:complexType>
+          <xs:sequence><xs:element name="Status" type="ts:OperationStatus"/></xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:complexType name="OperationStatus">
+        <xs:sequence>
+          <xs:element name="OperationToken" type="tt:ReferenceToken"/>
+          <xs:element name="StorageToken" type="tt:ReferenceToken"/>
+          <xs:element name="State" type="ts:OperationState"/>
+          <xs:element name="Progress" type="xs:float" minOccurs="0"/>
+          <xs:element name="Error" type="xs:string" minOccurs="0"/>
+          <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:schema>
+  </wsdl:types>
+
+  <!-- Messages -->
+  <!-- ======== -->
+  <wsdl:message name="GetServiceCapabilitiesRequest">
+    <wsdl:part name="parameters" element="ts:GetServiceCapabilities"/>
+  </wsdl:message>
+  <wsdl:message name="GetServiceCapabilitiesResponse">
+    <wsdl:part name="parameters" element="ts:GetServiceCapabilitiesResponse"/>
+  </wsdl:message>
+  <wsdl:message name="GetStoragesRequest">
+    <wsdl:part name="parameters" element="ts:GetStorages"/>
+  </wsdl:message>
+  <wsdl:message name="GetStoragesResponse">
+    <wsdl:part name="parameters" element="ts:GetStoragesResponse"/>
+  </wsdl:message>
+  <wsdl:message name="GetStorageRequest">
+    <wsdl:part name="parameters" element="ts:GetStorage"/>
+  </wsdl:message>
+  <wsdl:message name="GetStorageResponse">
+    <wsdl:part name="parameters" element="ts:GetStorageResponse"/>
+  </wsdl:message>
+  <wsdl:message name="FormatStorageRequest">
+    <wsdl:part name="parameters" element="ts:FormatStorage"/>
+  </wsdl:message>
+  <wsdl:message name="FormatStorageResponse">
+    <wsdl:part name="parameters" element="ts:FormatStorageResponse"/>
+  </wsdl:message>
+  <wsdl:message name="SetStoragePassphraseRequest">
+    <wsdl:part name="parameters" element="ts:SetStoragePassphrase"/>
+  </wsdl:message>
+  <wsdl:message name="SetStoragePassphraseResponse">
+    <wsdl:part name="parameters" element="ts:SetStoragePassphraseResponse"/>
+  </wsdl:message>
+  <wsdl:message name="GetOperationStatusRequest">
+    <wsdl:part name="parameters" element="ts:GetOperationStatus"/>
+  </wsdl:message>
+  <wsdl:message name="GetOperationStatusResponse">
+    <wsdl:part name="parameters" element="ts:GetOperationStatusResponse"/>
+  </wsdl:message>
+
+  <!-- Port type -->
+  <!-- ========= -->
+  <wsdl:portType name="StoragePort">
+    <wsdl:operation name="GetServiceCapabilities">
+      <wsdl:documentation>Returns the capabilities of the Storage service.</wsdl:documentation>
+      <wsdl:input message="ts:GetServiceCapabilitiesRequest"/>
+      <wsdl:output message="ts:GetServiceCapabilitiesResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="GetStorages">
+      <wsdl:documentation>Returns the storage resources known to the device.</wsdl:documentation>
+      <wsdl:input message="ts:GetStoragesRequest"/>
+      <wsdl:output message="ts:GetStoragesResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="GetStorage">
+      <wsdl:documentation>Returns a storage resource identified by its token.</wsdl:documentation>
+      <wsdl:input message="ts:GetStorageRequest"/>
+      <wsdl:output message="ts:GetStorageResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="FormatStorage">
+      <wsdl:documentation>Formats a storage resource and returns an operation token.</wsdl:documentation>
+      <wsdl:input message="ts:FormatStorageRequest"/>
+      <wsdl:output message="ts:FormatStorageResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="SetStoragePassphrase">
+      <wsdl:documentation>Sets or changes the passphrase for complete-resource encryption.</wsdl:documentation>
+      <wsdl:input message="ts:SetStoragePassphraseRequest"/>
+      <wsdl:output message="ts:SetStoragePassphraseResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="GetOperationStatus">
+      <wsdl:documentation>Returns the status of an asynchronous storage operation.</wsdl:documentation>
+      <wsdl:input message="ts:GetOperationStatusRequest"/>
+      <wsdl:output message="ts:GetOperationStatusResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <!-- Binding -->
+  <!-- ======= -->
+  <wsdl:binding name="StorageBinding" type="ts:StoragePort">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="GetServiceCapabilities">
+      <soap:operation soapAction="http://www.onvif.org/ver10/storage/wsdl/GetServiceCapabilities"/>
+      <wsdl:input><soap:body use="literal"/></wsdl:input>
+      <wsdl:output><soap:body use="literal"/></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetStorages">
+      <soap:operation soapAction="http://www.onvif.org/ver10/storage/wsdl/GetStorages"/>
+      <wsdl:input><soap:body use="literal"/></wsdl:input>
+      <wsdl:output><soap:body use="literal"/></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetStorage">
+      <soap:operation soapAction="http://www.onvif.org/ver10/storage/wsdl/GetStorage"/>
+      <wsdl:input><soap:body use="literal"/></wsdl:input>
+      <wsdl:output><soap:body use="literal"/></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="FormatStorage">
+      <soap:operation soapAction="http://www.onvif.org/ver10/storage/wsdl/FormatStorage"/>
+      <wsdl:input><soap:body use="literal"/></wsdl:input>
+      <wsdl:output><soap:body use="literal"/></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SetStoragePassphrase">
+      <soap:operation soapAction="http://www.onvif.org/ver10/storage/wsdl/SetStoragePassphrase"/>
+      <wsdl:input><soap:body use="literal"/></wsdl:input>
+      <wsdl:output><soap:body use="literal"/></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetOperationStatus">
+      <soap:operation soapAction="http://www.onvif.org/ver10/storage/wsdl/GetOperationStatus"/>
+      <wsdl:input><soap:body use="literal"/></wsdl:input>
+      <wsdl:output><soap:body use="literal"/></wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <wsdl:service name="Storage">
+    <wsdl:port name="StoragePort" binding="ts:StorageBinding">
+      <soap:address location="http://www.onvif.org/ver10/storage/wsdl"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
