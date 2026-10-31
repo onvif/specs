@@ -1392,9 +1392,9 @@
           </varlistentry>
         </variablelist>
         <para>For full compatibility with other ONVIF services a device shall not generate URIs longer than 128 octets.</para>
-        <para>A device that signals the RTSPStreaming capability shall support this command. RTSPStreaming indicates support for RTSP-based streaming, including streaming using the RtspOverHttp protocol. A device that supports secure RTSP streaming shall signal both RTSPStreaming and SecureRTSPStreaming. The HTTP or HTTPS scheme used to access the Media service does not change the interpretation of the RTSPStreaming capability. On a request for transport protocol RtspOverHttp a device shall return a URI that uses the same port as the web service. This enables seamless NAT traversal.</para>
+        <para>A device that signals the RTSPStreaming or SecureRTSPStreaming capability shall support this command. RTSPStreaming indicates support for RTSP-based streaming over non-secure transports, using one or more of RtspUnicast, RtspMulticast, RTSP (RTP over TCP) and RtspOverHttp with HTTP. SecureRTSPStreaming indicates support for RTSP-based streaming over secure transports, using one or more of RtspsUnicast, RtspsMulticast and RtspOverHttp with HTTPS. A device may signal RTSPStreaming=false and SecureRTSPStreaming=true to indicate that it supports only secure RTSP-based streaming. The HTTP or HTTPS scheme used to access the Media service does not by itself determine which transport protocols are supported. On a request for transport protocol RtspOverHttp a device shall return a URI that uses the same port as the web service. If RTSPStreaming is false, the returned URI shall use the HTTPS scheme. If SecureRTSPStreaming is false, the returned URI shall use the HTTP scheme. If both capabilities are true, the device may return either an HTTP or an HTTPS URI. This enables seamless NAT traversal.</para>
         <para>A device supporting MultiTrackStreaming shall support the retrieval of a multitrack RTSP session URI by passing a virtual profile token. </para>
-        <para>A device signaling support for SecureRTSPStreaming shall support streaming via SRTP. </para>
+        <para>A device that signals this capability shall support SRTP for RTSPS streams and shall support RTSP over HTTPS as described in the Streaming Specification.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -1564,7 +1564,7 @@
         <para>For example, if a video stream is configured with a large I-frame distance and a client loses a single packet, the client does not display video until the next I-frame is transmitted. In such cases, the client can request a Synchronization Point which forces the device to add an I-frame as soon as possible. Clients can request Synchronization Points for profiles. The device shall add synchronization points for all streams associated with this profile.</para>
         <para>Similarly, a synchronization point is used to get an update on full PTZ or event status through the metadata stream.</para>
         <para>If a video stream is associated with the profile, an I-frame shall be added to this video stream. If an event stream is associated to the profile, the synchronization point request shall be handled as described in the section Synchronization Point of the ONVIF Core Specification. If the profile is configured for PTZ metadata, the PTZ position shall be repeated within the metadata stream. </para>
-        <para>A device shall support the request for an I-frame through the SetSynchronizationPoint command if the RTSPStreaming capability is set.</para>
+        <para>A device shall support the request for an I-frame through the SetSynchronizationPoint command if the RTSPStreaming or SecureRTSPStreaming capability is set.</para>
         <para>If a signed video stream is associated with the profile, the video authenticity data shall be added to the stream. For details see the Media Signing Specification.</para>
         <variablelist role="op">
           <varlistentry>
@@ -2800,11 +2800,11 @@
       <variablelist>
         <varlistentry>
           <term>RTSPStreaming</term>
-          <listitem><para>Indicates the support for live media streaming via RTSP.</para></listitem>
+          <listitem><para>Indicates support for live media streaming via RTSP over non-secure transports, using one or more of RtspUnicast, RtspMulticast, RTSP (RTP over TCP) and RtspOverHttp with HTTP. A device that supports only secure RTSP transports shall set this capability to false.</para></listitem>
         </varlistentry>
         <varlistentry>
           <term>SecureRTSPStreaming</term>
-          <listitem><para>Indicates support for live media streaming via RTSPS and SRTP.</para></listitem>
+          <listitem><para>Indicates support for live media streaming via secure RTSP transports, using one or more of RtspsUnicast, RtspsMulticast and RtspOverHttp with HTTPS. A device that signals this capability shall support SRTP for RTSPS streams and shall support RTSP over HTTPS as described in the Streaming Specification.</para></listitem>
         </varlistentry>
         <varlistentry>
           <term>RTPMulticast</term>
