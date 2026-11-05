@@ -2321,6 +2321,12 @@ Sec-WebSocket-Protocol: rtsp.onvif.org
                 </listitem>
             </itemizedlist>
         </para>
+        <para>
+        Security Policy (SP) parameters in MIKEY define the SRTP cryptographic settings associated with the selected SRTP protection profile.
+        For AES_CM_128_HMAC_SHA1_80, SP type 10 (SRTP authentication on/off) shall be 1 or omitted. The value 0 shall not be used.
+        For AEAD SRTP cipher suites (e.g., AES-GCM), SP type 10 shall be 0 or omitted. Devices shall ignore SP type 10 for AEAD cipher suites, 
+        as authentication and integrity protection are inherent to the selected AEAD cipher suite and the authentication tag length is specified by SP type 20.
+        </para>        
         <section>
             <title>Key management through RTSP</title>
             <para>
@@ -2374,6 +2380,11 @@ AIBAQMBFAcBAQgBAQoBAQsBCgAAACcAIQAe30C59UrClE0e27UP5h/Wty9UL8+dfzg+2ttmmo3kBAAAA
                     during the RTSP session setup. The SSRC shall be provided in the transport header
                     of the RTSP SETUP response. (RFC 2326 Section 12.39)
                 </para>
+                <para>
+                    The initial MIKEY message used during RTSP SETUP should include a RAND payload, in accordance with RFC 3830.
+                    However, ONVIF compliant devices shall be capable of receiving and processing initial MIKEY messages that omit the RAND payload.
+                    Re-key/update messages shall not include a new RAND payload.
+                </para>             
             </section>
             <section>
                 <title>Client Re-Keying with MIKEY</title>
