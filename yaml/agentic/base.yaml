@@ -65,11 +65,15 @@ classes:
           Identifier of the information item. It shall be unique across every
           item the ONVIF Device emits, and shall never be reused.
 
-          It is carried on the wire as a plain UUID string and not as a JSON-LD
-          node identifier: a bare UUID is not an IRI, and binding it to @id
-          would require every identifier to be rewritten in urn:uuid form. The
-          cross-references between items are therefore resolved by an ONVIF
-          Client according to this specification, and are not RDF edges.
+          It is carried on the wire as a bare UUID string and is the JSON-LD
+          node identifier of the item. A bare UUID is a relative IRI reference;
+          the inline context of the enclosing envelope aliases id to @id and
+          declares a fixed @base, https://www.onvif.org/ver10/agentic/id/,
+          against which it resolves, so the item designates the same node
+          wherever the envelope is read. The references that other items make
+          to it resolve against the same base. JSON-LD processing remains
+          optional: an ONVIF Client may equally resolve references by comparing
+          identifier strings.
       confidence:
         range: Likelihood
         required: true
@@ -117,12 +121,20 @@ classes:
           bind @vocab and the onvif prefix to
           https://www.onvif.org/ver10/agentic/linkml/, and shall include every
           additional prefix used by a third-party module represented in the
-          envelope. A third-party class that declares attributes of its own is
+          envelope. It shall also carry the identifier mappings, whose values
+          are fixed by the specification rather than generated: @base bound to
+          https://www.onvif.org/ver10/agentic/id/, id aliased to @id, and
+          supportedBy, observations and item mapped to their onvif CURIEs with
+          @type @id, each of the four terms marked @protected. No nested or
+          type-scoped context shall redefine @base or these terms.
+
+          A third-party class that declares attributes of its own is
           represented by a type-scoped context mapping those unqualified JSON
           property names to their slot_uri values. Its shape is intentionally
           open because those modules and their terms are not known by this
           schema in advance; JSON-LD validation checks that its mappings agree
-          with the class_uri and slot_uri values of the loaded modules.
+          with the class_uri and slot_uri values of the loaded modules, and
+          that the identifier mappings are exactly those specified.
       '@type':
         designates_type: true
         range: curie
@@ -143,9 +155,10 @@ classes:
         identifier: true
         required: true
         description: >-
-          Identifier of the envelope. It is carried on the wire as a plain UUID
-          string and not as a JSON-LD node identifier, for the reason given for
-          the identifier of InformationItem.
+          Identifier of the envelope. It is carried on the wire as a bare UUID
+          string and is the JSON-LD node identifier of the envelope, resolved
+          against the fixed base of the inline context, as described for the
+          identifier of InformationItem.
       items:
         range: InformationItem
         multivalued: true
