@@ -1,11 +1,12 @@
-name: dotnet-wsdl-check
-run-name: "WSDL files syntax check with .Net 9.0"
+name: source-lint-and-check
+run-name: "Source lint and check"
 
 on:
   push:
     paths:
       - '**.wsdl'
       - '**.xsd'
+      - '**.xml'
   workflow_dispatch:
 
 concurrency:
@@ -13,7 +14,79 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  source-lint:
+    strategy:
+      fail-fast: true
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # This ensures it checks out the branch that triggered the workflow
+          ref: ${{ github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run progressive lint script
+        # Assuming the script modifies files in place
+        run: python .github/scripts/progressive_lint.py
+
+      - name: Commit and push changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          # EndBug automatically checks if files changed. If no files changed, it does nothing.
+          message: 'chore: apply progressive linting fixes'
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          # By default, this action pushes back to the branch checked out by actions/checkout
+
+  gsoap-wsdl-check:
+    needs: source-lint
+    strategy:
+      fail-fast: true
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check that remote files are reachable
+        id: vars
+        run: |
+          export MISSING_FILES=0
+          curl --head http://docs.oasis-open.org/wsn/b-2.xsd ||  export MISSING_FILES=$((MISSING_FILES+1))
+          echo "MISSING_FILES=$MISSING_FILES" >> $GITHUB_OUTPUT
+          echo "MISSING_FILES=$MISSING_FILES"
+      - name: Install missing software
+        if: ${{ steps.vars.outputs.MISSING_FILES == 0 }}
+        run: |
+          sudo apt update && sudo apt install gcc g++ curl autoconf automake cmake bison flex libssl-dev zlib1g-dev make 
+      - name: Checkout tools repo
+        uses: actions/checkout@v6
+        if: ${{ steps.vars.outputs.MISSING_FILES == 0 }}
+        with:
+          repository: onvif/gsoap-wsdl-checker
+          path: gsoap-wsdl-checker
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Get branch names.
+        if: ${{ steps.vars.outputs.MISSING_FILES == 0 }}
+        id: branch-names
+        uses: tj-actions/branch-names@v9.0.2
+      - name: Install gsoap
+        if: ${{ steps.vars.outputs.MISSING_FILES == 0 }}
+        run: |
+          cd gsoap-wsdl-checker
+          cmake CMakeLists.txt -DBRANCH=${{ steps.branch-names.outputs.current_branch }}
+          make gsoap
+      - name: Compile the WDSL files
+        if: ${{ steps.vars.outputs.MISSING_FILES == 0 }}
+        run: |
+          cd gsoap-wsdl-checker
+          make
+
   dotnet-wsdl-check:
+    needs: source-lint
     strategy:
       fail-fast: true
     runs-on: ubuntu-24.04
