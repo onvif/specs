@@ -2289,6 +2289,46 @@
         from:</para>
       <itemizedlist>
         <listitem>
+          <para><code>observedTime</code> — the time to which the observation refers, as specified
+            in <xref linkend="sec_timing"/>. It is distinct from <code>productionTime</code>, which
+            is when the item was produced: a plate read from a recording refers to the moment of the
+            recording, not to the moment of the reading.</para>
+        </listitem>
+      </itemizedlist>
+      <para>An <code>Observation</code> states what a sensor produced. It is never revised: where an
+        ONVIF endpoint later has better information about the same subject, it emits a further
+        observation and, where it can, an <code>Assessment</code> relating the two, as described in
+        <xref linkend="sec_assessment"/>. An ONVIF Client shall not expect an
+        observation it has received to be superseded in place.</para>
+      <para>A concrete observation class defined for one kind of entity and one method shall fix the
+        value of <code>featureOfInterest</code> and of <code>procedure</code> in its own definition,
+        rather than leave the choice to the ONVIF endpoint producing the item. An information item of
+        such a class that reports a different value is invalid, and an ONVIF Client may rely on the
+        value from the class of the item alone, without reading the field. A class that is not
+        defined for one kind of entity, or that admits more than one method, leaves the fields to the
+        producer and an ONVIF Client shall then read them.</para>
+      <para>Fixing a value does not introduce a subclass of <code>FeatureOfInterest</code> or of
+        <code>Procedure</code>: neither is specialised by subclassing, as stated in <xref
+          linkend="sec_open_vocabulary"/>. What varies
+        between two observation classes is which value of the vocabulary applies, which is a property
+        of the observing class and not a new kind of feature of interest or of procedure.</para>
+    </section>
+    
+    <section xml:id="sec_sosaobservation">
+      <title>SOSA Observation</title>
+      <para><code>Observation</code> is an abstract <code>InformationItem</code> that captures the
+        output of any generic sensor. Whether the source is a physical device such as a camera, a radar
+        or a thermometer, a person, or a virtual source such as a database, the observation packages
+        that output into a standardised format for consumption by downstream systems. The class is
+        abstract: an observation on the wire is always an instance of a concrete subclass, introduced
+        either by a future revision of this specification or by a vendor extension.</para>
+      <para>Beyond the fields it inherits from <code>InformationItem</code>, an
+        <code>Observation</code> carries what the observation found, the entity it is about and the
+        method that produced it, two optional context fields describing the situation observed rather
+        than the act of observing it, and an optional list of the observations it was computed
+        from:</para>
+      <itemizedlist>
+        <listitem>
           <para><code>result</code> — what the observation found, as specified in <xref
             linkend="sec_observation_result"/>. The field is declared by the abstract class and given
             its type by each concrete subclass.</para>
@@ -2300,12 +2340,6 @@
         <listitem>
           <para><code>procedure</code> — the method by which the observation was produced, as
             specified in <xref linkend="sec_procedure"/>.</para>
-        </listitem>
-        <listitem>
-          <para><code>observedTime</code> — the time to which the observation refers, as specified in
-            <xref linkend="sec_timing"/>. It is distinct from <code>productionTime</code>, which is
-            when the item was produced: a plate read from a recording refers to the moment of the
-            recording, not to the moment of the reading.</para>
         </listitem>
         <listitem>
           <para><code>observedSpace</code> — the place to which the observation refers, as specified in
