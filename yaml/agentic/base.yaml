@@ -40,7 +40,25 @@ slots:
     multivalued: true
     inlined: false
     required: false
-    description: Identifiers of information items supporting this item.
+    description: >-
+      Identifiers of the information items this item was produced from. The
+      field is declared on every InformationItem, so that support can be stated
+      whatever the class of the citing item; a class may make it mandatory or
+      exclude it. It is omitted, or carries an empty list, for an item that
+      cites nothing, and the two forms have the same meaning.
+
+      Any concrete InformationItem may be cited. The class of a cited item is
+      read from the @type it carries, as specified for InformationItem. The
+      range is UUID, which imposes the shape of an identifier, and the any_of
+      records InformationItem as the admissible class in machine-readable form,
+      which also makes the generated JSON-LD context treat the values as
+      references.
+
+      The items are referenced, not nested: each identifier shall resolve to an
+      information item the ONVIF Client has already received. The references
+      shall be directed and acyclic, the productionTime of the citing item
+      shall be more recent than the productionTime of every item it cites, and
+      every chain shall terminate in items that cite nothing.
 
 classes:
 
@@ -51,6 +69,7 @@ classes:
     slots:
       - '@type'
       - id
+      - supportedBy
       - extensible
     attributes:
       confidence:
@@ -326,8 +345,8 @@ classes:
 
       An observation is either direct or derived. A direct observation is what a
       sensor produced by looking at the physical world, and cites nothing. A
-      derived observation is computed from other observations and lists them in
-      supportedBy: a speed, for example, is obtained from two observations of the
+      derived observation is computed from other information items and lists them
+      in supportedBy: a speed, for example, is obtained from two observations of the
       same subject by dividing the distance between their observedSpace values by
       the interval between their observedTime values. Both forms are measurements
       of the same physical world, expressed in the units they would have had if a
@@ -342,8 +361,10 @@ classes:
       items can feed both: an average speed of 82 km/h is an Observation derived
       from positions and times, while the statement that this speed exceeds the
       limit in force at that place is an Assessment.
-    slots:
-      - supportedBy
+
+      What separates the two is the absence or presence of an external
+      criterion, not the class of the items cited: a derived observation may
+      cite any information item whose content enters its computation.
     attributes:
       result:
         range: ObservationResult
@@ -421,41 +442,6 @@ classes:
         range: Location
         required: false
         description: Spatial context observed by this observation.
-    slot_usage:
-      supportedBy:
-        any_of:
-          - range: Observation
-          - range: ObservationsCollection
-        description: >-
-          Identifiers of the observations this observation was derived from. The
-          field is omitted, or carries an empty list, for a direct observation;
-          the two forms have the same meaning. It carries one or more identifiers
-          for a derived observation.
-
-          Each identifier shall resolve either to an observation or to an
-          ObservationsCollection, whose members are then taken in its place, and
-          no other kind of item may be cited here. Which of the two an identifier
-          resolved to is read from the @type of the item itself, as specified for
-          InformationItem.
-
-          The range is UUID, which imposes the shape of an identifier and nothing
-          more, and the any_of records the two admissible classes in
-          machine-readable form. It does not impose them, and no compiled schema
-          can: the slot carries the identifier of an item and not the item, so
-          neither the JSON Schema nor the SHACL shapes derived from this module
-          constrain the class of what the identifier resolves to. The restriction
-          is referential, and is one of the checks an ONVIF Client performs
-          against the items it has received.
-
-          The observations are referenced, not nested. The references shall be
-          directed and acyclic, the productionTime of a derived observation shall
-          be more recent than the productionTime of every observation it cites,
-          and every chain shall terminate in direct observations.
-
-          The confidence of a derived observation is its own, as stated for
-          InformationItem.confidence: it is neither computed from, nor propagated
-          to, the observations it cites.
-
   ObservationsCollection:
     abstract: false
     is_a: InformationItem
@@ -468,6 +454,13 @@ classes:
 
       The identifier of the collection is the identifier every InformationItem
       carries, and it obeys the same uniqueness and non-reuse rules.
+
+      A collection does not carry supportedBy. What it groups is stated by its
+      observations field, and a collection is a grouping and not a conclusion
+      drawn from other items.
+    slot_usage:
+      supportedBy:
+        maximum_cardinality: 0
     attributes:
       observations:
         range: UUID
@@ -489,10 +482,10 @@ classes:
 
           The range is UUID, which imposes the shape of an identifier and nothing
           more, and the any_of records the single admissible class in
-          machine-readable form. It does not impose it, for the reason given for
-          Observation.supportedBy: the slot carries the identifier of an item and
-          not the item, so the restriction is referential and is checked by an
-          ONVIF Client against the items it has received.
+          machine-readable form. It does not impose it: the slot carries the
+          identifier of an item and not the item, so the restriction is
+          referential and is checked by an ONVIF Client against the items it has
+          received.
 
   AssessmentResult:
     abstract: true
@@ -541,8 +534,6 @@ classes:
       Because a criterion can change while the data do not, the same supporting
       items may be assessed differently by two Assessments, or by a later
       Assessment of the same kind, without any observation being revised.
-    slots:
-      - supportedBy
     attributes:
       result:
         range: AssessmentResult
@@ -573,14 +564,5 @@ classes:
           item shall be present. An Assessment may cite observations, other
           assessments, or both, because the criterion it applies can bear on an
           earlier interpretation as much as on a measurement. Any information
-          item may therefore be cited here, and the admissible classes are not
-          restricted further, unlike the supportedBy of an Observation.
-
-          The range is UUID, which imposes the shape of an identifier; the class
-          of a cited item is read from the @type it carries, as specified for
-          InformationItem.
-
-          The items are referenced, not nested: each identifier shall resolve to
-          an information item the ONVIF Client has already received. The
-          acyclicity, productionTime ordering and traceability rules stated for
-          Observation.supportedBy apply here as well.
+          item may therefore be cited here. The acyclicity, productionTime
+          ordering and traceability rules of the supportedBy slot apply.
