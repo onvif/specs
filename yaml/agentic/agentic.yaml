@@ -10,6 +10,41 @@ imports:
 default_prefix: onvif
 default_range: string
 
+slots:
+
+  function:
+    range: string
+    required: true
+    description: >-
+      Device-local function identifier returned by the list_functions Tool and
+      passed to get_function_capabilities, configure_function,
+      execute_function, and stop_function. It is not a global identifier;
+      FunctionDescriptor.canonicalUri provides the stable cross-device identity.
+
+  executionId:
+    range: string
+    required: true
+    description: >-
+      Identifier of a function execution started or affected by
+      execute_function. It identifies active executions in get_status and is
+      passed to stop_function.
+
+  parameters:
+    range: FunctionExecutionParameters
+    required: false
+    description: >-
+      Execution-specific parameters accepted by a function. When present, the
+      object conforms to the concrete class named by the function descriptor's
+      executionSchema.
+
+  capabilities:
+    range: FunctionCapabilities
+    required: false
+    description: >-
+      Static capabilities of a function. When present, the object conforms to
+      the concrete class named by the function descriptor's capabilitiesSchema;
+      it is absent when the function has no readable capabilities.
+
 # Classes are declared in dependency order: no class refers to a class declared
 # below it. The three groups are, in order: the abstract bases that every
 # function specialises, the generic classes that describe functions as data, and
@@ -29,31 +64,9 @@ classes:
       FunctionDescriptor.executionSchema. Execution parameters are what applies
       to a single run, as opposed to a configuration, which persists until it is
       replaced.
-    attributes:
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The CURIE of the concrete parameters class this object instantiates,
-          for example onvif:SetEventStreamParametersRequest. It is
-          required for the reason given for the type designator of
-          InformationItem.
-
-          The descriptor of the function already names the class in
-          executionSchema, so an ONVIF Client knows what it is sending before it
-          builds the object, and the designator is in that sense redundant. It
-          is declared all the same, because without it this abstract class
-          cannot be used as the range of a nested slot at all: the compiled
-          schema resolves such a slot to this class and to nothing below it, and
-          rejects every concrete instance. With it the slot resolves to the
-          concrete descendants, and the class named out of band and the class
-          stated by the object are checked against each other rather than
-          assumed to agree.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - '@type'
+      - extensible
 
   FunctionConfig:
     abstract: true
@@ -63,22 +76,9 @@ classes:
       function that accepts a configuration, and the ONVIF Device names it in the
       configSchema field of the descriptor list_functions returns for that
       function.
-    attributes:
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The CURIE of the concrete configuration class this object instantiates,
-          for example hackathon2026:SpeedingAssessmentConfig. It is declared for
-          the reason given for the type designator of FunctionExecutionParameters:
-          the configSchema URI of the descriptor already fixes the class out of
-          band, and the designator is what lets the schema check that the object
-          agrees with it.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - '@type'
+      - extensible
 
   FunctionExecutionResult:
     abstract: true
@@ -87,26 +87,10 @@ classes:
       execute_function Tool. A concrete subclass exists for every function that
       returns a structured result, and the class that applies to a given
       function is named by FunctionDescriptor.resultSchema.
-    attributes:
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The CURIE of the concrete result class this object instantiates, for
-          example onvif:SetEventStreamParametersResponse. It is required for
-          the reason given for the type designator of
-          FunctionExecutionParameters.
-      executionId:
-        range: string
-        required: true
-        description: >-
-          Identifier of the function execution started, or affected, by the
-          execute_function call.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - '@type'
+      - executionId
+      - extensible
 
   FunctionCapabilities:
     abstract: true
@@ -121,23 +105,9 @@ classes:
 
       A concrete subclass exists for every function that has capabilities an
       ONVIF Client can read.
-    attributes:
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The CURIE of the concrete capabilities class this object
-          instantiates, for example onvif:EventStreamCapabilities. It is
-          required for the reason given for the type designator of
-          FunctionExecutionParameters, and here the reason bites hardest: this
-          class is the range of the capabilities slot of
-          GetFunctionCapabilitiesResponse, which without the designator would
-          admit no capabilities object at all.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - '@type'
+      - extensible
 
   FunctionInvocation:
     abstract: true
@@ -157,47 +127,18 @@ classes:
       or a vendor module defines shall be declared by a concrete subclass, so
       that the binding between a function and its classes is stated in the
       schema and not only in the prose or in an example.
+    slots:
+      - '@type'
+      - function
+      - parameters
+      - capabilities
     attributes:
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The CURIE of the concrete invocation class, for example
-          onvif:SetEventStreamParametersInvocation. It is declared for the
-          reason given for the type designator of FunctionExecutionParameters.
-      function:
-        range: string
-        required: true
-        description: >-
-          Function identifier, as returned by the list_functions Tool and as
-          passed in the function argument of execute_function.
-      parameters:
-        range: FunctionExecutionParameters
-        required: false
-        description: >-
-          Parameters accepted by this function in the parameters argument of
-          execute_function.
       result:
         range: FunctionExecutionResult
         required: false
         description: >-
           Result returned by this function in the structuredContent of the
           execute_function response.
-      capabilities:
-        range: FunctionCapabilities
-        required: false
-        description: >-
-          Capabilities returned for this function by the get_function_capabilities
-          Tool. The slot is present so that the third of the three classes a
-          function is bound to is declared in the same place as the other two: a
-          concrete subclass that narrows parameters and result but leaves this
-          slot alone would state where its input and its output are defined and
-          leave its capabilities to be found in prose.
-
-          It is optional, because a function need not have capabilities an ONVIF
-          Client can read; a function that has them shall narrow this slot to the
-          class its descriptor names in capabilitiesSchema.
 
   # --- Function catalogue and capabilities Tools ---------------------------
 
@@ -213,15 +154,9 @@ classes:
   ActiveFunctionExecution:
     description: >-
       A function execution active when the ONVIF Device answers get_status.
-    attributes:
-      function:
-        range: string
-        required: true
-        description: Local function identifier of the active execution.
-      executionId:
-        range: string
-        required: true
-        description: Identifier of the active execution.
+    slots:
+      - function
+      - executionId
 
   GetStatusResponse:
     description: >-
@@ -256,6 +191,8 @@ classes:
       A single entry of the function catalogue returned by the list_functions
       Tool. Each entry names a function and points at the LinkML classes that
       define its configuration, its execution parameters, and its result.
+    slots:
+      - extensible
     attributes:
       name:
         range: string
@@ -326,10 +263,6 @@ classes:
           defines the structure of the capabilities returned by
           get_function_capabilities for this function. It is present when the
           function has capabilities that an ONVIF Client can read.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
 
   ListFunctionsResult:
     description: >-
@@ -337,6 +270,8 @@ classes:
       machine-readable catalogue of the functions supported by a device
       instance. This class is a root of the schema: it is the shape of a Tool
       response and is therefore not referenced by any other class.
+    slots:
+      - extensible
     attributes:
       functions:
         range: FunctionDescriptor
@@ -350,10 +285,6 @@ classes:
           an ONVIF Device that exposes no function of its own returns that entry
           alone. The minimum cardinality is stated because required alone does
           not forbid an empty list.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
 
   GetFunctionCapabilities:
     description: >-
@@ -361,41 +292,19 @@ classes:
     annotations:
       mcp_tool: get_function_capabilities
       access_class: READ_SYSTEM
-    attributes:
-      function:
-        range: string
-        required: true
-        description: >-
-          Function identifier whose capabilities are requested, as returned by
-          the list_functions Tool.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - function
+      - extensible
 
   GetFunctionCapabilitiesResponse:
     description: >-
       Structured result returned by the get_function_capabilities Tool. It
       carries the invariant properties of a single function, kept separate from
       the result of any execution of that function.
-    attributes:
-      function:
-        range: string
-        required: true
-        description: Function identifier to which the capabilities apply.
-      capabilities:
-        range: FunctionCapabilities
-        required: false
-        description: >-
-          Capabilities of the named function. This slot is present if and only
-          if the function catalogue names a capabilitiesSchema for the function;
-          when present, it is an instance of the class derived from
-          FunctionCapabilities that capabilitiesSchema identifies. It is absent
-          when the function has no readable capabilities.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - function
+      - capabilities
+      - extensible
 
   ConfigureFunction:
     description: >-
@@ -406,41 +315,31 @@ classes:
     annotations:
       mcp_tool: configure_function
       access_class: ACTUATE
+    slots:
+      - function
+      - extensible
     attributes:
-      function:
-        range: string
-        required: true
-        description: Function identifier whose configuration is applied.
       config:
         range: FunctionConfig
         required: true
         description: >-
           Configuration object validated against the named function's
           configSchema.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
 
   ConfigureFunctionResponse:
     description: >-
       Structured result returned when configure_function has synchronously
       applied a configuration.
+    slots:
+      - function
+      - extensible
     attributes:
-      function:
-        range: string
-        required: true
-        description: Function identifier to which the applied configuration belongs.
       applied:
         range: FunctionConfig
         required: true
         description: >-
           Configuration object applied by the ONVIF Device, conforming to the
           named function's configSchema.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
 
   ExecuteFunction:
     description: >-
@@ -450,19 +349,10 @@ classes:
     annotations:
       mcp_tool: execute_function
       access_class: ACTUATE
-    attributes:
-      function:
-        range: string
-        required: true
-        description: Function identifier to execute.
-      parameters:
-        range: FunctionExecutionParameters
-        required: false
-        description: Execution-specific parameters for the named function.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - function
+      - parameters
+      - extensible
 
   StopFunction:
     description: >-
@@ -470,19 +360,10 @@ classes:
     annotations:
       mcp_tool: stop_function
       access_class: ACTUATE
-    attributes:
-      function:
-        range: string
-        required: true
-        description: Function identifier of the execution to stop.
-      executionId:
-        range: string
-        required: true
-        description: Identifier of the execution to stop.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - function
+      - executionId
+      - extensible
 
   # --- Reserved function: set_event_stream_parameters ------------------------
 

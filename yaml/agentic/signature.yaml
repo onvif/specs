@@ -14,6 +14,28 @@ imports:
 default_prefix: onvif
 default_range: string
 
+slots:
+
+  keyId:
+    range: KeyID
+    required: true
+    description: >-
+      Identifier of a key in the keystore of an ONVIF Device. It names a
+      keystore entry rather than immutable key material: the same identifier
+      may designate different material after key rotation, and identifiers on
+      different devices are unrelated.
+
+  fingerprints:
+    range: KeyFingerprint
+    multivalued: true
+    inlined_as_list: true
+    required: false
+    description: >-
+      Zero or more fingerprints of the referenced key, at most one per digest
+      algorithm. A fingerprint binds the declaration to key material and can be
+      compared with a value obtained through an independent path; keyId alone
+      is not sufficient to match keys.
+
 classes:
 
   ItemDigest:
@@ -74,20 +96,9 @@ classes:
       Abstract descriptor of the key used to produce a signature. It is
       abstract because the key material may either travel with the signed
       content or be published once and subsequently referenced.
-    attributes:
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The CURIE of the concrete key descriptor this object instantiates,
-          onvif:X509CertificateChain or onvif:PublicKeyIdentifier. It is
-          required for the reason given for the type designator of
-          InformationItem.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - '@type'
+      - extensible
 
   X509CertificateChain:
     is_a: SigningKey
@@ -123,32 +134,23 @@ classes:
       Concrete SigningKey that references key material distributed out of
       band, so that the certificate chain does not have to be repeated in
       every signed envelope.
-    attributes:
-      keyId:
-        range: KeyID
-        required: true
+    slots:
+      - keyId
+      - fingerprints
+    slot_usage:
+      fingerprints:
         description: >-
-          Identifier of the key in the keystore of the ONVIF Device. It may
-          be matched against a DevicePublicKey the device declares as its own,
-          because both are identifiers of the same keystore.
+          Zero or more fingerprints of the referenced key, at most one per
+          digest algorithm. Because this key descriptor is covered by the
+          envelope signature configuration, a fingerprint here binds the
+          signature to key material rather than only to a keystore entry name.
+    attributes:
       verificationMethod:
         range: uri
         required: false
         description: >-
           Optional URI from which the corresponding public key or
           certificate chain can be retrieved.
-      fingerprints:
-        range: KeyFingerprint
-        multivalued: true
-        inlined_as_list: true
-        required: false
-        description: >-
-          Zero or more fingerprints of the referenced key, at most one per
-          digest algorithm. Because the key descriptor is part of the signature
-          configuration, and the signature configuration is covered by the
-          envelope digest, a fingerprint carried here is covered by the
-          signature: it binds the signature to key material rather than to the
-          name of a keystore entry.
 
   DevicePublicKey:
     description: >-
@@ -156,31 +158,18 @@ classes:
       informative: it allows a key to be discovered and a key rotation to be
       followed, but it does not by itself establish that the key is
       trustworthy.
-    attributes:
-      keyId:
-        range: KeyID
-        required: true
-        description: >-
-          Identifier of the key in the keystore of the ONVIF Device. It names an
-          entry of that keystore and not the key material it holds: the same
-          identifier may designate different material after a key rotation, and
-          the same identifier on two devices designates unrelated material.
+    slots:
+      - keyId
+      - fingerprints
+      - extensible
+    slot_usage:
       fingerprints:
-        range: KeyFingerprint
-        multivalued: true
-        inlined_as_list: true
-        required: false
         description: >-
           Zero or more fingerprints of the key, at most one per digest
-          algorithm. An ONVIF Client that holds a fingerprint obtained by an
-          independent path considers the key matched when that fingerprint is
-          equal to one of those listed, and shall not consider a key matched on
-          the basis of keyId alone.
-
-          The slot is normally omitted from items carried in a metadata stream,
-          where provenance is repeated on every item, and is populated where an
-          ONVIF Client is expected to pin a key, such as in a signed
-          InformationEnvelope.
+          algorithm. This slot is normally omitted where provenance is repeated
+          on every metadata item and populated where an ONVIF Client is expected
+          to pin the key, such as in a signed InformationEnvelope.
+    attributes:
       subjectPublicKeyInfo:
         range: string
         required: false
@@ -188,28 +177,14 @@ classes:
           Optional public key in PEM format, carrying a SubjectPublicKeyInfo
           structure. It is omitted unless the key material has to travel with
           the information item, since provenance is repeated on every item.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
 
   Signature:
     abstract: true
     description: >-
       Abstract cryptographic attestation descriptor.
-    attributes:
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The CURIE of the concrete signature profile this object instantiates,
-          for example onvif:OnvifSignature. It is required for the reason given
-          for the type designator of InformationItem.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
+    slots:
+      - '@type'
+      - extensible
 
   OnvifSignature:
     is_a: Signature
