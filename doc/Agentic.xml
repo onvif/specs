@@ -1327,10 +1327,12 @@
         <section xml:id="sec_tool_capabilities">
           <title>Tool capabilities</title>
           <para>A Tool's static capabilities are the invariant properties that describe what this
-            device instance supports for that Tool — such as the categories a detector can
-            recognise, or a concurrency ceiling — as distinct from the outcome of any particular
-            invocation. Capabilities do not depend on whether the Tool has ever been called, and
-            are the same before and after any execution.</para>
+            device instance supports for that Tool — such as a concurrency ceiling, or whether a
+            dry run is supported — as distinct from the outcome of any particular invocation, and
+            as distinct from a constraint on the shape of <code>config</code> itself, which belongs
+            in <code>inputSchema</code> instead (see <xref linkend="sec_tool_discovery"/>).
+            Capabilities do not depend on whether the Tool has ever been called, and are the same
+            before and after any execution.</para>
           <para>This specification carries them in <code>_meta["org.onvif/capabilities"]</code> of
             the Tool descriptor returned by <code>tools/list</code>, rather than in a separate Tool
             or a field of the invocation result. This is an ONVIF convention and not a standard MCP
@@ -1338,6 +1340,15 @@
             produced it, and keeping capabilities out of it prevents an invariant value from being
             mistaken for an outcome. <xref linkend="sec_tool_motion_detection"/> shows a complete
             descriptor.</para>
+          <para>A property that is already representable, and represented, in
+              <code>inputSchema</code> — such as the categories a detection Tool accepts, enumerated
+            in the <code>enum</code> of its <code>classes</code> property (see <xref
+              linkend="sec_detection_class_vocabulary"/>) — is not repeated in
+              <code>_meta["org.onvif/capabilities"]</code>. Restating it there would duplicate
+            information <code>inputSchema</code> already carries authoritatively and create a
+            second place that could disagree with it; <code>_meta["org.onvif/capabilities"]</code>
+            is reserved for properties <code>inputSchema</code> cannot express at all, such as a
+            concurrency ceiling.</para>
           <para>A declared capability is a ceiling and not a guarantee of admission. In particular,
             a concurrency limit such as <code>maxConcurrentExecutions</code> states how many
             concurrent executions of the Tool this device instance supports at most; it does not
@@ -1346,14 +1357,11 @@
             already be consuming that capacity. An ONVIF endpoint that cannot admit a new execution
             shall reject the call with <code>-32013 ResourceExhausted</code> rather than silently
             queue or downgrade it.</para>
-          <para>Where the set of categories a detection Tool supports, or any other capability,
-            changes at runtime — for instance after a licence is applied — the ONVIF endpoint shall
-            send <code>notifications/tools/list_changed</code> and the ONVIF Client shall re-call
-              <code>tools/list</code>. An ONVIF endpoint shall keep <code>inputSchema</code> and
-              <code>_meta["org.onvif/capabilities"]</code> mutually consistent at every point in
-            time: in particular, the enumeration of categories admitted by <code>inputSchema</code>
-            and the categories listed in <code>supportedClasses</code> (see <xref
-              linkend="sec_detection_class_vocabulary"/>) shall name the same set.</para>
+          <para>Where <code>inputSchema</code>, or any capability in
+              <code>_meta["org.onvif/capabilities"]</code>, changes at runtime — for instance
+            because a licence is applied that extends the categories a detection Tool accepts — the
+            ONVIF endpoint shall send <code>notifications/tools/list_changed</code> and the ONVIF
+            Client shall re-call <code>tools/list</code> to obtain the updated descriptor.</para>
         </section>
 
         <section xml:id="sec_detection_class_vocabulary">
@@ -1389,18 +1397,18 @@
             registry this specification maintains, an absolute URI is vendor-owned and opaque
             beyond its owning party. An ONVIF Client shall apply the same rule an ONVIF endpoint
             does when deciding whether a value names an ONVIF-reserved category or a vendor one.</para>
-          <para><code>_meta["org.onvif/capabilities"].supportedClasses</code> enumerates every
-            category identifier the Tool accepts on this device instance, and the
-              <code>enum</code> of the corresponding property in <code>inputSchema</code> shall
-            list the same set, in accordance with <xref linkend="sec_tool_capabilities"/>. Neither
-            list implies that every category it names is selected by default: <code>classes</code>
-            is a required, non-empty, explicit selection in every call, and an ONVIF endpoint shall
-            not treat its absence as a request for every supported category — a call that omits a
-            required <code>classes</code> field is rejected by <code>inputSchema</code> validation,
-            as for any other missing required argument. An ONVIF endpoint shall reject a call that
-            selects a category outside <code>supportedClasses</code> with
-              <code>-32602 InvalidParams</code>; it shall not silently ignore the unsupported
-            category and proceed with the rest of the selection.</para>
+          <para>The <code>enum</code> of the <code>classes</code> property in <code>inputSchema</code>
+            is the sole, authoritative enumeration of the category identifiers the Tool accepts on
+            this device instance; this specification does not duplicate it in
+              <code>_meta["org.onvif/capabilities"]</code>, for the reason given in <xref
+              linkend="sec_tool_capabilities"/>. Its presence does not imply that every category it
+            names is selected by default: <code>classes</code> is a required, non-empty, explicit
+            selection in every call, and an ONVIF endpoint shall not treat its absence as a request
+            for every supported category — a call that omits a required <code>classes</code> field
+            is rejected by <code>inputSchema</code> validation, as for any other missing required
+            argument. An ONVIF endpoint shall reject a call that selects a category outside that
+              <code>enum</code> with <code>-32602 InvalidParams</code>; it shall not silently ignore
+            the unsupported category and proceed with the rest of the selection.</para>
           <para>The selection in <code>config.classes</code> governs what the detection Tool looks
             for, and therefore what it may report; it is unrelated to the filter arguments an event
             type's <code>inputSchema</code> may offer for an <code>events/stream</code>,
@@ -1621,21 +1629,21 @@
     "required": ["config"]
   },
   "_meta": {
-    "org.onvif/canonicalUri": "https://vendor.example/agentic/tool/motion_detection",
+    "org.onvif/canonicalUri": "https://www.onvif.org/agentic/tool/motion_detection",
     "org.onvif/capabilities": {
-      "supportedClasses": ["human", "vehicle", "animal"],
       "maxConcurrentExecutions": 2
     }
   }
 }</programlisting>
         <para>Here <code>classes</code> is the explicit, non-empty selection of categories this call
           asks the Tool to detect, drawn from the open vocabulary of <xref
-            linkend="sec_detection_class_vocabulary"/>; <code>supportedClasses</code> lists every
-          category this device instance can be asked to detect; the <code>inputSchema</code>
-            <code>enum</code> names the same three categories as <code>supportedClasses</code>, as
-          required by <xref linkend="sec_tool_capabilities"/>; and
-            <code>maxConcurrentExecutions</code> is a ceiling on this Tool's concurrency and not a
-          guarantee that a given call will be admitted (see <xref
+            linkend="sec_detection_class_vocabulary"/>. The categories this device instance can be
+          asked to detect are named once, by the <code>inputSchema</code> <code>enum</code>, and are
+          not repeated in <code>_meta["org.onvif/capabilities"]</code>: that set is already
+          representable in <code>inputSchema</code> alone, as required by <xref
+            linkend="sec_tool_discovery"/>, so a capability entry for it would only duplicate it and
+          risk disagreeing with it. <code>maxConcurrentExecutions</code> is a ceiling on this
+          Tool's concurrency and not a guarantee that a given call will be admitted (see <xref
             linkend="sec_tool_capabilities"/>). The name, the category set, and the concurrency
           limit shown are illustrative and are not imposed on every ONVIF endpoint or every Tool of
           this kind.</para>
@@ -1716,10 +1724,10 @@
               <entry><para><xref linkend="sec_tool_discovery"/></para></entry>
               <entry><para><code>tools/list</code></para></entry>
               <entry><para>Complete Tool catalogue: name, human-readable description,
-                <code>inputSchema</code>, <code>outputSchema</code> where applicable, and the
-                ONVIF <code>_meta</code> canonical identity and static capabilities — including,
-                for a detection Tool, its <code>supportedClasses</code> — for every Tool the device
-                exposes.</para></entry>
+                <code>inputSchema</code> — including, for a detection Tool, the categories it
+                accepts — <code>outputSchema</code> where applicable, and the ONVIF
+                  <code>_meta</code> canonical identity and static capabilities, for every Tool the
+                device exposes.</para></entry>
             </row>
             <row>
               <entry><para><xref linkend="ch_event_consumption"/></para></entry>
@@ -3591,9 +3599,8 @@ default_range: string</programlisting>
           "required": ["config"]
         },
         "_meta": {
-          "org.onvif/canonicalUri": "https://vendor.example/agentic/tool/motion_detection",
+          "org.onvif/canonicalUri": "https://www.onvif.org/agentic/tool/motion_detection",
           "org.onvif/capabilities": {
-            "supportedClasses": ["human", "vehicle"],
             "maxConcurrentExecutions": 2
           }
         }
@@ -3602,9 +3609,9 @@ default_range: string</programlisting>
   }
 }</programlisting>
       <para>This device instance supports only <code>human</code> and <code>vehicle</code> for
-        <code>motion_detection</code>, not <code>animal</code>: <code>supportedClasses</code> and
-        the <code>inputSchema</code> <code>enum</code> agree on exactly that pair, as required by
-        <xref linkend="sec_tool_capabilities"/>. A call selecting <code>animal</code> on this
+        <code>motion_detection</code>, not <code>animal</code>: the <code>inputSchema</code>
+          <code>enum</code> is the sole, authoritative statement of that, as specified in <xref
+          linkend="sec_detection_class_vocabulary"/>. A call selecting <code>animal</code> on this
         device is rejected (see <xref linkend="sec_annex_tool_motion_detection"/>), not silently
         narrowed to the two it does support.</para>
     </section>
@@ -3758,7 +3765,7 @@ default_range: string</programlisting>
     "message": "InvalidParams",
     "data": {
       "field": "config.classes",
-      "violation": "class 'animal' is not in supportedClasses for this device instance"
+      "violation": "class 'animal' is not in the enum of classes supported by this device instance"
     }
   }
 }</programlisting>
