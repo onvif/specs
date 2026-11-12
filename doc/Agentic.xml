@@ -758,16 +758,23 @@
           with the payload makes a stored or forwarded envelope interpretable by a JSON-LD 1.1
           processor without access to the originating ONVIF endpoint.</para>
         <para>The ONVIF endpoint shall derive the inline context from the same closure of LinkML
-          modules against which it validates the envelope. It shall not maintain a separate,
-          manually authored vocabulary map. The modules have already been exposed as resources
-          during session establishment (see <xref linkend="sec_annex_schema_retrieval"/>), and
+          modules against which it validates the envelope, with the exception of the identifier
+          mappings, whose values are fixed by this specification as specified below. It shall not
+          maintain a separate, manually authored vocabulary map. The modules have already been
+          exposed as resources during session establishment (see <xref
+            linkend="sec_annex_schema_retrieval"/>), and
           their <code>prefixes</code>, <code>default_prefix</code>, <code>class_uri</code> and
           <code>slot_uri</code> declarations are the authoritative source of the context.</para>
         <para>The inline context shall bind:</para>
         <itemizedlist>
           <listitem>
             <para><code>@version</code> to <code>1.1</code>, because the context uses type-scoped
-              contexts;</para>
+              contexts and protected term definitions;</para>
+          </listitem>
+          <listitem>
+            <para><code>@base</code> to <code>https://www.onvif.org/ver10/agentic/id/</code>, so
+              that every object identifier and every reference to one resolves to the same
+              absolute IRI wherever the envelope is read;</para>
           </listitem>
           <listitem>
             <para><code>@vocab</code> to
@@ -777,6 +784,17 @@
           <listitem>
             <para><code>onvif</code> to
                 <code>https://www.onvif.org/ver10/agentic/linkml/</code> with prefix semantics;</para>
+          </listitem>
+          <listitem>
+            <para><code>id</code> to the keyword <code>@id</code>, as a protected term, so that the
+              identifier of an information item or of an envelope is its JSON-LD node
+              identifier;</para>
+          </listitem>
+          <listitem>
+            <para><code>supportedBy</code>, <code>observations</code> and <code>item</code> each to
+              a protected term whose <code>@id</code> is the <code>onvif</code> CURIE of the same
+              name and whose <code>@type</code> is <code>@id</code>, so that the identifiers these
+              fields carry are references to nodes and not literal strings;</para>
           </listitem>
           <listitem>
             <para>each additional prefix used by a module represented in the envelope to the
@@ -797,7 +815,43 @@
           the type-scoped mappings are an additional required step because that generator does not
           generate nested type directives. An implementation may remove class and property mappings
           that are not needed by that envelope, provided that expansion of every class and property
-          used in the envelope is unchanged.</para>
+          used in the envelope is unchanged. The identifier mappings specified below shall not be
+          removed.</para>
+        <para>The <code>@base</code> entry and the term definitions of <code>id</code>,
+          <code>supportedBy</code>, <code>observations</code> and <code>item</code> are the
+          <emphasis>identifier mappings</emphasis>. Their values are fixed by this specification,
+          and every inline context shall contain them exactly as follows, whether or not the
+          envelope uses each of the reference fields:</para>
+        <programlisting>"@base": "https://www.onvif.org/ver10/agentic/id/",
+"id": { "@id": "@id", "@protected": true },
+"supportedBy": { "@id": "onvif:supportedBy", "@type": "@id", "@protected": true },
+"observations": { "@id": "onvif:observations", "@type": "@id", "@protected": true },
+"item": { "@id": "onvif:item", "@type": "@id", "@protected": true }</programlisting>
+        <para>These mappings are not derived from the LinkML modules. LinkML has no construct for a
+          base IRI, and a slot whose range is the <code>UUID</code> type gives a context generator
+          nothing from which to infer that its values are references. Where the generator output
+          contains a definition of one of these terms, the ONVIF endpoint shall replace it with the
+          definition above.</para>
+        <para>The base is carried in the inline context, and not left to the JSON-LD processor,
+          because a relative identifier is otherwise resolved against the location from which the
+          document was retrieved. The same item would then receive one node identifier when read
+          from the ONVIF endpoint and another when read from a gateway or an archive. A JSON-LD
+          processor also ignores <code>@base</code> in a context that is retrieved by reference,
+          which is a further reason why the context shall be inline. The base shall not vary by
+          device, delivery URL, storage location or schema revision. It need not be dereferenceable:
+          resolving an identifier against it is a computation on strings and requires no network
+          access.</para>
+        <para>No context nested in the envelope, including a type-scoped context, shall redefine
+          <code>@base</code> or any of the four protected terms. The protected flag causes a
+          JSON-LD 1.1 processor to reject the redefinition of a term, but it has no effect on
+          <code>@base</code>, which is therefore governed by this rule alone. Validation against
+          the compiled JSON Schema does not detect a departure from the identifier mappings, because
+          the schema leaves the shape of <code>@context</code> open, and the signature does not
+          detect it either, as stated in <xref linkend="sec_verification_steps"/>. An ONVIF Client
+          that relies on node identifiers derived from the context shall therefore first verify
+          that the identifier mappings of every context in the envelope are those specified above,
+          and shall treat an envelope that fails this check as non-conformant. This applies equally
+          to an envelope that has been stored or forwarded.</para>
         <para><code>@type</code> shall name the class of the node it appears on. For a class declared
           by the ONVIF Agentic Schema Bundle the value is an <code>onvif</code> CURIE, for example
             <code>onvif:ObservationsCollection</code>. For a class declared by a third-party module
@@ -897,20 +951,33 @@
         <para>First, a general-purpose JSON-LD 1.1 processor can process an ONVIF payload directly,
           because the context required to expand its types and properties is embedded in the
           envelope. An ONVIF Client shall verify that the mappings in that context agree with the
-          LinkML modules served by the device before relying on the resulting graph.</para>
-        <para>Second, the identifiers of information items are plain UUID strings and are not JSON-LD
-          node identifiers, as stated in <xref linkend="sec_object_identifiers"/>. The references that
-          one item makes to another — the <code>supportedBy</code> field of an
-          <code>Assessment</code> or of a derived <code>SOSAObservation</code>, the
-          <code>observations</code> field of an <code>ObservationsCollection</code>, the
-          <code>item</code> field of an <code>ItemDigest</code> — are
-          therefore not edges of an RDF graph. That list is exhaustive: every other field of an
-          information item that names something else — the <code>result</code>, the
-          <code>featureOfInterest</code>, the <code>procedure</code>, the <code>provenance</code>,
-          the <code>observedSpace</code> — carries a nested object and not an identifier, and is an
-          ordinary property of the item. An ONVIF Client that builds a graph from these payloads
-          shall construct those edges itself, minting node identifiers in a form of its own choosing;
-          it shall not expect a JSON-LD processor to produce them.</para>
+          LinkML modules served by the device, and that its identifier mappings are those specified
+          in <xref linkend="sec_context_and_type_annotations"/>, before relying on the resulting
+          graph.</para>
+        <para>Second, the identifiers of information items and envelopes are JSON-LD node
+          identifiers, as stated in <xref linkend="sec_object_identifiers"/>. Each resolves against
+          the fixed base of the inline context to an absolute IRI, which is the same wherever the
+          envelope was obtained. The references that one item makes to another — the
+          <code>supportedBy</code> field of an <code>Assessment</code> or of a derived
+          <code>SOSAObservation</code>, the <code>observations</code> field of an
+          <code>ObservationsCollection</code>, the <code>item</code> field of an
+          <code>ItemDigest</code> — resolve against the same base, so a JSON-LD processor produces
+          them as edges between those nodes without any identifier being minted by the ONVIF
+          Client. That list is exhaustive: every other field of an information item that names
+          something else — the <code>result</code>, the <code>featureOfInterest</code>, the
+          <code>procedure</code>, the <code>provenance</code>, the <code>observedSpace</code> —
+          carries a nested object and not an identifier, and is an ordinary property of the item.
+          Any other string value, including one that has the form of a UUID, remains a
+          literal.</para>
+        <para>An edge produced in this way states only that one identifier cites another. It does
+          not establish that the cited item exists, that it is of a class the citing field admits,
+          that it was produced before the citing item, or that the references are acyclic. Those are
+          the checks of <xref linkend="sec_assessment"/>, and an ONVIF Client shall apply them
+          whether it resolves references by comparing identifier strings or by processing the
+          graph.</para>
+        <para>A node identifier depends on the base as well as on the UUID. The same UUID resolved
+          against a different base designates a different node, which is why the base is fixed by
+          this specification and shall not be overridden.</para>
       </section>
     </section>
   </chapter>
@@ -2118,16 +2185,21 @@
         the canonical lowercase hyphenated form, for example
         <code>3f2b8c1e-6a4d-4f7b-9e21-5c8d0a1b2e3f</code>. Uppercase forms, the URN form
         <code>urn:uuid:</code>, and the braced Microsoft form shall not be used.</para>
-      <para>The <code>id</code> slot is deliberately not bound to the JSON-LD node identifier
-        <code>@id</code>. A bare UUID is not an IRI: a JSON-LD processor asked to read it as
-        <code>@id</code> would resolve it against a base URI and produce an identifier that means
-        nothing. Binding it properly would require every identifier in this model to be written in the
-        <code>urn:uuid:</code> form that the paragraph above forbids, on the wire and in every digest
-        computed over it, in exchange for a graph structure no part of this specification needs (see
-        <xref linkend="sec_relationship_to_linked_data"/>).</para>
-      <para>The consequence is that the references one object makes to another are resolved by the
-        rules of this specification, by comparing identifier strings, and are not RDF edges. An ONVIF
-        Client shall resolve them itself and shall not expect a JSON-LD processor to do so.</para>
+      <para>The <code>id</code> slot is bound to the JSON-LD node identifier <code>@id</code>, and
+        its value remains the bare UUID. A bare UUID is not an absolute IRI, but it is a valid
+        relative IRI reference. The inline context of every envelope declares a fixed base against
+        which it resolves, as specified in <xref linkend="sec_context_and_type_annotations"/>, so
+        the identifier <code>3f2b8c1e-6a4d-4f7b-9e21-5c8d0a1b2e3f</code> designates the node
+        <code>https://www.onvif.org/ver10/agentic/id/3f2b8c1e-6a4d-4f7b-9e21-5c8d0a1b2e3f</code>.
+        The identifier on the wire, and in every digest computed over its item, is the UUID alone.
+        The absolute form is the result of JSON-LD processing, and an ONVIF endpoint shall not write
+        it in place of the UUID.</para>
+      <para>A reference from one object to another can therefore be resolved in either of two
+        equivalent ways: by comparing identifier strings, as specified in this section, or, by an
+        ONVIF Client that performs JSON-LD processing, as an edge between the nodes that the two
+        identifiers designate (see <xref linkend="sec_relationship_to_linked_data"/>). JSON-LD
+        processing remains optional, and neither way replaces the validity checks of <xref
+          linkend="sec_assessment"/>.</para>
       <para>UUID version 4 or version 7 is recommended. Version 7 embeds a timestamp and is
         therefore sortable by creation order, which can be convenient for storage and indexing;
         version 4 discloses nothing about the device or the moment of creation. An ONVIF endpoint
@@ -2717,6 +2789,10 @@
             reproduces that property. Including <code>key</code> likewise prevents a signature from
             being re-attributed to a different key, and including <code>created</code> binds the
             declared signing time.</para>
+          <para>Every step operates on the JSON of the envelope as transmitted. No step operates on
+            the expanded or compacted JSON-LD form of the envelope or on an RDF serialisation of it,
+            and an item is hashed with its <code>id</code> as the bare UUID it carries, not as the
+            node identifier that JSON-LD processing derives from it.</para>
         </section>
 
         <section xml:id="sec_verification_steps">
@@ -2742,6 +2818,13 @@
           <para>Both stages are required to establish the integrity and authenticity of the enclosed
             items. An envelope that fails either stage shall be treated as unauthentic as a whole;
             a verifier shall not salvage individual items from it.</para>
+          <para>The signature does not cover the <code>@context</code> of the envelope: the
+            envelope digest is computed over the signature configuration and the item digests only.
+            A successful verification therefore establishes the integrity of the items, and not of
+            the context through which a JSON-LD processor interprets them. An ONVIF Client that
+            interprets a signed envelope as JSON-LD shall verify its identifier mappings as required
+            by <xref linkend="sec_context_and_type_annotations"/>, in addition to and independently
+            of the two stages above.</para>
         </section>
 
         <section xml:id="sec_item_digest">
@@ -4637,7 +4720,6 @@ classes:
         late.</para>
     </section>
   </appendix>
-
 
 
 </book>
