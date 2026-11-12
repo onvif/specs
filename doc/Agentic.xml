@@ -2291,12 +2291,16 @@
         <code>ObservationsCollection</code>, which groups observations for reference.</para>
       <para>Each <code>InformationItem</code> carries the following fields: an <code>id</code>
         uniquely identifying the item, as specified in <xref linkend="sec_object_identifiers"/>; a
-        mandatory <code>confidence</code> value expressing the confidence level of the contained
-        information, whose range is <code>Likelihood</code> and which therefore lies between 0.0 and
-        1.0 inclusive; a mandatory <code>productionTime</code> field giving the time at which the
+        mandatory <code>productionTime</code> field giving the time at which the
         information was produced, as specified in <xref linkend="sec_timing"/>; and a
         <code>provenance</code> field describing the origin or producer of the
         information.</para>
+      <para>An <code>InformationItem</code> carries no generic confidence value. A single number
+        attached to a whole item would have no defined meaning: it could qualify the presence of the
+        subject, the correctness of one value of the result or the method used, and two producers
+        would use it differently. Where an uncertainty matters, it is stated where it applies and
+        with the meaning that the class declaring it defines, for example as the
+        <code>Likelihood</code> of one value inside an observation result.</para>
       <para>An <code>InformationItem</code> does not carry a signature of its own. Integrity,
         authenticity, and non-repudiation are provided at envelope level, as specified in <xref
           linkend="sec_information_envelope"/>: an item that requires such protection shall be
@@ -2503,12 +2507,6 @@
           it is the arithmetic stated by its <code>supportedBy</code> field, and there is nothing
           further to name; the field is used only where the derivation is itself a named method of this
           specification or of the vendor.</para>
-        <para>The confidence of a derived observation is its own, by the general rule of
-          <xref linkend="sec_information_item"/>: an ONVIF endpoint shall assign it on the merits of
-          the derivation, and an ONVIF Client shall not compute it from, nor propagate it to, the
-          observations cited. A speed computed from two well-founded positions may still deserve
-          little confidence, because the two observations may not be of the same physical
-          subject.</para>
       </section>
     </section>
 
@@ -4825,7 +4823,6 @@ classes:
     {
       "@type": "hackathon2026:VehicleDetectionObservation",
       "id": "b41c7e58-0d93-4a26-8f71-52ac9e3d6810",
-      "confidence": 0.96,
       "productionTime": {
         "@type": "onvif:ISO8601Timestamp",
         "timestamp": "2026-11-03T10:15:00.120Z"
@@ -4965,7 +4962,6 @@ classes:
     {
       "@type": "hackathon2026:VehicleDetectionObservation",
       "id": "c87f2a90-3e61-4d58-b0a4-6f19e5c72d3b",
-      "confidence": 0.94,
       "productionTime": {
         "@type": "onvif:ISO8601Timestamp",
         "timestamp": "2026-11-03T10:15:10.140Z"
@@ -5111,7 +5107,6 @@ classes:
     {
       "@type": "hackathon2026:SpeedEstimateObservation",
       "id": "e2b95f47-1a68-4c30-8d59-73f04b2ea915",
-      "confidence": 0.9,
       "productionTime": {
         "@type": "onvif:ISO8601Timestamp",
         "timestamp": "2026-11-03T10:15:10.480Z"
@@ -5161,7 +5156,6 @@ classes:
     {
       "@type": "onvif:ObservationsCollection",
       "id": "7c3d81f6-4b20-49ae-b165-0e8a2d94f37c",
-      "confidence": 1.0,
       "productionTime": {
         "@type": "onvif:ISO8601Timestamp",
         "timestamp": "2026-11-03T10:15:10.520Z"
@@ -5232,10 +5226,6 @@ classes:
         not by the order of the items in the envelope: the collection precedes the estimate here,
         while in <code>items</code> the estimate comes first. The ordering of <code>hashes</code> is
         normative, for the reason given in <xref linkend="sec_information_envelope"/>.</para>
-      <para>The <code>confidence</code> of the collection is 1.0. A collection states nothing about
-        the physical world that its members do not state, so there is nothing for a confidence to
-        qualify; the field is inherited from <code>InformationItem</code> and is mandatory there, and
-        1.0 is the only value that adds no claim of its own.</para>
     </section>
 
     <section xml:id="sec_annex_hk_assessment_service">
@@ -5295,7 +5285,6 @@ classes:
     {
       "@type": "hackathon2026:SpeedingAssessment",
       "id": "a5e18c62-9f43-4b07-8d21-6c70e21fb945",
-      "confidence": 0.99,
       "productionTime": {
         "@type": "onvif:ISO8601Timestamp",
         "timestamp": "2026-11-03T10:15:12.000Z"
@@ -5507,7 +5496,6 @@ classes:
         "speedLimit": 50.0,
         "tolerance": 3.0,
         "rule": "urn:onvif-hackathon:rule:urban-speed-limit",
-        "minimumConfidence": 0.75,
         "emitOnlyWhenExceeded": true
       }
     },
@@ -5536,23 +5524,18 @@ classes:
         "speedLimit": 50.0,
         "tolerance": 3.0,
         "rule": "urn:onvif-hackathon:rule:urban-speed-limit",
-        "minimumConfidence": 0.75,
         "emitOnlyWhenExceeded": true
       }
     }
   }
 }</programlisting>
-      <para>These five values are the criterion, and they are configured rather than passed per
+      <para>These four values are the criterion, and they are configured rather than passed per
         execution for a reason that can be read off the assessment of <xref
         linkend="sec_annex_hk_assessment_service"/>: that item restates
         <code>speedLimit</code> 50.0, <code>tolerance</code> 3.0 and the same <code>rule</code> on
         its own result, so a client can check the claim against the configuration that produced it.
         A criterion that changed from one execution to the next could not be stated that way, and two
-        assessments of the same service would not be comparable. <code>minimumConfidence</code> is
-        the lowest confidence a <code>SpeedEstimateObservation</code> may carry to be assessed at
-        all: the estimate of the analytics box carries 0.9 and is above it, and an estimate
-        below 0.75 would be ignored rather than assessed, since a fine cannot rest on a measurement
-        its own producer does not stand behind. <code>emitOnlyWhenExceeded</code> is left at its
+        assessments of the same service would not be comparable. <code>emitOnlyWhenExceeded</code> is left at its
         default of <code>true</code>, which is what makes the mere existence of an assessment the
         statement that the limit was exceeded.</para>
       <para><emphasis>Request (Client to Device):</emphasis> The function is now configured, so it
