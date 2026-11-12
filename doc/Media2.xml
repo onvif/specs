@@ -1394,7 +1394,7 @@
         <para>For full compatibility with other ONVIF services a device shall not generate URIs longer than 128 octets.</para>
         <para>A device that signals the RTSPStreaming capability shall support this command. On a request for transport protocol RtspOverHttp a device shall return a URI that uses the same port as the web service. This enables seamless NAT traversal.</para>
         <para>A device supporting MultiTrackStreaming shall support the retrieval of a multitrack RTSP session URI by passing a virtual profile token. </para>
-        <para>A device signaling support for SecureRTSPStreaming shall support streaming via SRTP. </para>
+        <para>A device signaling support for SecureRTSPStreaming shall support streaming via SRTP. A device shall only return a Uri for the RtspsUnicast or RtspsMulticast Protocol when a TLS server is configured and enabled on the device. If a secure Protocol is requested but no TLS server is configured, the device shall return a ter:TLSNotConfigured fault and shall not return a Uri.</para>
         <variablelist role="op">
           <varlistentry>
             <term>request</term>
@@ -1427,6 +1427,8 @@
               <para role="text">Virtual profile token corresponding source could not be spliced together.</para>
               <para role="param">env:Receiver - ter:Action - ter:IncompleteConfiguration</para>
               <para role="text">The specified media profile does not have the minimum amount of configurations to have streams. Please add at least one source configuration and one matching encoder configuration.</para>
+              <para role="param">env:Receiver - ter:Action - ter:TLSNotConfigured</para>
+              <para role="text">A secure transport protocol (RtspsUnicast or RtspsMulticast) was requested, but no TLS server is configured and enabled on the device.</para>
             </listitem>
           </varlistentry>
           <varlistentry>
