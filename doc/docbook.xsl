@@ -74,6 +74,27 @@ text-decoration: none;
 text-transform: uppercase;
 margin-bottom: 0mm;
 }
+.wide {
+margin-left: -25mm;
+margin-right: -25mm;
+}
+.wide>table {
+margin-left: auto;
+margin-right: auto;
+}
+.wide>table th {
+white-space: nowrap;
+}
+.wide>table td {
+white-space: nowrap;
+font-size: 9pt;
+}
+.wide>table td:nth-child(3), .wide>table td:nth-child(4) {
+width: 1%;
+}
+.wide>table td:nth-child(1), .wide>table td:nth-child(2) {
+white-space: normal;
+}
 .table {
 text-align: center;
 }
@@ -222,7 +243,7 @@ font-family: monospace;
     </xsl:template>
     <xsl:template match="db:table">
         <xsl:element name="div">
-            <xsl:attribute name="class">table</xsl:attribute>
+            <xsl:attribute name="class">table<xsl:if test="@role='wide'"> wide</xsl:if></xsl:attribute>
             <xsl:apply-templates select="@xml:id"/>
             <xsl:element name="table">
                 <xsl:element name="thead">
@@ -266,7 +287,14 @@ font-family: monospace;
     </xsl:template>
 
     <xsl:template match="db:para" mode="plain">
-        <xsl:apply-templates/>
+        <xsl:choose>
+            <xsl:when test="ancestor::db:table/@role='wide' and parent::db:entry/db:para[2]">
+                <div class="plaindiv"><xsl:apply-templates/></div>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:apply-templates/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <xsl:template match="db:title[parent::db:table|parent::db:figure]">
