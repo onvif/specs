@@ -107,14 +107,100 @@ components:
       type: object
       properties:
         shareToken:
-          description: The share token, to know what device the public key is associated to.
+          description: The share token identifying the device.
           type: string
         devicePublicKey:
           description: The public key of the device.
           $ref: '#/components/schemas/base64DerEncodedAsn1Value'
+        configurationErrors:
+          $ref: '#/components/schemas/deviceConfigurationErrors'
       required:
         - shareToken
         - devicePublicKey
+
+    deviceConfigurationErrors:
+      type: object
+      description: >-
+        Failures applying the deviceConfiguration identified by shareToken.
+        Omitted or empty maps mean no failures were reported.
+      properties:
+        certPathValidationPolicies:
+          type: object
+          description: Policy and trust anchor failures, keyed by the original policy alias.
+          additionalProperties:
+            $ref: '#/components/schemas/certPathValidationPolicyError'
+        authorizationServerConfigurations:
+          type: object
+          description: Authorization server failures, keyed by the original serverUri.
+          additionalProperties:
+            $ref: '#/components/schemas/configurationError'
+        uplinkConfigurations:
+          type: object
+          description: Uplink failures, keyed by the original remoteAddress.
+          additionalProperties:
+            $ref: '#/components/schemas/configurationError'
+
+    configurationError:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          description: >-
+            Human-readable failure reason. For SOAP faults, use one Reason/Text value.
+            Use fault codes, not this text, for classification.
+          example: The specified signature algorithm is not supported by the device.
+        fault:
+          $ref: '#/components/schemas/fault'
+      required:
+        - reason
+
+    certPathValidationPolicyError:
+      type: object
+      description: >-
+        Policy-level error and/or individual trust anchor failures.
+        Include at least one of error or trustAnchors when reporting a failure.
+      properties:
+        error:
+          $ref: '#/components/schemas/configurationError'
+        trustAnchors:
+          type: object
+          minProperties: 1
+          description: >-
+            Certificate import failures, keyed by the exact base64-encoded anchor
+            from the original policy's trustAnchors collection.
+          additionalProperties:
+            $ref: '#/components/schemas/configurationError'
+
+    fault:
+      type: object
+      description: >-
+        Code and subcodes from the SOAP 1.2 fault, when available.
+        Omit for failures without a SOAP fault.
+      properties:
+        code:
+          $ref: '#/components/schemas/faultQualifiedName'
+        subcodes:
+          type: array
+          description: >-
+            SOAP Subcode/Value entries, ordered from outermost to innermost.
+          items:
+            $ref: '#/components/schemas/faultQualifiedName'
+      required:
+        - code
+      example:
+        code: soapenv:Sender
+        subcodes:
+          - ter:InvalidArgVal
+          - ter:UnsupportedSignatureAlgorithm
+
+    faultQualifiedName:
+      type: string
+      pattern: '^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$'
+      description: >-
+        SOAP Code/Value or Subcode/Value in prefix:localName form.
+        Normalize prefixes to those listed in ONVIF Core (soapenv and ter).
+      example: ter:UnsupportedSignatureAlgorithm
 
     deviceSharingError:
       type: object
@@ -163,7 +249,7 @@ paths:
   /deviceSharingCompleted:
     post:
       summary: Device sharing completed notification.
-      description: This operation notifies the new Operational Cloud Service that the camera was successfully configured.
+      description: Notifies the new Operational Cloud Service that configuration has completed, including reported failures.
       requestBody:
         required: true
         content:
