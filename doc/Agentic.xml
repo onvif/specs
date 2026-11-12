@@ -957,9 +957,8 @@
           identifiers, as stated in <xref linkend="sec_object_identifiers"/>. Each resolves against
           the fixed base of the inline context to an absolute IRI, which is the same wherever the
           envelope was obtained. The references that one item makes to another — the
-          <code>supportedBy</code> field of an <code>Assessment</code> or of a derived
-          <code>Observation</code>, the <code>observations</code> field of an
-          <code>ObservationsCollection</code>, the <code>item</code> field of an
+          <code>supportedBy</code> field of an information item, the <code>observations</code>
+          field of an <code>ObservationsCollection</code>, the <code>item</code> field of an
           <code>ItemDigest</code> — resolve against the same base, so a JSON-LD processor produces
           them as edges between those nodes without any identifier being minted by the ONVIF
           Client. That list is exhaustive: every other field of an information item that names
@@ -2294,9 +2293,18 @@
         mandatory <code>confidence</code> value expressing the confidence level of the contained
         information, whose range is <code>Likelihood</code> and which therefore lies between 0.0 and
         1.0 inclusive; a mandatory <code>productionTime</code> field giving the time at which the
-        information was produced, as specified in <xref linkend="sec_timing"/>; and a
+        information was produced, as specified in <xref linkend="sec_timing"/>; a
         <code>provenance</code> field describing the origin or producer of the
-        information.</para>
+        information; and an optional <code>supportedBy</code> field listing the identifiers of
+        the information items this item was produced from.</para>
+      <para>The <code>supportedBy</code> field is declared on every <code>InformationItem</code>,
+        so that the items a piece of information rests on can be stated whatever its class. It is
+        omitted, or carries an empty list, for an item that cites nothing, and the two forms have
+        the same meaning. Any <code>InformationItem</code> may be cited. A class may make the field
+        mandatory, as <code>Assessment</code> does, or exclude it, as
+        <code>ObservationsCollection</code> does. The cited items are referenced by identifier and
+        not nested, and the references are subject to the checks of <xref
+          linkend="sec_support_graph_sanity_checks"/>.</para>
       <para>An <code>InformationItem</code> does not carry a signature of its own. Integrity,
         authenticity, and non-repudiation are provided at envelope level, as specified in <xref
           linkend="sec_information_envelope"/>: an item that requires such protection shall be
@@ -2384,10 +2392,10 @@
             <xref linkend="sec_location"/>.</para>
         </listitem>
         <listitem>
-          <para><code>supportedBy</code> — the identifiers of the observations this observation was
-            computed from, as specified in <xref linkend="sec_derived_observation"/>. The field is
-            omitted, or carries an empty list, for an observation that a sensor produced
-            directly.</para>
+          <para><code>supportedBy</code> — inherited from <code>InformationItem</code>: the
+            identifiers of the information items this observation was computed from, as specified in
+            <xref linkend="sec_derived_observation"/>. The field is omitted, or carries an empty
+            list, for an observation that a sensor produced directly.</para>
         </listitem>
       </itemizedlist>
       <para>An <code>Observation</code> states what a sensor produced. It is never revised: where an
@@ -2470,7 +2478,7 @@
         <para>An observation is either direct or derived. A direct observation is what a sensor
           produced by looking at the physical world, and cites nothing: its <code>supportedBy</code>
           field is omitted, or is an empty list, and the two forms mean the same thing. A derived
-          observation is computed from other observations, which it lists in
+          observation is computed from other information items, which it lists in
           <code>supportedBy</code>.</para>
         <para>A speed is the plain example. Given two observations of the same subject, each carrying
           an <code>observedTime</code> and an <code>observedSpace</code>, a speed is obtained by
@@ -2490,15 +2498,16 @@
           <code>Observation</code> derived from positions and times; the statement that this speed
           exceeds the limit in force at that place is an <code>Assessment</code>, because the limit
           comes from outside the measurement.</para>
-        <para>Each identifier in <code>supportedBy</code> shall resolve either to an
-          <code>Observation</code> or to an <code>ObservationsCollection</code>, whose members are
-          then taken in its place, as described in <xref linkend="sec_observations_collection"/>. No
-          other kind of information item may be cited: a measurement is not computed from an
-          interpretation. The sanity checks of <xref linkend="sec_support_graph_sanity_checks"/> apply
-          to these references as they do to those of an assessment, and in particular a derived
-          observation shall be more recent in <code>productionTime</code> than every observation it
-          cites, the graph shall remain acyclic, and every chain shall terminate in direct
-          observations.</para>
+        <para>Each identifier in <code>supportedBy</code> may resolve to any
+          <code>InformationItem</code> whose content enters the computation. Where it resolves to an
+          <code>ObservationsCollection</code>, the members of the collection are taken in its place,
+          as described in <xref linkend="sec_observations_collection"/>. What makes an item a derived
+          observation rather than an assessment is that its result follows from the cited content by
+          computation, without an external criterion, and not the class of the items it cites. The
+          sanity checks of <xref linkend="sec_support_graph_sanity_checks"/> apply to these
+          references, and in particular a derived observation shall be more recent in
+          <code>productionTime</code> than every item it cites, the graph shall remain acyclic, and
+          every chain shall terminate in items that cite nothing.</para>
         <para>A derived observation normally omits <code>procedure</code>. The method that applies to
           it is the arithmetic stated by its <code>supportedBy</code> field, and there is nothing
           further to name; the field is used only where the derivation is itself a named method of this
@@ -2506,7 +2515,7 @@
         <para>The confidence of a derived observation is its own, by the general rule of
           <xref linkend="sec_information_item"/>: an ONVIF endpoint shall assign it on the merits of
           the derivation, and an ONVIF Client shall not compute it from, nor propagate it to, the
-          observations cited. A speed computed from two well-founded positions may still deserve
+          items cited. A speed computed from two well-founded positions may still deserve
           little confidence, because the two observations may not be of the same physical
           subject.</para>
       </section>
@@ -2521,7 +2530,9 @@
         item without its members being repeated.</para>
       <para>Its only field beyond those of an <code>InformationItem</code> is
         <code>observations</code>, the identifiers of the collected observations, of which there shall
-        be at least one. The observations are referenced and not nested, by the rule of
+        be at least one. A collection shall not carry the <code>supportedBy</code> field inherited
+        from <code>InformationItem</code>: what it groups is stated by <code>observations</code>, and
+        a grouping is not a conclusion drawn from other items. The observations are referenced and not nested, by the rule of
         <xref linkend="sec_object_identifiers"/>, and each identifier shall resolve to an observation
         the ONVIF Client has already received.</para>
       <para>A collection is a grouping and not a measurement: it is an <code>InformationItem</code>
@@ -2558,10 +2569,10 @@
         supporting items, not copies of them. An assessment therefore states which items it relies
         on without reproducing their content. This keeps an assessment small regardless of how much
         evidence supports it, allows several assessments to cite the same item without duplicating
-        it, and ensures that an item covered by a signature is digested exactly once. Unlike the
-        <code>supportedBy</code> of an observation, which admits only observations and collections of
-        observations, the field admits any <code>InformationItem</code>, because a criterion can bear
-        on an earlier interpretation as much as on a measurement.</para>
+        it, and ensures that an item covered by a signature is digested exactly once. The
+        field is inherited from <code>InformationItem</code> and is mandatory on an assessment,
+        which shall cite at least one item. It admits any <code>InformationItem</code>, because a
+        criterion can bear on an earlier interpretation as much as on a measurement.</para>
       <para>The <code>result</code> field holds the judgement reached, nested inside the assessment
         and described in <xref linkend="sec_assessment_result"/>. The two fields divide the item
         cleanly: <code>supportedBy</code> says what was judged, and <code>result</code> says what the
@@ -2606,11 +2617,9 @@
     <section xml:id="sec_support_graph_sanity_checks">
       <title>Support graph sanity checks</title>
       <para>To achieve robust and reliable parsers, the following sanity checks are required for
-        every item that cites other items. They apply to an <code>Assessment</code> and, with the
-        additional restriction on what may be cited stated in
-        <xref linkend="sec_derived_observation"/>, to a derived <code>Observation</code>, through
-        their <code>supportedBy</code> field, and to an <code>ObservationsCollection</code> through
-        its <code>observations</code> field; the item that carries the field is called the citing
+        every item that cites other items. They apply to every <code>InformationItem</code> through its
+        <code>supportedBy</code> field, and to an <code>ObservationsCollection</code> through its
+        <code>observations</code> field; the item that carries the field is called the citing
         item below, and the field itself the citing field:</para>
       <orderedlist>
         <listitem>
@@ -2620,12 +2629,10 @@
         <listitem>
           <para>The class of the item an identifier resolves to, read from the <code>@type</code>
             that item carries, shall be one the citing field admits: the
-            <code>supportedBy</code> of an <code>Observation</code> admits an
-            <code>Observation</code> or an <code>ObservationsCollection</code>, as stated in
-            <xref linkend="sec_derived_observation"/>; the <code>observations</code> of an
-            <code>ObservationsCollection</code> admits an <code>Observation</code>, as stated in
-            <xref linkend="sec_observations_collection"/>; and the <code>supportedBy</code> of an
-            <code>Assessment</code> admits any <code>InformationItem</code>. This check is
+            <code>observations</code> of an <code>ObservationsCollection</code> admits an
+            <code>Observation</code>, as stated in <xref linkend="sec_observations_collection"/>,
+            and <code>supportedBy</code> admits any <code>InformationItem</code>, unless a concrete
+            class restricts it further. This check is
             referential and not structural, and is therefore not performed by the compiled schema:
             the citing field carries the identifier of an item and not the item itself, as
             <xref linkend="sec_compilation_to_json_schema"/> explains.</para>
@@ -2642,7 +2649,7 @@
         </listitem>
         <listitem>
           <para>By traversing that graph, each citing item shall be traceable back to one or more
-            direct observations, which are the only items of the model that cite nothing.</para>
+            items that cite nothing, such as direct observations.</para>
         </listitem>
       </orderedlist>
       <para>An ONVIF Client that receives an item citing an identifier it cannot resolve
