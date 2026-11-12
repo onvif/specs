@@ -1153,16 +1153,145 @@
         by an ACTUATE-class Tool (<code>tasks/get</code>, <code>notifications/tasks</code>) and
         cancelling it (<code>tasks/cancel</code>) both require at least the role that would have
         been required to invoke that Tool in the first place; a request carrying a lower role shall
-        be rejected with HTTP 403 even where it names a valid <code>taskId</code>. Knowing a
-          <code>taskId</code> is not by itself a credential: the ONVIF endpoint shall re-evaluate the
-        access class of the underlying effect on every <code>tasks/get</code>,
-          <code>tasks/update</code>, and <code>tasks/cancel</code> request, and shall further
-        restrict each to the principal that created the task, or to another principal explicitly
-        authorized for that task's effect, rejecting every other authenticated principal with HTTP
-        403 even where its role would otherwise satisfy the access class. <code>tasks/update</code>
+        be rejected with HTTP 403 even where it names a valid <code>taskId</code>. This role check
+        is coarse and shall be performed without any lookup keyed on <code>taskId</code>: its
+        outcome, and its cost, shall not depend on whether the named <code>taskId</code> denotes a
+        real, expired, forged, or nonexistent task, so that neither the response nor the time taken
+        to produce it discloses anything about the task itself. <code>tasks/update</code>
         additionally requires that the request answer a pending <code>inputRequest</code> of that
-        task, as specified by the MCP Tasks extension; it is not a general reconfiguration
-        method.</para>
+        task, as specified by the MCP Tasks extension; it is not a general reconfiguration method.
+        Knowing a <code>taskId</code> is not by itself a credential: a request that clears this
+        coarse role check is not thereby authorized for the specific task it names, as specified in
+          <xref linkend="sec_task_authorization_errors"/>.</para>
+    </section>
+
+    <section xml:id="sec_task_authorization_errors">
+      <title>Task Authorization Error Responses</title>
+      <para>A request to <code>tasks/get</code>, <code>tasks/update</code>, or
+          <code>tasks/cancel</code> is authorized in two tiers, and an ONVIF endpoint shall not
+        collapse them into one. The first tier is the coarse role check of <xref
+          linkend="sec_role_to_mcp_operation_mapping"/>: it never consults the task store, so its
+        HTTP 403 outcome reveals only that the caller's own role does not reach the access class the
+        operation requires, which is the caller's own privilege and not a fact about the named
+          <code>taskId</code>. The second tier is reached only once the first has passed, and it is
+        this second tier that this section specifies.</para>
+      <para>Once the coarse role check has passed, the ONVIF endpoint shall look up the named
+          <code>taskId</code>. Two distinct conditions are possible at that point: the
+          <code>taskId</code> does not correspond to any task the endpoint still holds — because it
+        never existed, or because it has expired or been purged — or it corresponds to a task that
+        exists but was not created by, and is not otherwise explicitly authorized for, the calling
+        principal. An ONVIF endpoint shall respond to both conditions with the identical
+          <code>-32602 InvalidParams</code> error: the same <code>message</code> text and the same
+          <code>data</code> shape, with no field that differs between the two cases. A client shall
+        therefore not be able to infer, from either the HTTP status, the JSON-RPC error code, or the
+        content of the error, whether a <code>taskId</code> it does not own corresponds to a real
+        task or to none at all. This is a deliberate design choice, not an oversight: the MCP Tasks
+        extension already relies on <code>taskId</code> being unguessable and on the absence of a
+          <code>tasks/list</code> method to prevent one caller from learning that another caller's
+        tasks exist; giving a distinguishable response to a guessed or otherwise obtained
+          <code>taskId</code> that happens to be real would reopen exactly the channel those two
+        properties are meant to close.</para>
+      <para>The MCP Tasks extension itself requires this treatment — <code>-32602</code> for an
+        unknown or expired <code>taskId</code> — only as a <code>MUST</code> for <code>tasks/get</code>;
+        for <code>tasks/update</code> and <code>tasks/cancel</code> it is only a
+          <code>SHOULD</code>. This specification strengthens both to a <emphasis>shall</emphasis>:
+        an ONVIF endpoint shall return <code>-32602 InvalidParams</code> for an unknown, expired, or
+        unauthorized <code>taskId</code> on <code>tasks/update</code> and <code>tasks/cancel</code>
+        as well as on <code>tasks/get</code>, rather than the bare acknowledgement those two methods
+        would otherwise return. This is an ONVIF-specific profiling decision that goes beyond the
+        MCP Tasks extension's own text, stated here so that an implementation checked against the
+        base extension alone is not mistaken for non-conformant with this specification, nor the
+        reverse.</para>
+      <para>A request that does not declare <code>io.modelcontextprotocol/tasks</code> support in
+        its own <code>_meta["io.modelcontextprotocol/clientCapabilities"]</code> is a distinct,
+        earlier failure and is not part of either tier above: an ONVIF endpoint shall reject it with
+          <code>-32021</code> (<code>MissingRequiredClientCapability</code>), as specified in <xref
+          linkend="sec_task_model"/>, before any task lookup is attempted.</para>
+      <para><code>-32602</code> and <code>-32021</code> are JSON-RPC and MCP Tasks
+        extension-standard error codes. They are independent of the ONVIF-custom
+          <code>-3201x</code> range defined in <xref linkend="sec_event_error_codes"/> for the
+          <code>events/*</code> methods; the two code spaces do not overlap and a reader shall not
+        expect them to be drawn from the same table.</para>
+      <table xml:id="tab-task-authorization-responses">
+        <title>Task Authorization Response Matrix</title>
+        <tgroup cols="4">
+          <colspec colname="c1" colwidth="34*"/>
+          <colspec colname="c2" colwidth="14*"/>
+          <colspec colname="c3" colwidth="16*"/>
+          <colspec colname="c4" colwidth="36*"/>
+          <thead>
+            <row>
+              <entry><para>Condition</para></entry>
+              <entry><para>HTTP Status</para></entry>
+              <entry><para>JSON-RPC <code>error.code</code></para></entry>
+              <entry><para>Notes</para></entry>
+            </row>
+          </thead>
+          <tbody valign="top">
+            <row>
+              <entry><para>Caller's role does not meet the access class of the Tool whose
+                  invocation created, or would create, the task — for any <code>taskId</code>,
+                  including a well-formed one.</para></entry>
+              <entry><para>403</para></entry>
+              <entry><para>— (rejected before JSON-RPC processing; no task lookup)</para></entry>
+              <entry><para>Identical whether <code>taskId</code> is real, forged, or
+                  garbage.</para></entry>
+            </row>
+            <row>
+              <entry><para>Caller's role is adequate; <code>taskId</code> does not exist, or has
+                  expired or been purged.</para></entry>
+              <entry><para>200</para></entry>
+              <entry><para><code>-32602</code></para></entry>
+              <entry><para><code>message: "InvalidParams"</code>; see the example
+                  below.</para></entry>
+            </row>
+            <row>
+              <entry><para>Caller's role is adequate; <code>taskId</code> exists but the caller is
+                  not its creator and is not otherwise authorized for it.</para></entry>
+              <entry><para>200</para></entry>
+              <entry><para><code>-32602</code></para></entry>
+              <entry><para>Byte-for-byte identical <code>message</code> and
+                  <code>data</code> to the row above.</para></entry>
+            </row>
+            <row>
+              <entry><para>The request does not declare <code>io.modelcontextprotocol/tasks</code>
+                  support.</para></entry>
+              <entry><para>200</para></entry>
+              <entry><para><code>-32021</code></para></entry>
+              <entry><para><code>message: "MissingRequiredClientCapability"</code>; checked
+                  before any task lookup.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>For example, a <code>tasks/get</code> request from an adequately-privileged caller
+        naming a <code>taskId</code> that is either unknown or belongs to a different caller
+        receives exactly this response, with no field distinguishing the two cases:</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 18,
+  "error": {
+    "code": -32602,
+    "message": "InvalidParams",
+    "data": {
+      "taskId": "task_motion_999",
+      "reason": "Failed to retrieve task: Task not found"
+    }
+  }
+}</programlisting>
+      <para>A request to a Tool or task method that requires the MCP Tasks extension, made without
+        declaring support for it, instead receives:</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 15,
+  "error": {
+    "code": -32021,
+    "message": "MissingRequiredClientCapability",
+    "data": {
+      "requiredCapability": "io.modelcontextprotocol/tasks"
+    }
+  }
+}</programlisting>
     </section>
   </chapter>
 
@@ -1466,13 +1595,24 @@
           such as <code>motion_detection</code> — has no synchronous alternative and therefore
           requires the extension: where the client has not declared
             <code>io.modelcontextprotocol/tasks</code> support on that request, the ONVIF endpoint
-          shall reject the call with the error MCP defines for a required capability the client has
-          not declared, rather than execute the Tool and discard the ability to report its ongoing
-          state.</para>
-        <para>Where a task is returned, it shall include a durable <code>taskId</code>, a status, a
-            <code>ttlMs</code>, and a recommended <code>pollIntervalMs</code>. The client follows it
-          with <code>tasks/get</code> or with <code>notifications/tasks</code> where the server
-          sends them.</para>
+          shall reject the call with <code>-32021</code>
+            (<code>MissingRequiredClientCapability</code>), as specified in <xref
+            linkend="sec_task_authorization_errors"/>, rather than execute the Tool and discard the
+          ability to report its ongoing state. The same per-request declaration, and the same
+            <code>-32021</code> rejection when it is absent, applies individually to each of
+            <code>tools/call</code>, <code>tasks/get</code>, <code>tasks/update</code>, and
+            <code>tasks/cancel</code>: declaring the capability on the call that creates a task does
+          not carry over to the <code>tasks/get</code>, <code>tasks/update</code>, or
+            <code>tasks/cancel</code> requests that follow it, each of which shall declare it again.</para>
+        <para>Where a task is returned, its fields — a durable <code>taskId</code>, a
+            <code>status</code>, the <code>createdAt</code> and <code>lastUpdatedAt</code>
+          timestamps, a <code>ttlMs</code>, and a recommended <code>pollIntervalMs</code> — sit
+          directly under the JSON-RPC <code>result</code>, alongside <code>resultType: "task"</code>;
+          there is no nested <code>task</code> object wrapping them. <code>createdAt</code> and
+            <code>lastUpdatedAt</code> are themselves mandatory, not optional, and an ONVIF endpoint
+          shall include both on every task-shaped result, including the one returned by
+            <code>tasks/get</code>. The client follows the task with <code>tasks/get</code> or with
+            <code>notifications/tasks</code> where the server sends them.</para>
         <para>For a Tool that starts a continuous execution, the task represents the whole
           execution and not merely its start. This is a deliberate departure from treating a task as
           covering only the work needed to begin: the task returned for such a call stays
@@ -1582,6 +1722,12 @@
             linkend="sec_task_model"/>); <code>activeExecutions</code> is the closest an ONVIF
           Client comes to one, and it is scoped to what the calling principal is authorized to see,
           not to every task on the device.</para>
+        <para>An execution appearing in <code>activeExecutions</code>, or carrying a
+            <code>taskId</code> there, states only that an execution — and, where present, a task
+          representing it — exists; it is not a readiness guarantee. The same caveat that applies to
+          a task's <code>working</code> status applies here: an ONVIF Client that needs to know
+          whether a detector is actually producing output checks the readiness information of <xref
+            linkend="sec_task_model"/> rather than inferring it from presence in this list.</para>
         <para>See <xref linkend="sec_annex_tool_get_status"/> for a wire format example.</para>
       </section>
 
@@ -3635,7 +3781,9 @@ default_range: string</programlisting>
         general health, the inventory of executions visible to this principal, and the engine
         firmware version. One execution is tracked by a task this client can follow; the second is
         a factory-started producer that no client request ever created, so it carries no
-          <code>taskId</code>.</para>
+          <code>taskId</code>. Neither entry establishes that its detector is already producing
+        output; appearing here states only that the execution exists, as specified in <xref
+          linkend="sec_tool_get_status"/>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 9,
@@ -3660,10 +3808,46 @@ default_range: string</programlisting>
     </section>
     <section xml:id="sec_annex_tool_motion_detection">
       <title>Tool invocation — motion_detection</title>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client starts
-        <code>motion_detection</code> for <code>human</code> and <code>vehicle</code> on
-        <code>VideoSource_1</code>, declaring Tasks support because this is a continuous Tool
-        with no synchronous alternative.</para>
+      <para><emphasis>Request (Client to Device — capability not declared):</emphasis> The ONVIF
+        Client calls <code>motion_detection</code> without declaring support for the MCP Tasks
+        extension. Because this is a continuous Tool with no synchronous alternative, the ONVIF
+        endpoint cannot service the call at all under these terms.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 11,
+  "method": "tools/call",
+  "params": {
+    "name": "motion_detection",
+    "arguments": {
+      "config": {
+        "classes": ["human", "vehicle"],
+        "confidenceThreshold": 0.8,
+        "sourceToken": "VideoSource_1"
+      }
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF endpoint rejects the call
+        with <code>-32021</code>, as specified in <xref
+          linkend="sec_task_authorization_errors"/>. No task and no execution are created; the
+        client must retry with the capability declared.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 11,
+  "error": {
+    "code": -32021,
+    "message": "MissingRequiredClientCapability",
+    "data": {
+      "requiredCapability": "io.modelcontextprotocol/tasks"
+    }
+  }
+}</programlisting>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client retries, now
+        declaring Tasks support, starting <code>motion_detection</code> for <code>human</code> and
+        <code>vehicle</code> on <code>VideoSource_1</code>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 12,
@@ -3688,18 +3872,22 @@ default_range: string</programlisting>
   }
 }</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> The call is accepted and a task is
-        created for the whole execution, not merely for its start.</para>
+        created for the whole execution, not merely for its start. Per the MCP Tasks extension,
+          <code>taskId</code>, <code>status</code>, <code>createdAt</code>,
+          <code>lastUpdatedAt</code>, <code>ttlMs</code>, and <code>pollIntervalMs</code> sit
+        directly under <code>result</code>, next to <code>resultType: "task"</code>; there is no
+        nested <code>task</code> object.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 12,
   "result": {
     "resultType": "task",
-    "task": {
-      "taskId": "task_motion_001",
-      "status": "working",
-      "ttlMs": 3600000,
-      "pollIntervalMs": 5000
-    }
+    "taskId": "task_motion_001",
+    "status": "working",
+    "createdAt": "2026-08-04T13:04:58.000Z",
+    "lastUpdatedAt": "2026-08-04T13:04:58.000Z",
+    "ttlMs": 3600000,
+    "pollIntervalMs": 5000
   }
 }</programlisting>
       <para>The task stays <code>working</code> for as long as the detector is active; it is not
@@ -3707,9 +3895,89 @@ default_range: string</programlisting>
         a task that represented only a start operation. Detections are never returned by
           <code>tasks/get</code>: they arrive exclusively as metadata events, on whichever of
           <code>events/stream</code>, <code>events/poll</code>, or webhook the ONVIF Client has set
-        up (see <xref linkend="sec_annex_metadata_stream"/>).</para>
+        up.</para>
+      <para><emphasis>Event delivery (Device to Client), while the task is still
+        <code>working</code>):</emphasis> The ONVIF Client has an <code>events/stream</code>
+        subscription open for the <code>vendor:MotionDetectionObservation</code> event type, by the
+        general mechanism of <xref linkend="sec_event_type_catalogue"/>. The detector reports one
+        detection on that stream; it is never visible through <code>tasks/get</code>. The class
+        used here, and its provenance class <code>vendor:Camera</code>, are a minimal illustrative
+        vendor extension of the kind specified in <xref linkend="sec_vendor_class_extensions"/>,
+        introduced because the ONVIF Agentic Schema Bundle itself declares no concrete subclass of
+          <code>Observation</code> or of <code>Provenance</code> for this purpose; a real ONVIF
+        endpoint substitutes its own.</para>
+      <programlisting>{"jsonrpc":"2.0","method":"notifications/events/event","params":{
+  "eventId": "evt_motion_0001",
+  "name": "vendor:MotionDetectionObservation",
+  "timestamp": "2026-08-04T13:05:03.050Z",
+  "data": {
+    "@context": {
+      "@version": 1.1,
+      "@vocab": "https://www.onvif.org/ver10/agentic/linkml/",
+      "onvif": {
+        "@id": "https://www.onvif.org/ver10/agentic/linkml/",
+        "@prefix": true
+      },
+      "vendor": {
+        "@id": "https://vendor.example/agentic/example/linkml/",
+        "@prefix": true
+      },
+      "vendor:Camera": {
+        "@id": "vendor:Camera",
+        "@context": {
+          "entity": {
+            "@id": "vendor:entity",
+            "@context": { "token": "vendor:token" }
+          }
+        }
+      },
+      "vendor:MotionDetectionResult": {
+        "@id": "vendor:MotionDetectionResult",
+        "@context": { "detectedClass": "vendor:detectedClass" }
+      }
+    },
+    "@type": "InformationEnvelope",
+    "id": "7e2f4a81-3c5d-4b96-9e02-1a6f8c3d5b74",
+    "items": [
+      {
+        "@type": "vendor:MotionDetectionObservation",
+        "id": "c3a9f210-8b4e-4d7c-9a15-6e2f1b8d4c93",
+        "confidence": 0.92,
+        "productionTime": {
+          "@type": "ISO8601Timestamp",
+          "timestamp": "2026-08-04T13:05:03.050Z"
+        },
+        "observedTime": {
+          "@type": "ISO8601Timestamp",
+          "timestamp": "2026-08-04T13:05:03.000Z"
+        },
+        "provenance": {
+          "@type": "vendor:Camera",
+          "entity": { "token": "VideoSource_1" }
+        },
+        "featureOfInterest": { "onvif": "Person" },
+        "procedure": { "onvif": "Analytics" },
+        "result": {
+          "@type": "vendor:MotionDetectionResult",
+          "detectedClass": "human"
+        }
+      }
+    ]
+  },
+  "cursor": "historyId_20031",
+  "_meta": {"io.modelcontextprotocol/subscriptionId": 30}
+}}</programlisting>
+      <para><code>detectedClass: "human"</code> echoes the Tool category that
+          <code>config.classes</code> selected, but it is not the same vocabulary as
+          <code>featureOfInterest.onvif: "Person"</code>: the former is a category identifier of
+        <xref linkend="sec_detection_class_vocabulary"/>, naming what the Tool was asked to look
+        for; the latter is a value of <code>FeatureOfInterestType</code>, naming what this
+        particular observation turned out to be about. The two vocabularies are related in intent
+        and distinct in definition, and an ONVIF Client shall not assume one can be derived from
+        the other in general.</para>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client polls the task to
-        confirm it is still active.</para>
+        confirm it is still active, declaring Tasks support again: the capability declared on the
+        call that created the task does not carry over to this request.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 15,
@@ -3717,16 +3985,28 @@ default_range: string</programlisting>
   "params": {
     "taskId": "task_motion_001",
     "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
     }
   }
 }</programlisting>
+      <para><emphasis>Response (Device to Client):</emphasis> <code>resultType: "complete"</code>
+        describes this <code>tasks/get</code> call, which always completes synchronously;
+          <code>status: "working"</code> describes the task itself, and is the field that matters
+        here. The two are easy to conflate and answer different questions.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 15,
   "result": {
+    "resultType": "complete",
     "taskId": "task_motion_001",
     "status": "working",
+    "createdAt": "2026-08-04T13:04:58.000Z",
+    "lastUpdatedAt": "2026-08-04T13:09:58.000Z",
     "ttlMs": 3600000,
     "pollIntervalMs": 5000
   }
@@ -3770,7 +4050,7 @@ default_range: string</programlisting>
   }
 }</programlisting>
       <para><emphasis>Request (Client to Device):</emphasis> The shift ends and the execution is no
-        longer wanted, so the ONVIF Client cancels its task.</para>
+        longer wanted, so the ONVIF Client cancels its task, again declaring Tasks support.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 17,
@@ -3778,21 +4058,24 @@ default_range: string</programlisting>
   "params": {
     "taskId": "task_motion_001",
     "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
     }
   }
 }</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> The ONVIF endpoint acknowledges the
-        request; the task is still <code>working</code> at the moment of the acknowledgement. The
-        ack is not itself proof that the detector has already stopped, nor that the task has
-        already reached <code>cancelled</code>; the client confirms that with a further
-          <code>tasks/get</code>.</para>
+        request with a bare acknowledgement, carrying no task fields at all: the ack is not itself
+        proof that the detector has already stopped, nor that the task has already reached
+          <code>cancelled</code>; the client confirms that with a further <code>tasks/get</code>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 17,
   "result": {
-    "taskId": "task_motion_001",
-    "status": "working"
+    "resultType": "complete"
   }
 }</programlisting>
       <programlisting>{
@@ -3802,7 +4085,12 @@ default_range: string</programlisting>
   "params": {
     "taskId": "task_motion_001",
     "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
     }
   }
 }</programlisting>
@@ -3810,8 +4098,12 @@ default_range: string</programlisting>
   "jsonrpc": "2.0",
   "id": 18,
   "result": {
+    "resultType": "complete",
     "taskId": "task_motion_001",
-    "status": "cancelled"
+    "status": "cancelled",
+    "createdAt": "2026-08-04T13:04:58.000Z",
+    "lastUpdatedAt": "2026-08-04T13:12:10.000Z",
+    "ttlMs": 3600000
   }
 }</programlisting>
       <para>Cancelling <code>task_motion_001</code> stops only the execution this client's call
@@ -5455,18 +5747,20 @@ classes:
   }
 }</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> A task is created for the whole
-        execution, not merely for its start.</para>
+        execution, not merely for its start. As specified in <xref linkend="sec_task_model"/>, its
+        fields sit directly under <code>result</code>, alongside <code>resultType: "task"</code>;
+        there is no nested <code>task</code> object.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 22,
   "result": {
     "resultType": "task",
-    "task": {
-      "taskId": "task_speeding_001",
-      "status": "working",
-      "ttlMs": 43200000,
-      "pollIntervalMs": 5000
-    }
+    "taskId": "task_speeding_001",
+    "status": "working",
+    "createdAt": "2026-11-03T09:58:41.000Z",
+    "lastUpdatedAt": "2026-11-03T09:58:41.000Z",
+    "ttlMs": 43200000,
+    "pollIntervalMs": 5000
   }
 }</programlisting>
       <para>The first five fields are the criterion, restated by the assessment of <xref
@@ -5505,19 +5799,23 @@ classes:
   "params": {
     "taskId": "task_speeding_001",
     "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
     }
   }
 }</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> The ONVIF endpoint acknowledges the
-        request; as elsewhere, the acknowledgement is not itself proof that the execution has
-        already ended.</para>
+        request with a bare acknowledgement, carrying no task fields; as elsewhere, the
+        acknowledgement is not itself proof that the execution has already ended.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 24,
   "result": {
-    "taskId": "task_speeding_001",
-    "status": "working"
+    "resultType": "complete"
   }
 }</programlisting>
       <para>Cancelling the execution ends the emission of assessments; it does not withdraw the
