@@ -1121,16 +1121,17 @@
             </row>
             <row>
               <entry><para><code>tasks/cancel</code></para></entry>
-              <entry><para>ACTUATE, and the access class of the effect being cancelled (see
-                  below)</para></entry>
+              <entry><para>ACTUATE — a fixed per-method minimum, independent of
+                  <code>taskId</code>; the task's own access class is enforced separately, after
+                  lookup (see below)</para></entry>
               <entry><para><code>onvif:Operator</code></para></entry>
             </row>
             <row>
               <entry><para><code>tasks/get</code>, <code>tasks/update</code>, and
                   <code>notifications/tasks</code></para></entry>
-              <entry><para>the access class of the Tool invocation that created the task (see
-                  below)</para></entry>
-              <entry><para><code>onvif:User</code> at minimum, scoped as below</para></entry>
+              <entry><para>READ_SYSTEM — a fixed per-method minimum, independent of
+                  <code>taskId</code>; see below</para></entry>
+              <entry><para><code>onvif:User</code> at minimum</para></entry>
             </row>
             <row>
               <entry><para><code>tools/call</code> — administrative Tools (e.g. model
@@ -1149,64 +1150,108 @@
         </tgroup>
       </table>
       <para>A Tool's access class, declared in its <code>tools/list</code> annotation, governs every
-        operation that acts on a task created by invoking it. Reading the status of a task created
-        by an ACTUATE-class Tool (<code>tasks/get</code>, <code>notifications/tasks</code>) and
-        cancelling it (<code>tasks/cancel</code>) both require at least the role that would have
-        been required to invoke that Tool in the first place; a request carrying a lower role shall
-        be rejected with HTTP 403 even where it names a valid <code>taskId</code>. This role check
-        is coarse and shall be performed without any lookup keyed on <code>taskId</code>: its
-        outcome, and its cost, shall not depend on whether the named <code>taskId</code> denotes a
-        real, expired, forged, or nonexistent task, so that neither the response nor the time taken
-        to produce it discloses anything about the task itself. <code>tasks/update</code>
-        additionally requires that the request answer a pending <code>inputRequest</code> of that
-        task, as specified by the MCP Tasks extension; it is not a general reconfiguration method.
-        Knowing a <code>taskId</code> is not by itself a credential: a request that clears this
-        coarse role check is not thereby authorized for the specific task it names, as specified in
-          <xref linkend="sec_task_authorization_errors"/>.</para>
+        operation that acts on a task created by invoking it. For <code>tools/call</code> itself the
+        Tool is named directly in the request, so the ONVIF endpoint knows the applicable access
+        class immediately and rejects an inadequate role with HTTP 403 before doing anything else.
+          <code>tasks/get</code>, <code>tasks/update</code>, and <code>tasks/cancel</code> identify
+        their target only by <code>taskId</code>, so they cannot be gated the same way: the access
+        class of the specific Tool invocation that created a given task is a property of that task,
+        discoverable only by looking it up, and an ONVIF endpoint shall not try to anticipate it
+        before doing so. These three methods are instead gated by a fixed, per-method minimum role
+        — the Access Class and Minimum JWT Role columns of the table above for
+          <code>tasks/cancel</code> and for <code>tasks/get</code>/<code>tasks/update</code> — that
+        does not depend on <code>taskId</code> and is checked first; the task's own, specific
+        access class is enforced afterwards, once the task has been found, and a failure at that
+        later point is reported differently from a failure of the fixed floor. The full procedure,
+        and what each outcome does and does not reveal, is specified in <xref
+          linkend="sec_task_authorization_errors"/>. <code>tasks/update</code> additionally
+        requires that the request answer a pending <code>inputRequest</code> of that task, as
+        specified by the MCP Tasks extension; it is not a general reconfiguration method. Knowing a
+          <code>taskId</code> is not by itself a credential.</para>
     </section>
 
     <section xml:id="sec_task_authorization_errors">
       <title>Task Authorization Error Responses</title>
-      <para>A request to <code>tasks/get</code>, <code>tasks/update</code>, or
-          <code>tasks/cancel</code> is authorized in two tiers, and an ONVIF endpoint shall not
-        collapse them into one. The first tier is the coarse role check of <xref
-          linkend="sec_role_to_mcp_operation_mapping"/>: it never consults the task store, so its
-        HTTP 403 outcome reveals only that the caller's own role does not reach the access class the
-        operation requires, which is the caller's own privilege and not a fact about the named
-          <code>taskId</code>. The second tier is reached only once the first has passed, and it is
-        this second tier that this section specifies.</para>
-      <para>Once the coarse role check has passed, the ONVIF endpoint shall look up the named
-          <code>taskId</code>. Two distinct conditions are possible at that point: the
-          <code>taskId</code> does not correspond to any task the endpoint still holds — because it
-        never existed, or because it has expired or been purged — or it corresponds to a task that
-        exists but was not created by, and is not otherwise explicitly authorized for, the calling
-        principal. An ONVIF endpoint shall respond to both conditions with the identical
-          <code>-32602 InvalidParams</code> error: the same <code>message</code> text and the same
-          <code>data</code> shape, with no field that differs between the two cases. A client shall
-        therefore not be able to infer, from either the HTTP status, the JSON-RPC error code, or the
-        content of the error, whether a <code>taskId</code> it does not own corresponds to a real
-        task or to none at all. This is a deliberate design choice, not an oversight: the MCP Tasks
-        extension already relies on <code>taskId</code> being unguessable and on the absence of a
+      <para><code>tasks/get</code>, <code>tasks/update</code>, and <code>tasks/cancel</code> carry
+        no Tool name, only a <code>taskId</code>. The access class of the specific Tool invocation
+        that created a given task is a property of that task and is discoverable only by looking
+        it up, so these three methods cannot be gated, before lookup, by that specific class. They
+        are instead gated by a fixed, per-method minimum role that does not depend on
+          <code>taskId</code> at all — the one given in the table of <xref
+          linkend="sec_role_to_mcp_operation_mapping"/> — checked first; the task's own, specific
+        access class is enforced separately, after the task has been found. An ONVIF endpoint
+        shall evaluate these methods in the following fixed order, and shall not reorder or merge
+        the steps:</para>
+      <orderedlist>
+        <listitem>
+          <para>If the request does not declare <code>io.modelcontextprotocol/tasks</code> support
+            in its own <code>_meta["io.modelcontextprotocol/clientCapabilities"]</code>, reject it
+            with <code>-32021</code> (<code>MissingRequiredClientCapability</code>), as specified
+            in <xref linkend="sec_task_model"/>. This check needs no task lookup.</para>
+        </listitem>
+        <listitem>
+          <para>Otherwise, compare the caller's role against the fixed per-method minimum —
+              <code>onvif:Operator</code> for <code>tasks/cancel</code>, <code>onvif:User</code>
+            for <code>tasks/get</code> and <code>tasks/update</code>. This minimum is the same for
+            every <code>taskId</code> presented to that method on this endpoint, well-formed or
+            not, and is reached without any task lookup: it is not the access class of the task
+            named in the request, but the lowest access class among the Tools on this endpoint
+            that are capable of creating a task reachable by that method. A role below it is
+            rejected with HTTP 403.</para>
+        </listitem>
+        <listitem>
+          <para>Otherwise, look up the named <code>taskId</code>. Reject the request with the
+            identical <code>-32602 InvalidParams</code> error — the same <code>message</code> text
+            and the same <code>data</code> shape in every case — if any of the following holds: no
+            record is found, because it never existed or because it has expired or been purged; a
+            record is found but the calling principal is neither its creator nor otherwise
+            explicitly authorized for it; or a record is found, the calling principal is its
+            creator or otherwise authorized party, but the caller's <emphasis>current</emphasis>
+            role does not meet the access class specifically recorded for the Tool invocation that
+            created it (which may be higher than the fixed minimum of step 2 — for instance a task
+            created by a WRITE_SYSTEM-tier administrative Tool, read back by an
+              <code>onvif:Operator</code> who cleared step 2's lower floor but not this one). None
+            of these three conditions is reported any differently from the others.</para>
+        </listitem>
+      </orderedlist>
+      <para>Splitting the check this way is what makes it work on an ONVIF endpoint whose Tools
+        span more than one access class. Step 2 needs no information about any specific task, only
+        the fixed floor for the method being called, so it is unaffected by how many access
+        classes the endpoint's Tools use and costs nothing extra to evaluate before a lookup; step
+        3 needs the task's own specific class, and by the time it runs the task record that states
+        it has already been found, so reading it there costs nothing extra either. An ONVIF
+        endpoint every one of whose task-creating Tools shares a single access class may let step
+        2's fixed floor and step 3's task-specific comparison coincide trivially — this is the
+        general rule above specialised to that case, not an exception to it, and it is what a
+        device that, for example, only ever creates Administrator-tier tasks does correctly
+        already by applying one fixed check.</para>
+      <para>Step 3's three conditions are deliberately indistinguishable from one another,
+        including the role-insufficiency case: a client shall not be able to infer, from the HTTP
+        status, the JSON-RPC error code, or the content of the error, whether a <code>taskId</code>
+        it cannot act on corresponds to no task at all, to a task it does not own, or to a task it
+        owns but can no longer reach because its role no longer meets that task's specific access
+        class. This is a deliberate design choice, not an oversight: the MCP Tasks extension
+        already relies on <code>taskId</code> being unguessable and on the absence of a
           <code>tasks/list</code> method to prevent one caller from learning that another caller's
-        tasks exist; giving a distinguishable response to a guessed or otherwise obtained
-          <code>taskId</code> that happens to be real would reopen exactly the channel those two
-        properties are meant to close.</para>
-      <para>The MCP Tasks extension itself requires this treatment — <code>-32602</code> for an
-        unknown or expired <code>taskId</code> — only as a <code>MUST</code> for <code>tasks/get</code>;
-        for <code>tasks/update</code> and <code>tasks/cancel</code> it is only a
-          <code>SHOULD</code>. This specification strengthens both to a <emphasis>shall</emphasis>:
-        an ONVIF endpoint shall return <code>-32602 InvalidParams</code> for an unknown, expired, or
-        unauthorized <code>taskId</code> on <code>tasks/update</code> and <code>tasks/cancel</code>
-        as well as on <code>tasks/get</code>, rather than the bare acknowledgement those two methods
-        would otherwise return. This is an ONVIF-specific profiling decision that goes beyond the
-        MCP Tasks extension's own text, stated here so that an implementation checked against the
-        base extension alone is not mistaken for non-conformant with this specification, nor the
+        tasks exist; giving a distinguishable response to any one of these three conditions would
+        reopen exactly the channel those two properties are meant to close. Only step 2's HTTP 403
+        is exempt from this, and safely so: it is reached identically for every <code>taskId</code>
+        a given caller could ever present to that method, real or not, so it discloses only the
+        caller's own privilege tier, never anything about the specific task named in the
+        request.</para>
+      <para>The MCP Tasks extension itself requires the treatment of step 3's first condition —
+          <code>-32602</code> for an unknown or expired <code>taskId</code> — only as a
+          <code>MUST</code> for <code>tasks/get</code>; for <code>tasks/update</code> and
+          <code>tasks/cancel</code> it is only a <code>SHOULD</code>. This specification
+        strengthens both to a <emphasis>shall</emphasis>, and extends the same treatment to all
+        three conditions of step 3 uniformly: an ONVIF endpoint shall return <code>-32602
+          InvalidParams</code> for an unknown, expired, or unauthorized <code>taskId</code> on
+          <code>tasks/update</code> and <code>tasks/cancel</code> as well as on
+          <code>tasks/get</code>, rather than the bare acknowledgement those two methods would
+        otherwise return. This is an ONVIF-specific profiling decision that goes beyond the MCP
+        Tasks extension's own text, stated here so that an implementation checked against the base
+        extension alone is not mistaken for non-conformant with this specification, nor the
         reverse.</para>
-      <para>A request that does not declare <code>io.modelcontextprotocol/tasks</code> support in
-        its own <code>_meta["io.modelcontextprotocol/clientCapabilities"]</code> is a distinct,
-        earlier failure and is not part of either tier above: an ONVIF endpoint shall reject it with
-          <code>-32021</code> (<code>MissingRequiredClientCapability</code>), as specified in <xref
-          linkend="sec_task_model"/>, before any task lookup is attempted.</para>
       <para><code>-32602</code> and <code>-32021</code> are JSON-RPC and MCP Tasks
         extension-standard error codes. They are independent of the ONVIF-custom
           <code>-3201x</code> range defined in <xref linkend="sec_event_error_codes"/> for the
@@ -1221,7 +1266,7 @@
           <colspec colname="c4" colwidth="36*"/>
           <thead>
             <row>
-              <entry><para>Condition</para></entry>
+              <entry><para>Condition (evaluated in this order)</para></entry>
               <entry><para>HTTP Status</para></entry>
               <entry><para>JSON-RPC <code>error.code</code></para></entry>
               <entry><para>Notes</para></entry>
@@ -1229,44 +1274,43 @@
           </thead>
           <tbody valign="top">
             <row>
-              <entry><para>Caller's role does not meet the access class of the Tool whose
-                  invocation created, or would create, the task — for any <code>taskId</code>,
-                  including a well-formed one.</para></entry>
-              <entry><para>403</para></entry>
-              <entry><para>— (rejected before JSON-RPC processing; no task lookup)</para></entry>
-              <entry><para>Identical whether <code>taskId</code> is real, forged, or
-                  garbage.</para></entry>
-            </row>
-            <row>
-              <entry><para>Caller's role is adequate; <code>taskId</code> does not exist, or has
-                  expired or been purged.</para></entry>
-              <entry><para>200</para></entry>
-              <entry><para><code>-32602</code></para></entry>
-              <entry><para><code>message: "InvalidParams"</code>; see the example
-                  below.</para></entry>
-            </row>
-            <row>
-              <entry><para>Caller's role is adequate; <code>taskId</code> exists but the caller is
-                  not its creator and is not otherwise authorized for it.</para></entry>
-              <entry><para>200</para></entry>
-              <entry><para><code>-32602</code></para></entry>
-              <entry><para>Byte-for-byte identical <code>message</code> and
-                  <code>data</code> to the row above.</para></entry>
-            </row>
-            <row>
-              <entry><para>The request does not declare <code>io.modelcontextprotocol/tasks</code>
-                  support.</para></entry>
+              <entry><para>1. The request does not declare
+                  <code>io.modelcontextprotocol/tasks</code> support.</para></entry>
               <entry><para>200</para></entry>
               <entry><para><code>-32021</code></para></entry>
-              <entry><para><code>message: "MissingRequiredClientCapability"</code>; checked
-                  before any task lookup.</para></entry>
+              <entry><para><code>message: "MissingRequiredClientCapability"</code>; no task
+                  lookup.</para></entry>
+            </row>
+            <row>
+              <entry><para>2. Caller's role is below the fixed per-method minimum
+                  (<code>onvif:Operator</code> for <code>tasks/cancel</code>,
+                  <code>onvif:User</code> for <code>tasks/get</code>/<code>tasks/update</code>) —
+                  for any <code>taskId</code>, including a well-formed one.</para></entry>
+              <entry><para>403</para></entry>
+              <entry><para>— (no task lookup)</para></entry>
+              <entry><para>Identical whether <code>taskId</code> is real, forged, or garbage;
+                  discloses only the caller's own privilege tier.</para></entry>
+            </row>
+            <row>
+              <entry><para>3. Caller clears the fixed minimum, and at least one of: (a)
+                    <code>taskId</code> does not exist, has expired, or has been purged; (b) the
+                  task exists but the caller is not its creator and is not otherwise authorized
+                  for it; (c) the task exists, the caller is its creator or otherwise authorized,
+                  but the caller's current role does not meet the access class specifically
+                  recorded for the Tool invocation that created it.</para></entry>
+              <entry><para>200</para></entry>
+              <entry><para><code>-32602</code></para></entry>
+              <entry><para>Byte-for-byte identical <code>message</code> and <code>data</code>
+                  across (a), (b), and (c); see the example below.</para></entry>
             </row>
           </tbody>
         </tgroup>
       </table>
-      <para>For example, a <code>tasks/get</code> request from an adequately-privileged caller
-        naming a <code>taskId</code> that is either unknown or belongs to a different caller
-        receives exactly this response, with no field distinguishing the two cases:</para>
+      <para>For example, a <code>tasks/get</code> request from a caller that clears the fixed
+        per-method minimum, naming a <code>taskId</code> that is unknown, belongs to a different
+        caller, or belongs to the caller but now requires a role the caller's current token does
+        not carry, receives exactly this response in all three cases, with no field distinguishing
+        them:</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 18,
