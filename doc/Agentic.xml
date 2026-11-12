@@ -126,7 +126,7 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://modelcontextprotocol.io/specification/2025-11-25">https://modelcontextprotocol.io/specification/2025-11-25</link>&gt;</para>
     <para>Model Context Protocol, 2026-07-28</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://modelcontextprotocol.io/specification/2026-07-28">https://modelcontextprotocol.io/specification/2026-07-28</link>&gt;</para>
-    <para>Model Context Protocol Tasks Extension</para>
+    <para>Model Context Protocol Tasks Extension, 2026-07-28</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://modelcontextprotocol.io/extensions/tasks/overview">https://modelcontextprotocol.io/extensions/tasks/overview</link>&gt;</para>
     <para>MCP Events Extension — Design Sketch Proposal</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://raw.githubusercontent.com/modelcontextprotocol/experimental-ext-triggers-events/refs/heads/main/docs/design-sketch-proposal.md">https://raw.githubusercontent.com/modelcontextprotocol/experimental-ext-triggers-events/refs/heads/main/docs/design-sketch-proposal.md</link>&gt;</para>
@@ -176,19 +176,6 @@
             </row>
             <row>
               <entry align="left">
-                <para><emphasis role="bold">Function</emphasis></para>
-              </entry>
-              <entry align="left">
-                <para>An analytic or control capability of an ONVIF endpoint, such as
-                    <code>vehicle_detection</code> or the reserved
-                    <code>set_event_stream_parameters</code>, on which the Tools of this
-                  specification act. Functions vary between device instances and over time, and are
-                  discovered with the <code>list_functions</code> Tool. A function is not an MCP Tool
-                  and is not exposed as one.</para>
-              </entry>
-            </row>
-            <row>
-              <entry align="left">
                 <para><emphasis role="bold">Keep-Alive (Heartbeat)</emphasis></para>
               </entry>
               <entry align="left">
@@ -198,7 +185,7 @@
                   persisted cursor advances during quiet periods. The interval used when no
                   client value is configured is device-specific and is declared in
                   <code>EventStreamCapabilities.defaultKeepaliveIntervalMs</code>. It is
-                  configurable through the <code>set_event_stream_parameters</code> function
+                  configurable through the <code>set_event_stream_parameters</code> Tool
                   (see <xref linkend="sec_event_keepalive"/>).</para>
               </entry>
             </row>
@@ -269,9 +256,9 @@
                 <para><emphasis role="bold">ONVIF endpoint</emphasis></para>
               </entry>
               <entry align="left">
-                <para>An MCP Server that wraps one or more agentic analytics models, reports them as
-                  functions, and exposes the Tools through which an ONVIF Client operates on them,
-                  together with a schema announcement and a metadata publisher.</para>
+                <para>An MCP Server that wraps one or more agentic analytics capabilities, exposes
+                  each directly as an MCP Tool discovered with <code>tools/list</code>, together
+                  with a schema announcement and a metadata publisher.</para>
               </entry>
             </row>
             <row>
@@ -290,9 +277,15 @@
               <entry align="left">
                 <para>A callable entry point that an ONVIF endpoint exposes over MCP, described by a
                   name, a human-readable description and an <code>inputSchema</code>, discovered
-                  with <code>tools/list</code> and invoked with <code>tools/call</code>. This
-                  specification defines six Tools; they are the same on every conforming device, and
-                  they act on the functions that device reports.</para>
+                  with <code>tools/list</code> and invoked with <code>tools/call</code>. Every
+                  analytic or control capability of an ONVIF endpoint, such as
+                    <code>motion_detection</code>, is exposed directly as a Tool: there is no
+                  separate catalogue of capabilities to be discovered before a Tool can be
+                  configured or invoked. This specification defines the Tools common to every
+                  conforming device, <code>get_status</code> and
+                    <code>set_event_stream_parameters</code>, and the conventions that govern every
+                  other Tool an ONVIF endpoint exposes for its own capabilities (see <xref
+                    linkend="sec_tool_invocation"/>).</para>
               </entry>
             </row>
           </tbody>
@@ -447,10 +440,12 @@
             <para>Tools are callable operations with a named identifier, a human-readable
               description, and an <code>inputSchema</code> (JSON Schema) that fully describes the
               expected arguments. The Tools an ONVIF endpoint exposes are the means by which an ONVIF
-              Client reads and controls its agentic capabilities, such as configuring a detection
-              region or querying service status. The ONVIF Client invokes a Tool by sending a
-                <code>tools/call</code> JSON-RPC request. This specification defines six Tools,
-              given in <xref linkend="sec_tool_invocation"/>.</para>
+              Client reads and controls its agentic capabilities, such as running a detector or
+              querying service status. Every capability is discovered directly as a Tool, with no
+              separate catalogue to consult first. The ONVIF Client invokes a Tool by sending a
+                <code>tools/call</code> JSON-RPC request. This specification defines the Tools
+              common to every conforming device and the conventions that govern every other Tool an
+              ONVIF endpoint exposes, given in <xref linkend="sec_tool_invocation"/>.</para>
           </listitem>
           <listitem>
             <para>Resources are read-only data objects accessible via <code>resources/list</code>
@@ -468,9 +463,12 @@
             <para>Tasks is an extension and not a fourth category of object: it adds nothing for a
               host to discover, but allows the result of a <code>tools/call</code> to be returned
               after the request that started it has completed, under a durable <code>taskId</code>
-              the ONVIF Client polls with <code>tasks/get</code>. This specification requires it,
-              because a Tool invocation may start work that does not finish within one
-              request/response exchange (see <xref linkend="sec_tool_invocation"/>).</para>
+              the ONVIF Client polls with <code>tasks/get</code> or follows with
+                <code>notifications/tasks</code>. This specification requires it, because invoking a
+              continuous Tool, such as a detector, starts an execution that outlives the
+              request that started it: the task created for such an invocation represents the whole
+              execution, not merely its start, and stays <code>working</code> for as long as the
+              execution is active (see <xref linkend="sec_tool_invocation"/>).</para>
           </listitem>
         </itemizedlist>
       </section>
@@ -721,11 +719,14 @@
               <xref linkend="ch_metadata"/>.</para>
           </listitem>
           <listitem>
-            <para><code>agentic</code>: the function-control interface —
-                <code>FunctionDescriptor</code>,
-                <code>ListFunctionsResult</code>, the abstract bases that every function
-              specialises, and the classes of the reserved <code>set_event_stream_parameters</code>
-              function.</para>
+            <para><code>agentic</code>: the Tool-level interface — the abstract bases that a
+              Tool's <code>config</code> argument, result and static <code>capabilities</code>
+              object specialise, and the classes of the Tools common to every conforming device,
+                <code>get_status</code> and <code>set_event_stream_parameters</code>. There is no
+              function-catalogue class in this module: every other Tool an ONVIF endpoint exposes
+              is announced directly by <code>tools/list</code>, as specified in <xref
+                linkend="sec_tool_invocation"/>, and not through a generic wrapper or a separate
+              catalogue Tool.</para>
           </listitem>
         </itemizedlist>
         <para>An ONVIF endpoint shall not redefine a class, a type or an enumeration that the bundle
@@ -813,18 +814,20 @@
           signature, a key descriptor and an extension container are all of that kind. An object whose
           place is declared in terms of a concrete class, such as a feature of interest or a procedure,
           shall not carry it.</para>
-        <para>The same obligation applies outside the information model, to the objects of the function
-          layer carried in the arguments and the results of the Tools: a <code>config</code>, an
-          execution <code>parameters</code> object, an execution result and a
-          <code>capabilities</code> object each instantiate a concrete subclass of an abstract base,
-          and each shall carry <code>@type</code> naming that subclass. The class is already fixed out
-          of band, by the schema URI the function descriptor publishes in
-          <code>configSchema</code>, <code>executionSchema</code>, <code>resultSchema</code> or
-          <code>capabilitiesSchema</code>; the keyword is what allows the object to be validated
-          against the bundle alone, by an ONVIF Client that holds the payload and not the descriptor
-          that announced it. These Tool arguments and results are not standalone JSON-LD documents
-          and carry no <code>@context</code>; their CURIEs are resolved with the prefix declarations
-          of the schema closure identified by the applicable schema URI.</para>
+        <para>Outside the information model, the arguments and the results of a Tool follow a
+          different rule, because they do not need the one this section has just stated. A Tool
+          binds a single <code>config</code> argument, and where applicable a single result and a
+          single static <code>capabilities</code> object, to concrete LinkML classes named directly
+          by that Tool's <code>inputSchema</code>, <code>outputSchema</code> and <code>_meta</code>
+          announcement (see <xref linkend="sec_tool_invocation"/>); none of the three is resolved
+          dynamically against an abstract base, so none of them requires a <code>@type</code>
+          designator of its own. These Tool arguments and results are not standalone JSON-LD
+          documents and carry no <code>@context</code>; their CURIEs, where any field uses one, are
+          resolved with the prefix declarations of the schema closure the Tool's schemas belong
+          to. The obligation this section states still applies one level down: a field nested inside
+          a <code>config</code>, a result or a <code>capabilities</code> object whose declared range
+          is an abstract class of the bundle, such as <code>Time</code> or <code>Location</code>,
+          carries <code>@type</code> under the same rule as any other object in that position.</para>
         <para>The division is not a stylistic one. Where the declared class is abstract it names a
           family and not a structure, and the fields of the object are the only other evidence of what
           it is; an ONVIF Client would have to guess the class from the fields it happens to find, and
@@ -842,7 +845,7 @@
           distinct and stable. Where two independently authored modules assign the same prefix to
           different namespace URIs, the device shall reject the conflicting module set and shall not
           rewrite either prefix. A prefix occurs in type designators covered by signatures and is
-          therefore part of the wire representation, unlike a local function name that a device may
+          therefore part of the wire representation, unlike a local Tool name that a device may
           arbitrate.</para>
         <para>Together, <code>@context</code> and <code>@type</code> make each item
             <emphasis>self-describing</emphasis>: the first supplies the mappings needed to expand
@@ -1104,17 +1107,30 @@
               <entry><para><code>onvif:User</code></para></entry>
             </row>
             <row>
-              <entry><para><code>tools/call</code> — <code>get_status</code>,
-                  <code>list_functions</code>, and
-                  <code>get_function_capabilities</code></para></entry>
+              <entry><para><code>tools/call</code> — a Tool that only reads discovery,
+                  capability, or status information (e.g. <code>get_status</code>)</para></entry>
               <entry><para>READ_SYSTEM</para></entry>
               <entry><para><code>onvif:User</code></para></entry>
             </row>
             <row>
-              <entry><para><code>tools/call</code> — <code>configure_function</code>,
-                  <code>execute_function</code>, and <code>stop_function</code></para></entry>
+              <entry><para><code>tools/call</code> — a Tool that starts an execution or
+                  otherwise mutates ONVIF endpoint state (e.g. <code>motion_detection</code>,
+                  <code>set_event_stream_parameters</code>)</para></entry>
               <entry><para>ACTUATE</para></entry>
               <entry><para><code>onvif:Operator</code></para></entry>
+            </row>
+            <row>
+              <entry><para><code>tasks/cancel</code></para></entry>
+              <entry><para>ACTUATE, and the access class of the effect being cancelled (see
+                  below)</para></entry>
+              <entry><para><code>onvif:Operator</code></para></entry>
+            </row>
+            <row>
+              <entry><para><code>tasks/get</code>, <code>tasks/update</code>, and
+                  <code>notifications/tasks</code></para></entry>
+              <entry><para>the access class of the Tool invocation that created the task (see
+                  below)</para></entry>
+              <entry><para><code>onvif:User</code> at minimum, scoped as below</para></entry>
             </row>
             <row>
               <entry><para><code>tools/call</code> — administrative Tools (e.g. model
@@ -1132,6 +1148,21 @@
           </tbody>
         </tgroup>
       </table>
+      <para>A Tool's access class, declared in its <code>tools/list</code> annotation, governs every
+        operation that acts on a task created by invoking it. Reading the status of a task created
+        by an ACTUATE-class Tool (<code>tasks/get</code>, <code>notifications/tasks</code>) and
+        cancelling it (<code>tasks/cancel</code>) both require at least the role that would have
+        been required to invoke that Tool in the first place; a request carrying a lower role shall
+        be rejected with HTTP 403 even where it names a valid <code>taskId</code>. Knowing a
+          <code>taskId</code> is not by itself a credential: the ONVIF endpoint shall re-evaluate the
+        access class of the underlying effect on every <code>tasks/get</code>,
+          <code>tasks/update</code>, and <code>tasks/cancel</code> request, and shall further
+        restrict each to the principal that created the task, or to another principal explicitly
+        authorized for that task's effect, rejecting every other authenticated principal with HTTP
+        403 even where its role would otherwise satisfy the access class. <code>tasks/update</code>
+        additionally requires that the request answer a pending <code>inputRequest</code> of that
+        task, as specified by the MCP Tasks extension; it is not a general reconfiguration
+        method.</para>
     </section>
   </chapter>
 
@@ -1208,10 +1239,13 @@
       </section>
       <section xml:id="sec_tool_discovery">
         <title>Tool Discovery</title>
-        <para>Every operation an ONVIF Client may invoke on an ONVIF endpoint is exposed as an MCP
-          Tool. The ONVIF Client discovers the Tools a device supports by calling
+        <para>Every capability an ONVIF Client may invoke on an ONVIF endpoint is exposed directly
+          as an MCP Tool. There is no separate catalogue of capabilities to call before a Tool can
+          be configured or invoked: the ONVIF Client discovers the complete, authoritative set of
+          Tools a device supports — and, through them, the capabilities it exposes — by calling
             <code>tools/list</code>.</para>
-        <para>Each Tool entry in the <code>tools/list</code> response shall contain: <itemizedlist>
+        <para>Each Tool entry in the <code>tools/list</code> response shall contain the fields MCP
+          defines for a Tool descriptor: <itemizedlist>
             <listitem>
               <para><code>name</code> — the Tool identifier used in subsequent
                   <code>tools/call</code> requests.</para>
@@ -1222,65 +1256,295 @@
             </listitem>
             <listitem>
               <para><code>inputSchema</code> — a JSON Schema object that fully describes the
-                expected arguments. This JSON Schema is compiled from the LinkML model retrieved in
-                  <xref linkend="sec_schema_retrieval"/> and shall use the same coordinate spaces,
-              unit definitions, and vocabulary as the event payloads delivered via
-                <code>events/stream</code>, <code>events/poll</code>, or webhook delivery.</para>
+                expected <code>arguments</code>, and in particular the single <code>config</code>
+                object every Tool defined or profiled by this specification accepts (see <xref
+                  linkend="sec_tool_invocation"/>). This JSON Schema is compiled from the LinkML
+                model retrieved in <xref linkend="sec_schema_retrieval"/> and shall use the same
+                coordinate spaces, unit definitions, and vocabulary as the event payloads
+                delivered via <code>events/stream</code>, <code>events/poll</code>, or webhook
+                delivery.</para>
+            </listitem>
+            <listitem>
+              <para><code>outputSchema</code> — where the Tool returns a
+                  <code>structuredContent</code> result, the JSON Schema that describes it,
+                compiled from the same LinkML model. <code>outputSchema</code> is an MCP-standard
+                field; this specification does not extend or redefine it.</para>
             </listitem>
           </itemizedlist></para>
-        <para>The ONVIF Client shall validate Tool arguments against the
-          <code>inputSchema</code> before sending a <code>tools/call</code> request. After
-          completing tool discovery the ONVIF Client has obtained, without any out-of-band
-          documentation: the complete catalogue of Tools supported by this device instance; the
-          argument types, valid ranges, and required/optional fields for each Tool; and
-          human-readable descriptions suitable for display or automated orchestration. This
-          catalogue covers the Tools only; the functions on which they operate are discovered
-          separately with <code>list_functions</code> (see <xref
-            linkend="sec_tool_list_functions"/>).</para>
+        <para>Every constraint needed to build a syntactically valid <code>config</code> object
+          shall be representable, and represented, in <code>inputSchema</code> alone: an ONVIF Host
+          that does not surface <code>_meta</code> to the agent driving it shall still let that
+          agent construct a valid call. <code>_meta</code> carries ONVIF-specific metadata that
+          goes beyond what JSON Schema can express — a stable cross-vendor identity for the
+          operation and the Tool's static capabilities — and is additional to, not a substitute
+          for, what <code>inputSchema</code> and <code>outputSchema</code> already state. The two
+          ONVIF conventions this specification defines for <code>_meta</code> are specified in
+          <xref linkend="sec_tool_identity"/> and <xref linkend="sec_tool_capabilities"/>; neither
+          is a standard MCP field.</para>
+        <para>The ONVIF Client shall validate Tool arguments against <code>inputSchema</code>
+          before sending a <code>tools/call</code> request. After completing tool discovery the
+          ONVIF Client has obtained, without any out-of-band documentation: the complete catalogue
+          of capabilities supported by this device instance, each already a callable Tool; the
+          argument types, valid ranges, and required/optional fields for each; the stable identity
+          and static capabilities of each, from <code>_meta</code>; and human-readable descriptions
+          suitable for display or automated orchestration.</para>
         <para>See <xref linkend="sec_annex_tool_discovery"/> for a wire format example.</para>
+
+        <section xml:id="sec_tool_identity">
+          <title>Tool identity</title>
+          <para>A Tool answers to two identifiers because the two questions an ONVIF Client asks
+            about it are different. To <emphasis>call</emphasis> it, the client needs the name this
+            device answers to; to <emphasis>recognise</emphasis> the operation, and correlate it
+            with the same operation exposed by another endpoint under a possibly different name,
+            the client needs an identifier that does not depend on the device at all.</para>
+          <para><code>name</code> is the handle, standard to MCP. It shall be unique within a
+            single <code>tools/list</code> response, and it is arbitrated by the ONVIF endpoint.
+            It is not a global identifier, and an ONVIF Client shall not use it as a key across
+            devices, nor assume that a name it recognises on one device denotes the same operation
+            on another.</para>
+          <para><code>_meta["org.onvif/canonicalUri"]</code> is the identity, and is an ONVIF
+            convention and not a standard MCP field. Where present, it shall be the same on every
+            ONVIF endpoint that implements the operation, and shall be stable under any renaming of
+              <code>name</code>. For a Tool reserved by this specification the value is
+              <code>https://www.onvif.org/ver10/agentic/tool/</code> followed by the reserved name,
+            for example <code>https://www.onvif.org/ver10/agentic/tool/set_event_stream_parameters</code>.
+            For any other Tool the value lies in a namespace controlled by the party that defined
+            it, in the same sense as the <code>vendor_namespace</code> of a
+              <code>VendorExtension</code> (see <xref linkend="sec_vendor_field_extensions"/>). An
+            ONVIF endpoint that cannot guarantee stability under renaming for a Tool of its own
+            omits the annotation for that Tool, and an ONVIF Client then has no cross-device
+            identity to rely on for it beyond <code>name</code>.</para>
+          <para>This is the same division of labour that applies to event types (see <xref
+              linkend="sec_event_type_catalogue"/>), and for the same reason: a bare local name
+            cannot be made collision-free across parties who do not coordinate, while a URI in a
+            namespace its owner controls can. A Tool name, a canonical Tool identity, and the
+            category identifiers a detection Tool accepts (see <xref
+              linkend="sec_detection_class_vocabulary"/>) are three distinct kinds of identifier and
+            are never interchangeable: the first calls an operation, the second recognises it
+            across vendors, and the third names what the operation looks for.</para>
+        </section>
+
+        <section xml:id="sec_tool_capabilities">
+          <title>Tool capabilities</title>
+          <para>A Tool's static capabilities are the invariant properties that describe what this
+            device instance supports for that Tool — such as the categories a detector can
+            recognise, or a concurrency ceiling — as distinct from the outcome of any particular
+            invocation. Capabilities do not depend on whether the Tool has ever been called, and
+            are the same before and after any execution.</para>
+          <para>This specification carries them in <code>_meta["org.onvif/capabilities"]</code> of
+            the Tool descriptor returned by <code>tools/list</code>, rather than in a separate Tool
+            or a field of the invocation result. This is an ONVIF convention and not a standard MCP
+            field; a result <code>structuredContent</code> reports the outcome of the call that
+            produced it, and keeping capabilities out of it prevents an invariant value from being
+            mistaken for an outcome. <xref linkend="sec_tool_motion_detection"/> shows a complete
+            descriptor.</para>
+          <para>A declared capability is a ceiling and not a guarantee of admission. In particular,
+            a concurrency limit such as <code>maxConcurrentExecutions</code> states how many
+            concurrent executions of the Tool this device instance supports at most; it does not
+            guarantee that a given <code>tools/call</code> will be admitted, since other executions
+            — started by this client, by another authorized client, or by the device itself — may
+            already be consuming that capacity. An ONVIF endpoint that cannot admit a new execution
+            shall reject the call with <code>-32013 ResourceExhausted</code> rather than silently
+            queue or downgrade it.</para>
+          <para>Where the set of categories a detection Tool supports, or any other capability,
+            changes at runtime — for instance after a licence is applied — the ONVIF endpoint shall
+            send <code>notifications/tools/list_changed</code> and the ONVIF Client shall re-call
+              <code>tools/list</code>. An ONVIF endpoint shall keep <code>inputSchema</code> and
+              <code>_meta["org.onvif/capabilities"]</code> mutually consistent at every point in
+            time: in particular, the enumeration of categories admitted by <code>inputSchema</code>
+            and the categories listed in <code>supportedClasses</code> (see <xref
+              linkend="sec_detection_class_vocabulary"/>) shall name the same set.</para>
+        </section>
+
+        <section xml:id="sec_detection_class_vocabulary">
+          <title>Object category identifiers</title>
+          <para>Several Tools of this kind — <code>motion_detection</code> is the example used
+            throughout this specification — accept a selection of the categories of object they
+            are to detect, carried in the <code>classes</code> field of <code>config</code>. A
+            category identifier is a third kind of name, distinct from a Tool's <code>name</code>
+            and from its canonical URI (see <xref linkend="sec_tool_identity"/>): it does not name
+            an operation, it names a kind of thing the operation looks for, in the same sense that
+              <code>FeatureOfInterestType</code> names a kind of thing an <code>Observation</code>
+            is about (see <xref linkend="sec_feature_of_interest"/>).</para>
+          <para>This specification defines an open vocabulary of category identifiers, on the same
+            pattern as <xref linkend="sec_open_vocabulary"/> but adapted to a plain JSON Schema
+              <code>enum</code> of strings, since <code>classes</code> is a list of bare tokens and
+            not a list of the two-field objects that pattern uses elsewhere:</para>
+          <itemizedlist>
+            <listitem>
+              <para>An identifier reserved by this specification is a bare lowercase token drawn
+                from a registry this specification maintains. The initial registry comprises
+                  <code>human</code>, <code>vehicle</code>, and <code>animal</code>; a future
+                revision may add further tokens, and never removes one already reserved.</para>
+            </listitem>
+            <listitem>
+              <para>A vendor-specific category is an absolute URI in a namespace the vendor
+                controls, in the same sense as the <code>custom</code> field of
+                  <xref linkend="sec_open_vocabulary"/> and the <code>vendor_namespace</code> of a
+                  <code>VendorExtension</code>. A vendor shall not coin a URI for a category this
+                specification already reserves.</para>
+            </listitem>
+          </itemizedlist>
+          <para>The lexical form alone distinguishes the two: a bare token is resolved against the
+            registry this specification maintains, an absolute URI is vendor-owned and opaque
+            beyond its owning party. An ONVIF Client shall apply the same rule an ONVIF endpoint
+            does when deciding whether a value names an ONVIF-reserved category or a vendor one.</para>
+          <para><code>_meta["org.onvif/capabilities"].supportedClasses</code> enumerates every
+            category identifier the Tool accepts on this device instance, and the
+              <code>enum</code> of the corresponding property in <code>inputSchema</code> shall
+            list the same set, in accordance with <xref linkend="sec_tool_capabilities"/>. Neither
+            list implies that every category it names is selected by default: <code>classes</code>
+            is a required, non-empty, explicit selection in every call, and an ONVIF endpoint shall
+            not treat its absence as a request for every supported category — a call that omits a
+            required <code>classes</code> field is rejected by <code>inputSchema</code> validation,
+            as for any other missing required argument. An ONVIF endpoint shall reject a call that
+            selects a category outside <code>supportedClasses</code> with
+              <code>-32602 InvalidParams</code>; it shall not silently ignore the unsupported
+            category and proceed with the rest of the selection.</para>
+          <para>The selection in <code>config.classes</code> governs what the detection Tool looks
+            for, and therefore what it may report; it is unrelated to the filter arguments an event
+            type's <code>inputSchema</code> may offer for an <code>events/stream</code>,
+              <code>events/poll</code>, or <code>events/subscribe</code> request (see <xref
+              linkend="sec_event_filtering"/>). The former controls production, the latter
+            controls which already-produced events reach a given subscriber; an ONVIF Client that
+            wants to see every category a Tool detects shall select them all in
+              <code>config.classes</code> and shall not expect a looser event-subscription filter
+            to compensate for a narrower selection made at configuration time, nor the reverse.</para>
+        </section>
       </section>
     </section>
 
     <section xml:id="sec_tool_invocation">
       <title>Tool Invocation</title>
-      <para>The Tools defined by this specification are invoked via the MCP <code>tools/call</code>
-        JSON-RPC method. The ONVIF endpoint shall validate the <code>arguments</code> object
-        against the <code>inputSchema</code> of the named Tool before executing it. If validation
-        fails, the ONVIF endpoint shall return a structured error response without executing the
-        Tool.</para>
-      <para>The ONVIF endpoint shall advertise support for the MCP Tasks extension in
-        <code>server/discover</code>. Before returning a task result, it shall verify that the
-        client declared <code>io.modelcontextprotocol/tasks</code> support for the request. A
-        supported Tool invocation may return either its normal result or a result with
-        <code>resultType: "task"</code>. The returned task shall include a durable
-        <code>taskId</code>, a status, a <code>ttlMs</code>, and a recommended
-        <code>pollIntervalMs</code>. The client shall use <code>tasks/get</code> until the task
-        reaches <code>completed</code>, <code>failed</code>, or <code>cancelled</code>.</para>
+      <para>A Tool defined or profiled by this specification is invoked via the MCP
+          <code>tools/call</code> JSON-RPC method with a single <code>arguments.config</code>
+        object. There is no separate <code>parameters</code> object: every input the Tool needs for
+        this execution, including the selection of categories for a detection Tool, is a field of
+          <code>config</code>, and <code>inputSchema</code> describes <code>config</code> directly
+        — its required fields, its types, its constraints — rather than describing a generic
+        wrapper. <code>config</code> applies to the execution this call creates. It is not a
+        request to change the ONVIF endpoint's persistent defaults, and where several ONVIF Client
+        requests are served by one shared physical producer (see below), it configures only the
+        execution — and the task — that this call creates, not a configuration another client's
+        execution on the same producer is already relying on. An ONVIF endpoint that cannot honour
+        two concurrently differing configurations on a shared producer shall reject the later call
+        with <code>-32013 ResourceExhausted</code> rather than silently override the earlier
+        one.</para>
+      <para>The ONVIF endpoint shall validate <code>arguments.config</code> against the
+          <code>inputSchema</code> of the named Tool before executing it. If validation fails, the
+        ONVIF endpoint shall return a structured error response without executing the Tool.</para>
+      <para>Device-type-specific Tools may be defined in ONVIF profiles or vendor extensions, in
+        addition to the Tools this specification itself defines or reserves. This specification
+        reserves two Tool names that every ONVIF endpoint implementing the Agentic Service shall
+        expose: <code>get_status</code> (<xref linkend="sec_tool_get_status"/>) and
+          <code>set_event_stream_parameters</code> (<xref
+          linkend="sec_tool_set_event_stream_parameters"/>). Every other Tool a given endpoint
+        exposes for its own analytic or control capabilities — <code>motion_detection</code> is
+        the worked example of <xref linkend="sec_tool_motion_detection"/> — varies between device
+        instances and over time, and is discovered the same way, with <code>tools/list</code>: there
+        is no distinct discovery path for an endpoint's own capabilities and no requirement that
+        every ONVIF endpoint expose any particular one of them.</para>
 
-      <para>This specification defines six mandatory Tools that every ONVIF endpoint shall
-        implement regardless of device type (camera, NVR, access control, or other). Additional
-        device-type-specific Tools may be defined in ONVIF profiles or vendor extensions.</para>
+      <section xml:id="sec_task_model">
+        <title>Tasks and continuous execution</title>
+        <para>The ONVIF endpoint shall declare support for the MCP Tasks extension in
+            <code>server/discover</code>. Support for the extension, and for any individual request
+          made under it, is declared per request and not once for a session: before returning a
+          task result for a given <code>tools/call</code>, the ONVIF endpoint shall verify that the
+          client declared <code>io.modelcontextprotocol/tasks</code> support on that same request.
+          A Tool invocation that can complete synchronously may return either its normal result or
+          a result with <code>resultType: "task"</code>, at the ONVIF endpoint's discretion. A Tool
+          that starts a continuous execution — a detector that keeps running after the call returns,
+          such as <code>motion_detection</code> — has no synchronous alternative and therefore
+          requires the extension: where the client has not declared
+            <code>io.modelcontextprotocol/tasks</code> support on that request, the ONVIF endpoint
+          shall reject the call with the error MCP defines for a required capability the client has
+          not declared, rather than execute the Tool and discard the ability to report its ongoing
+          state.</para>
+        <para>Where a task is returned, it shall include a durable <code>taskId</code>, a status, a
+            <code>ttlMs</code>, and a recommended <code>pollIntervalMs</code>. The client follows it
+          with <code>tasks/get</code> or with <code>notifications/tasks</code> where the server
+          sends them.</para>
+        <para>For a Tool that starts a continuous execution, the task represents the whole
+          execution and not merely its start. This is a deliberate departure from treating a task as
+          covering only the work needed to begin: the task returned for such a call stays
+            <code>working</code> for as long as the execution is active, and reaches a terminal
+          state only when the execution itself ends — because it was cancelled (see below), because
+          it completed on its own, or because it failed. <code>taskId</code> is therefore the
+          external identifier of the execution for its whole lifetime, and this specification uses
+          no separate execution identifier alongside it: where an earlier revision of an ONVIF
+          endpoint's own model used an <code>executionId</code>, that role is now played by
+            <code>taskId</code>. An ONVIF endpoint may keep a further, internal identifier for a
+          physical producer it shares between several such tasks (see below), but that identifier
+          is never the one an ONVIF Client is given to track its own execution.</para>
+        <para><code>ttlMs</code> governs the retention and usability of the task record — how long
+          the ONVIF endpoint undertakes to keep answering <code>tasks/get</code> for it — and is not
+          a timer that stops the execution: an ONVIF endpoint shall not cancel or otherwise end a
+          continuous execution merely because its task's <code>ttlMs</code> has elapsed, and shall
+          document separately, if it does not retain the task indefinitely, for how long after the
+          execution ends <code>tasks/get</code> remains answerable for it. Equally, a client
+          disconnecting, or simply not polling for a time, does not by itself cancel the execution
+          or the task; an execution the client has stopped tracking keeps running, and keeps
+          producing events, until it is cancelled or ends on its own.</para>
+        <para>A terminal <code>completed</code> status may carry a Tool result with
+            <code>isError: true</code>: this is how a Tool-level failure of a continuous execution —
+          for instance a detector that could not keep running because its video source failed — is
+          reported. <code>failed</code> is reserved for an error at the JSON-RPC or task-protocol
+          level itself, such as a malformed <code>tasks/get</code> request, and not for an
+          application-level failure of the Tool the task represents; an ONVIF endpoint shall not use
+            <code>failed</code> to report the latter.</para>
+        <para>Observations and assessments produced by a continuous execution are never returned as
+          an intermediate result of <code>tasks/get</code>: they are delivered exclusively as
+          metadata events, through <code>events/stream</code>, <code>events/poll</code>, or webhook
+          (see <xref linkend="ch_event_consumption"/>), whichever method the applicable ONVIF
+          Profile requires. <code>tasks/get</code> reports only the status of the execution itself —
+            <code>working</code>, a terminal state, and the fields that go with them — never the
+          detections it is producing.</para>
+        <para><code>working</code> is a statement about the task, not a guarantee that the
+          underlying detector is already operating: it says that the ONVIF endpoint has accepted
+          the call and that the execution has not yet reached a terminal state, and no further
+          readiness is implied by the status alone. An ONVIF Client that needs to know whether a
+          detector is actually producing output checks readiness through <code>get_status</code>
+          (<xref linkend="sec_tool_get_status"/>) and through whatever ONVIF-specific readiness
+          information a Tool's capabilities or result additionally define; this specification
+          introduces no further MCP task status beyond those the Tasks extension itself defines.</para>
+      </section>
 
-      <para>Tools and functions are distinct concepts and are discovered through distinct requests.
-        A <emphasis>Tool</emphasis> is a callable entry point of the ONVIF endpoint, invoked with the
-          <code>tools/call</code> method; the six Tools defined here are the same on every conforming
-        device and are discovered with <code>tools/list</code> (see <xref
-          linkend="sec_tool_discovery"/>). A <emphasis>function</emphasis> is an analytic
-        capability on which those Tools act, such as <code>vehicle_detection</code>; functions
-        vary between device instances and over time, and are discovered with the
-          <code>list_functions</code> Tool (see <xref linkend="sec_tool_list_functions"/>). A
-        function is not an MCP Tool and shall not be exposed as one: it is named in the
-          <code>function</code> argument of the six Tools. Consequently
-          <code>tools/list</code> and <code>list_functions</code> are not redundant — the first
-        enumerates what an ONVIF Client may invoke, the second the subjects on which it
-        may invoke it.</para>
+      <section xml:id="sec_task_cancellation">
+        <title>Ending a continuous execution</title>
+        <para>An ONVIF Client ends a continuous execution by calling
+            <code>tasks/cancel(taskId)</code>. This replaces a dedicated stop Tool: cancellation is
+          requested on the task that represents the execution, exactly as it would be for any other
+          long-running MCP task.</para>
+        <para>The ONVIF endpoint shall follow the semantics MCP defines for <code>tasks/cancel</code>
+          and no more: acknowledging the request is not a guarantee that the execution has already
+          stopped, nor that the task has already transitioned to <code>cancelled</code> by the time
+          the acknowledgement is returned. The client learns that cancellation has taken effect by
+          observing the task reach a terminal state, with <code>tasks/get</code> or
+            <code>notifications/tasks</code>. Any stronger guarantee — that the underlying analytics
+          process has released its resources, or that no further event will be emitted after a
+          given point — is an ONVIF-specific undertaking and not one MCP itself makes; an ONVIF
+          endpoint that offers such a guarantee shall say so in the description of the Tool
+          concerned, and an ONVIF Client shall not assume it of a Tool that does not.</para>
+        <para>Where an ONVIF endpoint maps several ONVIF Clients' requests for the same analytic
+          capability onto one shared physical producer — for instance because the underlying
+          detector process is a single instance serving every caller — the task is the logical
+          request one client made, and is distinct from that shared producer. Cancelling the task
+          created for client A's request shall stop the production A asked for and shall not stop
+          an execution client B separately requested on the same producer: the ONVIF endpoint is
+          responsible for keeping the producer running for B's sake, under B's own task, until B's
+          task is itself cancelled or ends. This specification does not define a lease, an
+          autostart, or an autostop mechanism for the shared producer itself; that is a distinct,
+          separately tracked piece of work and is out of scope here.</para>
+      </section>
 
       <section xml:id="sec_tool_get_status">
         <title>get_status</title>
         <para>The <code>get_status</code> Tool returns the current operational status of the
-          agentic analytics engine. It takes no arguments. The ONVIF endpoint shall always respond
-          successfully to this Tool unless the device is unreachable.</para>
-        <para>The empty <code>arguments</code> object is defined by the LinkML class
+          ONVIF endpoint: its general health, and the inventory of executions visible to the
+          calling principal. It takes an empty <code>config</code> object. The ONVIF endpoint shall
+          always respond successfully to this Tool unless the device is unreachable.</para>
+        <para>The empty <code>config</code> object is defined by the LinkML class
           <code>GetStatus</code>. The response <code>structuredContent</code> is defined by
           <code>GetStatusResponse</code>.</para>
         <para>The response <code>structuredContent</code> shall include: <itemizedlist>
@@ -1289,241 +1553,127 @@
                   <code>degraded</code>, or <code>error</code>.</para>
             </listitem>
             <listitem>
-              <para><code>activeFunctions</code> — list of active function executions. Each
-                execution shall include the function identifier and its
-                <code>executionId</code>.</para>
+              <para><code>activeExecutions</code> — the inventory of executions visible to the
+                calling principal. Each entry shall include the <code>name</code> of the Tool that
+                created or represents the execution, and, where the execution is backed by an MCP
+                task the client can follow, its <code>taskId</code>. An entry for an execution the
+                ONVIF endpoint started on its own — at factory default, or otherwise outside any
+                client request — omits <code>taskId</code> rather than inventing one for an
+                execution no task ever represented.</para>
             </listitem>
             <listitem>
               <para><code>engineVersion</code> — version string of the agentic engine
                 firmware.</para>
             </listitem>
           </itemizedlist></para>
+        <para><code>get_status</code> is a status report and not a substitute for
+            <code>tasks/get</code>: it gives an overview of every execution the principal may see,
+          while <code>tasks/get</code> gives the detailed, authoritative status of the one execution
+          named by a particular <code>taskId</code>. There is no <code>tasks/list</code> method in
+          the version of the MCP Tasks extension this specification requires (see <xref
+            linkend="sec_task_model"/>); <code>activeExecutions</code> is the closest an ONVIF
+          Client comes to one, and it is scoped to what the calling principal is authorized to see,
+          not to every task on the device.</para>
         <para>See <xref linkend="sec_annex_tool_get_status"/> for a wire format example.</para>
       </section>
 
-      <section xml:id="sec_tool_list_functions">
-        <title>list_functions</title>
-        <para>The <code>list_functions</code> Tool returns the set of functions supported by this
-          device instance, together with their current configured/available state. It takes no
-          arguments. This is the authoritative machine-readable function catalogue of this device;
-          the ONVIF Client shall call <code>list_functions</code> before calling
-          <code>configure_function</code>, <code>execute_function</code>, or
-          <code>stop_function</code>.</para>
-        <para>The empty <code>arguments</code> object is defined by the LinkML class
-          <code>ListFunctions</code>.</para>
-        <para>Each entry in the response <code>structuredContent.functions</code> array shall
-          include: <itemizedlist>
-            <listitem>
-              <para><code>name</code> — the local name of the function on this device (for example
-                  <code>vehicle_detection</code>, <code>license_plate_recognition</code>,
-                  <code>set_event_stream_parameters</code>). It is the value the ONVIF Client passes in the
-                  <code>function</code> argument of <code>configure_function</code>,
-                  <code>execute_function</code>, <code>stop_function</code> and
-                  <code>get_function_capabilities</code>.</para>
-            </listitem>
-            <listitem>
-              <para><code>canonicalUri</code> — the canonical identifier of the function, which is
-                the same on every ONVIF endpoint that implements it.</para>
-            </listitem>
-            <listitem>
-              <para><code>description</code> — OPTIONAL human-readable description of what the
-                function does, for an operator reading the catalogue or for an ONVIF Client
-                presenting it.</para>
-            </listitem>
-            <listitem>
-              <para><code>enabled</code> — boolean indicating whether this function is configured
-                and available for execution.</para>
-            </listitem>
-            <listitem>
-              <para><code>configSchema</code> — OPTIONAL URI of the LinkML class in the schema
-                bundle (retrieved in <xref linkend="sec_schema_retrieval"/>) that defines the
-                structure of the <code>config</code> argument accepted by
-                <code>configure_function</code> for this function. It shall be present when the
-                function accepts a configuration.</para>
-            </listitem>
-            <listitem>
-              <para><code>executionSchema</code> — OPTIONAL URI of the LinkML class in the schema
-                bundle that defines the structure of the <code>parameters</code> argument accepted
-                by <code>execute_function</code> for this function. It shall be present when the
-                function accepts execution parameters.</para>
-            </listitem>
-            <listitem>
-              <para><code>resultSchema</code> — OPTIONAL URI of the LinkML class in the schema
-                bundle that defines the structure of the <code>structuredContent</code> returned by
-                <code>execute_function</code> for this function. It shall be present when the
-                function returns a structured result.</para>
-            </listitem>
-            <listitem>
-              <para><code>capabilitiesSchema</code> — OPTIONAL URI of the LinkML class in the
-                schema bundle, derived from <code>FunctionCapabilities</code>, that defines the
-                structure of the capabilities returned by
-                <code>get_function_capabilities</code> for this function. It shall be present when
-                the function has capabilities that an ONVIF Client can read.</para>
-            </listitem>
-          </itemizedlist></para>
-        <para>The structure of this response is defined by the <code>ListFunctionsResult</code> and
-          <code>FunctionDescriptor</code> classes of the Agentic Service LinkML schema.</para>
-
-        <para>An ONVIF endpoint that exposes no local functions shall return an array containing only
-          the reserved functions defined by this specification.</para>
-        <para>The function identifier <code>set_event_stream_parameters</code> is reserved by this
-          specification. Every ONVIF endpoint implementing the Agentic Service shall include it in
-          the <code>functions</code> array with <code>enabled: true</code>, so that an ONVIF Client
-          can discover both the keep-alive control and the limits of the event stream without
-          out-of-band knowledge (see <xref linkend="sec_event_keepalive"/>).</para>
-        <para>See <xref linkend="sec_annex_tool_list_functions"/> for a wire format example.</para>
-
-        <section xml:id="sec_function_catalogue">
-          <title>Function identity</title>
-          <para>A function carries two identifiers because the two questions an ONVIF Client asks
-            about a function are different. To <emphasis>call</emphasis> it, the client needs the
-            handle this device answers to; to <emphasis>recognise</emphasis> it, and to correlate it
-            with the same function on another device, the client needs an identifier that does not
-            depend on the device at all.</para>
-          <para><code>name</code> is the handle. It shall be unique within a single
-            <code>list_functions</code> response, and it is arbitrated by the ONVIF endpoint: where two
-            independently defined functions would claim the same local name, the device shall rename
-            one of them. It is therefore not a global identifier, and an ONVIF Client shall not use it
-            as a key across devices, nor assume that a name it recognises on one device denotes the
-            same function on another.</para>
-          <para><code>canonicalUri</code> is the identity. It shall be present on every entry, it
-            shall be the same on every ONVIF endpoint that implements the function, and it shall be
-            stable under any renaming of the local name. For a function reserved by this
-            specification the value shall be
-            <code>https://www.onvif.org/ver10/agentic/function/</code> followed by the reserved name,
-            for example
-            <code>https://www.onvif.org/ver10/agentic/function/set_event_stream_parameters</code>. For any
-            other function the value shall lie in a namespace controlled by the party that defined
-            the function.</para>
-          <para>This is the same division of labour that applies to event types (see <xref
-              linkend="sec_event_type_catalogue"/>), and for the same reason: a bare local name
-            cannot be made collision-free across parties who do not coordinate, while a URI in a
-            namespace its owner controls can.</para>
-        </section>
+      <section xml:id="sec_tool_motion_detection">
+        <title>motion_detection — a worked example</title>
+        <para><code>motion_detection</code> is used throughout this specification as the running
+          example of a Tool an ONVIF endpoint exposes for one of its own analytic capabilities. It
+          is illustrative: its name, its argument shape, and the category identifiers it accepts are
+          not themselves mandated by this specification, and an ONVIF endpoint names and shapes its
+          own Tools as its capabilities require, subject only to the conventions of <xref
+            linkend="sec_tool_discovery"/> and to this section.</para>
+        <para><code>motion_detection</code> detects motion involving objects of the categories
+          selected in <code>config.classes</code>. A representative descriptor, as returned by
+            <code>tools/list</code>, with MCP metadata and transport headers omitted:</para>
+        <programlisting>{
+  "name": "motion_detection",
+  "description": "Detect motion involving objects of the selected classes.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "config": {
+        "type": "object",
+        "properties": {
+          "classes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["human", "vehicle", "animal"]
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "confidenceThreshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "sourceToken": {
+            "type": "string"
+          }
+        },
+        "required": ["classes", "sourceToken"]
+      }
+    },
+    "required": ["config"]
+  },
+  "_meta": {
+    "org.onvif/canonicalUri": "https://vendor.example/agentic/tool/motion_detection",
+    "org.onvif/capabilities": {
+      "supportedClasses": ["human", "vehicle", "animal"],
+      "maxConcurrentExecutions": 2
+    }
+  }
+}</programlisting>
+        <para>Here <code>classes</code> is the explicit, non-empty selection of categories this call
+          asks the Tool to detect, drawn from the open vocabulary of <xref
+            linkend="sec_detection_class_vocabulary"/>; <code>supportedClasses</code> lists every
+          category this device instance can be asked to detect; the <code>inputSchema</code>
+            <code>enum</code> names the same three categories as <code>supportedClasses</code>, as
+          required by <xref linkend="sec_tool_capabilities"/>; and
+            <code>maxConcurrentExecutions</code> is a ceiling on this Tool's concurrency and not a
+          guarantee that a given call will be admitted (see <xref
+            linkend="sec_tool_capabilities"/>). The name, the category set, and the concurrency
+          limit shown are illustrative and are not imposed on every ONVIF endpoint or every Tool of
+          this kind.</para>
+        <para>A call that selects categories this descriptor supports starts a continuous execution,
+          represented by a task that stays <code>working</code> for as long as the detector is
+          active, as specified in <xref linkend="sec_task_model"/>. Detections are delivered
+          exclusively as metadata events, never as an intermediate <code>tasks/get</code> result.
+          The execution is ended with <code>tasks/cancel</code>, as specified in <xref
+            linkend="sec_task_cancellation"/>.</para>
+        <para>See <xref linkend="sec_annex_tool_motion_detection"/> for a complete wire format
+          example, including the task lifecycle and its cancellation.</para>
       </section>
 
-      <section xml:id="sec_tool_get_function_capabilities">
-        <title>get_function_capabilities</title>
-        <para>The <code>get_function_capabilities</code> Tool returns the static capabilities of a
-          single function: the invariant properties that describe what this device instance
-          supports for that function, such as the ranges of values it accepts. Capabilities do not
-          depend on any particular invocation; they are the same before and after an execution and
-          are readable without performing one.</para>
-        <para>Capabilities shall not be returned in the <code>structuredContent</code> of
-            <code>execute_function</code>. An <code>execute_function</code> response reports the
-          outcome of the call it completes; the properties of the function itself are read through
-          this Tool. Keeping the two apart lets an ONVIF Client discover what a function accepts
-          before deciding what to ask for, and prevents invariant values from appearing as though
-          they were results of an action.</para>
-        <para>The Tool takes a single argument, as defined by the LinkML class
-            <code>GetFunctionCapabilities</code>: <itemizedlist>
-            <listitem>
-              <para><code>function</code> (string, required) — the function identifier whose
-                capabilities are requested, as returned by <code>list_functions</code>.</para>
-            </listitem>
-          </itemizedlist></para>
-        <para>The response <code>structuredContent</code> is defined by the LinkML class
-            <code>GetFunctionCapabilitiesResponse</code> and shall include the
-            <code>function</code> identifier. If the function's descriptor contains
-            <code>capabilitiesSchema</code>, it shall also include a <code>capabilities</code>
-            object that is an instance of the class derived from
-            <code>FunctionCapabilities</code> that <code>capabilitiesSchema</code> identifies.
-            If the descriptor omits <code>capabilitiesSchema</code>, the response shall omit
-            <code>capabilities</code>.</para>
-        <para>An ONVIF endpoint shall reject a request naming a function it does not support with
-            <code>-32011 NotFound</code>. A function that has no readable capabilities shall omit
-            <code>capabilitiesSchema</code> from its descriptor; an ONVIF endpoint shall respond
-          successfully to this Tool for such a function without a <code>capabilities</code>
-          field.</para>
-        <para>See <xref linkend="sec_annex_tool_get_function_capabilities"/> for a wire format
-          example.</para>
-      </section>
-
-      <section xml:id="sec_tool_configure_function">
-        <title>configure_function</title>
-        <para>The <code>configure_function</code> Tool applies a configuration to a named
-          function. It is a generic wrapper: the structure of the <code>config</code>
-          argument is defined by the LinkML schema class identified by the
-          <code>configSchema</code> URI returned by <code>list_functions</code> for that function.
-          The ONVIF Client shall validate <code>config</code> against the compiled JSON Schema of
-          that class before sending the request.</para>
-        <para>The wrapper <code>arguments</code> object is defined by the LinkML class
-          <code>ConfigureFunction</code>; its <code>config</code> value is dynamically validated
-          against the class named by the function descriptor's <code>configSchema</code>. A
-          synchronous response <code>structuredContent</code> is defined by
-          <code>ConfigureFunctionResponse</code>. Both wrappers declare the object in terms of
-          <code>FunctionConfig</code>, the abstract base of every configuration, so that the object
-          instantiates a concrete subclass of it and carries <code>@type</code> naming that
-          subclass; which subclass is admissible is not decided by the root module, which declares
-          no configuration of its own, but by the schema closure identified by the
-          <code>configSchema</code> URI, and it is against that closure that an ONVIF Client
-          validates <code>config</code>.</para>
-        <para>A function whose descriptor omits <code>configSchema</code> accepts no configuration,
-          and is configured, if at all, by the parameters of its execution; the reserved
-          <code>set_event_stream_parameters</code> function is of that kind. An ONVIF endpoint shall
-          reject a <code>configure_function</code> call naming such a function with
-          <code>-32014 Unsupported</code>, there being no class that would define the
-          <code>config</code> the call has to carry.</para>
-        <para>The <code>configure_function</code> Tool arguments are: <itemizedlist>
-            <listitem>
-              <para><code>function</code> (string, required) — the function identifier, as returned
-                by <code>list_functions</code>.</para>
-            </listitem>
-            <listitem>
-              <para><code>config</code> (object, required) — the configuration object whose
-                structure is specific to <code>function</code> and defined by the
-                corresponding LinkML schema class.</para>
-            </listitem>
-          </itemizedlist></para>
-        <para><code>configure_function</code> shall not start the function. On success the ONVIF
-          endpoint shall confirm the applied configuration. If the operation is long-running and the
-          client has declared support for the MCP Tasks extension, the device may return a task
-          result instead of the final result. The client shall use <code>tasks/get</code> until the
-          task reaches a terminal state. On failure it shall return a structured error identifying
-          the failing field and the violated constraint.</para>
-        <para>See <xref linkend="sec_annex_tool_configure_function"/> for a wire format example.</para>
-      </section>
-
-      <section xml:id="sec_tool_execute_function">
-        <title>execute_function</title>
-        <para>The <code>execute_function</code> Tool starts an execution of a configured function.
-          It shall not be used to provide the function's configuration. The arguments shall include
-          the function identifier and may include execution-specific parameters. The structure of
-          the <code>parameters</code> argument, when present, is defined by the LinkML class
-          derived from <code>FunctionExecutionParameters</code> that corresponds to the named
-          function.</para>
-        <para>The wrapper <code>arguments</code> object is defined by the LinkML class
-          <code>ExecuteFunction</code>. Its optional <code>parameters</code> value is dynamically
-          validated against the class named by the function descriptor's
-          <code>executionSchema</code>. A synchronous response
-          <code>structuredContent</code>, when present, is the concrete
-          <code>FunctionExecutionResult</code> class named by <code>resultSchema</code>; the
-          JSON-RPC and MCP Task result envelopes are defined by MCP rather than LinkML.</para>
-        <para>On successful start, the device shall return an <code>executionId</code>. If starting
-          the function is asynchronous and the client has declared support for MCP Tasks, the device
-          may return a task result. The task represents only the start operation and shall reach a
-          terminal state when the execution is running or has failed. It shall not remain
-          permanently in <code>working</code> while a continuous function is active.</para>
-        <para>For continuous functions, subsequent output shall be made available as metadata
-          events, delivered via <code>events/stream</code>, <code>events/poll</code>, or webhook
-          (see <xref linkend="ch_event_consumption"/>). The execution remains active until stopped or
-          it terminates independently.</para>
-        <para><code>execute_function</code> is also the mechanism through which the ONVIF Client
-          adjusts the keep-alive interval of push streams, by invoking the reserved
-            <code>set_event_stream_parameters</code> function (see <xref linkend="sec_event_keepalive"/>).</para>
-      </section>
-
-      <section xml:id="sec_tool_stop_function">
-        <title>stop_function</title>
-        <para>The <code>stop_function</code> Tool stops an active function execution identified by
-          its <code>executionId</code>. If stopping the execution is asynchronous and the client has
-          declared support for MCP Tasks, the device may return a task result. The task represents
-          only the stop operation and shall reach a terminal state when the execution is stopped or
-          the stop operation has failed.</para>
-        <para>The <code>arguments</code> object is defined by the LinkML class
-          <code>StopFunction</code>. A synchronous successful response has no required
-          <code>structuredContent</code>; its JSON-RPC and MCP Task result envelopes are defined by
-          MCP rather than LinkML.</para>
+      <section xml:id="sec_tool_set_event_stream_parameters">
+        <title>set_event_stream_parameters</title>
+        <para><code>set_event_stream_parameters</code> is a Tool reserved by this specification,
+          discovered with <code>tools/list</code> like any other and invoked directly with
+            <code>tools/call</code>: it is not a wrapped operation and does not go through a generic
+          configuration or execution Tool. It sets the settable parameters of the event stream — at
+          present, the keep-alive interval — for the authenticated principal's
+            <code>events/stream</code> requests.</para>
+        <para>The Tool's single argument is <code>config</code>, defined by the LinkML class
+            <code>SetEventStreamParametersRequest</code>; its result, when the Tool returns one, is
+          defined by <code>SetEventStreamParametersResponse</code>; and its static capabilities,
+          announced in <code>_meta["org.onvif/capabilities"]</code> of its descriptor, are defined
+          by <code>EventStreamCapabilities</code>. The full field-level behaviour — clamping,
+          per-subscription versus per-principal scope, and the relationship to the keep-alive
+          mechanism itself — is specified in <xref linkend="sec_event_keepalive"/>, which this
+          section does not repeat.</para>
+        <para>Unlike <code>motion_detection</code>, this Tool is an operation that normally
+          completes within the request that invokes it: applying a keep-alive interval is not a
+          continuous execution, and this specification does not turn it into one artificially. An
+          ONVIF endpoint shall return its result synchronously wherever it can. Where applying the
+          requested interval genuinely requires asynchronous work, the ONVIF endpoint may return an
+          MCP task instead; that task represents only the work of applying the change and reaches a
+          terminal state as soon as the change has taken effect, and shall not be left
+            <code>working</code> once it has.</para>
+        <para>See <xref linkend="sec_annex_event_keepalive"/> for a wire format example.</para>
       </section>
     </section>
 
@@ -1532,8 +1682,7 @@
       <title>Post-Handshake ONVIF Client Knowledge</title>
       <para>An ONVIF Agentic Service is self-describing: an ONVIF Client that has completed the
         sequence defined in <xref linkend="sec_session_initialization"/>, <xref
-          linkend="sec_schema_retrieval"/>, <xref linkend="sec_tool_discovery"/>, <xref
-          linkend="sec_tool_list_functions"/>, and <xref
+          linkend="sec_schema_retrieval"/>, <xref linkend="sec_tool_discovery"/>, and <xref
           linkend="ch_event_consumption"/> is fully operational without any out-of-band
         documentation, SDK, or static configuration. The table below summarises the knowledge
         accumulated at each step.</para>
@@ -1554,7 +1703,7 @@
               <entry><para><xref linkend="sec_session_initialization"/></para></entry>
               <entry><para><code>server/discover</code></para></entry>
               <entry><para>Device identity, supported protocol versions, declared capability
-                flags (<code>resources</code>, <code>tools</code>).</para></entry>
+                flags (<code>resources</code>, <code>tools</code>, the Tasks extension).</para></entry>
             </row>
             <row>
               <entry><para><xref linkend="sec_schema_retrieval"/></para></entry>
@@ -1566,22 +1715,11 @@
             <row>
               <entry><para><xref linkend="sec_tool_discovery"/></para></entry>
               <entry><para><code>tools/list</code></para></entry>
-              <entry><para>Tool catalogue: name, human-readable description, and
-                <code>inputSchema</code> for each Tool.</para></entry>
-            </row>
-            <row>
-              <entry><para><xref linkend="sec_tool_list_functions"/></para></entry>
-              <entry><para><code>list_functions</code></para></entry>
-              <entry><para>Which functions are currently enabled;
-                <code>configSchema</code>, <code>executionSchema</code>,
-                <code>resultSchema</code>, and <code>capabilitiesSchema</code> URIs per
-                function, where applicable.</para></entry>
-            </row>
-            <row>
-              <entry><para><xref linkend="sec_tool_get_function_capabilities"/></para></entry>
-              <entry><para><code>get_function_capabilities</code></para></entry>
-              <entry><para>Static capabilities of a single function, such as the ranges of values
-                it accepts.</para></entry>
+              <entry><para>Complete Tool catalogue: name, human-readable description,
+                <code>inputSchema</code>, <code>outputSchema</code> where applicable, and the
+                ONVIF <code>_meta</code> canonical identity and static capabilities — including,
+                for a detection Tool, its <code>supportedClasses</code> — for every Tool the device
+                exposes.</para></entry>
             </row>
             <row>
               <entry><para><xref linkend="ch_event_consumption"/></para></entry>
@@ -1756,9 +1894,8 @@
         connection. An ONVIF endpoint shall exempt <code>events/stream</code> from any general
         request-concurrency limit it applies, and shall declare the maximum number of concurrent
         streams it supports in <code>maxConcurrentStreams</code> of
-        <code>EventStreamCapabilities</code>, read with the
-        <code>get_function_capabilities</code> Tool for the reserved
-        <code>set_event_stream_parameters</code> function (see <xref
+        <code>EventStreamCapabilities</code>, read in <code>_meta["org.onvif/capabilities"]</code>
+        of the reserved <code>set_event_stream_parameters</code> Tool's descriptor (see <xref
           linkend="sec_event_keepalive"/>); it shall reject a request exceeding that limit with
         <code>-32013 ResourceExhausted</code>. An ONVIF Client that reads that value before
         opening its streams need never provoke that error.</para>
@@ -1814,9 +1951,9 @@
         is a property of the device, declared in <code>defaultKeepaliveIntervalMs</code>; this
         specification fixes neither a default value nor a global supported range.</para>
       <para>The keep-alive interval is configurable by the ONVIF Client through the reserved
-          <code>set_event_stream_parameters</code> function, invoked with the <code>execute_function</code>
-        Tool (see <xref linkend="sec_tool_execute_function"/>). The structure of the
-          <code>parameters</code> argument is defined by the LinkML class
+          <code>set_event_stream_parameters</code> Tool, invoked directly with
+          <code>tools/call</code> (see <xref linkend="sec_tool_set_event_stream_parameters"/>). The
+        structure of its <code>config</code> argument is defined by the LinkML class
           <code>SetEventStreamParametersRequest</code> in the schema bundle, which declares:
         <itemizedlist>
           <listitem>
@@ -1834,7 +1971,7 @@
         </itemizedlist></para>
       <para>An ONVIF endpoint shall apply the requested interval, clamped to the range it supports,
         and shall report the value actually applied in the
-          <code>structuredContent</code> of the <code>execute_function</code> response, as
+          <code>structuredContent</code> of the <code>set_event_stream_parameters</code> response, as
         defined by the LinkML class <code>SetEventStreamParametersResponse</code>
           (<code>appliedKeepaliveIntervalMs</code>, <code>clamped</code>, and
           <code>affectedStreams</code>). Clamping is not an error: the ONVIF Client shall use the
@@ -1845,45 +1982,27 @@
         shall reject a request whose <code>subscriptionId</code> does not identify an open stream
         of the authenticated principal with <code>-32011 NotFound</code>.</para>
       <para>The supported range itself is not part of that result: it is a static property of the
-        ONVIF endpoint, not an outcome of the call. An ONVIF Client reads it with the
-          <code>get_function_capabilities</code> Tool (see <xref
-          linkend="sec_tool_get_function_capabilities"/>) for the
-          <code>set_event_stream_parameters</code> function, whose capabilities are defined by the
-        LinkML class <code>EventStreamCapabilities</code>:
-          <code>defaultKeepaliveIntervalMs</code>,
+        ONVIF endpoint, not an outcome of the call. An ONVIF Client reads it in
+          <code>_meta["org.onvif/capabilities"]</code> of the <code>set_event_stream_parameters</code>
+        Tool's own descriptor (see <xref linkend="sec_tool_capabilities"/> and <xref
+          linkend="sec_tool_set_event_stream_parameters"/>), defined by the LinkML class
+          <code>EventStreamCapabilities</code>: <code>defaultKeepaliveIntervalMs</code>,
           <code>minKeepaliveIntervalMs</code>, <code>maxKeepaliveIntervalMs</code>, and
           <code>maxConcurrentStreams</code>. An ONVIF
-        Client that reads the capabilities before calling the function can choose a value that
+        Client that reads the capabilities before calling the Tool can choose a value that
         will not be clamped.</para>
       <para>The class covers the event stream as a whole rather than the keep-alive mechanism
-        alone, which is why <code>maxConcurrentStreams</code> belongs to it. Capabilities in this
-        specification are always the capabilities of a function, and the reserved function that
+        alone, which is why <code>maxConcurrentStreams</code> belongs to it: the reserved Tool that
         configures the stream is the one place where a property of the stream itself has an owner.
         The distinction the class draws is the general one of <xref
-          linkend="sec_tool_get_function_capabilities"/>: the keep-alive interval is settable and
-        is therefore a parameter, whereas the interval range and the stream count are invariant for
-        a device instance and are therefore capabilities.</para>
+          linkend="sec_tool_capabilities"/>: the keep-alive interval is settable and is therefore
+        part of <code>config</code>, whereas the interval range and the stream count are invariant
+        for a device instance and are therefore capabilities.</para>
       <para>A change of keep-alive interval takes effect on the affected streams without
         interrupting them, and shall not affect event delivery or cursor semantics. The interval
         applied to a stream does not survive that stream: a stream reopened after an interruption
         starts from the value most recently set for the principal, or from the interval the device
         declares in <code>defaultKeepaliveIntervalMs</code> if none was set.</para>
-      <para>The function as a whole — its identifier, the class of its input, the class of its
-        output and the class of its capabilities — is declared by the LinkML class
-          <code>SetEventStreamParametersInvocation</code>, a specialization of the abstract
-          <code>FunctionInvocation</code> class. It fixes <code>function</code> to the constant
-          <code>set_event_stream_parameters</code>, narrows <code>parameters</code> to
-          <code>SetEventStreamParametersRequest</code>, narrows <code>result</code> to
-          <code>SetEventStreamParametersResponse</code>, and narrows <code>capabilities</code> to
-          <code>EventStreamCapabilities</code>. This binding is normative: an
-          <code>execute_function</code> call naming <code>set_event_stream_parameters</code> and the
-        response it produces shall together validate against it.</para>
-      <para>Every function an ONVIF endpoint serves shall be declared by such a class: a concrete
-        specialization of <code>FunctionInvocation</code> that fixes the function identifier and
-        names the classes bound to it. An instance of the class never appears on the wire — the
-        Tools carry the parameters, the result and the capabilities separately — so the class is a
-        declaration of the binding and not a payload. <xref
-          linkend="app_hackathon_wire_format"/> shows the one written for a vendor function.</para>
       <para>See <xref linkend="sec_annex_event_keepalive"/> for a wire format example.</para>
     </section>
     <section xml:id="sec_webhook_based_delivery">
@@ -1942,10 +2061,9 @@
               <entry><para><code>-32011</code></para></entry>
               <entry><para><code>NotFound</code></para></entry>
               <entry><para>An unknown event <code>name</code>, no subscription matching the
-                key on <code>events/unsubscribe</code>, a <code>subscriptionId</code> that
+                key on <code>events/unsubscribe</code>, or a <code>subscriptionId</code> that
                 does not identify an open stream on
-                  <code>set_event_stream_parameters</code>, or an unknown <code>function</code> on
-                  <code>get_function_capabilities</code>.</para></entry>
+                  <code>set_event_stream_parameters</code>.</para></entry>
             </row>
             <row>
               <entry><para><code>-32012</code></para></entry>
@@ -1963,10 +2081,8 @@
             <row>
               <entry><para><code>-32014</code></para></entry>
               <entry><para><code>Unsupported</code></para></entry>
-              <entry><para>The request is well-formed but what it asks for is not offered — a
-                delivery mode not offered for this event type, or a configuration for a function
-                whose descriptor omits <code>configSchema</code> and which therefore accepts
-                none.</para></entry>
+              <entry><para>The request is well-formed but what it asks for is not offered — for
+                example a delivery mode not offered for this event type.</para></entry>
             </row>
             <row>
               <entry><para><code>-32015</code></para></entry>
@@ -3156,19 +3272,22 @@ default_range: string</programlisting>
 
   <appendix xml:id="app_example_call_sequence">
     <title>Example Call Sequence (informative)</title>
-    <para><emphasis role="bold">Editorial note — this annex is out of date and shall be rewritten
-        before release. The payloads below instantiate classes that no longer exist in the ONVIF
-        Agentic Schema Bundle, and they would be rejected by the schema as it stands.</emphasis></para>
+    <para><emphasis role="bold">Editorial note — the event-delivery examples in this annex are out
+        of date and shall be rewritten before release. The payloads below instantiate classes that
+        no longer exist in the ONVIF Agentic Schema Bundle, and they would be rejected by the
+        schema as it stands.</emphasis></para>
     <para>The classes concerned are <code>VehicleObservation</code>,
       <code>LicensePlateObservation</code>, <code>FunctionalLocation</code>,
       <code>VehicleReidentification</code> and <code>acme:ThermalObservation</code>; one
       <code>signatureValue</code> is also abbreviated with an ellipsis, which the
       <code>Base64Binary</code> type does not admit. The examples also retain the obsolete string
-        <code>@context</code> and unqualified type names. The call sequence itself, the order of the
-      operations and the shape of the MCP messages remain correct and are the point of the annex; it
-      is only the metadata carried inside them that has to be brought back into line with the
-      bundle. <xref linkend="app_hackathon_wire_format"/> shows payloads that do validate against
-      the current schema and is the model to follow for that rewrite.</para>
+        <code>@context</code> and unqualified type names. This affects the event-delivery sections
+      from <xref linkend="sec_annex_metadata_stream"/> onward; the Tool discovery and invocation
+      sections that precede them already reflect the direct-Tool, Tasks-based model of <xref
+        linkend="sec_tool_invocation"/>, and only the metadata carried inside the event payloads
+      has to be brought back into line with the bundle. <xref linkend="app_hackathon_wire_format"/>
+      shows payloads that do validate against the current schema and is the model to follow for
+      that rewrite.</para>
     <para>This annex is informative and provides an example end-to-end sequence with sample
       values.</para>
 
@@ -3322,7 +3441,7 @@ default_range: string</programlisting>
       },
       {
         "uri": "linkml://192.0.2.10/agentic",
-        "name": "ONVIF Agentic Function Interface",
+        "name": "ONVIF Agentic Tool Interface",
         "mimeType": "application/linkml+yaml"
       }
     ]
@@ -3390,9 +3509,12 @@ default_range: string</programlisting>
     }
   }
 }</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF endpoint returns one entry per
-        Tool it supports, each with a compiled <code>inputSchema</code> derived from the LinkML
-        model. The example shows <code>get_status</code> only.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF endpoint returns one entry
+        per Tool it supports, each with a compiled <code>inputSchema</code> derived from the
+        LinkML model and, where applicable, the ONVIF <code>_meta</code> annotations of <xref
+          linkend="sec_tool_identity"/> and <xref linkend="sec_tool_capabilities"/>. This device
+        exposes the two reserved Tools and one analytic Tool of its own,
+          <code>motion_detection</code>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 8,
@@ -3401,52 +3523,127 @@ default_range: string</programlisting>
     "tools": [
       {
         "name": "get_status",
-        "description": "Returns the operational status of the agentic engine.",
+        "description": "Returns the operational status of the ONVIF endpoint.",
         "inputSchema": {
           "type": "object",
-          "properties": {},
-          "required": []
+          "properties": { "config": { "type": "object", "properties": {} } },
+          "required": ["config"]
+        },
+        "_meta": {
+          "org.onvif/canonicalUri": "https://www.onvif.org/ver10/agentic/tool/get_status"
+        }
+      },
+      {
+        "name": "set_event_stream_parameters",
+        "description": "Set the keep-alive interval of the event stream.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "config": {
+              "type": "object",
+              "properties": {
+                "keepaliveIntervalMs": { "type": "integer" },
+                "subscriptionId": { "type": "integer" }
+              }
+            }
+          },
+          "required": ["config"]
+        },
+        "outputSchema": {
+          "type": "object",
+          "properties": {
+            "appliedKeepaliveIntervalMs": { "type": "integer" },
+            "clamped": { "type": "boolean" },
+            "affectedStreams": { "type": "array", "items": { "type": "integer" } }
+          }
+        },
+        "_meta": {
+          "org.onvif/canonicalUri": "https://www.onvif.org/ver10/agentic/tool/set_event_stream_parameters",
+          "org.onvif/capabilities": {
+            "defaultKeepaliveIntervalMs": 30000,
+            "minKeepaliveIntervalMs": 5000,
+            "maxKeepaliveIntervalMs": 300000,
+            "maxConcurrentStreams": 4
+          }
+        }
+      },
+      {
+        "name": "motion_detection",
+        "description": "Detect motion involving objects of the selected classes.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "config": {
+              "type": "object",
+              "properties": {
+                "classes": {
+                  "type": "array",
+                  "items": { "type": "string", "enum": ["human", "vehicle"] },
+                  "minItems": 1,
+                  "uniqueItems": true
+                },
+                "confidenceThreshold": { "type": "number", "minimum": 0, "maximum": 1 },
+                "sourceToken": { "type": "string" }
+              },
+              "required": ["classes", "sourceToken"]
+            }
+          },
+          "required": ["config"]
+        },
+        "_meta": {
+          "org.onvif/canonicalUri": "https://vendor.example/agentic/tool/motion_detection",
+          "org.onvif/capabilities": {
+            "supportedClasses": ["human", "vehicle"],
+            "maxConcurrentExecutions": 2
+          }
         }
       }
     ]
   }
 }</programlisting>
+      <para>This device instance supports only <code>human</code> and <code>vehicle</code> for
+        <code>motion_detection</code>, not <code>animal</code>: <code>supportedClasses</code> and
+        the <code>inputSchema</code> <code>enum</code> agree on exactly that pair, as required by
+        <xref linkend="sec_tool_capabilities"/>. A call selecting <code>animal</code> on this
+        device is rejected (see <xref linkend="sec_annex_tool_motion_detection"/>), not silently
+        narrowed to the two it does support.</para>
     </section>
     <section xml:id="sec_annex_tool_get_status">
       <title>Tool invocation — get_status</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
-        <code>get_status</code> with no arguments.</para>
+        <code>get_status</code> with an empty <code>config</code>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 9,
   "method": "tools/call",
   "params": {
     "name": "get_status",
-    "arguments": {},
+    "arguments": { "config": {} },
     "_meta": {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28"
     }
   }
 }</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF endpoint returns the current
-      state of the agentic engine, the list of active functions, and the engine firmware
-        version.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF endpoint returns its
+        general health, the inventory of executions visible to this principal, and the engine
+        firmware version. One execution is tracked by a task this client can follow; the second is
+        a factory-started producer that no client request ever created, so it carries no
+          <code>taskId</code>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 9,
   "result": {
     "resultType": "complete",
-    "content": [{ "type": "text", "text": "agentic engine running." }],
+    "content": [{ "type": "text", "text": "ONVIF endpoint running." }],
     "structuredContent": {
       "state": "running",
-      "activeFunctions": [
+      "activeExecutions": [
         {
-          "function": "vehicle_detection",
-          "executionId": "exec_vehicle_001"
+          "name": "motion_detection",
+          "taskId": "task_motion_001"
         },
         {
-          "function": "vehicle_reidentification",
-          "executionId": "exec_reid_001"
+          "name": "motion_detection"
         }
       ],
       "engineVersion": "2.1.4"
@@ -3454,174 +3651,23 @@ default_range: string</programlisting>
   }
 }</programlisting>
     </section>
-    <section xml:id="sec_annex_tool_list_functions">
-      <title>Tool invocation — list_functions</title>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
-      <code>list_functions</code> with no arguments.</para>
+    <section xml:id="sec_annex_tool_motion_detection">
+      <title>Tool invocation — motion_detection</title>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client starts
+        <code>motion_detection</code> for <code>human</code> and <code>vehicle</code> on
+        <code>VideoSource_1</code>, declaring Tasks support because this is a continuous Tool
+        with no synchronous alternative.</para>
       <programlisting>{
   "jsonrpc": "2.0",
-  "id": 10,
+  "id": 12,
   "method": "tools/call",
   "params": {
-    "name": "list_functions",
-    "arguments": {},
-    "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF endpoint returns all
-        functions it supports, their configured/available state, and the LinkML classes that govern
-        the calls applicable to each function. Every entry carries both a local
-        <code>name</code> and a <code>canonicalUri</code>.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 10,
-  "result": {
-    "resultType": "complete",
-    "content": [{ "type": "text", "text": "4 function(s) available." }],
-    "structuredContent": {
-      "functions": [
-        {
-          "name": "vehicle_detection",
-          "canonicalUri": "https://vendor.example/agentic/function/vehicle_detection",
-          "description": "Detect and classify vehicles in the scene.",
-          "enabled": true,
-          "configSchema": "https://vendor.example/agentic/linkml/#/$defs/VehicleDetectionConfig"
-        },
-        {
-          "name": "vehicle_reidentification",
-          "canonicalUri": "https://vendor.example/agentic/function/vehicle_reidentification",
-          "description": "Assert that vehicle observations refer to the same physical vehicle.",
-          "enabled": true,
-          "configSchema": "https://vendor.example/agentic/linkml/#/$defs/VehicleReidentificationConfig"
-        },
-        {
-          "name": "license_plate_recognition",
-          "canonicalUri": "https://vendor.example/agentic/function/license_plate_recognition",
-          "description": "Read license plates of detected vehicles.",
-          "enabled": false,
-          "configSchema": "https://vendor.example/agentic/linkml/#/$defs/LicensePlateRecognitionConfig"
-        },
-        {
-          "name": "set_event_stream_parameters",
-          "canonicalUri": "https://www.onvif.org/ver10/agentic/function/set_event_stream_parameters",
-          "description": "Set the keep-alive interval of the event stream.",
-          "enabled": true,
-          "executionSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/SetEventStreamParametersRequest",
-          "resultSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/SetEventStreamParametersResponse",
-          "capabilitiesSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/EventStreamCapabilities"
-        }
-      ]
-    }
-  }
-}</programlisting>
-      <para>The two identifiers play different roles, as specified in
-        <xref linkend="sec_function_catalogue"/>. The <code>name</code> is what the ONVIF Client
-        passes back in the <code>function</code> argument of <code>configure_function</code>,
-          <code>execute_function</code>, <code>stop_function</code> and
-          <code>get_function_capabilities</code>; it is unique within this response only, and this
-        device may have renamed a function to make it so. The <code>canonicalUri</code> is what the
-        client uses to <emphasis>recognise</emphasis> the function: it is the same on every device
-        that implements the function, so a client that knows how to drive
-        <code>https://vendor.example/agentic/function/vehicle_reidentification</code> can drive it on
-        any of them, whatever local name each has chosen.</para>
-      <para>The reserved function has a <code>canonicalUri</code> in the ONVIF function namespace,
-        <code>https://www.onvif.org/ver10/agentic/function/</code> followed by the reserved name. The
-        three others lie in a namespace controlled by the party that defined them.</para>
-      <para><code>license_plate_recognition</code> is listed with <code>enabled: false</code>. The
-        function exists on this device but is not configured, so the ONVIF Client can see that
-        license plate observations are obtainable here and knows to call
-        <code>configure_function</code> first. This is why the catalogue lists unconfigured functions
-        rather than hiding them.</para>
-    </section>
-    <section xml:id="sec_annex_tool_get_function_capabilities">
-      <title>Tool invocation — get_function_capabilities</title>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client reads the static
-        capabilities of the reserved <code>set_event_stream_parameters</code> function before choosing an
-        interval, so that its request is not clamped. The <code>arguments</code> object is an
-        instance of the LinkML class <code>GetFunctionCapabilities</code>.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 13,
-  "method": "tools/call",
-  "params": {
-    "name": "get_function_capabilities",
+    "name": "motion_detection",
     "arguments": {
-      "function": "set_event_stream_parameters"
-    },
-    "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The <code>capabilities</code> object
-        is an instance of <code>EventStreamCapabilities</code>, the class named by
-          <code>capabilitiesSchema</code> in the function's catalogue entry. These values are
-        invariant for this device instance.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 13,
-  "result": {
-    "resultType": "complete",
-    "content": [{ "type": "text",
-                  "text": "Keep-alive 5000-300000 ms; up to 4 concurrent streams." }],
-    "structuredContent": {
-      "function": "set_event_stream_parameters",
-      "capabilities": {
-        "@type": "onvif:EventStreamCapabilities",
-        "defaultKeepaliveIntervalMs": 30000,
-        "minKeepaliveIntervalMs": 5000,
-        "maxKeepaliveIntervalMs": 300000,
-        "maxConcurrentStreams": 4
-      }
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client — no readable capabilities):</emphasis> A
-        function whose catalogue descriptor omits <code>capabilitiesSchema</code> returns a
-        successful response without a <code>capabilities</code> field.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 13,
-  "result": {
-    "resultType": "complete",
-    "structuredContent": {
-      "function": "vehicle_detection"
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client — unknown function):</emphasis> A function the
-        ONVIF endpoint does not support is rejected.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 13,
-  "error": {
-    "code": -32011,
-    "message": "NotFound",
-    "data": { "function": "thermal_drift_detection" }
-  }
-}</programlisting>
-    </section>
-    <section xml:id="sec_annex_tool_configure_function">
-      <title>Tool invocation — configure_function</title>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
-        <code>configure_function</code> specifying the function and a
-        <code>config</code> object whose structure matches the LinkML class identified by
-        <code>configSchema</code> (obtained from <code>list_functions</code>).</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 11,
-  "method": "tools/call",
-  "params": {
-    "name": "configure_function",
-    "arguments": {
-      "function": "vehicle_detection",
       "config": {
-        "@type": "VehicleDetectionConfig",
-        "sensitivity": 0.80,
-        "channel": "ch1",
-        "classifyUse": true
+        "classes": ["human", "vehicle"],
+        "confidenceThreshold": 0.8,
+        "sourceToken": "VideoSource_1"
       }
     },
     "_meta": {
@@ -3634,122 +3680,153 @@ default_range: string</programlisting>
     }
   }
 }</programlisting>
-      <para><emphasis>Response (Device to Client — success):</emphasis></para>
+      <para><emphasis>Response (Device to Client):</emphasis> The call is accepted and a task is
+        created for the whole execution, not merely for its start.</para>
       <programlisting>{
   "jsonrpc": "2.0",
-  "id": 11,
+  "id": 12,
   "result": {
-    "resultType": "complete",
-    "content": [{ "type": "text", "text": "vehicle_detection configured successfully." }],
-    "structuredContent": {
-      "function": "vehicle_detection",
-      "applied": {
-        "@type": "VehicleDetectionConfig",
-        "sensitivity": 0.80,
-        "channel": "ch1",
-        "classifyUse": true
+    "resultType": "task",
+    "task": {
+      "taskId": "task_motion_001",
+      "status": "working",
+      "ttlMs": 3600000,
+      "pollIntervalMs": 5000
+    }
+  }
+}</programlisting>
+      <para>The task stays <code>working</code> for as long as the detector is active; it is not
+        expected to reach a terminal state while <code>motion_detection</code> keeps running, unlike
+        a task that represented only a start operation. Detections are never returned by
+          <code>tasks/get</code>: they arrive exclusively as metadata events, on whichever of
+          <code>events/stream</code>, <code>events/poll</code>, or webhook the ONVIF Client has set
+        up (see <xref linkend="sec_annex_metadata_stream"/>).</para>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client polls the task to
+        confirm it is still active.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 15,
+  "method": "tasks/get",
+  "params": {
+    "taskId": "task_motion_001",
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    }
+  }
+}</programlisting>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 15,
+  "result": {
+    "taskId": "task_motion_001",
+    "status": "working",
+    "ttlMs": 3600000,
+    "pollIntervalMs": 5000
+  }
+}</programlisting>
+      <para><emphasis>Request (Client to Device — unsupported category):</emphasis> A call
+        selecting a category this device instance does not support for
+          <code>motion_detection</code> is rejected by argument validation and creates no
+        execution and no task.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 16,
+  "method": "tools/call",
+  "params": {
+    "name": "motion_detection",
+    "arguments": {
+      "config": {
+        "classes": ["animal"],
+        "sourceToken": "VideoSource_1"
+      }
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
       }
     }
   }
 }</programlisting>
-      <para><code>classifyUse</code> is a configuration option of this vendor's function, not a
-        field of the metadata model. Enabling it is what makes the difference, in the observations of
-        <xref linkend="sec_annex_metadata_stream"/>, between a <code>use</code> field carrying
-        <code>Unknown</code> and a <code>use</code> field being absent altogether: a device that does
-        not classify vehicle use omits the field, whereas a device that classifies it and fails
-        reports <code>Unknown</code>.</para>
-      <para><emphasis>Response (Device to Client — asynchronous):</emphasis> If configuration
-        requires asynchronous processing, the same <code>tools/call</code> request may return a
-        task handle instead of the final result.</para>
       <programlisting>{
   "jsonrpc": "2.0",
-  "id": 11,
-  "result": {
-    "resultType": "task",
-    "task": {
-      "taskId": "task_123",
-      "status": "working",
-      "ttlMs": 3600000,
-      "pollIntervalMs": 2000
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client — validation error):</emphasis> If the
-        <code>config</code> object violates a schema constraint, the ONVIF endpoint returns a
-        structured error identifying the failing field.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 11,
+  "id": 16,
   "error": {
     "code": -32602,
     "message": "InvalidParams",
     "data": {
-      "field": "config.sensitivity",
-      "violation": "value 1.5 exceeds maximum 1.0"
+      "field": "config.classes",
+      "violation": "class 'animal' is not in supportedClasses for this device instance"
     }
   }
 }</programlisting>
-    </section>
-    <section xml:id="sec_annex_tool_execute_function">
-      <title>Tool invocation — execute_function</title>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client starts a configured
-        function.</para>
+      <para><emphasis>Request (Client to Device):</emphasis> The shift ends and the execution is no
+        longer wanted, so the ONVIF Client cancels its task.</para>
       <programlisting>{
   "jsonrpc": "2.0",
-  "id": 12,
-  "method": "tools/call",
+  "id": 17,
+  "method": "tasks/cancel",
   "params": {
-    "name": "execute_function",
-    "arguments": {
-      "function": "vehicle_detection"
-    },
+    "taskId": "task_motion_001",
     "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
-      "io.modelcontextprotocol/clientCapabilities": {
-        "extensions": {
-          "io.modelcontextprotocol/tasks": {}
-        }
-      }
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
     }
   }
 }</programlisting>
-      <para><emphasis>Response (Device to Client — asynchronous start):</emphasis> The task
-        represents only the start operation. It completes when the function is running; it does not
-        remain active for the lifetime of the detection.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF endpoint acknowledges the
+        request; the task is still <code>working</code> at the moment of the acknowledgement. The
+        ack is not itself proof that the detector has already stopped, nor that the task has
+        already reached <code>cancelled</code>; the client confirms that with a further
+          <code>tasks/get</code>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
-  "id": 12,
+  "id": 17,
   "result": {
-    "resultType": "task",
-    "task": {
-      "taskId": "task_start_vehicle_001",
-      "status": "working",
-      "ttlMs": 3600000,
-      "pollIntervalMs": 2000
+    "taskId": "task_motion_001",
+    "status": "working"
+  }
+}</programlisting>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 18,
+  "method": "tasks/get",
+  "params": {
+    "taskId": "task_motion_001",
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
     }
   }
 }</programlisting>
-      <para>The terminal task result shall include the execution identifier, for example
-        <code>exec_vehicle_001</code>. Events produced by the running function are delivered on the
-        ONVIF Client using <code>events/stream</code>, <code>events/poll</code>, or webhook.</para>
+      <programlisting>{
+  "jsonrpc": "2.0",
+  "id": 18,
+  "result": {
+    "taskId": "task_motion_001",
+    "status": "cancelled"
+  }
+}</programlisting>
+      <para>Cancelling <code>task_motion_001</code> stops only the execution this client's call
+        created. The second entry shown in <xref linkend="sec_annex_tool_get_status"/> — a
+        factory-started producer on the same device — is unaffected: it never had a task of its
+        own to cancel, and no other client's execution on a producer this device may share is
+        stopped by this request.</para>
     </section>
     <section xml:id="sec_annex_event_keepalive">
-      <title>Tool invocation — execute_function for set_event_stream_parameters</title>
+      <title>Tool invocation — set_event_stream_parameters</title>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client shortens the
         keep-alive interval of its push streams from the 30 seconds this device declares as its
-        default to 10 seconds. The
-          <code>parameters</code> object is an instance of the LinkML class
+        default to 10 seconds. The <code>config</code> object is an instance of the LinkML class
           <code>SetEventStreamParametersRequest</code>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 14,
   "method": "tools/call",
   "params": {
-    "name": "execute_function",
+    "name": "set_event_stream_parameters",
     "arguments": {
-      "function": "set_event_stream_parameters",
-      "parameters": {
-        "@type": "onvif:SetEventStreamParametersRequest",
+      "config": {
         "keepaliveIntervalMs": 10000
       }
     },
@@ -3758,11 +3835,12 @@ default_range: string</programlisting>
     }
   }
 }</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF endpoint confirms the
-        interval it applied. The value reported in <code>appliedKeepaliveIntervalMs</code> is
-        authoritative. The range the device supports is not part of this result; it is read with
-          <code>get_function_capabilities</code> (see <xref
-          linkend="sec_annex_tool_get_function_capabilities"/>).</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The call completes synchronously; the
+        ONVIF endpoint confirms the interval it applied. The value reported in
+          <code>appliedKeepaliveIntervalMs</code> is authoritative. The range the device supports is
+        not part of this result; it is read in <code>_meta["org.onvif/capabilities"]</code> of this
+        Tool's own <code>tools/list</code> descriptor (see <xref
+          linkend="sec_annex_tool_discovery"/>).</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 14,
@@ -3770,8 +3848,6 @@ default_range: string</programlisting>
     "resultType": "complete",
     "content": [{ "type": "text", "text": "Keep-alive interval set to 10000 ms." }],
     "structuredContent": {
-      "@type": "onvif:SetEventStreamParametersResponse",
-      "executionId": "exec_keepalive_001",
       "appliedKeepaliveIntervalMs": 10000,
       "clamped": false,
       "affectedStreams": [30]
@@ -3788,41 +3864,12 @@ default_range: string</programlisting>
     "resultType": "complete",
     "content": [{ "type": "text", "text": "Requested 1000 ms clamped to the device minimum." }],
     "structuredContent": {
-      "@type": "onvif:SetEventStreamParametersResponse",
-      "executionId": "exec_keepalive_002",
       "appliedKeepaliveIntervalMs": 5000,
       "clamped": true,
       "affectedStreams": [30]
     }
   }
 }</programlisting>
-    </section>
-    <section xml:id="sec_annex_tool_stop_function">
-      <title>Tool invocation — stop_function</title>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client stops an active
-        execution.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 13,
-  "method": "tools/call",
-  "params": {
-    "name": "stop_function",
-    "arguments": {
-      "function": "vehicle_detection",
-      "executionId": "exec_vehicle_001"
-    },
-    "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
-      "io.modelcontextprotocol/clientCapabilities": {
-        "extensions": {
-          "io.modelcontextprotocol/tasks": {}
-        }
-      }
-    }
-  }
-}</programlisting>
-      <para>The device may return a task when stopping the execution requires asynchronous
-        processing. The task completes when the execution is stopped.</para>
     </section>
     <section xml:id="sec_annex_metadata_stream">
       <title>Event delivery — catalogue, stream, and webhook examples</title>
@@ -5271,197 +5318,118 @@ classes:
         linkend="sec_support_graph_sanity_checks"/>.</para>
     </section>
     <section xml:id="sec_annex_hk_function_lifecycle">
-      <title>Driving the assessment service — configure, start and stop</title>
-      <para>The envelope of the preceding section is the output of a function execution, and this
-        section shows the three calls that bring that execution about: the criterion is configured
-        once, an execution is started, and the execution is stopped when it is no longer wanted. The
-        party that exposes the Agentic Service endpoint plays the role this specification calls the
-        ONVIF endpoint, whether it is a camera or, as here, a service running on a server; the ONVIF
-        Client is the console of the traffic authority. The four classes exercised below —
-        <code>SpeedingAssessmentConfig</code>, <code>SpeedingAssessmentCapabilities</code>,
-        <code>SpeedingAssessmentExecutionParameters</code> and
-        <code>SpeedingAssessmentExecutionResult</code> — belong to the hackathon module, not to this
-        specification. The module binds the four to the function name with a fifth class,
-        <code>SpeedingAssessmentInvocation</code>, a specialization of
-        <code>FunctionInvocation</code> as required by <xref
-        linkend="sec_event_keepalive"/>; that class is a declaration and appears in no
-        payload below.</para>
+      <title>Driving the assessment service — discover, start and cancel</title>
+      <para>The envelope of the preceding section is the output of a Tool execution, and this
+        section shows the calls that bring that execution about: the ONVIF Client discovers the
+        Tool, starts an execution of it with a single <code>config</code> that carries both the
+        criterion and the parameters of this run, and cancels the execution when it is no longer
+        wanted. The party that exposes the Agentic Service endpoint plays the role this
+        specification calls the ONVIF endpoint, whether it is a camera or, as here, a service
+        running on a server; the ONVIF Client is the console of the traffic authority. The two
+        classes exercised below, <code>SpeedingAssessmentConfig</code> and
+          <code>SpeedingAssessmentResult</code>, belong to the hackathon module, not to this
+        specification; <code>SpeedingAssessmentConfig</code> merges what an earlier revision of
+        this annex carried as two separate classes, a persistent configuration and a set of
+        execution parameters, into the one <code>config</code> object this model's Tools accept
+        (see <xref linkend="sec_tool_invocation"/>). The capabilities of the Tool are carried in
+          <code>_meta["org.onvif/capabilities"]</code> of its <code>tools/list</code> descriptor and
+        need no class of their own beyond the plain object shown below.</para>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
-        <code>list_functions</code> first, as required by <xref
-        linkend="sec_tool_list_functions"/>, because it needs the local name to call and the schema
-        URIs that govern what it may send.</para>
+          <code>tools/list</code> first, as required by <xref linkend="sec_tool_discovery"/>,
+        because it needs the Tool name to call and the bounds of what it may send.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 20,
-  "method": "tools/call",
+  "method": "tools/list",
   "params": {
-    "name": "list_functions",
-    "arguments": {},
     "_meta": {
       "io.modelcontextprotocol/protocolVersion": "2026-07-28"
     }
   }
 }</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The service supports one function of
-        its own, plus the function this specification reserves.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The service exposes one Tool of its
+        own, plus the Tools this specification reserves.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 20,
   "result": {
     "resultType": "complete",
-    "content": [{ "type": "text", "text": "2 function(s) available." }],
-    "structuredContent": {
-      "functions": [
-        {
-          "name": "speeding_assessment",
-          "canonicalUri": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/function/speeding_assessment",
-          "description": "Assess speed estimates against the limit in force and issue speeding assessments.",
-          "enabled": false,
-          "configSchema": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/#/$defs/SpeedingAssessmentConfig",
-          "executionSchema": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/#/$defs/SpeedingAssessmentExecutionParameters",
-          "resultSchema": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/#/$defs/SpeedingAssessmentExecutionResult",
-          "capabilitiesSchema": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/#/$defs/SpeedingAssessmentCapabilities"
+    "tools": [
+      {
+        "name": "speeding_assessment",
+        "description": "Assess speed estimates against the limit in force and issue speeding assessments.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "config": {
+              "type": "object",
+              "properties": {
+                "speedLimit": { "type": "number" },
+                "tolerance": { "type": "number" },
+                "rule": { "type": "string" },
+                "minimumConfidence": { "type": "number", "minimum": 0, "maximum": 1 },
+                "emitOnlyWhenExceeded": { "type": "boolean" },
+                "validity": { "type": "object" },
+                "dryRun": { "type": "boolean" }
+              },
+              "required": ["speedLimit", "tolerance", "rule"]
+            }
+          },
+          "required": ["config"]
         },
-        {
-          "name": "set_event_stream_parameters",
-          "canonicalUri": "https://www.onvif.org/ver10/agentic/function/set_event_stream_parameters",
-          "description": "Set the keep-alive interval of the event stream.",
-          "enabled": true,
-          "executionSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/SetEventStreamParametersRequest",
-          "resultSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/SetEventStreamParametersResponse",
-          "capabilitiesSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/EventStreamCapabilities"
+        "_meta": {
+          "org.onvif/canonicalUri": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/tool/speeding_assessment",
+          "org.onvif/capabilities": {
+            "minimumSpeedLimit": 10.0,
+            "maximumSpeedLimit": 130.0,
+            "maximumTolerance": 10.0,
+            "supportsDryRun": true,
+            "maxConcurrentExecutions": 4
+          }
         }
-      ]
-    }
+      },
+      {
+        "name": "set_event_stream_parameters",
+        "description": "Set the keep-alive interval of the event stream.",
+        "inputSchema": {
+          "type": "object",
+          "properties": { "config": { "type": "object" } },
+          "required": ["config"]
+        },
+        "_meta": {
+          "org.onvif/canonicalUri": "https://www.onvif.org/ver10/agentic/tool/set_event_stream_parameters"
+        }
+      }
+    ]
   }
 }</programlisting>
       <para>The <code>canonicalUri</code> of <code>speeding_assessment</code> lies in the hackathon
-        namespace and not in <code>https://www.onvif.org/ver10/agentic/function/</code>, which is
-        reserved to the functions this specification defines, as set out in <xref
-        linkend="sec_function_catalogue"/>. The entry is listed with <code>enabled: false</code>:
-        the function exists on this instance but no criterion has been applied to it yet, so the
-        client can see that speeding assessments are obtainable here and knows that
-        <code>configure_function</code> has to come first.</para>
-      <para><emphasis>Request (Client to Device):</emphasis> The client reads the capabilities
-        before configuring, so that it learns the bounds rather than discovering them through a
-        rejected configuration.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 21,
-  "method": "tools/call",
-  "params": {
-    "name": "get_function_capabilities",
-    "arguments": {
-      "function": "speeding_assessment"
-    },
-    "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The <code>capabilities</code> object
-        is an instance of <code>SpeedingAssessmentCapabilities</code>, the class named in
-        <code>capabilitiesSchema</code> above. These values are invariant for this instance: they
-        are the same before and after any execution.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 21,
-  "result": {
-    "resultType": "complete",
-    "content": [{ "type": "text",
-                  "text": "Limits 10.0-130.0 km/h, tolerance up to 10.0 km/h, 4 concurrent executions." }],
-    "structuredContent": {
-      "function": "speeding_assessment",
-      "capabilities": {
-        "@type": "hackathon2026:SpeedingAssessmentCapabilities",
-        "minimumSpeedLimit": 10.0,
-        "maximumSpeedLimit": 130.0,
-        "maximumTolerance": 10.0,
-        "supportsDryRun": true,
-        "maximumConcurrentExecutions": 4
-      }
-    }
-  }
-}</programlisting>
-      <para><emphasis>Request (Client to Device):</emphasis> The <code>config</code> object is an
-        instance of <code>SpeedingAssessmentConfig</code>, the class named in
-        <code>configSchema</code>, and the client validates it against the compiled schema before
-        sending it.</para>
+        namespace and not in <code>https://www.onvif.org/ver10/agentic/tool/</code>, which is
+        reserved to the Tools this specification itself defines, as set out in <xref
+        linkend="sec_tool_identity"/>. <code>maxConcurrentExecutions</code> is a ceiling and not a
+        guarantee of admission (see <xref linkend="sec_tool_capabilities"/>): a fifth concurrent
+        call would be rejected with <code>-32013 ResourceExhausted</code> even though the Tool
+        itself is otherwise available.</para>
+      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client starts an execution.
+        The single <code>config</code> object carries both the criterion — which, unlike in an
+        earlier revision of this annex, is not configured separately and persistently, but applies
+        to this execution alone — and the parameters of this particular run, and the client
+        validates it against the Tool's <code>inputSchema</code> before sending it. Tasks support is
+        declared because this Tool, too, starts a continuous execution with no synchronous
+        alternative.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 22,
   "method": "tools/call",
   "params": {
-    "name": "configure_function",
+    "name": "speeding_assessment",
     "arguments": {
-      "function": "speeding_assessment",
       "config": {
-        "@type": "hackathon2026:SpeedingAssessmentConfig",
         "speedLimit": 50.0,
         "tolerance": 3.0,
         "rule": "urn:onvif-hackathon:rule:urban-speed-limit",
         "minimumConfidence": 0.75,
-        "emitOnlyWhenExceeded": true
-      }
-    },
-    "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
-      "io.modelcontextprotocol/clientCapabilities": {
-        "extensions": {
-          "io.modelcontextprotocol/tasks": {}
-        }
-      }
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The device confirms the applied
-        configuration and does not start the function.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 22,
-  "result": {
-    "resultType": "complete",
-    "content": [{ "type": "text", "text": "speeding_assessment configured: limit 50.0 km/h, tolerance 3.0 km/h." }],
-    "structuredContent": {
-      "function": "speeding_assessment",
-      "applied": {
-        "@type": "hackathon2026:SpeedingAssessmentConfig",
-        "speedLimit": 50.0,
-        "tolerance": 3.0,
-        "rule": "urn:onvif-hackathon:rule:urban-speed-limit",
-        "minimumConfidence": 0.75,
-        "emitOnlyWhenExceeded": true
-      }
-    }
-  }
-}</programlisting>
-      <para>These five values are the criterion, and they are configured rather than passed per
-        execution for a reason that can be read off the assessment of <xref
-        linkend="sec_annex_hk_assessment_service"/>: that item restates
-        <code>speedLimit</code> 50.0, <code>tolerance</code> 3.0 and the same <code>rule</code> on
-        its own result, so a client can check the claim against the configuration that produced it.
-        A criterion that changed from one execution to the next could not be stated that way, and two
-        assessments of the same service would not be comparable. <code>minimumConfidence</code> is
-        the lowest confidence a <code>SpeedEstimateObservation</code> may carry to be assessed at
-        all: the estimate of the analytics box carries 0.9 and is above it, and an estimate
-        below 0.75 would be ignored rather than assessed, since a fine cannot rest on a measurement
-        its own producer does not stand behind. <code>emitOnlyWhenExceeded</code> is left at its
-        default of <code>true</code>, which is what makes the mere existence of an assessment the
-        statement that the limit was exceeded.</para>
-      <para><emphasis>Request (Client to Device):</emphasis> The function is now configured, so it
-        can be started. The <code>parameters</code> object is an instance of
-        <code>SpeedingAssessmentExecutionParameters</code>, the class named in
-        <code>executionSchema</code>.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 23,
-  "method": "tools/call",
-  "params": {
-    "name": "execute_function",
-    "arguments": {
-      "function": "speeding_assessment",
-      "parameters": {
-        "@type": "hackathon2026:SpeedingAssessmentExecutionParameters",
+        "emitOnlyWhenExceeded": true,
         "validity": {
           "@type": "onvif:ISO8601Interval",
           "intervalString": "2026-11-03T08:00:00Z/2026-11-03T20:00:00Z"
@@ -5479,80 +5447,81 @@ classes:
     }
   }
 }</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The
-        <code>structuredContent</code> is an instance of
-        <code>SpeedingAssessmentExecutionResult</code>, the class named in
-        <code>resultSchema</code>.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> A task is created for the whole
+        execution, not merely for its start.</para>
       <programlisting>{
   "jsonrpc": "2.0",
-  "id": 23,
+  "id": 22,
   "result": {
-    "resultType": "complete",
-    "content": [{ "type": "text", "text": "Execution exec_speeding_001 started." }],
-    "structuredContent": {
-      "@type": "hackathon2026:SpeedingAssessmentExecutionResult",
-      "executionId": "exec_speeding_001",
-      "startedAt": "2026-11-03T09:58:41Z"
+    "resultType": "task",
+    "task": {
+      "taskId": "task_speeding_001",
+      "status": "working",
+      "ttlMs": 43200000,
+      "pollIntervalMs": 5000
     }
   }
 }</programlisting>
-      <para>The response reports the start of the execution and nothing about its outcome. Where
-        starting is asynchronous the device may return a task instead, in the form shown in <xref
-        linkend="sec_annex_tool_execute_function"/>; that task represents the start alone and reaches
-        a terminal state once the execution is running, rather than staying
-        <code>working</code> for as long as the function is active. The assessments themselves arrive
-        afterwards as metadata events, each in a signed envelope of its own: the envelope of <xref
-        linkend="sec_annex_hk_assessment_service"/> is one of them, produced at 10:15:12 by this
-        execution. <code>validity</code> bears on the run and not on the criterion, which is why it
-        is an execution parameter; where it is omitted the execution runs until it is stopped.
-        <code>dryRun</code> is <code>false</code> here, so the assessments are real; with
-        <code>true</code> the service would evaluate the same criterion and report what it would have
-        produced without emitting any <code>SpeedingAssessment</code>, which is how a limit can be
-        tried against live traffic before any fine follows from it. The client may ask for a dry run
-        only because <code>supportsDryRun</code> was <code>true</code> in the capabilities.</para>
+      <para>The first five fields are the criterion, restated by the assessment of <xref
+        linkend="sec_annex_hk_assessment_service"/> on its own result —
+        <code>speedLimit</code> 50.0, <code>tolerance</code> 3.0, the same <code>rule</code> — so
+        that a client can check the claim against the configuration that produced it. Because
+          <code>config</code> applies to this execution alone, a client that wants a different
+        criterion starts a further execution with a different <code>config</code> rather than
+        reconfiguring a shared, persistent state; it does not thereby disturb an execution some
+        other authorized client has separately started against this same Tool.
+          <code>minimumConfidence</code> is the lowest confidence a
+          <code>SpeedEstimateObservation</code> may carry to be assessed at all: the estimate of the
+        analytics box carries 0.9 and is above it, and an estimate below 0.75 would be ignored
+        rather than assessed, since a fine cannot rest on a measurement its own producer does not
+        stand behind. <code>emitOnlyWhenExceeded</code> is left at its default of <code>true</code>,
+        which is what makes the mere existence of an assessment the statement that the limit was
+        exceeded. <code>validity</code> bears on this run and not on the criterion; where it is
+        omitted the execution runs until it is cancelled. <code>dryRun</code> is <code>false</code>
+        here, so the assessments are real; with <code>true</code> the service would evaluate the
+        same criterion and report what it would have produced without emitting any
+          <code>SpeedingAssessment</code>, which is how a limit can be tried against live traffic
+        before any fine follows from it. The client may ask for a dry run only because
+          <code>supportsDryRun</code> was <code>true</code> in the Tool's capabilities.</para>
+      <para>The task stays <code>working</code> for as long as the execution is active, as
+        specified in <xref linkend="sec_task_model"/>. The assessments themselves arrive as
+        metadata events, each in a signed envelope of its own, never as an intermediate
+          <code>tasks/get</code> result: the envelope of <xref
+          linkend="sec_annex_hk_assessment_service"/> is one of them, produced at 10:15:12 by this
+        execution.</para>
       <para><emphasis>Request (Client to Device):</emphasis> The shift ends early and the execution
-        is stopped before its validity expires. <code>stop_function</code> takes the execution
-        identifier the start returned, and no per-function parameters: stopping needs none, which is
-        why the hackathon module declares no class for it.</para>
+        is cancelled before its validity expires.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 24,
-  "method": "tools/call",
+  "method": "tasks/cancel",
   "params": {
-    "name": "stop_function",
-    "arguments": {
-      "function": "speeding_assessment",
-      "executionId": "exec_speeding_001"
-    },
+    "taskId": "task_speeding_001",
     "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
-      "io.modelcontextprotocol/clientCapabilities": {
-        "extensions": {
-          "io.modelcontextprotocol/tasks": {}
-        }
-      }
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
     }
   }
 }</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> No field of the descriptor names a
-        class for the result of a stop, so the device reports the outcome in the textual content and
-        the absence of an error is the confirmation.</para>
+      <para><emphasis>Response (Device to Client):</emphasis> The ONVIF endpoint acknowledges the
+        request; as elsewhere, the acknowledgement is not itself proof that the execution has
+        already ended.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 24,
   "result": {
-    "resultType": "complete",
-    "content": [{ "type": "text", "text": "Execution exec_speeding_001 stopped." }]
+    "taskId": "task_speeding_001",
+    "status": "working"
   }
 }</programlisting>
-      <para>Stopping the execution ends the emission of assessments; it does not withdraw the ones
-        already emitted, nor does it discard the configuration. The criterion stays applied, so the
-        client can start a further execution over another interval without configuring again, and the
-        entry would now be listed with <code>enabled: true</code>. Nothing in this exchange touches
-        the envelopes of the preceding sections: an assessment already published remains verifiable
-        after the execution that produced it is over, because what carries the signature is the
-        envelope it was delivered in and what binds the signature to that one item is its own digest,
-        as specified in <xref linkend="sec_information_item"/>.</para>
+      <para>Cancelling the execution ends the emission of assessments; it does not withdraw the
+        ones already emitted, and it does not persist a criterion anywhere for a later execution to
+        inherit, since none was ever stored outside this one <code>config</code>. A further shift
+        starts a further execution with its own <code>config</code>, naming the same or a different
+        criterion as the traffic authority requires. Nothing in this exchange touches the envelopes
+        of the preceding sections: an assessment already published remains verifiable after the
+        execution that produced it is over, because what carries the signature is the envelope it
+        was delivered in and what binds the signature to that one item is its own digest, as
+        specified in <xref linkend="sec_information_item"/>.</para>
     </section>
   </appendix>
 
