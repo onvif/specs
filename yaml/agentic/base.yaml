@@ -4,6 +4,7 @@ description: ONVIF Agentic Service base schema
 prefixes:
   linkml: https://w3id.org/linkml/
   onvif: https://www.onvif.org/ver10/agentic/linkml/
+  sosa: http://www.w3.org/ns/sosa/
 imports:
   - linkml:types
   - enums
@@ -102,8 +103,9 @@ classes:
           envelope. It shall also carry the identifier mappings, whose values
           are fixed by the specification rather than generated: @base bound to
           https://www.onvif.org/ver10/agentic/id/, id aliased to @id, and
-          supportedBy, observations and item mapped to their onvif CURIEs with
-          @type @id, each of the four terms marked @protected. No nested or
+          supportedBy, observations, item, featureOfInterest and
+          featureOfInterestType mapped to their onvif CURIEs with @type @id,
+          each of these terms marked @protected. No nested or
           type-scoped context shall redefine @base or these terms.
 
           A third-party class that declares attributes of its own is
@@ -173,68 +175,55 @@ classes:
       - '@type'
       - extensible
 
-  FeatureOfInterest:
-    abstract: false
+  Entity:
+    abstract: true
     description: >-
-      The kind of real-world entity an observation is about, as opposed to what
-      was found about it, which is the ObservationResult.
+      Abstract root of anything in the world that information may be about: the
+      subject of an observation. Being the subject is a role an entity plays
+      when an observation refers to it through featureOfInterest; the entity
+      itself is only identified.
 
-      The entity is named in one of two ways, and exactly one of them is used by
-      any given instance: by the vocabulary of this specification, in the onvif
-      slot, or by the vendor, in the custom slot. Expressing that choice is the
-      only reason the class exists; a FeatureOfInterest that carries both slots,
-      or neither, is invalid.
+      An entity is never carried in a payload. It has no fields beyond its
+      identifier, which follows the syntax and uniqueness rules of every
+      identifier of this model and denotes the entity itself, not an observation
+      or a record of it. The producer that first observes an entity assigns its
+      identifier and keeps it for as long as it maintains the identity, so that
+      every observation about the same entity cites the same identifier.
 
-      The arrangement keeps the common vocabulary closed while leaving the set of
-      observable entities open. An ONVIF Client that receives a value it does not
-      implement can always tell which of the two cases it is in - a value of this
-      specification it does not support, or a vendor value it does not know - and
-      an ONVIF Device can name entities of its own without any risk of a future
-      value of this specification taking the same name.
+      Entity is specialised by abstract subclasses, one for each kind of
+      subject: this specification defines Object and Region, and a vendor
+      module may define further kinds. An observation states the kind of its
+      subject in featureOfInterestType, as the class_uri of the subclass.
+    slots:
+      - id
 
-      The class is concrete and is not specialised. The vocabulary grows in two
-      ways only: a new value of FeatureOfInterestType, added by a future version
-      of this specification, or a URI of a vendor's own in the custom slot. An
-      ONVIF Client therefore never encounters a subclass of FeatureOfInterest,
-      and the two slots are the whole of what it has to interpret.
-    attributes:
-      onvif:
-        range: FeatureOfInterestType
-        required: false
-        description: >-
-          The entity, named by the vocabulary of this specification. An ONVIF
-          Device shall use this slot wherever a value of FeatureOfInterestType
-          applies to what is being observed.
-      custom:
-        range: uri
-        pattern: '^[A-Za-z][A-Za-z0-9+.\-]*:[^\s]+$'
-        required: false
-        description: >-
-          The entity, named by the vendor, for an entity FeatureOfInterestType
-          does not name. The value shall be an absolute URI in a namespace the
-          vendor controls, in the same sense as the vendor_namespace of a
-          VendorExtension.
+  Object:
+    is_a: Entity
+    abstract: true
+    description: >-
+      A material entity, such as a person or a vehicle. Its identifier denotes
+      the physical entity, not a track or an observation of it.
 
-          The pattern imposes that shape, and each of its two parts carries a
-          distinct meaning. The leading production, [A-Za-z][A-Za-z0-9+.\-]*
-          followed by a colon, is the URI scheme, and it is what identifies the
-          namespace the proprietary extension belongs to: it tells an ONVIF
-          Client that the value is a vendor's own and under which naming
-          authority it is to be resolved. Where the scheme is a generic one, such
-          as https, the authority that follows it participates in identifying the
-          namespace as well, and it is then the vendor's registered domain that
-          makes the namespace its own. The remainder, [^\s]+, is the vendor's own
-          name for the entity within that namespace; it is opaque to this
-          specification, and only the vendor owning the namespace assigns meaning
-          to it. Whitespace is excluded throughout so that the value remains a
-          single token.
-    exactly_one_of:
-      - slot_conditions:
-          onvif:
-            value_presence: PRESENT
-      - slot_conditions:
-          custom:
-            value_presence: PRESENT
+      An Object is the subject of an observation when the observation is
+      about it, which is the role SOSA calls the feature of interest. Subject
+      is the wider term: anything information is about is its subject, while
+      a feature of interest is specifically the subject of an observation.
+      The role belongs to that observation; being an Object does not make an
+      entity a subject outside it.
+    related_mappings:
+      - sosa:FeatureOfInterest
+
+  Region:
+    is_a: Entity
+    abstract: true
+    description: >-
+      A region of space, such as a detection zone configured on a device. Its
+      identifier denotes the region as configured in the system, not an
+      observation of it, and stays the same for as long as that configuration
+      does. A region is the subject of an observation that reports what
+      happened in it, for example that motion was detected there.
+    related_mappings:
+      - sosa:FeatureOfInterest
 
   Procedure:
     abstract: false
@@ -245,20 +234,18 @@ classes:
 
       The procedure is named in one of two ways, and exactly one of them is used
       by any given instance: by the vocabulary of this specification, in the
-      onvif slot, or by the vendor, in the custom slot. The class is deliberately
-      built the same way as FeatureOfInterest, and for the same reasons, so that
-      an ONVIF Client handles a procedure it does not recognise exactly as it
-      handles a feature of interest it does not recognise.
+      onvif slot, or by the vendor, in the custom slot. This keeps the common
+      vocabulary of methods closed while allowing methods defined in another
+      namespace.
 
       Naming a procedure is not describing it. The class states which method was
       used, and neither how that method works nor with what parameters it was
       configured; those belong to the provenance of the information item, or to a
       vendor extension.
 
-      The class is concrete and is not specialised, for the reason given for
-      FeatureOfInterest: the set of methods grows through a new value of
-      ProcedureType or through a URI of a vendor's own, and never through a
-      subclass.
+      The class is concrete and is not specialised: the set of methods grows
+      through a new value of ProcedureType or through a URI of a vendor's own,
+      and never through a subclass.
     attributes:
       onvif:
         range: ProcedureType
@@ -391,21 +378,42 @@ classes:
           ONVIF Client parsing the observation knows what the result contains
           from the class of the observation alone.
       featureOfInterest:
-        range: FeatureOfInterest
-        inlined: true
-        required: false
+        range: UUID
+        any_of:
+          - range: Entity
+        inlined: false
+        required: true
+        related_mappings:
+          - sosa:hasFeatureOfInterest
         description: >-
-          The entity this observation is about. It is nested inside the
-          observation and not referenced by identifier: it is not an information
-          item of its own, it has no independent existence, and it names the
-          subject of this observation only.
+          Identifier of the entity this observation is about. Every observation
+          shall identify its subject. The entity is referenced and not nested:
+          it is never carried in a payload, and observations of the same entity
+          cite the same identifier. The range is UUID, which imposes the shape of
+          an identifier, and the any_of records Entity as the admissible class.
+          A concrete observation class may narrow it to Object, to Region or to
+          another subclass of Entity.
+      featureOfInterestType:
+        range: uriorcurie
+        required: true
+        description: >-
+          The kind of the entity this observation is about, being the class_uri
+          of the subclass of Entity the entity belongs to, written as a CURIE or
+          as an absolute IRI: onvif:Object for a material entity, onvif:Region
+          for a region of space, or the class of a kind defined by a vendor
+          module. It lets an ONVIF Client handle the observation without
+          resolving the entity. Categories narrower than the kind are not
+          defined by this revision of the specification. A concrete observation
+          class may fix the value.
       procedure:
         range: Procedure
         inlined: true
         required: false
         description: >-
-          The method by which this observation was produced, nested for the same
-          reason the featureOfInterest is.
+          The method by which this observation was produced. It is nested
+          inside the observation and not referenced by identifier: it has no
+          independent existence, and it names the method of this observation
+          only.
 
           The slot describes a direct observation, where there is a method that
           turned the physical world into the result. A derived observation is

@@ -574,7 +574,7 @@
           <listitem>
             <para><code>enums</code>: closed value sets used for categorical fields, such as
                 <code>DigestAlgorithm</code>, <code>SignatureAlgorithm</code> and
-              <code>FeatureOfInterestType</code>. A value set is closed in a stronger sense than it
+              <code>ProcedureType</code>. A value set is closed in a stronger sense than it
               may appear: an enumeration reached through <code>imports</code> cannot be extended with
               further permissible values, so a vendor that needs a value the enumeration does not
               provide cannot add one. Where a vocabulary has to stay open to values this
@@ -690,8 +690,7 @@
           </listitem>
           <listitem>
             <para><code>agentic/enums</code>: the enumerations —
-                <code>AgenticEngineState</code>, <code>FeatureOfInterestType</code>,
-                <code>ProcedureType</code>,
+                <code>AgenticEngineState</code>, <code>ProcedureType</code>,
                 <code>DigestAlgorithm</code> and <code>SignatureAlgorithm</code>.</para>
           </listitem>
           <listitem>
@@ -713,7 +712,7 @@
               <code>InformationItem</code>, <code>InformationEnvelope</code>,
               <code>Observation</code> with <code>ObservationResult</code>,
               <code>Assessment</code> with <code>AssessmentResult</code>,
-              <code>FeatureOfInterest</code> and <code>Procedure</code>,
+              <code>Entity</code> with <code>Object</code> and <code>Region</code>, <code>Procedure</code>,
               <code>ObservationsCollection</code>, <code>Provenance</code>, and
               <code>Location</code>. <code>Provenance</code> and <code>Location</code> are
               abstract extension points: a complete payload uses concrete subclasses supplied by
@@ -786,14 +785,15 @@
           </listitem>
           <listitem>
             <para><code>id</code> to the keyword <code>@id</code>, as a protected term, so that the
-              identifier of an information item or of an envelope is its JSON-LD node
+              identifier of an information item, of an envelope or of an entity is its JSON-LD node
               identifier;</para>
           </listitem>
           <listitem>
-            <para><code>supportedBy</code>, <code>observations</code> and <code>item</code> each to
-              a protected term whose <code>@id</code> is the <code>onvif</code> CURIE of the same
-              name and whose <code>@type</code> is <code>@id</code>, so that the identifiers these
-              fields carry are references to nodes and not literal strings;</para>
+            <para><code>supportedBy</code>, <code>observations</code>, <code>item</code>,
+              <code>featureOfInterest</code> and <code>featureOfInterestType</code> each to a
+              protected term whose <code>@id</code> is the <code>onvif</code> CURIE of the same name
+              and whose <code>@type</code> is <code>@id</code>, so that the identifiers and class IRIs
+              these fields carry are references to nodes and not literal strings;</para>
           </listitem>
           <listitem>
             <para>each additional prefix used by a module represented in the envelope to the
@@ -817,7 +817,8 @@
           used in the envelope is unchanged. The identifier mappings specified below shall not be
           removed.</para>
         <para>The <code>@base</code> entry and the term definitions of <code>id</code>,
-          <code>supportedBy</code>, <code>observations</code> and <code>item</code> are the
+          <code>supportedBy</code>, <code>observations</code>, <code>item</code>,
+          <code>featureOfInterest</code> and <code>featureOfInterestType</code> are the
           <emphasis>identifier mappings</emphasis>. Their values are fixed by this specification,
           and every inline context shall contain them exactly as follows, whether or not the
           envelope uses each of the reference fields:</para>
@@ -825,10 +826,14 @@
 "id": { "@id": "@id", "@protected": true },
 "supportedBy": { "@id": "onvif:supportedBy", "@type": "@id", "@protected": true },
 "observations": { "@id": "onvif:observations", "@type": "@id", "@protected": true },
-"item": { "@id": "onvif:item", "@type": "@id", "@protected": true }</programlisting>
+"item": { "@id": "onvif:item", "@type": "@id", "@protected": true },
+"featureOfInterest": { "@id": "onvif:featureOfInterest", "@type": "@id", "@protected": true },
+"featureOfInterestType": { "@id": "onvif:featureOfInterestType", "@type": "@id", "@protected": true }</programlisting>
         <para>These mappings are not derived from the LinkML modules. LinkML has no construct for a
-          base IRI, and a slot whose range is the <code>UUID</code> type gives a context generator
-          nothing from which to infer that its values are references. Where the generator output
+          base IRI, a slot whose range is the <code>UUID</code> type gives a context generator
+          nothing from which to infer that its values are references, and a generator maps an
+          IRI-valued slot such as <code>featureOfInterestType</code> to a literal of type
+          <code>xsd:anyURI</code> rather than to a reference. Where the generator output
           contains a definition of one of these terms, the ONVIF endpoint shall replace it with the
           definition above.</para>
         <para>The base is carried in the inline context, and not left to the JSON-LD processor,
@@ -841,7 +846,7 @@
           resolving an identifier against it is a computation on strings and requires no network
           access.</para>
         <para>No context nested in the envelope, including a type-scoped context, shall redefine
-          <code>@base</code> or any of the four protected terms. The protected flag causes a
+          <code>@base</code> or any of the protected terms. The protected flag causes a
           JSON-LD 1.1 processor to reject the redefinition of a term, but it has no effect on
           <code>@base</code>, which is therefore governed by this rule alone. Validation against
           the compiled JSON Schema does not detect a departure from the identifier mappings, because
@@ -865,8 +870,8 @@
           shall carry <code>@type</code>, naming the concrete class it instantiates: a production
           time, a provenance, an observed location, an observation result, an assessment result, a
           signature, a key descriptor and an extension container are all of that kind. An object whose
-          place is declared in terms of a concrete class, such as a feature of interest or a procedure,
-          shall not carry it.</para>
+          place is declared in terms of a concrete class, such as a procedure, shall not carry
+          it.</para>
         <para>The same obligation applies outside the information model, to the objects of the function
           layer carried in the arguments and the results of the Tools: a <code>config</code>, an
           execution <code>parameters</code> object, an execution result and a
@@ -953,21 +958,22 @@
           LinkML modules served by the device, and that its identifier mappings are those specified
           in <xref linkend="sec_context_and_type_annotations"/>, before relying on the resulting
           graph.</para>
-        <para>Second, the identifiers of information items and envelopes are JSON-LD node
+        <para>Second, the identifiers of information items, envelopes and entities are JSON-LD node
           identifiers, as stated in <xref linkend="sec_object_identifiers"/>. Each resolves against
           the fixed base of the inline context to an absolute IRI, which is the same wherever the
           envelope was obtained. The references that one item makes to another — the
           <code>supportedBy</code> field of an <code>Assessment</code> or of a derived
           <code>Observation</code>, the <code>observations</code> field of an
           <code>ObservationsCollection</code>, the <code>item</code> field of an
-          <code>ItemDigest</code> — resolve against the same base, so a JSON-LD processor produces
+          <code>ItemDigest</code> — and the <code>featureOfInterest</code> by which an
+          observation identifies its subject resolve against the same base, so a JSON-LD processor produces
           them as edges between those nodes without any identifier being minted by the ONVIF
           Client. That list is exhaustive: every other field of an information item that names
-          something else — the <code>result</code>, the <code>featureOfInterest</code>, the
-          <code>procedure</code>, the <code>provenance</code>, the <code>observedSpace</code> —
+          something else — the <code>result</code>, the <code>procedure</code>, the <code>provenance</code>, the <code>observedSpace</code> —
           carries a nested object and not an identifier, and is an ordinary property of the item.
-          Any other string value, including one that has the form of a UUID, remains a
-          literal.</para>
+          The <code>featureOfInterestType</code> of an observation is mapped in the same way, so
+          that the kind it names is a node of the graph and not a string. Any other string
+          value, including one that has the form of a UUID, remains a literal.</para>
         <para>An edge produced in this way states only that one identifier cites another. It does
           not establish that the cited item exists, that it is of a class the citing field admits,
           that it was produced before the citing item, or that the references are acyclic. Those are
@@ -2170,7 +2176,9 @@
       <para>Every information item carries an identifier, and so does the
         <code>InformationEnvelope</code> that encloses items. In the LinkML schema the identifier is
         declared as a slot named <code>id</code>, and it appears on the wire under that name as a
-        plain string.</para>
+        plain string. The entity an observation is about is identified in the same form, although
+        the entity itself is never carried in a payload (see <xref
+          linkend="sec_feature_of_interest"/>).</para>
       <para>The objects nested inside an item carry none. A production time, a provenance, an
         observed location, an observation result, an assessment result, a signature, a key
         descriptor and an extension container exist only inside the item or the envelope that
@@ -2273,12 +2281,12 @@
         shall not coin a <code>custom</code> value for a thing the enumeration already names: doing so
         defeats the purpose of having a common vocabulary, because an ONVIF Client cannot know that
         the two denote the same kind of thing.</para>
-      <para>The classes defined by this specification on this pattern are
-        <code>FeatureOfInterest</code> (see <xref linkend="sec_feature_of_interest"/>) and
-        <code>Procedure</code> (see <xref linkend="sec_procedure"/>). Neither is specialised by
-        subclassing: the vocabulary of each grows through a new value of its enumeration in a future
-        revision of this specification, or through a <code>custom</code> value, and never through a
-        subclass.</para>
+      <para>The class defined by this specification on this pattern is <code>Procedure</code> (see
+        <xref linkend="sec_procedure"/>). It is not specialised by subclassing: its vocabulary
+        grows through a new value of its enumeration in a future revision of this specification, or
+        through a <code>custom</code> value, and never through a subclass. The kinds of entity an
+        observation can be about are classes and not values of an enumeration, as described in
+        <xref linkend="sec_feature_of_interest"/>.</para>
     </section>
 
     <section xml:id="sec_information_item">
@@ -2355,9 +2363,9 @@
         abstract: an observation on the wire is always an instance of a concrete subclass, introduced
         either by a future revision of this specification or by a vendor extension.</para>
       <para>Beyond the fields it inherits from <code>InformationItem</code>, an
-        <code>Observation</code> carries what the observation found, the entity it is about and the
-        method that produced it, two optional context fields describing the situation observed rather
-        than the act of observing it, and an optional list of the observations it was computed
+        <code>Observation</code> carries what the observation found, the entity it is about and its
+        kind, the method that produced it, two optional context fields describing the situation
+        observed rather than the act of observing it, and an optional list of the observations it was computed
         from:</para>
       <itemizedlist>
         <listitem>
@@ -2366,8 +2374,13 @@
             its type by each concrete subclass.</para>
         </listitem>
         <listitem>
-          <para><code>featureOfInterest</code> — the entity the observation is about, as specified in
-            <xref linkend="sec_feature_of_interest"/>.</para>
+          <para><code>featureOfInterest</code> — the identifier of the entity the observation is
+            about, which is mandatory, as specified in <xref linkend="sec_feature_of_interest"/>.</para>
+        </listitem>
+        <listitem>
+          <para><code>featureOfInterestType</code> — the kind of that entity, which is
+            mandatory, as specified in <xref
+            linkend="sec_feature_of_interest"/>.</para>
         </listitem>
         <listitem>
           <para><code>procedure</code> — the method by which the observation was produced, as
@@ -2395,18 +2408,15 @@
         observation and, where it can, an <code>Assessment</code> relating the two, as described in
         <xref linkend="sec_assessment"/>. An ONVIF Client shall not expect an
         observation it has received to be superseded in place.</para>
-      <para>A concrete observation class defined for one kind of entity and one method shall fix the
-        value of <code>featureOfInterest</code> and of <code>procedure</code> in its own definition,
-        rather than leave the choice to the ONVIF endpoint producing the item. An information item of
-        such a class that reports a different value is invalid, and an ONVIF Client may rely on the
-        value from the class of the item alone, without reading the field. A class that is not
-        defined for one kind of entity, or that admits more than one method, leaves the fields to the
-        producer and an ONVIF Client shall then read them.</para>
-      <para>Fixing a value does not introduce a subclass of <code>FeatureOfInterest</code> or of
-        <code>Procedure</code>: neither is specialised by subclassing, as stated in <xref
-        linkend="sec_open_vocabulary"/>. What varies
-        between two observation classes is which value of the vocabulary applies, which is a property
-        of the observing class and not a new kind of feature of interest or of procedure.</para>
+      <para>A concrete observation class defined for one kind of entity and one method shall
+        fix the value of <code>featureOfInterestType</code> and of <code>procedure</code> in its own
+        definition, rather than leave the choice to the ONVIF endpoint producing the item. An
+        information item of such a class that reports a different value is invalid, and an ONVIF
+        Client may rely on the value from the class of the item alone, without reading the field. A
+        class that is not defined for one kind of entity, or that admits more than one method,
+        leaves the fields to the producer and an ONVIF Client shall then read them.</para>
+      <para>Fixing a value introduces neither a new kind of entity nor a new kind of procedure: it
+        selects one that already exists, which is a property of the observing class.</para>
 
       <section xml:id="sec_observation_result">
         <title>ObservationResult</title>
@@ -2432,20 +2442,40 @@
       </section>
 
       <section xml:id="sec_feature_of_interest">
-        <title>FeatureOfInterest</title>
-        <para><code>FeatureOfInterest</code> names the kind of real-world entity an observation is
-          about, as opposed to what was found about it, which is the <code>result</code>. It is the
-          type of the optional <code>featureOfInterest</code> field of an
-          <code>Observation</code>.</para>
-        <para>The class follows the open vocabulary pattern of <xref
-          linkend="sec_open_vocabulary"/>: it carries an <code>onvif</code> field drawn from the
-          <code>FeatureOfInterestType</code> enumeration and a <code>custom</code> field holding a
-          vendor URI, of which exactly one shall be present.</para>
-        <para>The entity named here is the subject of this observation and of no other. Where two
-          observations are about the same physical entity, the claim that they are is an
-          <code>Assessment</code> and not a consequence of their carrying the same feature of
-          interest: two observations of a vehicle name the same kind of entity whether or not the
-          vehicle is the same one.</para>
+        <title>Subject of an observation</title>
+        <para>The <code>featureOfInterest</code> of an observation identifies the entity the
+          observation is about, as opposed to what was found about it, which is the
+          <code>result</code>. Every observation shall identify it. The entity is the subject of the
+          observation: being the subject is a role the entity plays when an observation refers to
+          it, a role SOSA calls the feature of interest, and the entity itself is only
+          identified.</para>
+        <para>The field carries the identifier of the entity and nothing else. An entity is never
+          carried in a payload. Its identifier follows the rules of <xref
+          linkend="sec_object_identifiers"/> and denotes the entity itself, not an observation or a
+          record of it. The producer that first observes an entity assigns its identifier and keeps
+          it for as long as it maintains the identity, so that every observation about the same
+          entity cites the same identifier.</para>
+        <para>An entity is an instance of one of the abstract subclasses of <code>Entity</code>,
+          each of which is a <emphasis>kind</emphasis> of subject. This specification defines two:
+          <code>Object</code>, a material entity such as a person or a vehicle, and
+          <code>Region</code>, a region of space such as a detection zone configured on a device,
+          whose identifier denotes the region as configured. A vendor module may define further
+          kinds. A concrete observation class may narrow the admissible kind of its
+          <code>featureOfInterest</code>.</para>
+        <para>The <code>featureOfInterestType</code> of an observation states the kind of the entity,
+          as the class URI of its subclass of <code>Entity</code>, written as a CURIE or as an
+          absolute IRI: <code>onvif:Object</code> or <code>onvif:Region</code>, or the class of a
+          kind defined by a vendor module. It lets an ONVIF Client handle the observation without
+          resolving the entity. Categories narrower than the kind are not defined by this revision of
+          the specification. A concrete observation class may fix the kind, as specified in <xref
+            linkend="sec_observation"/>.</para>
+        <para>For example, an observation of a car carries:</para>
+        <programlisting>"featureOfInterest": "5d0e9a3c-7b21-4f6e-a8d4-1c9b2e7f3a60",
+"featureOfInterestType": "onvif:Object"</programlisting>
+        <para>An observation that motion was detected in a configured region, as reported by the
+          motion region detection of ONVIF Profile M, is about the region and carries:</para>
+        <programlisting>"featureOfInterest": "8c1d4e27-5a90-4b3f-9e62-0d7a3f1b54c8",
+"featureOfInterestType": "onvif:Region"</programlisting>
       </section>
 
       <section xml:id="sec_procedure">
@@ -4764,10 +4794,11 @@ classes:
       <para>The vehicle passes the first camera at 10:15:00.000 UTC. The camera reads the plate and
         emits one <code>VehicleDetectionObservation</code> in an envelope it signs with its own
         key.</para>
-      <para>The <code>featureOfInterest</code> and the <code>procedure</code> carry the values the
-        class fixes, <code>Vehicle</code> and <code>Analytics</code>, as specified in <xref
-        linkend="sec_observation"/>: an ONVIF Client knows both from the class of the item and does
-        not have to read them. The <code>observedTime</code> is the instant the vehicle was seen and
+      <para>The <code>featureOfInterestType</code> and the <code>procedure</code> carry the values
+        the class fixes, <code>onvif:Object</code> and <code>Analytics</code>, as specified in
+        <xref linkend="sec_observation"/>: an ONVIF Client knows both from the class of the item and
+        does not have to read them. The <code>featureOfInterest</code> is the identifier the camera
+        assigned to the vehicle it saw. The <code>observedTime</code> is the instant the vehicle was seen and
         the <code>productionTime</code> is the later instant at which the item was assembled; the
         speed is computed from the first and never from the second.</para>
       <programlisting>{
@@ -4783,6 +4814,8 @@ classes:
     "supportedBy": { "@id": "onvif:supportedBy", "@type": "@id", "@protected": true },
     "observations": { "@id": "onvif:observations", "@type": "@id", "@protected": true },
     "item": { "@id": "onvif:item", "@type": "@id", "@protected": true },
+    "featureOfInterest": { "@id": "onvif:featureOfInterest", "@type": "@id", "@protected": true },
+    "featureOfInterestType": { "@id": "onvif:featureOfInterestType", "@type": "@id", "@protected": true },
     "hackathon2026": {
       "@id": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/",
       "@prefix": true
@@ -4850,7 +4883,8 @@ classes:
           }
         ]
       },
-      "featureOfInterest": { "onvif": "Vehicle" },
+      "featureOfInterest": "5d0e9a3c-7b21-4f6e-a8d4-1c9b2e7f3a60",
+      "featureOfInterestType": "onvif:Object",
       "procedure": { "onvif": "Analytics" },
       "observedTime": {
         "@type": "onvif:ISO8601Timestamp",
@@ -4923,6 +4957,8 @@ classes:
     "supportedBy": { "@id": "onvif:supportedBy", "@type": "@id", "@protected": true },
     "observations": { "@id": "onvif:observations", "@type": "@id", "@protected": true },
     "item": { "@id": "onvif:item", "@type": "@id", "@protected": true },
+    "featureOfInterest": { "@id": "onvif:featureOfInterest", "@type": "@id", "@protected": true },
+    "featureOfInterestType": { "@id": "onvif:featureOfInterestType", "@type": "@id", "@protected": true },
     "hackathon2026": {
       "@id": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/",
       "@prefix": true
@@ -4990,7 +5026,8 @@ classes:
           }
         ]
       },
-      "featureOfInterest": { "onvif": "Vehicle" },
+      "featureOfInterest": "9b47e2d1-3c58-4a06-b7f9-2e81d5c4a039",
+      "featureOfInterestType": "onvif:Object",
       "procedure": { "onvif": "Analytics" },
       "observedTime": {
         "@type": "onvif:ISO8601Timestamp",
@@ -5035,8 +5072,9 @@ classes:
   }
 }</programlisting>
       <para>The two detections carry the same plate, and that is the whole of what ties them to one
-        vehicle in this use case. The claim that the two are the same vehicle is not made by either
-        camera: it is made by the analytics box in the next section, and it is made by the act of
+        vehicle in this use case. Each camera identifies the vehicle it saw by an identifier of its
+        own, so the two <code>featureOfInterest</code> values differ. The claim that the two are the
+        same vehicle is not made by either camera: it is made by the analytics box in the next section, and it is made by the act of
         computing a speed from the pair.</para>
     </section>
 
@@ -5048,7 +5086,8 @@ classes:
         obtains two hundred metres in ten seconds, which is 72.0 km/h.</para>
       <para>It publishes two information items in one envelope of its own. The first is the
         <code>SpeedEstimateObservation</code> it computed, which cites the two detections in
-        <code>supportedBy</code>. The second is an <code>ObservationsCollection</code> that groups
+        <code>supportedBy</code> and identifies the vehicle by the identifier the entry camera
+        assigned to it, the first that was assigned. The second is an <code>ObservationsCollection</code> that groups
         the three observations, so that a later item can cite one identifier instead of three.</para>
       <para>The two detections are not repeated here. A collection carries identifiers and not
         observations, as specified in <xref linkend="sec_observations_collection"/>, and each
@@ -5070,6 +5109,8 @@ classes:
     "supportedBy": { "@id": "onvif:supportedBy", "@type": "@id", "@protected": true },
     "observations": { "@id": "onvif:observations", "@type": "@id", "@protected": true },
     "item": { "@id": "onvif:item", "@type": "@id", "@protected": true },
+    "featureOfInterest": { "@id": "onvif:featureOfInterest", "@type": "@id", "@protected": true },
+    "featureOfInterestType": { "@id": "onvif:featureOfInterestType", "@type": "@id", "@protected": true },
     "hackathon2026": {
       "@id": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/",
       "@prefix": true
@@ -5133,7 +5174,8 @@ classes:
           }
         ]
       },
-      "featureOfInterest": { "onvif": "Vehicle" },
+      "featureOfInterest": "5d0e9a3c-7b21-4f6e-a8d4-1c9b2e7f3a60",
+      "featureOfInterestType": "onvif:Object",
       "procedure": {
         "custom": "urn:onvif-hackathon:procedure:two-point-transit-speed"
       },
@@ -5263,6 +5305,8 @@ classes:
     "supportedBy": { "@id": "onvif:supportedBy", "@type": "@id", "@protected": true },
     "observations": { "@id": "onvif:observations", "@type": "@id", "@protected": true },
     "item": { "@id": "onvif:item", "@type": "@id", "@protected": true },
+    "featureOfInterest": { "@id": "onvif:featureOfInterest", "@type": "@id", "@protected": true },
+    "featureOfInterestType": { "@id": "onvif:featureOfInterestType", "@type": "@id", "@protected": true },
     "hackathon2026": {
       "@id": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/",
       "@prefix": true
