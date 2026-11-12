@@ -335,33 +335,27 @@ classes:
       carried in the result, ordered by observedTime, and separated in space by
       their observedSpace values.
 
-      The class is defined for one kind of entity and one method, so it fixes both
-      rather than leaving them to the producer: the featureOfInterest is the value
-      Vehicle of FeatureOfInterestType and the procedure is the value Analytics of
-      ProcedureType, both carried in the onvif slot of the respective class. The
-      values are pinned in slot_usage below and are therefore enforced by the
-      compiled schema, not merely prescribed here: an item of this class that
-      names another entity, or that reports either value in the custom slot, is
-      invalid. An ONVIF Client may rely on the two values from the class alone,
-      without reading them.
+      The class is defined for one kind of entity and one method, so it fixes
+      both rather than leaving them to the producer: the featureOfInterestType is
+      onvif:Object and the procedure is the value Analytics of ProcedureType,
+      carried in the onvif slot of the Procedure. The values are pinned in
+      slot_usage below and are therefore enforced by the compiled schema, not
+      merely prescribed here. The featureOfInterest identifies the particular
+      vehicle that was seen.
     slot_usage:
       result:
         range: VehicleDetectionResult
         value_presence: PRESENT
         required: true
       featureOfInterest:
-        required: true
-        range_expression:
-          slot_conditions:
-            onvif:
-              equals_string: Vehicle
-              required: true
+        any_of:
+          - range: Object
         description: >-
-          The entity this observation is about, fixed to the value Vehicle. The
-          value is pinned on this slot and not by a subclass of FeatureOfInterest,
-          because that class is concrete and is not specialised: what varies from
-          one observation class to another is which value applies, and that is a
-          property of the citing class, not a new kind of feature of interest.
+          Identifier of the vehicle this observation is about.
+      featureOfInterestType:
+        pattern: '^onvif:Object$'
+        description: >-
+          The kind of the entity, fixed to onvif:Object.
       procedure:
         required: true
         range_expression:
@@ -459,11 +453,11 @@ classes:
       another procedure, or that reports a value of ProcedureType in the onvif
       slot, is invalid.
 
-      The featureOfInterest is fixed in the same way to the value Vehicle of
-      FeatureOfInterestType, and is required here although it is optional on
-      Observation: an estimate is published and assessed on its own, so what it is
-      about is stated on the item and is not left to be found by resolving the two
-      detections it cites.
+      The featureOfInterestType is fixed in the same way to onvif:Object. The
+      featureOfInterest identifies the vehicle the estimate is about, by the
+      identifier the earlier of the two cited detections assigned to it: an
+      estimate is published and assessed on its own, so what it is about is stated on the item and is not
+      left to be found by resolving the two detections it cites.
     slot_usage:
       result:
         range: SpeedEstimateResult
@@ -495,20 +489,16 @@ classes:
           ProcedureType has no value for a derivation of this kind, and the onvif
           slot shall therefore stay absent.
       featureOfInterest:
-        required: true
-        range_expression:
-          slot_conditions:
-            onvif:
-              equals_string: Vehicle
-              required: true
+        any_of:
+          - range: Object
         description: >-
-          The entity the estimate is about, fixed to the value Vehicle. A speed
-          estimate derived from vehicle detections cannot be about anything else.
-
-          The slot is required here although it is optional on Observation: an
-          ONVIF Client shall be able to read what the estimate is about from the
-          item itself, without resolving the two detections it cites, because the
-          item is published on its own and is assessed on its own.
+          Identifier of the vehicle the estimate is about, being the identifier
+          the earlier of the two cited detections assigned to it.
+      featureOfInterestType:
+        pattern: '^onvif:Object$'
+        description: >-
+          The kind of the entity, fixed to onvif:Object. A speed estimate
+          derived from vehicle detections is about a material entity.
       observedTime:
         range: ISO8601Interval
         required: true
