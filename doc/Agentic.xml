@@ -1166,7 +1166,12 @@
         and what each outcome does and does not reveal, is specified in <xref
           linkend="sec_task_authorization_errors"/>. <code>tasks/update</code> additionally
         requires that the request answer a pending <code>inputRequest</code> of that task, as
-        specified by the MCP Tasks extension; it is not a general reconfiguration method. Knowing a
+        specified by the MCP Tasks extension; it is not a general reconfiguration method. Its fixed
+        floor is lower than <code>tasks/cancel</code>'s because <code>tasks/get</code> and
+          <code>tasks/update</code> apply to a task of any access class, not only
+          <code>ACTUATE</code>-tier ones; a task's own class — which may require
+          <code>onvif:Operator</code> or higher — is enforced separately, once that task has been
+        found, as specified in <xref linkend="sec_task_authorization_errors"/>. Knowing a
           <code>taskId</code> is not by itself a credential.</para>
     </section>
 
@@ -1190,14 +1195,15 @@
             in <xref linkend="sec_task_model"/>. This check needs no task lookup.</para>
         </listitem>
         <listitem>
-          <para>Otherwise, compare the caller's role against the fixed per-method minimum —
-              <code>onvif:Operator</code> for <code>tasks/cancel</code>, <code>onvif:User</code>
-            for <code>tasks/get</code> and <code>tasks/update</code>. This minimum is the same for
-            every <code>taskId</code> presented to that method on this endpoint, well-formed or
-            not, and is reached without any task lookup: it is not the access class of the task
-            named in the request, but the lowest access class among the Tools on this endpoint
-            that are capable of creating a task reachable by that method. A role below it is
-            rejected with HTTP 403.</para>
+          <para>Otherwise, before looking up <code>taskId</code>, require at least
+              <code>onvif:Operator</code> for <code>tasks/cancel</code> and at least
+              <code>onvif:User</code> for <code>tasks/get</code> and <code>tasks/update</code>.
+            These minimums are fixed by method and apply regardless of which Tools the endpoint
+            exposes: they are not the access class of the task named in the request, nor a value
+            computed from the Tools available on this endpoint, and they are reached without any
+            task lookup, so their outcome and cost are the same for every <code>taskId</code>
+            presented to that method, well-formed or not. If the caller falls below the method's
+            minimum, reject the request with HTTP 403.</para>
         </listitem>
         <listitem>
           <para>Otherwise, look up the named <code>taskId</code>. Reject the request with the
