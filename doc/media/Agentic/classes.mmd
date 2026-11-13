@@ -1,0 +1,237 @@
+classDiagram
+    direction TB
+
+    class InformationItem {
+        <<abstract>>
+        +curie @type
+        +UUID id
+        +Likelihood confidence
+        +Provenance provenance
+        +Extensible extensible
+    }
+
+    class InformationEnvelope {
+        +Any @context
+        +curie @type
+        +UUID id
+        +InformationItem[] items
+        +ItemDigest[] hashes
+        +Signature signature
+    }
+
+    class Observation {
+        <<abstract>>
+    }
+
+    class SOSAObservation {
+        +SOSAObservationResult hasResult
+        +SOSAFeatureOfInterest featureOfInterest
+        +SOSAProcedure procedure
+        +SOSAObservableProperty observedProperty
+        +SOSASensor madeBySensor
+        +SOSATemporalEntity phenomenonTime
+        +Iso8601Instant resultTime
+    }
+
+    class ObservationsCollection {
+        +UUID[] observations
+    }
+
+    class Assessment {
+        <<abstract>>
+        +Time productionTime
+        +AssessmentResult result
+        +UUID[] supportedBy
+    }
+
+    class SOSAObservationResult {
+        <<abstract>>
+        +curie @type
+        +Extensible extensible
+    }
+
+    class AssessmentResult {
+        <<abstract>>
+        +curie @type
+        +Extensible extensible
+    }
+
+    class SOSAFeatureOfInterest {
+        <<abstract>>
+        +curie @type
+        +UUID id
+    }
+
+    class SOSAExtendedFeatureOfInterest {
+        <<abstract>>
+        +curie @type
+        +Location space
+    }
+
+    class SOSAProcedure {
+        <<abstract>>
+        +curie @type
+        +UUID id
+    }
+
+    class SOSAObservableProperty {
+        <<abstract>>
+        +curie @type
+        +UUID id
+    }
+
+    class SOSASensor {
+        <<abstract>>
+        +curie @type
+        +UUID id
+    }
+
+    class SOSATemporalEntity {
+        <<abstract>>
+        +curie @type
+        +UUID id
+    }
+
+    class SOSAInstant {
+        +Iso8601Instant timestamp
+    }
+
+    class SOSAInterval {
+        +SOSAInstant beginning
+        +SOSAInstant end
+    }
+
+    class Provenance {
+        <<abstract>>
+        +curie @type
+        +Extensible extensible
+    }
+
+    class Location {
+        <<abstract>>
+        +curie @type
+        +Extensible extensible
+    }
+
+    class Time {
+        <<abstract>>
+        +curie @type
+        +Extensible extensible
+    }
+
+    class ISO8601Timestamp {
+        +Iso8601Instant timestamp
+    }
+
+    class ISO8601Interval {
+        +Iso8601IntervalString intervalString
+    }
+
+    class Extensible {
+        <<abstract>>
+        +curie @type
+    }
+
+    class VendorExtension {
+        +uri vendor_namespace
+        +string name
+        +Any value
+    }
+
+    class VendorExtensible {
+        +VendorExtension[] vendorExtensions
+    }
+
+    class Signature {
+        <<abstract>>
+        +curie @type
+        +Extensible extensible
+    }
+
+    class OnvifSignature {
+        +DigestAlgorithm digestAlgorithm
+        +SignatureAlgorithm signatureAlgorithm
+        +Iso8601UtcInstant created
+        +SigningKey key
+        +Base64Binary envelopeDigest
+        +Base64Binary signatureValue
+    }
+
+    class SigningKey {
+        <<abstract>>
+        +curie @type
+        +Extensible extensible
+    }
+
+    class X509CertificateChain {
+        +string[] certificateChain
+        +boolean userProvisioned
+    }
+
+    class PublicKeyIdentifier {
+        +KeyID keyId
+        +uri verificationMethod
+        +KeyFingerprint[] fingerprints
+    }
+
+    class ItemDigest {
+        +UUID item
+        +Base64Binary digest
+    }
+
+    class KeyFingerprint {
+        +DigestAlgorithm algorithm
+        +Base64Binary value
+    }
+
+    class DevicePublicKey {
+        +KeyID keyId
+        +KeyFingerprint[] fingerprints
+        +string subjectPublicKeyInfo
+        +Extensible extensible
+    }
+
+    InformationItem <|-- Observation
+    InformationItem <|-- Assessment
+    InformationItem <|-- ObservationsCollection
+    Observation <|-- SOSAObservation
+    SOSAFeatureOfInterest <|-- SOSAExtendedFeatureOfInterest
+    Extensible <|-- VendorExtension
+    Extensible <|-- VendorExtensible
+
+    Time <|-- ISO8601Timestamp
+    Time <|-- ISO8601Interval
+
+    SOSATemporalEntity <|-- SOSAInstant
+    SOSATemporalEntity <|-- SOSAInterval
+
+    Signature <|-- OnvifSignature
+    SigningKey <|-- X509CertificateChain
+    SigningKey <|-- PublicKeyIdentifier
+
+    InformationEnvelope "1" o-- "1..*" InformationItem : items
+    InformationEnvelope "1" o-- "0..*" ItemDigest : hashes
+    InformationEnvelope "1" --> "0..1" Signature : signature
+
+    Assessment --> "1" Time : productionTime
+    InformationItem --> "1" Provenance : provenance
+    InformationItem ..> Extensible : extensible
+
+    SOSAObservation --> "1" SOSAObservationResult : hasResult
+    SOSAObservation ..> SOSAFeatureOfInterest : featureOfInterest
+    SOSAObservation ..> SOSAProcedure : procedure
+    SOSAObservation ..> SOSAObservableProperty : observedProperty
+    SOSAObservation ..> SOSASensor : madeBySensor
+    SOSAObservation ..> SOSATemporalEntity : phenomenonTime
+    SOSAInterval --> "0..1" SOSAInstant : beginning
+    SOSAInterval --> "0..1" SOSAInstant : end
+    SOSAExtendedFeatureOfInterest ..> Location : space
+
+    Assessment --> "0..1" AssessmentResult : result
+    Assessment ..> "1..*" InformationItem : supportedBy
+
+    ObservationsCollection ..> "1..*" Observation : observations
+
+    OnvifSignature --> "1" SigningKey : key
+    PublicKeyIdentifier ..> "0..*" KeyFingerprint : fingerprints
+    DevicePublicKey ..> "0..*" KeyFingerprint : fingerprints

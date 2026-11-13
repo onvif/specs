@@ -551,8 +551,8 @@
               prefixes to namespace URIs, and the prefix under which the classes of the module are
               placed. Every module of this specification declares
                 <code>onvif: https://www.onvif.org/ver10/agentic/linkml/</code> and sets
-                <code>default_prefix: onvif</code>, so the classes of all modules share one
-              vocabulary namespace irrespective of which document declares them. The class
+                <code>default_prefix: onvif</code>, so classes use the ONVIF vocabulary namespace
+              unless they declare an explicit <code>class_uri</code>. The class
                 <code>ObservationsCollection</code> is therefore identified by
                 <code>https://www.onvif.org/ver10/agentic/linkml/ObservationsCollection</code>. This
               is the mechanism on which the collision safety of vendor extensions rests, as described
@@ -573,14 +573,11 @@
           </listitem>
           <listitem>
             <para><code>enums</code>: closed value sets used for categorical fields, such as
-                <code>DigestAlgorithm</code>, <code>SignatureAlgorithm</code> and
-              <code>FeatureOfInterestType</code>. A value set is closed in a stronger sense than it
+                <code>DigestAlgorithm</code> and <code>SignatureAlgorithm</code>. A value set is closed in a stronger sense than it
               may appear: an enumeration reached through <code>imports</code> cannot be extended with
               further permissible values, so a vendor that needs a value the enumeration does not
-              provide cannot add one. Where a vocabulary has to stay open to values this
-              specification does not name, the enumeration is therefore not used on its own but
-              paired with a companion field, by the pattern specified in
-              <xref linkend="sec_open_vocabulary"/>.</para>
+              provide cannot add one. Extensible class families instead permit additional concrete
+              subclasses, as specified in <xref linkend="sec_open_vocabulary"/>.</para>
           </listitem>
         </itemizedlist>
       </section>
@@ -690,8 +687,7 @@
           </listitem>
           <listitem>
             <para><code>agentic/enums</code>: the enumerations —
-                <code>AgenticEngineState</code>, <code>FeatureOfInterestType</code>,
-                <code>ProcedureType</code>,
+                <code>AgenticEngineState</code>,
                 <code>DigestAlgorithm</code> and <code>SignatureAlgorithm</code>.</para>
           </listitem>
           <listitem>
@@ -711,14 +707,24 @@
           <listitem>
             <para><code>agentic/base</code>: the metadata model proper —
               <code>InformationItem</code>, <code>InformationEnvelope</code>,
-              <code>Observation</code> with <code>ObservationResult</code>,
+              <code>Observation</code>,
               <code>Assessment</code> with <code>AssessmentResult</code>,
-              <code>FeatureOfInterest</code> and <code>Procedure</code>,
               <code>ObservationsCollection</code>, <code>Provenance</code>, and
               <code>Location</code>. <code>Provenance</code> and <code>Location</code> are
               abstract extension points: a complete payload uses concrete subclasses supplied by
-              an extension module, such as the hackathon module. It is described in
+              an extension module. It is described in
               <xref linkend="ch_metadata"/>.</para>
+          </listitem>
+          <listitem>
+            <para><code>agentic/sosa</code>: the SOSA observation classes —
+              <code>SOSAObservation</code>,
+              <code>SOSAObservationResult</code>,
+              <code>SOSAFeatureOfInterest</code>, <code>SOSAExtendedFeatureOfInterest</code>,
+              <code>SOSAProcedure</code>,
+              <code>SOSAObservableProperty</code>, <code>SOSASensor</code> and
+              <code>SOSATemporalEntity</code>, <code>SOSAInstant</code> and
+              <code>SOSAInterval</code>. This module imports
+              <code>agentic/base</code>.</para>
           </listitem>
           <listitem>
             <para><code>agentic</code>: the function-control interface —
@@ -731,8 +737,8 @@
         <para>An ONVIF endpoint shall not redefine a class, a type or an enumeration that the bundle
           declares. This ensures that an ONVIF Client that has already loaded the bundle does not
           need to re-fetch it for each new ONVIF endpoint it connects to.</para>
-        <para>Because every module places its classes in the same vocabulary namespace, a class is
-          identified in the same way whichever module declares it. An ONVIF Client therefore resolves
+        <para>A class is identified by its explicit <code>class_uri</code>, or by its name in the
+          default vocabulary namespace if no URI is specified. An ONVIF Client therefore resolves
           a class name against the bundle as a whole, and not against the particular document in
           which the class happens to appear; moving a class between modules in a future revision does
           not change its identity.</para>
@@ -785,9 +791,8 @@
                 <code>https://www.onvif.org/ver10/agentic/linkml/</code> with prefix semantics;</para>
           </listitem>
           <listitem>
-            <para><code>id</code> to the keyword <code>@id</code>, as a protected term, so that the
-              identifier of an information item or of an envelope is its JSON-LD node
-              identifier;</para>
+            <para><code>id</code> to the keyword <code>@id</code>, as a protected term, so that an
+              object's identifier is its JSON-LD node identifier;</para>
           </listitem>
           <listitem>
             <para><code>supportedBy</code>, <code>observations</code> and <code>item</code> each to
@@ -800,13 +805,49 @@
               namespace URI declared by that module;</para>
           </listitem>
           <listitem>
-            <para>each concrete third-party class used in the envelope as an expanded term
+            <para>each concrete class requiring non-default property mappings as an expanded term
               definition whose <code>@id</code> is that class's CURIE and whose type-scoped
-                <code>@context</code> maps every locally declared, unqualified JSON property name to
-              its <code>slot_uri</code>. Inherited ONVIF properties continue to use the outer
-                <code>@vocab</code> mapping.</para>
+                <code>@context</code> maps its properties, including inherited properties, to their
+              effective <code>slot_uri</code> values. This includes subclasses of
+              <code>SOSAObservation</code>: their <code>hasResult</code> maps to
+              <code>sosa:hasResult</code>, while an assessment's result remains an ONVIF property.
+              The <code>resultTime</code> mapping also specifies <code>xsd:dateTime</code> as its
+              datatype. The context shall preserve these mappings even when the class is declared by
+              a third-party module.</para>
           </listitem>
         </itemizedlist>
+        <para>An inline <code>time:Instant</code> uses a type-scoped mapping of its
+          <code>timestamp</code> field to <code>time:inXSDDateTimeStamp</code>, with datatype
+          <code>xsd:dateTimeStamp</code>. An <code>onvif:ISO8601Timestamp</code> instead maps its
+          <code>timestamp</code> to <code>onvif:timestamp</code>, with datatype
+          <code>xsd:dateTime</code>. These mappings shall not be conflated into a global mapping.
+          A <code>time:Interval</code> maps <code>beginning</code> and <code>end</code> to
+          <code>time:hasBeginning</code> and <code>time:hasEnd</code>. An ONVIF endpoint shall
+          supply these type-scoped mappings even if the generic LinkML context generator emits a
+          different global mapping or datatype. For example, the following is an excerpt of an
+          inline context (the mandatory identifier mappings and other terms are omitted):</para>
+        <programlisting>{
+  "time": "http://www.w3.org/2006/time#",
+  "xsd": "http://www.w3.org/2001/XMLSchema#",
+  "time:Instant": {
+    "@id": "time:Instant",
+    "@context": {
+      "timestamp": { "@id": "time:inXSDDateTimeStamp", "@type": "xsd:dateTimeStamp" }
+    }
+  },
+  "time:Interval": {
+    "@id": "time:Interval",
+    "@context": { "beginning": "time:hasBeginning", "end": "time:hasEnd" }
+  },
+  "onvif:ISO8601Timestamp": {
+    "@id": "onvif:ISO8601Timestamp",
+    "@context": {
+      "timestamp": { "@id": "onvif:timestamp", "@type": "xsd:dateTime" }
+    }
+  }
+}</programlisting>
+        <para>The observation's <code>hasResult</code> and the
+          assessment's <code>result</code> have distinct property mappings.</para>
         <para>The type-scoped context is necessary because two modules can use the same JSON
           property name with different <code>slot_uri</code> values. A single global term mapping
           could represent only one of them. The context shall be generated from the LinkML schema
@@ -852,8 +893,9 @@
           and shall treat an envelope that fails this check as non-conformant. This applies equally
           to an envelope that has been stored or forwarded.</para>
         <para><code>@type</code> shall name the class of the node it appears on. For a class declared
-          by the ONVIF Agentic Schema Bundle the value is an <code>onvif</code> CURIE, for example
-            <code>onvif:ObservationsCollection</code>. For a class declared by a third-party module
+          by the ONVIF Agentic Schema Bundle the value uses the prefix of its
+          <code>class_uri</code>, for example <code>onvif:ObservationsCollection</code> or
+          <code>sosa:Observation</code>. For a class declared by a third-party module
           the value uses the prefix declared by that module, for example
             <code>acme:ThermalObservation</code>. In both cases the expanded URI shall equal the
             <code>class_uri</code> of the concrete LinkML class. A bare class name shall not be used.
@@ -863,10 +905,12 @@
           enclosing it that could state its class. Every object nested
           inside an item whose place in the containing class is declared in terms of an abstract class
           shall carry <code>@type</code>, naming the concrete class it instantiates: a production
-          time, a provenance, an observed location, an observation result, an assessment result, a
-          signature, a key descriptor and an extension container are all of that kind. An object whose
-          place is declared in terms of a concrete class, such as a feature of interest or a procedure,
-          shall not carry it.</para>
+          time, a provenance, a feature location, an observation result, a feature of interest,
+          a procedure, an observable property, a sensor, an assessment result, a signature, a key descriptor
+          and an extension container are all of that kind. An object whose
+          place is declared in terms of a single concrete class normally shall not carry it. Every form of
+          <code>phenomenonTime</code> carries <code>@type</code>: a complete or referenced
+          <code>SOSAInstant</code> or <code>SOSAInterval</code>, including an interval's instant endpoints.</para>
         <para>The same obligation applies outside the information model, to the objects of the function
           layer carried in the arguments and the results of the Tools: a <code>config</code>, an
           execution <code>parameters</code> object, an execution result and a
@@ -883,12 +927,13 @@
           family and not a structure, and the fields of the object are the only other evidence of what
           it is; an ONVIF Client would have to guess the class from the fields it happens to find, and
           two concrete classes of the same family may well be distinguished by an optional field alone.
-          Where the declared class is concrete the class is already fixed for every instance, and
-          <code>@type</code> would only repeat what the schema states, while giving a producer the
-          opportunity to contradict it.</para>
+          Where the declared class is concrete the class is already fixed for every instance; the
+          SOSA and OWL-Time exceptions nevertheless carry <code>@type</code> so that JSON-LD
+          explicitly asserts the corresponding RDF class without relying on inference.</para>
         <para>The obligation is a property of the position and not of the class: a class carries
           <code>@type</code> in the positions where the declared class is abstract, and an ONVIF
-          Client shall not expect it elsewhere. A vendor introducing a class into an existing abstract
+          Client shall not expect it elsewhere except on the SOSA and OWL-Time objects identified
+          above. A vendor introducing a class into an existing abstract
           family therefore inherits the obligation without having to be told of it, and a future
           revision of this specification that makes an abstract family out of what is now a single
           concrete class shall introduce the keyword on the objects concerned.</para>
@@ -953,21 +998,22 @@
           LinkML modules served by the device, and that its identifier mappings are those specified
           in <xref linkend="sec_context_and_type_annotations"/>, before relying on the resulting
           graph.</para>
-        <para>Second, the identifiers of information items and envelopes are JSON-LD node
+        <para>Second, object identifiers are JSON-LD node
           identifiers, as stated in <xref linkend="sec_object_identifiers"/>. Each resolves against
           the fixed base of the inline context to an absolute IRI, which is the same wherever the
           envelope was obtained. The references that one item makes to another — the
-          <code>supportedBy</code> field of an <code>Assessment</code> or of a derived
-          <code>Observation</code>, the <code>observations</code> field of an
+          <code>supportedBy</code> field of an <code>Assessment</code>, the <code>observations</code> field of an
           <code>ObservationsCollection</code>, the <code>item</code> field of an
           <code>ItemDigest</code> — resolve against the same base, so a JSON-LD processor produces
           them as edges between those nodes without any identifier being minted by the ONVIF
           Client. That list is exhaustive: every other field of an information item that names
-          something else — the <code>result</code>, the <code>featureOfInterest</code>, the
-          <code>procedure</code>, the <code>provenance</code>, the <code>observedSpace</code> —
-          carries a nested object and not an identifier, and is an ordinary property of the item.
-          Any other string value, including one that has the form of a UUID, remains a
-          literal.</para>
+          something else — the <code>hasResult</code>, the <code>featureOfInterest</code>, the
+          <code>procedure</code>, the <code>provenance</code> —
+          carries a nested object and not a bare identifier, and is an ordinary property of the item.
+          A nested object may itself have an <code>id</code>; a temporal reference carries both
+          <code>id</code> and <code>@type</code> as described in <xref linkend="sec_object_identifiers"/>.
+          Other string values, including those that have the form of a UUID, remain literals unless
+          their context mapping specifies otherwise.</para>
         <para>An edge produced in this way states only that one identifier cites another. It does
           not establish that the cited item exists, that it is of a class the citing field admits,
           that it was produced before the citing item, or that the references are acyclic. Those are
@@ -1949,8 +1995,8 @@
         specialization of <code>FunctionInvocation</code> that fixes the function identifier and
         names the classes bound to it. An instance of the class never appears on the wire — the
         Tools carry the parameters, the result and the capabilities separately — so the class is a
-        declaration of the binding and not a payload. <xref
-          linkend="app_hackathon_wire_format"/> shows the one written for a vendor function.</para>
+        declaration of the binding and not a payload. A vendor publishes the declaration with the
+        schema module that defines its function-specific classes.</para>
       <para>See <xref linkend="sec_annex_event_keepalive"/> for a wire format example.</para>
     </section>
     <section xml:id="sec_webhook_based_delivery">
@@ -2092,11 +2138,11 @@
         </listitem>
         <listitem>
           <para><code>EventOccurrence.timestamp</code> is when the occurrence was emitted for
-            delivery. It is not when the information was produced, which is the
-              <code>productionTime</code> of each item, nor when the observed situation obtained,
-            which is its <code>observedTime</code>. The three may differ by an amount an ONVIF Client
-            cannot bound, and it shall use <code>productionTime</code> and <code>observedTime</code>
-            for any reasoning about the world.</para>
+            delivery. It is distinct from an assessment's <code>productionTime</code> and from the
+            time an observed situation obtained, identified by <code>phenomenonTime</code> when
+            supplied. These times may
+            differ by an amount an ONVIF Client cannot bound; the client shall use the appropriate
+            time for reasoning about the world.</para>
         </listitem>
         <listitem>
           <para><code>EventOccurrence.cursor</code> is a position in a subscription. It is not part of
@@ -2170,8 +2216,10 @@
       <para>Every information item carries an identifier, and so does the
         <code>InformationEnvelope</code> that encloses items. In the LinkML schema the identifier is
         declared as a slot named <code>id</code>, and it appears on the wire under that name as a
-        plain string.</para>
-      <para>The objects nested inside an item carry none. A production time, a provenance, an
+        plain string. A nested SOSA sensor also carries an identifier. A feature of interest,
+        procedure, observable property or temporal entity may carry one; without it, that node is
+        anonymous.</para>
+      <para>Other objects nested inside an item carry none. A production time, a provenance, an
         observed location, an observation result, an assessment result, a signature, a key
         descriptor and an extension container exist only inside the item or the envelope that
         carries them: nothing cites them, nothing resolves a reference to them, and they are reached
@@ -2190,6 +2238,7 @@
         which it resolves, as specified in <xref linkend="sec_context_and_type_annotations"/>, so
         the identifier <code>3f2b8c1e-6a4d-4f7b-9e21-5c8d0a1b2e3f</code> designates the node
         <code>https://www.onvif.org/ver10/agentic/id/3f2b8c1e-6a4d-4f7b-9e21-5c8d0a1b2e3f</code>.
+        This node is not automatically equivalent to any previously used external URI.
         The identifier on the wire, and in every digest computed over its item, is the UUID alone.
         The absolute form is the result of JSON-LD processing, and an ONVIF endpoint shall not write
         it in place of the UUID.</para>
@@ -2208,16 +2257,17 @@
         version in use, and shall treat two identifiers as designating the same object if and only
         if they are equal as strings.</para>
       <para>An ONVIF endpoint shall not reuse an identifier: once emitted, a UUID designates one
-        object for the lifetime of the deployment. This property is what makes identifier-based
+        object for the lifetime of the deployment. The same UUID may appear again for the same
+        entity, but shall not identify a different entity. This property is what makes identifier-based
         references, such as the supporting items of an assessment (see <xref
           linkend="sec_assessment"/>), and digest-to-item binding in a signed envelope (see <xref
           linkend="sec_onvif_signature"/>) unambiguous.</para>
       <para>Where one item cites another, the citing field carries the identifier of the cited item
         and nothing else. It shall be a UUID in the form required above, and an ONVIF endpoint shall not
         place an object, a URI or any other form of designation there. The supporting items of an
-        observation or of an assessment, the members of an observations collection and the item a
+        assessment, the members of an observations collection and the item a
         digest covers are all cited in this way.</para>
-      <para>A reference does not state the class of the item it points at. That class is read from
+      <para>An item reference does not state the class of the item it points at. That class is read from
         the cited item itself, which carries it in <code>@type</code> as specified in <xref
           linkend="sec_context_and_type_annotations"/>, so an ONVIF Client learns what it has been
         given at the moment it resolves the reference. The field documents which classes may be cited,
@@ -2227,58 +2277,20 @@
         is stated by the object, and a field that points at it states only where to find it. The two
         together give an ONVIF Client a checkable path from any item to every item it depends on,
         without a reference having to be trusted for a claim about a class it does not carry.</para>
+      <para>A temporal reference instead carries both <code>@type</code> and <code>id</code>.
+        An ONVIF Client shall resolve it to a complete description of the same temporal entity
+        already available to the client, including one received in a previous document, and verify
+        that the concrete type is consistent. The JSON Schema validates the reference's form but
+        cannot establish the existence or type of a description in another document.</para>
     </section>
 
     <section xml:id="sec_open_vocabulary">
-      <title>Open vocabularies</title>
-      <para>Several fields of this model name a kind of thing rather than measure it: what an
-        observation is about, or the method by which it was produced. Such a field has two
-        requirements that pull against each other. A common         vocabulary is needed, or two ONVIF endpoints report the same kind of thing under names an
-        ONVIF Client cannot relate; and the
-        vocabulary cannot be closed, because no list agreed at the time of writing exhausts what a
-        device may come to report.</para>
-      <para>An enumeration alone satisfies the first requirement and not the second: an enumeration
-        reached through <code>imports</code> cannot be extended by a vendor, as stated in <xref
-          linkend="sec_vendor_class_extensions"/>. This specification therefore does not use a bare
-        enumeration for such a field. It uses a class carrying two fields, of which exactly one shall
-        be present:</para>
-      <itemizedlist>
-        <listitem>
-          <para><code>onvif</code> — the value drawn from the enumeration of this specification. An
-            ONVIF endpoint shall use this field wherever a value of the enumeration applies.</para>
-        </listitem>
-        <listitem>
-          <para><code>custom</code> — a value of the vendor's own, for a thing the enumeration does
-            not name. It shall be an absolute URI in a namespace the vendor controls, in the same
-            sense as the <code>vendor_namespace</code> of a <code>VendorExtension</code> (see <xref
-              linkend="sec_vendor_field_extensions"/>).</para>
-        </listitem>
-      </itemizedlist>
-      <para>A <code>custom</code> value is a URI and not a bare token, and the scheme that opens it
-        is what identifies the namespace the value belongs to: it tells an ONVIF Client that the
-        value is a vendor's own and under which naming authority it is to be resolved. Where the
-        scheme is a generic one, such as <code>https</code>, the authority that follows it
-        participates in identifying the namespace as well, and it is then the registered domain of
-        the vendor that makes the namespace its own. What follows is the vendor's own name for the
-        thing within that namespace; it is opaque to this specification, and only the vendor owning
-        the namespace assigns meaning to it. A value shall not contain whitespace.</para>
-      <para>Carrying the two cases in two distinct fields, rather than in one field holding either
-        form, is what makes the arrangement usable. An ONVIF Client that receives a value it does not
-        implement can always tell which of the two situations it is in — a value of this
-        specification it does not support, or a vendor value it does not know — and can act
-        accordingly without guessing. An ONVIF endpoint can name things of its own with no risk that a
-        future value of this specification will take the same name, since the two namespaces never
-        meet.</para>
-      <para>An ONVIF Client shall reject a value that carries both fields or neither. An ONVIF endpoint
-        shall not coin a <code>custom</code> value for a thing the enumeration already names: doing so
-        defeats the purpose of having a common vocabulary, because an ONVIF Client cannot know that
-        the two denote the same kind of thing.</para>
-      <para>The classes defined by this specification on this pattern are
-        <code>FeatureOfInterest</code> (see <xref linkend="sec_feature_of_interest"/>) and
-        <code>Procedure</code> (see <xref linkend="sec_procedure"/>). Neither is specialised by
-        subclassing: the vocabulary of each grows through a new value of its enumeration in a future
-        revision of this specification, or through a <code>custom</code> value, and never through a
-        subclass.</para>
+      <title>Extensible class families</title>
+      <para>The kinds of entity, procedure, observable property and sensor are represented by concrete
+        subclasses of abstract bases. A module can define additional subclasses in its own
+        namespace, as specified in <xref linkend="sec_vendor_class_extensions"/>. The bundle
+        currently defines no concrete subclasses for these four SOSA families. Without a loaded
+        concrete subclass, the corresponding optional field cannot contain a valid instance.</para>
     </section>
 
     <section xml:id="sec_information_item">
@@ -2286,16 +2298,15 @@
       <para><code>InformationItem</code> is the abstract base container for any single unit of
         information exchanged in the metadata model. It is intentionally generic so that different
         semantic categories can reuse the same trust and context fields. In this specification,
-        <code>InformationItem</code> is specialised by <code>Observation</code>, which measures the
-        physical world, by <code>Assessment</code>, which interprets what has been measured, and by
+        <code>InformationItem</code> is specialised by <code>Observation</code>, the abstract
+        observation category, from which <code>SOSAObservation</code> derives; by
+        <code>Assessment</code>, which interprets what has been measured; and by
         <code>ObservationsCollection</code>, which groups observations for reference.</para>
       <para>Each <code>InformationItem</code> carries the following fields: an <code>id</code>
         uniquely identifying the item, as specified in <xref linkend="sec_object_identifiers"/>; a
         mandatory <code>confidence</code> value expressing the confidence level of the contained
         information, whose range is <code>Likelihood</code> and which therefore lies between 0.0 and
-        1.0 inclusive; a mandatory <code>productionTime</code> field giving the time at which the
-        information was produced, as specified in <xref linkend="sec_timing"/>; and a
-        <code>provenance</code> field describing the origin or producer of the
+        1.0 inclusive; and a <code>provenance</code> field describing the origin or producer of the
         information.</para>
       <para>An <code>InformationItem</code> does not carry a signature of its own. Integrity,
         authenticity, and non-repudiation are provided at envelope level, as specified in <xref
@@ -2348,22 +2359,59 @@
 
     <section xml:id="sec_observation">
       <title>Observation</title>
-      <para><code>Observation</code> is an abstract <code>InformationItem</code> that captures the
-        output of any generic sensor. Whether the source is a physical device such as a camera, a radar
-        or a thermometer, a person, or a virtual source such as a database, the observation packages
-        that output into a standardised format for consumption by downstream systems. The class is
-        abstract: an observation on the wire is always an instance of a concrete subclass, introduced
-        either by a future revision of this specification or by a vendor extension.</para>
-      <para>Beyond the fields it inherits from <code>InformationItem</code>, an
-        <code>Observation</code> carries what the observation found, the entity it is about and the
-        method that produced it, two optional context fields describing the situation observed rather
-        than the act of observing it, and an optional list of the observations it was computed
-        from:</para>
+      <para><code>Observation</code> is the abstract base class for information about something
+        observed. It adds no fields to <code>InformationItem</code>; it does not prescribe what
+        was found, what was observed, or how the observation
+        was produced. Those fields belong to <code>SOSAObservation</code>, a concrete class derived
+        from <code>Observation</code> and described in <xref linkend="sec_sosaobservation"/>.</para>
+      <para>An observation reports what a sensor produced and is never revised: where an ONVIF
+        endpoint later has better information about the same subject, it emits a further
+        observation and, where it can, an <code>Assessment</code> relating the two, as described in
+        <xref linkend="sec_assessment"/>. An ONVIF Client shall not expect an
+        observation it has received to be superseded in place.</para>
+    </section>
+
+    <section xml:id="sec_sosaobservation">
+      <title>SOSAObservation</title>
+      <para><code>SOSAObservation</code> is a concrete, instantiable subclass of
+        <code>Observation</code> for observations expressed using the SOSA model. It carries the
+        observation result, the entity and method associated with it, and its SOSA temporal context.
+        A direct instance of
+        <code>SOSAObservation</code> is valid; more specific classes may constrain its fields.</para>
+      <para>The class URI of a direct instance is <code>http://www.w3.org/ns/sosa/Observation</code>.
+        The LinkML class and slot URIs provide the SOSA and OWL-Time mappings. A more specific class
+        retains its own class URI; an RDF consumer can recognise it as a SOSA observation by
+        following the LinkML class hierarchy or equivalent RDF subclass statements constructed using
+        the declared class URIs. The same applies to concrete subclasses of
+        <code>SOSAObservationResult</code> and <code>sosa:Result</code>.</para>
+      <para>The optional feature, procedure, property, sensor and temporal entity carry
+        their RDF class in <code>@type</code>, independently of any <code>id</code> identifying
+        the instance. For example:</para>
+      <programlisting>{
+  "featureOfInterest": {
+    "@type": "acme:SOSAVehicle", "id": "12345678-1234-1234-1234-123456789ab1",
+    "space": { "@type": "acme:SOSAVehicleLocation" }
+  },
+  "procedure": { "@type": "acme:SOSAAnalyticsProcedure", "id": "12345678-1234-1234-1234-123456789ab2" },
+  "observedProperty": { "@type": "acme:SOSASpeedProperty", "id": "12345678-1234-1234-1234-123456789ab3" },
+  "madeBySensor": { "@type": "acme:SOSACameraSensor", "id": "12345678-1234-1234-1234-123456789ab4" },
+  "phenomenonTime": { "@type": "time:Instant", "timestamp": "2026-01-01T00:00:00Z" }
+}</programlisting>
+      <para>These fields are optional, but each object included shall carry its concrete class in
+        <code>@type</code>. The <code>acme:</code> classes are illustrative external
+        subclasses, not classes in the ONVIF bundle. The <code>id</code> of a feature, procedure or
+        observed property or temporal entity is optional; the sensor's is required. With
+        the specified JSON-LD context, each <code>@type</code> asserts an explicit
+        <code>rdf:type</code> triple, including for anonymous features, procedures and properties.</para>
+      <para>Beyond the fields inherited from <code>Observation</code> and
+        <code>InformationItem</code>, <code>SOSAObservation</code> carries:</para>
       <itemizedlist>
         <listitem>
-          <para><code>result</code> — what the observation found, as specified in <xref
-            linkend="sec_observation_result"/>. The field is declared by the abstract class and given
-            its type by each concrete subclass.</para>
+          <para><code>hasResult</code> — what the observation found, as specified in <xref
+            linkend="sec_observation_result"/>. The field is mandatory and shall contain an instance
+            of a concrete subclass of the abstract <code>SOSAObservationResult</code> class.
+            A more specific observation class may constrain the result type to its corresponding
+            result subclass.</para>
         </listitem>
         <listitem>
           <para><code>featureOfInterest</code> — the entity the observation is about, as specified in
@@ -2374,89 +2422,115 @@
             specified in <xref linkend="sec_procedure"/>.</para>
         </listitem>
         <listitem>
-          <para><code>observedTime</code> — the time to which the observation refers, as specified in
-            <xref linkend="sec_timing"/>. It is distinct from <code>productionTime</code>, which is
-            when the item was produced: a plate read from a recording refers to the moment of the
-            recording, not to the moment of the reading.</para>
+          <para><code>observedProperty</code> and <code>madeBySensor</code> — descriptions of the
+            property observed and the sensor that made the observation. The property identifier is
+            optional; the sensor identifier is required.</para>
         </listitem>
         <listitem>
-          <para><code>observedSpace</code> — the place to which the observation refers, as specified in
-            <xref linkend="sec_location"/>.</para>
-        </listitem>
-        <listitem>
-          <para><code>supportedBy</code> — the identifiers of the observations this observation was
-            computed from, as specified in <xref linkend="sec_derived_observation"/>. The field is
-            omitted, or carries an empty list, for an observation that a sensor produced
-            directly.</para>
+          <para><code>phenomenonTime</code> — an OWL-Time entity for the time the result applies,
+            supplied as a complete instant or interval, or a typed UUID reference to one.
+            <code>resultTime</code> is the instant at which the observation completed, which is not
+            necessarily the time the result applies. Its
+            <code>sosa:resultTime</code> property carries an <code>Iso8601Instant</code> literal,
+            with RDF datatype <code>xsd:dateTime</code>; the type defines the shared lexical form,
+            not another property.</para>
         </listitem>
       </itemizedlist>
-      <para>An <code>Observation</code> states what a sensor produced. It is never revised: where an
+      <para>A feature that carries spatial context uses a concrete subclass of
+        <code>SOSAExtendedFeatureOfInterest</code>, whose optional <code>space</code> field is
+        described in <xref linkend="sec_location"/>. An observation does not carry
+        <code>observedSpace</code> or <code>supportedBy</code>.</para>
+      <para>A <code>SOSAObservation</code> states what a sensor produced. It is never revised: where an
         ONVIF endpoint later has better information about the same subject, it emits a further
         observation and, where it can, an <code>Assessment</code> relating the two, as described in
         <xref linkend="sec_assessment"/>. An ONVIF Client shall not expect an
         observation it has received to be superseded in place.</para>
-      <para>A concrete observation class defined for one kind of entity and one method shall fix the
-        value of <code>featureOfInterest</code> and of <code>procedure</code> in its own definition,
-        rather than leave the choice to the ONVIF endpoint producing the item. An information item of
-        such a class that reports a different value is invalid, and an ONVIF Client may rely on the
-        value from the class of the item alone, without reading the field. A class that is not
-        defined for one kind of entity, or that admits more than one method, leaves the fields to the
-        producer and an ONVIF Client shall then read them.</para>
-      <para>Fixing a value does not introduce a subclass of <code>FeatureOfInterest</code> or of
-        <code>Procedure</code>: neither is specialised by subclassing, as stated in <xref
-        linkend="sec_open_vocabulary"/>. What varies
-        between two observation classes is which value of the vocabulary applies, which is a property
-        of the observing class and not a new kind of feature of interest or of procedure.</para>
+      <para>A more specific <code>SOSAObservation</code> class may constrain the feature to a
+        concrete <code>SOSAFeatureOfInterest</code> subclass and the procedure to an applicable
+        method. These choices do not fix the identifier of the observed entity or of the reusable
+        procedure. A class that admits more than one kind or method leaves the choice to the producer.</para>
 
       <section xml:id="sec_observation_result">
-        <title>ObservationResult</title>
-        <para><code>ObservationResult</code> is the abstract container for what an observation of the
-          physical world found: the measured quantity itself, as opposed to the circumstances of the
-          measurement, which the observation carries in <code>observedTime</code>,
-          <code>observedSpace</code>, <code>productionTime</code> and <code>provenance</code>.</para>
+        <title>SOSAObservationResult</title>
+        <para><code>SOSAObservationResult</code> is the abstract container for what a
+          <code>SOSAObservation</code> of the physical world found: the measured quantity itself, as
+          opposed to the circumstances of the measurement, which the observation carries in
+          <code>phenomenonTime</code>, <code>resultTime</code> and <code>provenance</code>.</para>
         <para>The class is abstract because there is nothing a generic result can state. What a result
-          contains depends entirely on what was observed — a plate reading, a vehicle classification, a
-          speed — so each concrete <code>Observation</code> is paired with a concrete subclass of
-          <code>ObservationResult</code> describing its own kind of result. The pairing is one to one:
-          a result class belongs to the observation class that declares it, and is not shared between
-          observation classes that happen to measure something similar. A concrete observation class
-          shall declare the result class that belongs to it.</para>
+          contains depends entirely on what was observed — a plate reading, a vehicle classification,
+          a speed — and every result shall be an instance of a concrete subclass of
+          <code>SOSAObservationResult</code>. A more specific <code>SOSAObservation</code> class may
+          constrain its <code>hasResult</code> field to the corresponding result subclass. When it does,
+          the pairing is one to one: that result class belongs to that observation class and is not
+          shared between classes that happen to measure something similar.</para>
         <para>The result is nested inside the observation and is not referenced by identifier. It is
           not an information item of its own: it has no <code>id</code>, no
           <code>productionTime</code> and no <code>provenance</code>, it cannot be cited in
           <code>supportedBy</code>, and it is meaningless apart from the observation that produced
           it.</para>
-        <para>Because a concrete observation class names exactly one result class, an ONVIF Client
-          knows what the result contains from the class of the observation alone, and does not have to
-          inspect the nested object to find out which shape it has.</para>
+        <para>When an observation class constrains the result to one result class, an ONVIF Client
+          knows what the result contains from the class of the observation alone. For an instance of
+          <code>SOSAObservation</code> that does not make that constraint, the client determines the
+          result shape from the nested result object's type.</para>
       </section>
 
       <section xml:id="sec_feature_of_interest">
-        <title>FeatureOfInterest</title>
-        <para><code>FeatureOfInterest</code> names the kind of real-world entity an observation is
-          about, as opposed to what was found about it, which is the <code>result</code>. It is the
-          type of the optional <code>featureOfInterest</code> field of an
-          <code>Observation</code>.</para>
-        <para>The class follows the open vocabulary pattern of <xref
-          linkend="sec_open_vocabulary"/>: it carries an <code>onvif</code> field drawn from the
-          <code>FeatureOfInterestType</code> enumeration and a <code>custom</code> field holding a
-          vendor URI, of which exactly one shall be present.</para>
-        <para>The entity named here is the subject of this observation and of no other. Where two
-          observations are about the same physical entity, the claim that they are is an
-          <code>Assessment</code> and not a consequence of their carrying the same feature of
-          interest: two observations of a vehicle name the same kind of entity whether or not the
-          vehicle is the same one.</para>
+        <title>SOSAFeatureOfInterest</title>
+        <para><code>SOSAFeatureOfInterest</code> represents the particular real-world entity a
+          <code>SOSAObservation</code> is about, as opposed to what was found about it, which is the
+          <code>hasResult</code>. It is the type of the optional <code>featureOfInterest</code> field of
+          a <code>SOSAObservation</code>.</para>
+        <para>The class is abstract. A concrete subclass identifies the kind of entity, and its
+          instance carries that subclass's CURIE in <code>@type</code>. The bundle defines no
+          concrete subclasses; a module that supplies <code>featureOfInterest</code> shall define
+          or import one. Without a loaded concrete subclass, the optional field cannot be populated
+          by a valid instance.</para>
+        <para>For example, an external module can define the illustrative class used above:</para>
+        <programlisting>id: https://example.org/agentic/vehicle
+name: example-vehicle
+prefixes:
+  acme: https://example.org/agentic/vehicle/
+imports:
+  - sosa
+default_prefix: acme
+classes:
+  SOSAVehicle:
+    is_a: SOSAExtendedFeatureOfInterest
+  SOSAAnalyticsProcedure:
+    is_a: SOSAProcedure
+  SOSASpeedProperty:
+    is_a: SOSAObservableProperty
+  SOSACameraSensor:
+    is_a: SOSASensor
+  SOSAVehicleLocation:
+    is_a: Location</programlisting>
+        <para>These classes are examples, not part of the ONVIF bundle. The enclosing JSON-LD
+          context shall declare the <code>acme</code> prefix and any mappings the external class
+          requires.</para>
+        <para>The subclass has its own RDF class URI. An RDF consumer can recognise it as a
+          <code>sosa:FeatureOfInterest</code> by following the LinkML class hierarchy or an equivalent
+          <code>rdfs:subClassOf</code> statement; the instance does not automatically carry an
+          explicit <code>rdf:type sosa:FeatureOfInterest</code> triple.</para>
+        <para>An optional UUID <code>id</code> identifies the observed entity. Without it, the
+          entity is anonymous; two observations naming the same kind of entity do not thereby
+          identify the same individual.</para>
+        <para><code>SOSAExtendedFeatureOfInterest</code> is an abstract subclass that adds optional
+          <code>space</code>, containing a concrete <code>Location</code>. Its class URI and
+          <code>space</code> property use the ONVIF vocabulary. The bundle defines no concrete
+          subclasses; the illustrative <code>acme:SOSAVehicle</code> above is supplied externally.</para>
       </section>
 
       <section xml:id="sec_procedure">
-        <title>Procedure</title>
-        <para><code>Procedure</code> names the method by which an observation was produced: what
-          turned the physical world into the result, as opposed to the entity observed or to what was
-          found about it. It is the type of the optional <code>procedure</code> field of an
-          <code>Observation</code>.</para>
-        <para>The class follows the same open vocabulary pattern, with an <code>onvif</code> field
-          drawn from the <code>ProcedureType</code> enumeration and a <code>custom</code> field
-          holding a vendor URI, of which exactly one shall be present.</para>
+        <title>SOSAProcedure</title>
+        <para><code>SOSAProcedure</code> represents the method by which a <code>SOSAObservation</code> was
+          produced: what turned the physical world into the result, as opposed to the entity observed
+          or to what was found about it. It is the type of the optional <code>procedure</code> field
+          of a <code>SOSAObservation</code>. Its optional UUID <code>id</code> identifies a
+          reusable procedure.</para>
+        <para><code>SOSAProcedure</code> is abstract. A concrete
+          subclass identifies the method, and its instance carries that subclass's CURIE in
+          <code>@type</code>. The bundle defines no concrete subclasses; a module that supplies
+          <code>procedure</code> shall define or import one.</para>
         <para>Naming a procedure is not describing it. The field states which method was used, and
           neither how that method works nor with what parameters it was configured. Where an ONVIF
           Client needs to know which component performed the method, that is the
@@ -2465,50 +2539,23 @@
           through a vendor extension.</para>
       </section>
 
+      <section xml:id="sec_observable_property">
+        <title>SOSAObservableProperty</title>
+        <para><code>SOSAObservableProperty</code> is the abstract base for a property of the
+          feature of interest that an observation estimates or calculates. A concrete subclass
+          identifies the kind of property, and its instance carries that subclass's CURIE in
+          <code>@type</code>. The bundle defines no concrete subclasses; a module that supplies
+          <code>observedProperty</code> shall define or import one. An optional UUID
+          <code>id</code> identifies the individual property; without it the property is anonymous.</para>
+      </section>
+
       <section xml:id="sec_derived_observation">
         <title>Direct and derived observations</title>
-        <para>An observation is either direct or derived. A direct observation is what a sensor
-          produced by looking at the physical world, and cites nothing: its <code>supportedBy</code>
-          field is omitted, or is an empty list, and the two forms mean the same thing. A derived
-          observation is computed from other observations, which it lists in
-          <code>supportedBy</code>.</para>
-        <para>A speed is the plain example. Given two observations of the same subject, each carrying
-          an <code>observedTime</code> and an <code>observedSpace</code>, a speed is obtained by
-          dividing the distance between the two places by the interval between the two instants. The
-          result is a measurement of the physical world in the same sense as the two it was computed
-          from, expressed in the units it would have had if an instrument had measured it directly.
-          An ONVIF endpoint that reports it emits a further <code>Observation</code> whose
-          <code>supportedBy</code> lists the two, and not a separate kind of item.</para>
-        <para>What a derived observation adds is arithmetic, and nothing else. The computation
-          introduces no criterion that the cited measurements do not already contain, which is
-          precisely what distinguishes a derived <code>Observation</code> from an
-          <code>Assessment</code>: both cite other information items, but an assessment applies a
-          criterion external to the measurement — a provision of law, a rule on the admissibility or
-          the sufficiency of evidence, an operational policy — and its result cannot be reached from
-          the cited data by computation alone, as described in <xref linkend="sec_assessment"/>. The
-          same items can feed both. An average speed of 82 km/h over a measured stretch is an
-          <code>Observation</code> derived from positions and times; the statement that this speed
-          exceeds the limit in force at that place is an <code>Assessment</code>, because the limit
-          comes from outside the measurement.</para>
-        <para>Each identifier in <code>supportedBy</code> shall resolve either to an
-          <code>Observation</code> or to an <code>ObservationsCollection</code>, whose members are
-          then taken in its place, as described in <xref linkend="sec_observations_collection"/>. No
-          other kind of information item may be cited: a measurement is not computed from an
-          interpretation. The sanity checks of <xref linkend="sec_support_graph_sanity_checks"/> apply
-          to these references as they do to those of an assessment, and in particular a derived
-          observation shall be more recent in <code>productionTime</code> than every observation it
-          cites, the graph shall remain acyclic, and every chain shall terminate in direct
-          observations.</para>
-        <para>A derived observation normally omits <code>procedure</code>. The method that applies to
-          it is the arithmetic stated by its <code>supportedBy</code> field, and there is nothing
-          further to name; the field is used only where the derivation is itself a named method of this
-          specification or of the vendor.</para>
-        <para>The confidence of a derived observation is its own, by the general rule of
-          <xref linkend="sec_information_item"/>: an ONVIF endpoint shall assign it on the merits of
-          the derivation, and an ONVIF Client shall not compute it from, nor propagate it to, the
-          observations cited. A speed computed from two well-founded positions may still deserve
-          little confidence, because the two observations may not be of the same physical
-          subject.</para>
+        <para>An observation can report a measurement made directly or a quantity computed from
+          measurements, such as a speed computed from positions and times. The observation model
+          does not provide a <code>supportedBy</code> field for recording the source observations.
+          An <code>Assessment</code> instead applies an external criterion to information items and
+          records its supporting items as described in <xref linkend="sec_assessment"/>.</para>
       </section>
     </section>
 
@@ -2539,13 +2586,13 @@
         provision of law, a rule on the admissibility or the sufficiency of evidence, an operational
         policy.</para>
       <para>This is what separates an assessment from the derived observation of
-        <xref linkend="sec_derived_observation"/>. Both cite other information items, but the result
-        of a derivation is obtained from the cited data by computation and restates the physical world
+        <xref linkend="sec_derived_observation"/>. An assessment cites other information items, but the result
+        of a derivation is obtained from measurements by computation and restates the physical world
         in other quantities, whereas the result of an assessment cannot be obtained from the cited
         data at all without the criterion the assessment applies. A speed is a derived
-        <code>Observation</code>; the statement that the speed was unlawful, or that the evidence for
-        it is admissible, is an <code>Assessment</code>. Because an <code>InformationItem</code> can
-        itself be an <code>Observation</code> or an <code>Assessment</code>, or a combination of both,
+        <code>SOSAObservation</code>; the statement that the speed was unlawful, or that the evidence
+        for it is admissible, is an <code>Assessment</code>. Because an <code>InformationItem</code>
+        can itself be a <code>SOSAObservation</code> or an <code>Assessment</code>, or a combination of both,
         assessments serve to convey richer information by synthesizing multiple supporting
         items.</para>
       <para>A criterion can change while the data do not. The same supporting items may therefore be
@@ -2558,10 +2605,11 @@
         supporting items, not copies of them. An assessment therefore states which items it relies
         on without reproducing their content. This keeps an assessment small regardless of how much
         evidence supports it, allows several assessments to cite the same item without duplicating
-        it, and ensures that an item covered by a signature is digested exactly once. Unlike the
-        <code>supportedBy</code> of an observation, which admits only observations and collections of
-        observations, the field admits any <code>InformationItem</code>, because a criterion can bear
+        it, and ensures that an item covered by a signature is digested exactly once. The field admits
+        any <code>InformationItem</code>, because a criterion can bear
         on an earlier interpretation as much as on a measurement.</para>
+      <para>Each <code>Assessment</code> carries a mandatory <code>productionTime</code>, the time
+        at which the assessment was produced, as specified in <xref linkend="sec_timing"/>.</para>
       <para>The <code>result</code> field holds the judgement reached, nested inside the assessment
         and described in <xref linkend="sec_assessment_result"/>. The two fields divide the item
         cleanly: <code>supportedBy</code> says what was judged, and <code>result</code> says what the
@@ -2578,7 +2626,7 @@
           assessment carries in <code>supportedBy</code>, or to the circumstances of the
           interpretation, which it carries in <code>productionTime</code> and
           <code>provenance</code>.</para>
-        <para>The class is abstract for the same reason <code>ObservationResult</code> is, described in
+        <para>The class is abstract for the same reason <code>SOSAObservationResult</code> is, described in
           <xref linkend="sec_observation_result"/>: there is nothing a generic judgement can state.
           What a result contains depends entirely on the criterion applied — a speed compared against
           a limit, a presence compared against an authorisation — so each concrete
@@ -2606,10 +2654,8 @@
     <section xml:id="sec_support_graph_sanity_checks">
       <title>Support graph sanity checks</title>
       <para>To achieve robust and reliable parsers, the following sanity checks are required for
-        every item that cites other items. They apply to an <code>Assessment</code> and, with the
-        additional restriction on what may be cited stated in
-        <xref linkend="sec_derived_observation"/>, to a derived <code>Observation</code>, through
-        their <code>supportedBy</code> field, and to an <code>ObservationsCollection</code> through
+        every item that cites other items. They apply to an <code>Assessment</code> through
+        its <code>supportedBy</code> field, and to an <code>ObservationsCollection</code> through
         its <code>observations</code> field; the item that carries the field is called the citing
         item below, and the field itself the citing field:</para>
       <orderedlist>
@@ -2620,9 +2666,7 @@
         <listitem>
           <para>The class of the item an identifier resolves to, read from the <code>@type</code>
             that item carries, shall be one the citing field admits: the
-            <code>supportedBy</code> of an <code>Observation</code> admits an
-            <code>Observation</code> or an <code>ObservationsCollection</code>, as stated in
-            <xref linkend="sec_derived_observation"/>; the <code>observations</code> of an
+            <code>observations</code> of an
             <code>ObservationsCollection</code> admits an <code>Observation</code>, as stated in
             <xref linkend="sec_observations_collection"/>; and the <code>supportedBy</code> of an
             <code>Assessment</code> admits any <code>InformationItem</code>. This check is
@@ -2631,8 +2675,10 @@
             <xref linkend="sec_compilation_to_json_schema"/> explains.</para>
         </listitem>
         <listitem>
-          <para>The <code>productionTime</code> of the citing item shall be more recent than the
-            <code>productionTime</code> of every supporting item.</para>
+          <para>When an <code>Assessment</code> cites another <code>Assessment</code>, the citing
+            assessment's <code>productionTime</code> shall be more recent than that of the cited
+            assessment. Other information items do not necessarily carry a
+            <code>productionTime</code>.</para>
         </listitem>
         <listitem>
           <para>The graph formed by taking information items as nodes and
@@ -2642,7 +2688,7 @@
         </listitem>
         <listitem>
           <para>By traversing that graph, each citing item shall be traceable back to one or more
-            direct observations, which are the only items of the model that cite nothing.</para>
+            observations, which are the only items of the model that cite nothing.</para>
         </listitem>
       </orderedlist>
       <para>An ONVIF Client that receives an item citing an identifier it cannot resolve
@@ -3028,10 +3074,9 @@
 
     <section xml:id="sec_location">
       <title>Location</title>
-      <para><code>Location</code> is an abstract class that represents the spatial context of an
-        observation. It is the type of the optional <code>observedSpace</code> field of
-        <code>Observation</code>; when present it shall be an instance of a concrete
-        subclass.</para>
+      <para><code>Location</code> is an abstract class that represents the spatial context of a
+        feature of interest. It is the type of the optional <code>space</code> field of
+        <code>SOSAExtendedFeatureOfInterest</code>; when present it shall be an instance of a concrete subclass.</para>
       <para>The class is abstract because a place can be given in two irreducibly different ways.
         It can be given by the function it serves — an ambulance drop-off, a loading bay, a
         pedestrian crossing — which is a name assigned when the site is commissioned and which says
@@ -3040,8 +3085,8 @@
         Neither form can be derived from the other, and a class that tried to carry both would leave
         an ONVIF Client unable to tell which of the two it had actually been given.</para>
       <para>Concrete forms are introduced by a future revision of this specification or by a vendor
-        extension, and either form may be added without any change to <code>Observation</code>. An
-        ONVIF Client shall therefore select its handling from the concrete type of the received
+        extension, and either form may be added without any change to
+        <code>SOSAExtendedFeatureOfInterest</code>. An ONVIF Client shall therefore select its handling from the concrete type of the received
         object, and shall not assume that a location it receives is given in the form it
         expects.</para>
     </section>
@@ -3054,17 +3099,69 @@
         require different temporal representations — an instant for a discrete event, a span for a
         condition that holds over a period — and for this reason the class is abstract and shall be
         specialised by one of the concrete subclasses defined below.</para>
-      <para><code>Time</code> is the type of two fields. Every <code>InformationItem</code>
-        carries a mandatory <code>productionTime</code>, the time at which the item itself was
-        produced. An <code>Observation</code> additionally carries an optional
-        <code>observedTime</code>, the temporal context of what was observed. The two are not
-        necessarily equal: an observation produced at one instant may describe a phenomenon that
-        occurred, or persisted, at another.</para>
-      <para>Both fields accept any concrete subclass of <code>Time</code>. An ONVIF Client shall
+      <para>Every <code>Assessment</code> carries a mandatory <code>productionTime</code>, the time
+        at which the assessment was produced. A <code>SOSAObservation</code> may identify the time
+        its result applies through <code>phenomenonTime</code>, an OWL-Time entity.</para>
+      <para><code>productionTime</code> accepts any concrete subclass of <code>Time</code>. An ONVIF Client shall
         therefore determine the temporal representation from the instance it receives rather than
         assume a single form. Like the other abstract classes in this chapter, <code>Time</code>
         carries an optional vendor extension point (see <xref
           linkend="sec_vendor_extensions"/>).</para>
+      <para><code>phenomenonTime</code> is a relation to a temporal entity rather than a date-time
+        literal. Its range is the abstract <code>SOSATemporalEntity</code>, specialised by
+        <code>SOSAInstant</code> and <code>SOSAInterval</code>. A complete instant carries
+        <code>@type: time:Instant</code> and a <code>timestamp</code> in the shared
+        <code>Iso8601Instant</code> lexical form, including a UTC designator or explicit offset.
+        A complete interval carries <code>@type: time:Interval</code> and both
+        <code>beginning</code> and <code>end</code>, each a complete instant with a timestamp.
+        Each complete temporal entity may carry a UUID <code>id</code>.</para>
+      <para>A temporal reference carries only its concrete <code>@type</code> and UUID
+        <code>id</code>, for example:</para>
+      <programlisting>{
+  "@type": "time:Instant",
+  "id": "12345678-1234-1234-1234-123456789ab5"
+}</programlisting>
+      <para>The UUID identifies the same node as a complete description carrying that UUID.
+        The client shall resolve the reference to a complete, type-consistent description already
+        available to it, as specified in <xref linkend="sec_object_identifiers"/>. Interval endpoints
+        shall be complete instants, not references by UUID alone. Partial intervals and
+        <code>null</code> identifiers, timestamps or endpoints are not permitted.</para>
+      <para>For example, the following <code>phenomenonTime</code> value describes an interval.
+        The enclosing JSON-LD context supplies the prefix and type-scoped mappings specified in
+        <xref linkend="sec_context_and_type_annotations"/>:</para>
+      <programlisting>{
+  "@type": "time:Interval",
+  "beginning": {
+    "@type": "time:Instant",
+    "timestamp": "2026-09-09T15:00:00Z"
+  },
+  "end": {
+    "@type": "time:Instant",
+    "timestamp": "2026-09-09T16:00:00Z"
+  }
+}</programlisting>
+      <para>With those mappings, the observation links to the interval through
+        <code>sosa:phenomenonTime</code>; the interval links to its instants through
+        <code>time:hasBeginning</code> and <code>time:hasEnd</code>. Each instant carries its value
+        through <code>time:inXSDDateTimeStamp</code> as an <code>xsd:dateTimeStamp</code> literal.
+        The following is the corresponding RDF, with namespace declarations omitted:</para>
+      <programlisting>ex:observation sosa:phenomenonTime [
+  a time:Interval ;
+  time:hasBeginning [
+    a time:Instant ;
+    time:inXSDDateTimeStamp "2026-09-09T15:00:00Z"^^xsd:dateTimeStamp
+  ] ;
+  time:hasEnd [
+    a time:Instant ;
+    time:inXSDDateTimeStamp "2026-09-09T16:00:00Z"^^xsd:dateTimeStamp
+  ]
+] .</programlisting>
+      <para>Before interpreting an inline instant or interval, an ONVIF Client shall verify that its
+        timestamps are valid <code>xsd:dateTimeStamp</code> values. For an interval it shall also
+        verify that the end is not before the beginning. The lexical patterns in the LinkML types
+        check the form but do not by themselves enforce these conditions. Duration-based or repeated
+        intervals are not represented here. This does not change <code>ISO8601Interval</code> or
+        its existing uses.</para>
 
       <section xml:id="sec_iso8601_timestamp">
         <title>ISO8601Timestamp</title>
@@ -3079,8 +3176,9 @@
               another time zone.</para>
           </listitem>
         </itemizedlist>
-        <para>This is the representation to use when the information item refers to a point in
-          time, such as the moment at which a detection occurred.</para>
+        <para>This representation can be used for an assessment's
+          <code>productionTime</code>. An inline SOSA <code>phenomenonTime</code> uses
+          <code>SOSAInstant</code> instead.</para>
       </section>
 
       <section xml:id="sec_iso8601_interval">
@@ -3102,9 +3200,9 @@
           <code>P1M/2026-09-09T16:00:00Z</code>, shall not be used: every interval of this model begins
           at a known instant, and admitting a form whose start has to be computed backwards from its
           end would make two strings denoting the same span indistinguishable in kind.</para>
-        <para>This is the representation to use when the information item refers to a condition
-          that holds over a period, such as a dwell time or an aggregation window, rather than to a
-          single instant.</para>
+        <para>This representation can be used where a <code>Time</code> value denotes a span.
+          An inline SOSA <code>phenomenonTime</code> instead uses <code>SOSAInterval</code> with
+          explicit endpoints.</para>
       </section>
     </section>
 
@@ -3113,8 +3211,8 @@
       <para><code>Provenance</code> is an abstract class that identifies the originator of an
         information item. It is the type of the mandatory <code>provenance</code> field of
         <code>InformationItem</code>, so every item states who is asserting it. Where
-        <code>Time</code> answers when the information was produced and <code>Location</code> where
-        the observed phenomenon was, <code>Provenance</code> answers who says so.</para>
+        an assessment's <code>Time</code> answers when it was produced and <code>Location</code>
+        where the observed phenomenon was, <code>Provenance</code> answers who says so.</para>
       <para>The class is abstract because producers of different natures are described by different
         attributes, and shall be specialised by a concrete subclass. A subclass is expected for each
         nature of producer an implementation needs to name, in particular one for a device or one of
@@ -3123,7 +3221,7 @@
         classes in this chapter, <code>Provenance</code> carries an optional vendor extension point
         (see <xref linkend="sec_vendor_extensions"/>).</para>
       <para>Telling those two natures apart is what allows the two kinds of claim defined in this
-        chapter to be told apart. An <code>Observation</code> produced by a video source and an
+        chapter to be told apart. A <code>SOSAObservation</code> produced by a video source and an
         <code>Assessment</code> derived from it by an algorithm running on the same device do not have
         the same producer, even though they leave the device through the same interface and may
         travel in the same envelope. An ONVIF Client may have reason to trust the sensor and not the
@@ -3167,8 +3265,9 @@
 
       <section xml:id="sec_vendor_class_extensions">
         <title>Extending the model with classes</title>
-        <para>A vendor may also define entirely new information item classes, by deriving them from
-          <code>Observation</code>, from <code>Assessment</code>, or from any concrete class of this
+        <para>A vendor may also define entirely new information item classes, by deriving observation
+          classes from <code>SOSAObservation</code>, assessment classes from <code>Assessment</code>,
+          or other classes from any concrete class of this
           specification, and publishing them in a LinkML module of its own. This is how a device
           reports information for which no class defined here is adequate, and it is the mechanism the
           event type catalogue exposes (see <xref linkend="sec_event_type_catalogue"/>).</para>
@@ -3220,14 +3319,11 @@ default_range: string</programlisting>
           <listitem>
             <para>An enumeration reached through <code>imports</code> cannot be extended with further
               permissible values. A vendor that needs a value an enumeration of this specification
-              does not offer cannot add it to that enumeration. Where this specification intends a
-              vocabulary to stay open, it therefore does not expose the enumeration on its own but
-              pairs it with a companion field that carries a vendor-defined URI, by the pattern
-              specified in <xref linkend="sec_open_vocabulary"/>; a vendor extends such a vocabulary
-              through that field, and not by redeclaring the enumeration. Where a field offers a
-              closed enumeration and no companion field, the vocabulary is closed by intent, and a
-              vendor that needs a value it does not offer shall define a class of its own carrying an
-              enumeration of its own.</para>
+              does not offer cannot add it to that enumeration. Where a field offers a closed
+              enumeration, the vocabulary is closed by intent, and a vendor that needs a value it
+              does not offer shall define a class of its own carrying an enumeration of its own.
+              Abstract class families instead permit additional subclasses, as described in
+              <xref linkend="sec_open_vocabulary"/>.</para>
           </listitem>
         </orderedlist>
         <para>An ONVIF Client that receives an item of a class it cannot resolve shall handle it as
@@ -3248,10 +3344,8 @@ default_range: string</programlisting>
       <code>signatureValue</code> is also abbreviated with an ellipsis, which the
       <code>Base64Binary</code> type does not admit. The examples also retain the obsolete string
         <code>@context</code> and unqualified type names. The call sequence itself, the order of the
-      operations and the shape of the MCP messages remain correct and are the point of the annex; it
-      is only the metadata carried inside them that has to be brought back into line with the
-      bundle. <xref linkend="app_hackathon_wire_format"/> shows payloads that do validate against
-      the current schema and is the model to follow for that rewrite.</para>
+        operations and the shape of the MCP messages remain useful; the metadata payloads need to be
+        rewritten to conform to the current schema.</para>
     <para>This annex is informative and provides an example end-to-end sequence with sample
       values.</para>
 
@@ -3370,7 +3464,7 @@ default_range: string</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> The ONVIF endpoint returns available
         resources. Resources with <code>mimeType: application/linkml+yaml</code> are the schema
         files to be retrieved in <xref linkend="sec_annex_schema_retrieval"/>. The device serves the
-        six modules of the ONVIF Agentic Schema Bundle described in
+        seven modules of the ONVIF Agentic Schema Bundle described in
         <xref linkend="sec_onvif_common_type_library"/>.</para>
       <programlisting>{
   "jsonrpc": "2.0",
@@ -3401,6 +3495,11 @@ default_range: string</programlisting>
       {
         "uri": "linkml://192.0.2.10/agentic/base",
         "name": "ONVIF Agentic Metadata Model",
+        "mimeType": "application/linkml+yaml"
+      },
+      {
+        "uri": "linkml://192.0.2.10/agentic/sosa",
+        "name": "ONVIF Agentic SOSA Model",
         "mimeType": "application/linkml+yaml"
       },
       {
@@ -3437,7 +3536,7 @@ default_range: string</programlisting>
 }</programlisting>
       <para><emphasis>Response (Device to Client):</emphasis> The ONVIF endpoint returns the
         LinkML schema as a YAML string in the <code>text</code> field. The ONVIF Client
-        registers this schema in its validator. The request is repeated for each of the six modules
+        registers this schema in its validator. The request is repeated for each of the seven modules
         listed in <xref linkend="sec_annex_schema_inventory"/>, since a module is only interpretable
         together with the modules it imports.</para>
       <programlisting>{
@@ -3452,7 +3551,7 @@ default_range: string</programlisting>
     }]
   }
 }</programlisting>
-      <para>Having loaded the six modules, the ONVIF Client holds the whole vocabulary the device
+      <para>Having loaded the seven modules, the ONVIF Client holds the whole vocabulary the device
         will use in its payloads, and can derive from them both the JSON Schema it validates against
         and, if it performs JSON-LD processing, the context described in
         <xref linkend="sec_context_and_type_annotations"/>. No further schema retrieval is needed
@@ -4042,18 +4141,17 @@ data:       {
 data:         "@type": "VehicleObservation",
 data:         "id": "2c9f4b18-7d3e-4a52-9e61-0b8c5f2a1d76",
 data:         "confidence": 0.62,
-data:         "productionTime": {
-data:           "@type": "ISO8601Timestamp",
-data:           "timestamp": "2026-08-04T13:05:00.120Z"
-data:         },
-data:         "observedTime": {
-data:           "@type": "ISO8601Timestamp",
+data:         "phenomenonTime": {
+data:           "@type": "time:Instant",
 data:           "timestamp": "2026-08-04T13:05:00.000Z"
 data:         },
-data:         "observedSpace": {
-data:           "@type": "FunctionalLocation",
-data:           "name": "Main Gate",
-data:           "token": "Area_MainGate"
+data:         "featureOfInterest": {
+data:           "@type": "acme:SOSAVehicle",
+data:           "space": {
+data:             "@type": "acme:FunctionalLocation",
+data:             "name": "Main Gate",
+data:             "token": "Area_MainGate"
+data:           }
 data:         },
 data:         "provenance": {
 data:           "@type": "ONVIFDevice",
@@ -4085,18 +4183,17 @@ data:       {
 data:         "@type": "VehicleObservation",
 data:         "id": "6b1e0d92-4c73-4a18-8f5d-2e9a7c04b3e1",
 data:         "confidence": 0.94,
-data:         "productionTime": {
-data:           "@type": "ISO8601Timestamp",
-data:           "timestamp": "2026-08-04T13:05:04.090Z"
-data:         },
-data:         "observedTime": {
-data:           "@type": "ISO8601Timestamp",
+data:         "phenomenonTime": {
+data:           "@type": "time:Instant",
 data:           "timestamp": "2026-08-04T13:05:04.000Z"
 data:         },
-data:         "observedSpace": {
-data:           "@type": "FunctionalLocation",
-data:           "name": "Ambulance Drop-off",
-data:           "token": "Area_AmbulanceDropoff"
+data:         "featureOfInterest": {
+data:           "@type": "acme:SOSAVehicle",
+data:           "space": {
+data:             "@type": "acme:FunctionalLocation",
+data:             "name": "Ambulance Drop-off",
+data:             "token": "Area_AmbulanceDropoff"
+data:           }
 data:         },
 data:         "provenance": {
 data:           "@type": "ONVIFDevice",
@@ -4173,8 +4270,8 @@ data: }}</programlisting>
         <code>eventId</code> <code>evt_veh_0002</code> is not the identifier of the envelope
         <code>5d3b8e07-…</code>, nor of any item in it. The <code>timestamp</code>
         <code>13:05:04.310Z</code> is when the device dispatched the occurrence, and is not the
-        <code>productionTime</code> of either item, still less the <code>observedTime</code> of
-        <code>13:05:04.000Z</code>. And <code>cursor</code> is a position in the subscription, not a
+        <code>productionTime</code> of the assessment, still less the time identified by
+        <code>phenomenonTime</code>. And <code>cursor</code> is a position in the subscription, not a
         fact about the world: it is the one field an ONVIF Client persists and sends back, and it
         carries no evidential weight.</para>
       <para>Every line of an SSE event carries its own <code>data:</code> prefix. This is not a
@@ -4323,18 +4420,17 @@ X-MCP-Subscription-Id: sub_9f2a1c7e0b4d3f6a
         "@type": "VehicleObservation",
         "id": "2c9f4b18-7d3e-4a52-9e61-0b8c5f2a1d76",
         "confidence": 0.62,
-        "productionTime": {
-          "@type": "ISO8601Timestamp",
-          "timestamp": "2026-08-04T13:05:00.120Z"
-        },
-        "observedTime": {
-          "@type": "ISO8601Timestamp",
+        "phenomenonTime": {
+          "@type": "time:Instant",
           "timestamp": "2026-08-04T13:05:00.000Z"
         },
-        "observedSpace": {
-          "@type": "FunctionalLocation",
-          "name": "Main Gate",
-          "token": "Area_MainGate"
+        "featureOfInterest": {
+          "@type": "acme:SOSAVehicle",
+          "space": {
+            "@type": "acme:FunctionalLocation",
+            "name": "Main Gate",
+            "token": "Area_MainGate"
+          }
         },
         "provenance": {
           "@type": "ONVIFDevice",
@@ -4400,10 +4496,6 @@ X-MCP-Subscription-Id: sub_9f2a1c7e0b4d3f6a
       "@type": "VehicleObservation",
       "id": "9c1f0a7e-3d52-4c8a-8f0b-2e6d1a4c7b93",
       "confidence": 0.91,
-      "productionTime": {
-        "@type": "ISO8601Timestamp",
-        "timestamp": "2026-08-04T13:05:00.120Z"
-      },
       "provenance": {
         "@type": "ONVIFDevice",
         "manufacturer": "ACME Corporation",
@@ -4435,10 +4527,6 @@ X-MCP-Subscription-Id: sub_9f2a1c7e0b4d3f6a
       "@type": "LicensePlateObservation",
       "id": "3f2b8c1e-6a4d-4f7b-9e21-5c8d0a1b2e3f",
       "confidence": 0.88,
-      "productionTime": {
-        "@type": "ISO8601Timestamp",
-        "timestamp": "2026-08-04T13:05:00.180Z"
-      },
       "provenance": {
         "@type": "ONVIFDevice",
         "manufacturer": "ACME Corporation",
@@ -4543,10 +4631,6 @@ data:       {
 data:         "@type": "VehicleObservation",
 data:         "id": "4e70a3c8-52b9-4d16-8ac7-91f0b26d5e34",
 data:         "confidence": 0.90,
-data:         "productionTime": {
-data:           "@type": "ISO8601Timestamp",
-data:           "timestamp": "2026-08-04T13:10:00.085Z"
-data:         },
 data:         "provenance": {
 data:           "@type": "ONVIFDevice",
 data:           "entity": { "token": "VideoSource_1" },
@@ -4559,16 +4643,15 @@ data:       {
 data:         "@type": "acme:ThermalObservation",
 data:         "id": "d1c94b26-8f57-4e03-a2b8-6035ce7d91af",
 data:         "confidence": 0.87,
-data:         "productionTime": {
-data:           "@type": "ISO8601Timestamp",
-data:           "timestamp": "2026-08-04T13:10:00.085Z"
-data:         },
 data:         "provenance": {
 data:           "@type": "ONVIFDevice",
 data:           "entity": { "token": "VideoSource_2" },
 data:           "publicKeys": [ { "keyId": "metadata-signing-1" } ]
 data:         },
-data:         "peakCelsius": 41.8
+data:         "hasResult": {
+data:           "@type": "acme:ThermalObservationResult",
+data:           "peakCelsius": 41.8
+data:         }
 data:       }
 data:     ]
 data:   },
@@ -4616,7 +4699,7 @@ data: }}</programlisting>
     ]
   }
 }</programlisting>
-      <para>The listing is abridged; the six bundle modules of
+      <para>The listing is abridged; the seven bundle modules of
         <xref linkend="sec_annex_schema_inventory"/> are still present. What is new is the last
         entry, which the client does not yet hold.</para>
       <para><emphasis>Schema fetch request (Client to Device):</emphasis> The ONVIF Client reads the
@@ -4649,8 +4732,8 @@ data: }}</programlisting>
 }</programlisting>
       <para>With its escaped newlines resolved, the module reads as follows. It declares its own
         prefix and its own <code>default_prefix</code>, so the classes it defines lie in a namespace
-        ACME controls, and it imports <code>agentic/base</code> because
-        <code>ThermalObservation</code> derives from <code>Observation</code>.</para>
+        ACME controls, and it imports <code>agentic/sosa</code> because
+        <code>ThermalObservation</code> derives from <code>SOSAObservation</code>.</para>
       <programlisting>id: https://acme.example/agentic/thermal/linkml/
 name: acme-agentic-thermal
 prefixes:
@@ -4659,17 +4742,25 @@ prefixes:
   acme: https://acme.example/agentic/linkml/
 imports:
   - linkml:types
-  - agentic/base
+  - agentic/sosa
 default_prefix: acme
 
 classes:
 
-  ThermalObservation:
-    is_a: Observation
+  ThermalObservationResult:
+    is_a: SOSAObservationResult
     description: Peak apparent temperature measured over the observed region.
     attributes:
       peakCelsius:
         range: float
+        required: true
+
+  ThermalObservation:
+    is_a: SOSAObservation
+    slot_usage:
+      hasResult:
+        range: ThermalObservationResult
+        value_presence: PRESENT
         required: true</programlisting>
       <para>The ONVIF Client registers the module under its schema identifier
         <code>https://acme.example/agentic/thermal/linkml/</code> and rebuilds its mapping from names
@@ -4689,978 +4780,5 @@ classes:
     </section>
   </appendix>
 
-  <appendix xml:id="app_hackathon_wire_format">
-    <title>Wire Format Example — November 2026 Hackathon (informative)</title>
-    <para>This annex is informative, and its validity is limited to the duration of the ONVIF
-      hackathon held in Mexico City in November 2026. It is not part of the specification of the
-      Agentic Service and shall not be relied upon after that event.</para>
-    <para>The payloads below use the classes of the hackathon module
-      <code>hackathon.yaml</code>, namespace
-      <code>https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/</code>, alongside the
-      classes of the ONVIF Agentic Schema Bundle. The hackathon module is served as a resource by
-      the participating devices in the same way as any other module, and it is deleted when the
-      event is over: a class named here is not a class of this specification, and no future revision
-      is bound by it.</para>
-    <para>The scenario is a straight road watched by two cameras placed two hundred metres apart.
-      Each camera reports a vehicle detection carrying the licence plate it read. An analytics box
-      derives an average speed from the two detections and publishes it together with a collection
-      that groups the three observations. A service running on a server compares that speed with the
-      limit in force and issues a speeding assessment. Four parties therefore produce information,
-      and each one signs an envelope of its own.</para>
-    <para>The identifiers are fixed throughout this annex so that the references between the items
-      can be followed:</para>
-    <informaltable>
-      <tgroup cols="2">
-        <colspec colname="c1" colwidth="30*"/>
-        <colspec colname="c2" colwidth="70*"/>
-        <thead>
-          <row>
-            <entry><para>Item</para></entry>
-            <entry><para>Identifier</para></entry>
-          </row>
-        </thead>
-        <tbody valign="top">
-          <row>
-            <entry><para>Entry detection</para></entry>
-            <entry><para>b41c7e58-0d93-4a26-8f71-52ac9e3d6810</para></entry>
-          </row>
-          <row>
-            <entry><para>Exit detection</para></entry>
-            <entry><para>c87f2a90-3e61-4d58-b0a4-6f19e5c72d3b</para></entry>
-          </row>
-          <row>
-            <entry><para>Speed estimate</para></entry>
-            <entry><para>e2b95f47-1a68-4c30-8d59-73f04b2ea915</para></entry>
-          </row>
-          <row>
-            <entry><para>Observations collection</para></entry>
-            <entry><para>7c3d81f6-4b20-49ae-b165-0e8a2d94f37c</para></entry>
-          </row>
-          <row>
-            <entry><para>Speeding assessment</para></entry>
-            <entry><para>a5e18c62-9f43-4b07-8d21-6c70e21fb945</para></entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </informaltable>
-    <para>Every payload below is a complete <code>InformationEnvelope</code> and validates against
-      the bundle together with the hackathon module. The digests and signature values are
-      well-formed base64 of the right length but are not real: they were not computed over these
-      payloads, and a participant reproducing this annex shall compute its own by the procedure of
-      <xref linkend="sec_onvif_signature"/>.</para>
-    <para>The inline context of each envelope binds both <code>onvif</code> and
-        <code>hackathon2026</code>. It also defines type-scoped contexts for the hackathon classes
-      that declare attributes of their own. Consequently every <code>@type</code> expands to the
-      class URI assigned by its LinkML module, while an unqualified property such as
-        <code>algorithm</code> expands according to the class on which it occurs and cannot be
-      confused with an ONVIF property having the same JSON spelling. Each context also carries the
-      identifier mappings of <xref linkend="sec_context_and_type_annotations"/>, so the
-        <code>supportedBy</code> and <code>observations</code> references that link the envelopes
-      below, and the <code>item</code> of each digest, resolve to the same nodes as the
-      identifiers they cite, whichever envelope they appear in.</para>
-
-    <section xml:id="sec_annex_hk_entry_camera">
-      <title>Entry camera</title>
-      <para>The vehicle passes the first camera at 10:15:00.000 UTC. The camera reads the plate and
-        emits one <code>VehicleDetectionObservation</code> in an envelope it signs with its own
-        key.</para>
-      <para>The <code>featureOfInterest</code> and the <code>procedure</code> carry the values the
-        class fixes, <code>Vehicle</code> and <code>Analytics</code>, as specified in <xref
-        linkend="sec_observation"/>: an ONVIF Client knows both from the class of the item and does
-        not have to read them. The <code>observedTime</code> is the instant the vehicle was seen and
-        the <code>productionTime</code> is the later instant at which the item was assembled; the
-        speed is computed from the first and never from the second.</para>
-      <programlisting>{
-  "@context": {
-    "@version": 1.1,
-    "@base": "https://www.onvif.org/ver10/agentic/id/",
-    "@vocab": "https://www.onvif.org/ver10/agentic/linkml/",
-    "onvif": {
-      "@id": "https://www.onvif.org/ver10/agentic/linkml/",
-      "@prefix": true
-    },
-    "id": { "@id": "@id", "@protected": true },
-    "supportedBy": { "@id": "onvif:supportedBy", "@type": "@id", "@protected": true },
-    "observations": { "@id": "onvif:observations", "@type": "@id", "@protected": true },
-    "item": { "@id": "onvif:item", "@type": "@id", "@protected": true },
-    "hackathon2026": {
-      "@id": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/",
-      "@prefix": true
-    },
-    "hackathon2026:ONVIFDevice": {
-      "@id": "hackathon2026:ONVIFDevice",
-      "@context": {
-        "manufacturer": "hackathon2026:manufacturer",
-        "model": "hackathon2026:model",
-        "firmwareVersion": "hackathon2026:firmwareVersion",
-        "serialNumber": "hackathon2026:serialNumber",
-        "hardwareId": "hackathon2026:hardwareId",
-        "entity": {
-          "@id": "hackathon2026:entity",
-          "@context": { "token": "hackathon2026:token" }
-        },
-        "publicKeys": "hackathon2026:publicKeys"
-      }
-    },
-    "hackathon2026:GeoPoint": {
-      "@id": "hackathon2026:GeoPoint",
-      "@context": {
-        "latitude": "hackathon2026:latitude",
-        "longitude": "hackathon2026:longitude",
-        "altitude": "hackathon2026:altitude",
-        "horizontalAccuracy": "hackathon2026:horizontalAccuracy"
-      }
-    },
-    "hackathon2026:VehicleDetectionResult": {
-      "@id": "hackathon2026:VehicleDetectionResult",
-      "@context": {
-        "plate": "hackathon2026:plate",
-        "trackId": "hackathon2026:trackId"
-      }
-    }
-  },
-  "@type": "onvif:InformationEnvelope",
-  "id": "3f8a1d02-6c47-4b9e-9a15-7d2e04c81b63",
-  "items": [
-    {
-      "@type": "hackathon2026:VehicleDetectionObservation",
-      "id": "b41c7e58-0d93-4a26-8f71-52ac9e3d6810",
-      "confidence": 0.96,
-      "productionTime": {
-        "@type": "onvif:ISO8601Timestamp",
-        "timestamp": "2026-11-03T10:15:00.120Z"
-      },
-      "provenance": {
-        "@type": "hackathon2026:ONVIFDevice",
-        "manufacturer": "ACME Corporation",
-        "model": "AC-4200",
-        "firmwareVersion": "3.1.4",
-        "serialNumber": "AC42-00193847",
-        "hardwareId": "AC4200-RevB",
-        "entity": { "token": "VideoSource_1" },
-        "publicKeys": [
-          {
-            "keyId": "cam-entry-signing-1",
-            "fingerprints": [
-              {
-                "algorithm": "SHA256",
-                "value": "HFGdPwxF7Cj6qHCPEMwGHKWZQLQeA3VTehFzwPm5oQo="
-              }
-            ]
-          }
-        ]
-      },
-      "featureOfInterest": { "onvif": "Vehicle" },
-      "procedure": { "onvif": "Analytics" },
-      "observedTime": {
-        "@type": "onvif:ISO8601Timestamp",
-        "timestamp": "2026-11-03T10:15:00.000Z"
-      },
-      "observedSpace": {
-        "@type": "hackathon2026:GeoPoint",
-        "latitude": 19.4326,
-        "longitude": -99.1332,
-        "horizontalAccuracy": 2.5
-      },
-      "result": {
-        "@type": "hackathon2026:VehicleDetectionResult",
-        "plate": "NPA-518-C",
-        "trackId": "entry-track-8841"
-      }
-    }
-  ],
-  "hashes": [
-    {
-      "item": "b41c7e58-0d93-4a26-8f71-52ac9e3d6810",
-      "digest": "ujCBjgd7zkpHm7NpcIucEfei5W3NnHzyESEKd+7+vIU="
-    }
-  ],
-  "signature": {
-    "@type": "onvif:OnvifSignature",
-    "digestAlgorithm": "SHA256",
-    "signatureAlgorithm": "ECDSA_P256_SHA256",
-    "created": "2026-11-03T10:15:00.180Z",
-    "key": {
-      "@type": "onvif:PublicKeyIdentifier",
-      "keyId": "cam-entry-signing-1",
-      "fingerprints": [
-        {
-          "algorithm": "SHA256",
-          "value": "HFGdPwxF7Cj6qHCPEMwGHKWZQLQeA3VTehFzwPm5oQo="
-        }
-      ]
-    },
-    "envelopeDigest": "X6blQAZ98CthP+s2gfUVc/WPmKALU4FEC1R0mH+VGe8=",
-    "signatureValue": "cNlFmZzg7LlBH9yXopTW0mo+YLynd8N8HNj77y5yd43Dl7JW6DyZXUWlSJ+UPhXPSEhgwm5Gswyx94dSPyukQCdNrbQBQDc="
-  }
-}</programlisting>
-      <para>The key that signed the envelope, <code>cam-entry-signing-1</code>, is the same key the
-        provenance declares in <code>publicKeys</code>. The two identifiers are drawn from the same
-        keystore identifier space, as specified in <xref linkend="sec_declared_keys"/>, so an
-        ONVIF Client can establish that the envelope was signed with a key the producing device
-        claims as its own, and can look that key up through the Advanced Security Service.</para>
-    </section>
-
-    <section xml:id="sec_annex_hk_exit_camera">
-      <title>Exit camera</title>
-      <para>The same vehicle passes the second camera ten seconds later, at 10:15:10.000 UTC. The
-        item has the same shape as the one above and differs in what was observed and in who
-        observed it.</para>
-      <para>The two cameras are separate devices here, so what distinguishes the two detections is
-        the provenance itself: a different <code>serialNumber</code> and a different signing key.
-        Were the two cameras channels of one device, the provenance would name the same device twice
-        and the <code>entity</code> field would be what told the two video sources apart.</para>
-      <programlisting>{
-  "@context": {
-    "@version": 1.1,
-    "@base": "https://www.onvif.org/ver10/agentic/id/",
-    "@vocab": "https://www.onvif.org/ver10/agentic/linkml/",
-    "onvif": {
-      "@id": "https://www.onvif.org/ver10/agentic/linkml/",
-      "@prefix": true
-    },
-    "id": { "@id": "@id", "@protected": true },
-    "supportedBy": { "@id": "onvif:supportedBy", "@type": "@id", "@protected": true },
-    "observations": { "@id": "onvif:observations", "@type": "@id", "@protected": true },
-    "item": { "@id": "onvif:item", "@type": "@id", "@protected": true },
-    "hackathon2026": {
-      "@id": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/",
-      "@prefix": true
-    },
-    "hackathon2026:ONVIFDevice": {
-      "@id": "hackathon2026:ONVIFDevice",
-      "@context": {
-        "manufacturer": "hackathon2026:manufacturer",
-        "model": "hackathon2026:model",
-        "firmwareVersion": "hackathon2026:firmwareVersion",
-        "serialNumber": "hackathon2026:serialNumber",
-        "hardwareId": "hackathon2026:hardwareId",
-        "entity": {
-          "@id": "hackathon2026:entity",
-          "@context": { "token": "hackathon2026:token" }
-        },
-        "publicKeys": "hackathon2026:publicKeys"
-      }
-    },
-    "hackathon2026:GeoPoint": {
-      "@id": "hackathon2026:GeoPoint",
-      "@context": {
-        "latitude": "hackathon2026:latitude",
-        "longitude": "hackathon2026:longitude",
-        "altitude": "hackathon2026:altitude",
-        "horizontalAccuracy": "hackathon2026:horizontalAccuracy"
-      }
-    },
-    "hackathon2026:VehicleDetectionResult": {
-      "@id": "hackathon2026:VehicleDetectionResult",
-      "@context": {
-        "plate": "hackathon2026:plate",
-        "trackId": "hackathon2026:trackId"
-      }
-    }
-  },
-  "@type": "onvif:InformationEnvelope",
-  "id": "9d2e6b14-7f05-4c83-ae62-1b48d07f5c29",
-  "items": [
-    {
-      "@type": "hackathon2026:VehicleDetectionObservation",
-      "id": "c87f2a90-3e61-4d58-b0a4-6f19e5c72d3b",
-      "confidence": 0.94,
-      "productionTime": {
-        "@type": "onvif:ISO8601Timestamp",
-        "timestamp": "2026-11-03T10:15:10.140Z"
-      },
-      "provenance": {
-        "@type": "hackathon2026:ONVIFDevice",
-        "manufacturer": "ACME Corporation",
-        "model": "AC-4200",
-        "firmwareVersion": "3.1.4",
-        "serialNumber": "AC42-00193902",
-        "hardwareId": "AC4200-RevB",
-        "entity": { "token": "VideoSource_1" },
-        "publicKeys": [
-          {
-            "keyId": "cam-exit-signing-1",
-            "fingerprints": [
-              {
-                "algorithm": "SHA256",
-                "value": "3zdKvmpJ4z/Q1DXI0kj18dC9huBJKIhn+7/FRhPxxVM="
-              }
-            ]
-          }
-        ]
-      },
-      "featureOfInterest": { "onvif": "Vehicle" },
-      "procedure": { "onvif": "Analytics" },
-      "observedTime": {
-        "@type": "onvif:ISO8601Timestamp",
-        "timestamp": "2026-11-03T10:15:10.000Z"
-      },
-      "observedSpace": {
-        "@type": "hackathon2026:GeoPoint",
-        "latitude": 19.434397,
-        "longitude": -99.1332,
-        "horizontalAccuracy": 2.5
-      },
-      "result": {
-        "@type": "hackathon2026:VehicleDetectionResult",
-        "plate": "NPA-518-C",
-        "trackId": "exit-track-2207"
-      }
-    }
-  ],
-  "hashes": [
-    {
-      "item": "c87f2a90-3e61-4d58-b0a4-6f19e5c72d3b",
-      "digest": "0ehRReQPOGm6HyH0s9COh71lpJ2nY6C/jDRIS+b+Wrw="
-    }
-  ],
-  "signature": {
-    "@type": "onvif:OnvifSignature",
-    "digestAlgorithm": "SHA256",
-    "signatureAlgorithm": "ECDSA_P256_SHA256",
-    "created": "2026-11-03T10:15:10.200Z",
-    "key": {
-      "@type": "onvif:PublicKeyIdentifier",
-      "keyId": "cam-exit-signing-1",
-      "fingerprints": [
-        {
-          "algorithm": "SHA256",
-          "value": "3zdKvmpJ4z/Q1DXI0kj18dC9huBJKIhn+7/FRhPxxVM="
-        }
-      ]
-    },
-    "envelopeDigest": "Tti8rmmMG8eFfYG9dhtg/6Q1LCrn4MFr7KlW87UIee0=",
-    "signatureValue": "aRs9G+Xb8mf9Z3zzqqWe4yMlf2K3Maki9HKm+C/5uGi4b8HOIiA1kUrNniz0fl8rqRxCouH8BlbVDfWvwJxv/Vh5mU1BrnA="
-  }
-}</programlisting>
-      <para>The two detections carry the same plate, and that is the whole of what ties them to one
-        vehicle in this use case. The claim that the two are the same vehicle is not made by either
-        camera: it is made by the analytics box in the next section, and it is made by the act of
-        computing a speed from the pair.</para>
-    </section>
-
-    <section xml:id="sec_annex_hk_analytics_box">
-      <title>Analytics box</title>
-      <para>The analytics box has received the two envelopes above and has verified them. It matches
-        the two detections by plate, orders them by <code>observedTime</code>, takes the distance
-        between the two <code>observedSpace</code> values and the difference of the two instants, and
-        obtains two hundred metres in ten seconds, which is 72.0 km/h.</para>
-      <para>It publishes two information items in one envelope of its own. The first is the
-        <code>SpeedEstimateObservation</code> it computed, which cites the two detections in
-        <code>supportedBy</code>. The second is an <code>ObservationsCollection</code> that groups
-        the three observations, so that a later item can cite one identifier instead of three.</para>
-      <para>The two detections are not repeated here. A collection carries identifiers and not
-        observations, as specified in <xref linkend="sec_observations_collection"/>, and each
-        identifier resolves to an observation the ONVIF Client has already received — in this case
-        from the two envelopes of the previous sections, each signed by the camera that produced it.
-        Nothing would be gained by the box re-publishing them: an item does not carry a signature of
-        its own, so a detection copied into this envelope would be covered by the signature of the
-        box and would no longer be evidence of what the camera said.</para>
-      <programlisting>{
-  "@context": {
-    "@version": 1.1,
-    "@base": "https://www.onvif.org/ver10/agentic/id/",
-    "@vocab": "https://www.onvif.org/ver10/agentic/linkml/",
-    "onvif": {
-      "@id": "https://www.onvif.org/ver10/agentic/linkml/",
-      "@prefix": true
-    },
-    "id": { "@id": "@id", "@protected": true },
-    "supportedBy": { "@id": "onvif:supportedBy", "@type": "@id", "@protected": true },
-    "observations": { "@id": "onvif:observations", "@type": "@id", "@protected": true },
-    "item": { "@id": "onvif:item", "@type": "@id", "@protected": true },
-    "hackathon2026": {
-      "@id": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/",
-      "@prefix": true
-    },
-    "hackathon2026:AnalyticsModule": {
-      "@id": "hackathon2026:AnalyticsModule",
-      "@context": {
-        "token": "hackathon2026:token",
-        "algorithm": "hackathon2026:algorithm",
-        "version": "hackathon2026:version",
-        "entity": {
-          "@id": "hackathon2026:entity",
-          "@context": { "token": "hackathon2026:token" }
-        },
-        "publicKeys": "hackathon2026:publicKeys"
-      }
-    },
-    "hackathon2026:GeoPoint": {
-      "@id": "hackathon2026:GeoPoint",
-      "@context": {
-        "latitude": "hackathon2026:latitude",
-        "longitude": "hackathon2026:longitude",
-        "altitude": "hackathon2026:altitude",
-        "horizontalAccuracy": "hackathon2026:horizontalAccuracy"
-      }
-    },
-    "hackathon2026:SpeedEstimateResult": {
-      "@id": "hackathon2026:SpeedEstimateResult",
-      "@context": {
-        "speed": "hackathon2026:speed",
-        "travelTime": "hackathon2026:travelTime",
-        "baselineDistance": "hackathon2026:baselineDistance"
-      }
-    }
-  },
-  "@type": "onvif:InformationEnvelope",
-  "id": "5a6d0c31-8b74-4e12-97f3-2c50ad81e46f",
-  "items": [
-    {
-      "@type": "hackathon2026:SpeedEstimateObservation",
-      "id": "e2b95f47-1a68-4c30-8d59-73f04b2ea915",
-      "confidence": 0.9,
-      "productionTime": {
-        "@type": "onvif:ISO8601Timestamp",
-        "timestamp": "2026-11-03T10:15:10.480Z"
-      },
-      "provenance": {
-        "@type": "hackathon2026:AnalyticsModule",
-        "token": "SpeedEstimate_1",
-        "algorithm": "two-point-transit-speed",
-        "version": "1.4.2",
-        "publicKeys": [
-          {
-            "keyId": "box-signing-1",
-            "fingerprints": [
-              {
-                "algorithm": "SHA256",
-                "value": "dg31BITnDIDZqt8dJsHSU6UPwtja+sGG1/hY1gGgBlQ="
-              }
-            ]
-          }
-        ]
-      },
-      "featureOfInterest": { "onvif": "Vehicle" },
-      "procedure": {
-        "custom": "urn:onvif-hackathon:procedure:two-point-transit-speed"
-      },
-      "observedTime": {
-        "@type": "onvif:ISO8601Interval",
-        "intervalString": "2026-11-03T10:15:00.000Z/2026-11-03T10:15:10.000Z"
-      },
-      "observedSpace": {
-        "@type": "hackathon2026:GeoPoint",
-        "latitude": 19.434397,
-        "longitude": -99.1332,
-        "horizontalAccuracy": 2.5
-      },
-      "supportedBy": [
-        "b41c7e58-0d93-4a26-8f71-52ac9e3d6810",
-        "c87f2a90-3e61-4d58-b0a4-6f19e5c72d3b"
-      ],
-      "result": {
-        "@type": "hackathon2026:SpeedEstimateResult",
-        "speed": 72.0,
-        "travelTime": 10.0,
-        "baselineDistance": 200.0
-      }
-    },
-    {
-      "@type": "onvif:ObservationsCollection",
-      "id": "7c3d81f6-4b20-49ae-b165-0e8a2d94f37c",
-      "confidence": 1.0,
-      "productionTime": {
-        "@type": "onvif:ISO8601Timestamp",
-        "timestamp": "2026-11-03T10:15:10.520Z"
-      },
-      "provenance": {
-        "@type": "hackathon2026:AnalyticsModule",
-        "token": "SpeedEstimate_1",
-        "algorithm": "two-point-transit-speed",
-        "version": "1.4.2",
-        "publicKeys": [
-          {
-            "keyId": "box-signing-1",
-            "fingerprints": [
-              {
-                "algorithm": "SHA256",
-                "value": "dg31BITnDIDZqt8dJsHSU6UPwtja+sGG1/hY1gGgBlQ="
-              }
-            ]
-          }
-        ]
-      },
-      "observations": [
-        "b41c7e58-0d93-4a26-8f71-52ac9e3d6810",
-        "c87f2a90-3e61-4d58-b0a4-6f19e5c72d3b",
-        "e2b95f47-1a68-4c30-8d59-73f04b2ea915"
-      ]
-    }
-  ],
-  "hashes": [
-    {
-      "item": "7c3d81f6-4b20-49ae-b165-0e8a2d94f37c",
-      "digest": "m941qCxXj+e3+7lXpyvoxIdGAtH9SRm8iOV4aCmKEf8="
-    },
-    {
-      "item": "e2b95f47-1a68-4c30-8d59-73f04b2ea915",
-      "digest": "u8y5wALV7VmUeJ/Y04qK84JfdpHhDETKybB9xUsVwu4="
-    }
-  ],
-  "signature": {
-    "@type": "onvif:OnvifSignature",
-    "digestAlgorithm": "SHA256",
-    "signatureAlgorithm": "ECDSA_P256_SHA256",
-    "created": "2026-11-03T10:15:10.560Z",
-    "key": {
-      "@type": "onvif:PublicKeyIdentifier",
-      "keyId": "box-signing-1",
-      "fingerprints": [
-        {
-          "algorithm": "SHA256",
-          "value": "dg31BITnDIDZqt8dJsHSU6UPwtja+sGG1/hY1gGgBlQ="
-        }
-      ]
-    },
-    "envelopeDigest": "I3mS8wyCt8VOzMZUDdjfWfe3IE+jI98UIFkyImhsnWI=",
-    "signatureValue": "D0Sw8lGDQS0ieoB1jcVvki7fANoegzFllmJC0x8RTaE+wDcqkRyBlgoFVzAbZ7Y0Td8qxPs4NP8zXWnvTDXeexsZh2gqZjY="
-  }
-}</programlisting>
-      <para>Three details of this envelope are worth reading closely.</para>
-      <para>The <code>provenance</code> of both items is an <code>AnalyticsModule</code> and not an
-        <code>ONVIFDevice</code>, because an algorithm produced them: the box did not look at the
-        road. Its <code>version</code> is what makes the estimate reproducible, since a change in the
-        computation changes the speed without changing either detection.</para>
-      <para>The <code>procedure</code> carries a <code>custom</code> URI and no
-        <code>onvif</code> value, because <code>ProcedureType</code> names no two-point transit
-        computation. This is the extension branch of an open vocabulary, as specified in <xref
-        linkend="sec_open_vocabulary"/>, and the URI is in the namespace of the hackathon.</para>
-      <para>The two entries of <code>hashes</code> are sorted by their <code>item</code> field and
-        not by the order of the items in the envelope: the collection precedes the estimate here,
-        while in <code>items</code> the estimate comes first. The ordering of <code>hashes</code> is
-        normative, for the reason given in <xref linkend="sec_information_envelope"/>.</para>
-      <para>The <code>confidence</code> of the collection is 1.0. A collection states nothing about
-        the physical world that its members do not state, so there is nothing for a confidence to
-        qualify; the field is inherited from <code>InformationItem</code> and is mandatory there, and
-        1.0 is the only value that adds no claim of its own.</para>
-    </section>
-
-    <section xml:id="sec_annex_hk_assessment_service">
-      <title>Assessment service on the server</title>
-      <para>The service on the server has received the envelope of the analytics box and verified it.
-        It reads the speed, compares it with the limit of 50.0 km/h in force on that road, allows a
-        tolerance of 3.0 km/h, finds 72.0 above 53.0, and issues one
-        <code>SpeedingAssessment</code>.</para>
-      <para>The assessment cites the <code>ObservationsCollection</code> in
-        <code>supportedBy</code>, and that one identifier is what a collection is for: it stands for
-        the speed estimate and the two detections at once, and an ONVIF Client that resolves it
-        reaches all three. The assessment restates the measured speed, the limit and the plate on its
-        own result, so that it can be read and acted upon without any reference being
-        resolved.</para>
-      <programlisting>{
-  "@context": {
-    "@version": 1.1,
-    "@base": "https://www.onvif.org/ver10/agentic/id/",
-    "@vocab": "https://www.onvif.org/ver10/agentic/linkml/",
-    "onvif": {
-      "@id": "https://www.onvif.org/ver10/agentic/linkml/",
-      "@prefix": true
-    },
-    "id": { "@id": "@id", "@protected": true },
-    "supportedBy": { "@id": "onvif:supportedBy", "@type": "@id", "@protected": true },
-    "observations": { "@id": "onvif:observations", "@type": "@id", "@protected": true },
-    "item": { "@id": "onvif:item", "@type": "@id", "@protected": true },
-    "hackathon2026": {
-      "@id": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/",
-      "@prefix": true
-    },
-    "hackathon2026:SoftwareService": {
-      "@id": "hackathon2026:SoftwareService",
-      "@context": {
-        "name": "hackathon2026:name",
-        "vendor": "hackathon2026:vendor",
-        "version": "hackathon2026:version",
-        "instanceId": "hackathon2026:instanceId",
-        "publicKeys": "hackathon2026:publicKeys"
-      }
-    },
-    "hackathon2026:SpeedingAssessmentResult": {
-      "@id": "hackathon2026:SpeedingAssessmentResult",
-      "@context": {
-        "measuredSpeed": "hackathon2026:measuredSpeed",
-        "speedLimit": "hackathon2026:speedLimit",
-        "plate": "hackathon2026:plate",
-        "excess": "hackathon2026:excess",
-        "tolerance": "hackathon2026:tolerance",
-        "rule": "hackathon2026:rule"
-      }
-    }
-  },
-  "@type": "onvif:InformationEnvelope",
-  "id": "1f40e7b3-5d92-4a68-8c07-b3e1459da280",
-  "items": [
-    {
-      "@type": "hackathon2026:SpeedingAssessment",
-      "id": "a5e18c62-9f43-4b07-8d21-6c70e21fb945",
-      "confidence": 0.99,
-      "productionTime": {
-        "@type": "onvif:ISO8601Timestamp",
-        "timestamp": "2026-11-03T10:15:12.000Z"
-      },
-      "provenance": {
-        "@type": "hackathon2026:SoftwareService",
-        "name": "speeding-assessment-service",
-        "vendor": "ACME Corporation",
-        "version": "2.0.1",
-        "instanceId": "cdmx-node-3",
-        "publicKeys": [
-          {
-            "keyId": "fines-service-signing-1",
-            "fingerprints": [
-              {
-                "algorithm": "SHA256",
-                "value": "Ndu2GgBv9MCj6YYig2x8l5rqIqn7cRkSx/IncnTTGt4="
-              }
-            ]
-          }
-        ]
-      },
-      "supportedBy": [
-        "7c3d81f6-4b20-49ae-b165-0e8a2d94f37c"
-      ],
-      "result": {
-        "@type": "hackathon2026:SpeedingAssessmentResult",
-        "measuredSpeed": 72.0,
-        "speedLimit": 50.0,
-        "plate": "NPA-518-C",
-        "excess": 22.0,
-        "tolerance": 3.0,
-        "rule": "urn:onvif-hackathon:rule:urban-speed-limit"
-      }
-    }
-  ],
-  "hashes": [
-    {
-      "item": "a5e18c62-9f43-4b07-8d21-6c70e21fb945",
-      "digest": "Iw2O2FLRmwW1XpRcCPCJqlCUVzWPUcmIEJ4KYZyUP9U="
-    }
-  ],
-  "signature": {
-    "@type": "onvif:OnvifSignature",
-    "digestAlgorithm": "SHA256",
-    "signatureAlgorithm": "ECDSA_P256_SHA256",
-    "created": "2026-11-03T10:15:12.080Z",
-    "key": {
-      "@type": "onvif:PublicKeyIdentifier",
-      "keyId": "fines-service-signing-1",
-      "fingerprints": [
-        {
-          "algorithm": "SHA256",
-          "value": "Ndu2GgBv9MCj6YYig2x8l5rqIqn7cRkSx/IncnTTGt4="
-        }
-      ]
-    },
-    "envelopeDigest": "tWbAjwC8+rh73Zxx1usTXMEk7b5hkdljN2wAd+zwYG0=",
-    "signatureValue": "CIX9Ti56QGhgfcmHLLdFpVEyCqfSr9MSKGk54YKlIS6Wr6R0Xf+WLSOZy+iuW9gzkLvB1m0VRPO4xhJMD74fMcVkaj3b0h0="
-  }
-}</programlisting>
-      <para>The item is an <code>Assessment</code> and not an <code>Observation</code> because the
-        limit is not contained in anything the cameras or the box measured: it comes from a provision
-        in force at that place, and the same speed yields an assessment on one road and none on
-        another. No assessment is emitted where the limit was respected, so the existence of this
-        item is itself the statement that it was exceeded, as specified in <xref
-        linkend="sec_assessment_result"/>.</para>
-      <para>The <code>provenance</code> is a <code>SoftwareService</code> and not an
-        <code>ONVIFDevice</code>: the party that issues the fine is not the party that watched the
-        road, and an ONVIF Client shall be able to tell the two apart. The service is not obliged to
-        hold a keystore, which is why its <code>publicKeys</code> field is optional; this one does
-        hold keys and declares them, so the same comparison between the signing key and the declared
-        key that was made for the entry camera can be made here.</para>
-      <para>An ONVIF Client that has received all four envelopes holds a chain it can walk backwards
-        without trusting any single party twice: the assessment names the collection, the collection
-        names the estimate and the two detections, the estimate names the two detections, and each of
-        the four envelopes carries a signature made with a key the producer of its items declares as
-        its own. Each link is a reference to an identifier, and the acyclicity and
-        <code>productionTime</code> ordering of the chain hold throughout, as specified in <xref
-        linkend="sec_support_graph_sanity_checks"/>.</para>
-    </section>
-    <section xml:id="sec_annex_hk_function_lifecycle">
-      <title>Driving the assessment service — configure, start and stop</title>
-      <para>The envelope of the preceding section is the output of a function execution, and this
-        section shows the three calls that bring that execution about: the criterion is configured
-        once, an execution is started, and the execution is stopped when it is no longer wanted. The
-        party that exposes the Agentic Service endpoint plays the role this specification calls the
-        ONVIF endpoint, whether it is a camera or, as here, a service running on a server; the ONVIF
-        Client is the console of the traffic authority. The four classes exercised below —
-        <code>SpeedingAssessmentConfig</code>, <code>SpeedingAssessmentCapabilities</code>,
-        <code>SpeedingAssessmentExecutionParameters</code> and
-        <code>SpeedingAssessmentExecutionResult</code> — belong to the hackathon module, not to this
-        specification. The module binds the four to the function name with a fifth class,
-        <code>SpeedingAssessmentInvocation</code>, a specialization of
-        <code>FunctionInvocation</code> as required by <xref
-        linkend="sec_event_keepalive"/>; that class is a declaration and appears in no
-        payload below.</para>
-      <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client calls
-        <code>list_functions</code> first, as required by <xref
-        linkend="sec_tool_list_functions"/>, because it needs the local name to call and the schema
-        URIs that govern what it may send.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 20,
-  "method": "tools/call",
-  "params": {
-    "name": "list_functions",
-    "arguments": {},
-    "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The service supports one function of
-        its own, plus the function this specification reserves.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 20,
-  "result": {
-    "resultType": "complete",
-    "content": [{ "type": "text", "text": "2 function(s) available." }],
-    "structuredContent": {
-      "functions": [
-        {
-          "name": "speeding_assessment",
-          "canonicalUri": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/function/speeding_assessment",
-          "description": "Assess speed estimates against the limit in force and issue speeding assessments.",
-          "enabled": false,
-          "configSchema": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/#/$defs/SpeedingAssessmentConfig",
-          "executionSchema": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/#/$defs/SpeedingAssessmentExecutionParameters",
-          "resultSchema": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/#/$defs/SpeedingAssessmentExecutionResult",
-          "capabilitiesSchema": "https://www.onvif.org/ver10/agentic/hackathon-2026.11/linkml/#/$defs/SpeedingAssessmentCapabilities"
-        },
-        {
-          "name": "set_event_stream_parameters",
-          "canonicalUri": "https://www.onvif.org/ver10/agentic/function/set_event_stream_parameters",
-          "description": "Set the keep-alive interval of the event stream.",
-          "enabled": true,
-          "executionSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/SetEventStreamParametersRequest",
-          "resultSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/SetEventStreamParametersResponse",
-          "capabilitiesSchema": "https://www.onvif.org/ver10/agentic/linkml/#/$defs/EventStreamCapabilities"
-        }
-      ]
-    }
-  }
-}</programlisting>
-      <para>The <code>canonicalUri</code> of <code>speeding_assessment</code> lies in the hackathon
-        namespace and not in <code>https://www.onvif.org/ver10/agentic/function/</code>, which is
-        reserved to the functions this specification defines, as set out in <xref
-        linkend="sec_function_catalogue"/>. The entry is listed with <code>enabled: false</code>:
-        the function exists on this instance but no criterion has been applied to it yet, so the
-        client can see that speeding assessments are obtainable here and knows that
-        <code>configure_function</code> has to come first.</para>
-      <para><emphasis>Request (Client to Device):</emphasis> The client reads the capabilities
-        before configuring, so that it learns the bounds rather than discovering them through a
-        rejected configuration.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 21,
-  "method": "tools/call",
-  "params": {
-    "name": "get_function_capabilities",
-    "arguments": {
-      "function": "speeding_assessment"
-    },
-    "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The <code>capabilities</code> object
-        is an instance of <code>SpeedingAssessmentCapabilities</code>, the class named in
-        <code>capabilitiesSchema</code> above. These values are invariant for this instance: they
-        are the same before and after any execution.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 21,
-  "result": {
-    "resultType": "complete",
-    "content": [{ "type": "text",
-                  "text": "Limits 10.0-130.0 km/h, tolerance up to 10.0 km/h, 4 concurrent executions." }],
-    "structuredContent": {
-      "function": "speeding_assessment",
-      "capabilities": {
-        "@type": "hackathon2026:SpeedingAssessmentCapabilities",
-        "minimumSpeedLimit": 10.0,
-        "maximumSpeedLimit": 130.0,
-        "maximumTolerance": 10.0,
-        "supportsDryRun": true,
-        "maximumConcurrentExecutions": 4
-      }
-    }
-  }
-}</programlisting>
-      <para><emphasis>Request (Client to Device):</emphasis> The <code>config</code> object is an
-        instance of <code>SpeedingAssessmentConfig</code>, the class named in
-        <code>configSchema</code>, and the client validates it against the compiled schema before
-        sending it.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 22,
-  "method": "tools/call",
-  "params": {
-    "name": "configure_function",
-    "arguments": {
-      "function": "speeding_assessment",
-      "config": {
-        "@type": "hackathon2026:SpeedingAssessmentConfig",
-        "speedLimit": 50.0,
-        "tolerance": 3.0,
-        "rule": "urn:onvif-hackathon:rule:urban-speed-limit",
-        "minimumConfidence": 0.75,
-        "emitOnlyWhenExceeded": true
-      }
-    },
-    "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
-      "io.modelcontextprotocol/clientCapabilities": {
-        "extensions": {
-          "io.modelcontextprotocol/tasks": {}
-        }
-      }
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The device confirms the applied
-        configuration and does not start the function.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 22,
-  "result": {
-    "resultType": "complete",
-    "content": [{ "type": "text", "text": "speeding_assessment configured: limit 50.0 km/h, tolerance 3.0 km/h." }],
-    "structuredContent": {
-      "function": "speeding_assessment",
-      "applied": {
-        "@type": "hackathon2026:SpeedingAssessmentConfig",
-        "speedLimit": 50.0,
-        "tolerance": 3.0,
-        "rule": "urn:onvif-hackathon:rule:urban-speed-limit",
-        "minimumConfidence": 0.75,
-        "emitOnlyWhenExceeded": true
-      }
-    }
-  }
-}</programlisting>
-      <para>These five values are the criterion, and they are configured rather than passed per
-        execution for a reason that can be read off the assessment of <xref
-        linkend="sec_annex_hk_assessment_service"/>: that item restates
-        <code>speedLimit</code> 50.0, <code>tolerance</code> 3.0 and the same <code>rule</code> on
-        its own result, so a client can check the claim against the configuration that produced it.
-        A criterion that changed from one execution to the next could not be stated that way, and two
-        assessments of the same service would not be comparable. <code>minimumConfidence</code> is
-        the lowest confidence a <code>SpeedEstimateObservation</code> may carry to be assessed at
-        all: the estimate of the analytics box carries 0.9 and is above it, and an estimate
-        below 0.75 would be ignored rather than assessed, since a fine cannot rest on a measurement
-        its own producer does not stand behind. <code>emitOnlyWhenExceeded</code> is left at its
-        default of <code>true</code>, which is what makes the mere existence of an assessment the
-        statement that the limit was exceeded.</para>
-      <para><emphasis>Request (Client to Device):</emphasis> The function is now configured, so it
-        can be started. The <code>parameters</code> object is an instance of
-        <code>SpeedingAssessmentExecutionParameters</code>, the class named in
-        <code>executionSchema</code>.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 23,
-  "method": "tools/call",
-  "params": {
-    "name": "execute_function",
-    "arguments": {
-      "function": "speeding_assessment",
-      "parameters": {
-        "@type": "hackathon2026:SpeedingAssessmentExecutionParameters",
-        "validity": {
-          "@type": "onvif:ISO8601Interval",
-          "intervalString": "2026-11-03T08:00:00Z/2026-11-03T20:00:00Z"
-        },
-        "dryRun": false
-      }
-    },
-    "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
-      "io.modelcontextprotocol/clientCapabilities": {
-        "extensions": {
-          "io.modelcontextprotocol/tasks": {}
-        }
-      }
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> The
-        <code>structuredContent</code> is an instance of
-        <code>SpeedingAssessmentExecutionResult</code>, the class named in
-        <code>resultSchema</code>.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 23,
-  "result": {
-    "resultType": "complete",
-    "content": [{ "type": "text", "text": "Execution exec_speeding_001 started." }],
-    "structuredContent": {
-      "@type": "hackathon2026:SpeedingAssessmentExecutionResult",
-      "executionId": "exec_speeding_001",
-      "startedAt": "2026-11-03T09:58:41Z"
-    }
-  }
-}</programlisting>
-      <para>The response reports the start of the execution and nothing about its outcome. Where
-        starting is asynchronous the device may return a task instead, in the form shown in <xref
-        linkend="sec_annex_tool_execute_function"/>; that task represents the start alone and reaches
-        a terminal state once the execution is running, rather than staying
-        <code>working</code> for as long as the function is active. The assessments themselves arrive
-        afterwards as metadata events, each in a signed envelope of its own: the envelope of <xref
-        linkend="sec_annex_hk_assessment_service"/> is one of them, produced at 10:15:12 by this
-        execution. <code>validity</code> bears on the run and not on the criterion, which is why it
-        is an execution parameter; where it is omitted the execution runs until it is stopped.
-        <code>dryRun</code> is <code>false</code> here, so the assessments are real; with
-        <code>true</code> the service would evaluate the same criterion and report what it would have
-        produced without emitting any <code>SpeedingAssessment</code>, which is how a limit can be
-        tried against live traffic before any fine follows from it. The client may ask for a dry run
-        only because <code>supportsDryRun</code> was <code>true</code> in the capabilities.</para>
-      <para><emphasis>Request (Client to Device):</emphasis> The shift ends early and the execution
-        is stopped before its validity expires. <code>stop_function</code> takes the execution
-        identifier the start returned, and no per-function parameters: stopping needs none, which is
-        why the hackathon module declares no class for it.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 24,
-  "method": "tools/call",
-  "params": {
-    "name": "stop_function",
-    "arguments": {
-      "function": "speeding_assessment",
-      "executionId": "exec_speeding_001"
-    },
-    "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
-      "io.modelcontextprotocol/clientCapabilities": {
-        "extensions": {
-          "io.modelcontextprotocol/tasks": {}
-        }
-      }
-    }
-  }
-}</programlisting>
-      <para><emphasis>Response (Device to Client):</emphasis> No field of the descriptor names a
-        class for the result of a stop, so the device reports the outcome in the textual content and
-        the absence of an error is the confirmation.</para>
-      <programlisting>{
-  "jsonrpc": "2.0",
-  "id": 24,
-  "result": {
-    "resultType": "complete",
-    "content": [{ "type": "text", "text": "Execution exec_speeding_001 stopped." }]
-  }
-}</programlisting>
-      <para>Stopping the execution ends the emission of assessments; it does not withdraw the ones
-        already emitted, nor does it discard the configuration. The criterion stays applied, so the
-        client can start a further execution over another interval without configuring again, and the
-        entry would now be listed with <code>enabled: true</code>. Nothing in this exchange touches
-        the envelopes of the preceding sections: an assessment already published remains verifiable
-        after the execution that produced it is over, because what carries the signature is the
-        envelope it was delivered in and what binds the signature to that one item is its own digest,
-        as specified in <xref linkend="sec_information_item"/>.</para>
-    </section>
-  </appendix>
 
 </book>

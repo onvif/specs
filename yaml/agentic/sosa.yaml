@@ -1,0 +1,391 @@
+id: https://www.onvif.org/ver10/agentic/sosa/linkml/
+name: onvif-agentic-sosa
+description: ONVIF Agentic Service SOSA schema
+prefixes:
+  linkml: https://w3id.org/linkml/
+  onvif: https://www.onvif.org/ver10/agentic/linkml/
+  sosa: http://www.w3.org/ns/sosa/
+  time: http://www.w3.org/2006/time#
+imports:
+  - linkml:types
+  - base
+default_prefix: onvif
+default_range: string
+
+classes:
+
+  SOSAFeatureOfInterest:
+    abstract: true
+    class_uri: sosa:FeatureOfInterest
+    description: >-
+      Abstract base for the particular real-world entity whose property is
+      observed. A concrete subclass identifies the kind of entity, and the
+      optional id identifies the individual. Without an id the entity is
+      anonymous and is not asserted to be the same as another feature.
+
+      This bundle defines no concrete subclasses. A module that uses the
+      featureOfInterest field shall define or import at least one.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        pattern: '^(?!sosa:FeatureOfInterest$).+'
+        description: >-
+          The CURIE of the concrete subclass identifying the entity's kind.
+          The pattern prevents the JSON Schema generator from accepting the
+          abstract base itself when no concrete subclasses are loaded.
+      id:
+        range: UUID
+        required: false
+        # Constrain optional values to exclude null in the generated JSON Schema.
+        all_of:
+          - range: UUID
+        description: >-
+          UUID identifying the observed entity, when it is known.
+
+  SOSAExtendedFeatureOfInterest:
+    abstract: true
+    is_a: SOSAFeatureOfInterest
+    description: >-
+      Abstract feature of interest with optional spatial context. A concrete
+      subclass identifies the kind of entity; space describes its location.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        pattern: '^(?!sosa:FeatureOfInterest$|onvif:SOSAExtendedFeatureOfInterest$).+'
+        description: >-
+          The CURIE of the concrete subclass. The pattern prevents the JSON
+          Schema generator from accepting either abstract base as an instance.
+      space:
+        range: Location
+        inlined: true
+        required: false
+        description: Spatial context of the feature of interest.
+
+  SOSAObservationResult:
+    abstract: true
+    class_uri: sosa:Result
+    description: >-
+      Abstract container for what a SOSAObservation of the physical world found: the
+      measured quantity itself, as opposed to the circumstances of the
+      measurement, such as phenomenonTime, resultTime and provenance.
+
+      The class is abstract because there is nothing a generic result can state.
+      What a result contains depends entirely on what was observed - a plate
+      reading, a vehicle classification, a speed. A concrete subclass of
+      SOSAObservationResult describes the result; a more specific observation
+      class may constrain its hasResult slot to the corresponding result class.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        description: >-
+          The CURIE of the concrete result class this object instantiates.
+          It is required for the reason given for the type designator of
+          InformationItem.
+
+          The field identifies the concrete result class. A more specific
+          SOSAObservation class may constrain its hasResult slot to that class, but
+          a directly instantiated SOSAObservation does not fix a single result
+          type. The range is abstract, so the value shall instantiate a concrete
+          subclass.
+      extensible:
+        range: Extensible
+        required: false
+        description: Optional vendor extension container.
+
+  SOSAProcedure:
+    abstract: true
+    class_uri: sosa:Procedure
+    description: >-
+      Abstract base for a reusable procedure used to produce an observation.
+      A concrete subclass identifies the method; the optional id identifies a
+      particular procedure shared across observations. This bundle defines no
+      concrete subclasses.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        pattern: '^(?!sosa:Procedure$).+'
+        description: >-
+          The CURIE of the concrete procedure subclass. The pattern prevents
+          the JSON Schema generator from accepting the abstract base itself
+          when no concrete subclasses are loaded.
+      id:
+        range: UUID
+        required: false
+        all_of:
+          - range: UUID
+        description: UUID identifying the reusable procedure, when known.
+  SOSAObservableProperty:
+    abstract: true
+    class_uri: sosa:ObservableProperty
+    description: >-
+      Abstract base for an observable property of the feature of interest.
+      A concrete subclass identifies the kind of property; its optional id
+      identifies the property itself. This bundle defines no concrete subclasses.
+      Its value is what the observation estimates or calculates.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        pattern: '^(?!sosa:ObservableProperty$).+'
+        description: >-
+          The CURIE of the concrete property subclass. The pattern prevents
+          the JSON Schema generator from accepting the abstract base itself
+          when no concrete subclasses are loaded.
+      id:
+        range: UUID
+        required: false
+        all_of:
+          - range: UUID
+        description: UUID identifying the observable property, when known.
+
+  SOSASensor:
+    abstract: true
+    class_uri: sosa:Sensor
+    description: >-
+      Abstract base for the device, agent or software that made an observation,
+      identified by a UUID. A concrete subclass identifies the kind of
+      sensor. A sensor may be physical or virtual.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        pattern: '^(?!sosa:Sensor$).+'
+        description: >-
+          The CURIE of the concrete sensor subclass. The pattern prevents the
+          JSON Schema generator from accepting the abstract base itself when
+          no concrete subclasses are loaded.
+      id:
+        range: UUID
+        identifier: true
+        required: true
+        description: UUID identifying the sensor.
+
+  SOSATemporalEntity:
+    abstract: true
+    class_uri: time:TemporalEntity
+    description: >-
+      Abstract base for an OWL-Time instant or interval denoting the time at
+      which the observation result applies. An optional UUID identifies the
+      temporal entity in the enclosing JSON-LD context.
+    attributes:
+      '@type':
+        designates_type: true
+        range: curie
+        required: true
+        pattern: '^(?!time:TemporalEntity$).+'
+        description: >-
+          The CURIE identifying the concrete temporal entity's class. The
+          pattern prevents the JSON Schema generator from accepting the
+          abstract base itself as an instance.
+      id:
+        range: UUID
+        required: false
+        all_of:
+          - range: UUID
+        description: UUID identifying the temporal entity, when known.
+
+  SOSAInstant:
+    is_a: SOSATemporalEntity
+    class_uri: time:Instant
+    description: >-
+      An OWL-Time instant, either described by a timestamp or referenced by
+      its UUID. A reference shall resolve to a complete description already
+      available to the client. A timestamp uses the same Iso8601Instant lexical
+      form as resultTime, but represents a time:Instant node rather than the
+      literal value of sosa:resultTime.
+    attributes:
+      timestamp:
+        range: Iso8601Instant
+        slot_uri: time:inXSDDateTimeStamp
+        required: false
+        all_of:
+          - range: Iso8601Instant
+        description: >-
+          The instant as an ISO 8601 date-time with a UTC designator or
+          explicit offset. Its RDF datatype is xsd:dateTimeStamp. An ONVIF
+          Client shall verify that the value is a valid xsd:dateTimeStamp;
+          the Iso8601Instant pattern checks its form, not its calendar validity.
+    rules:
+      - title: An anonymous instant requires a timestamp
+        preconditions:
+          slot_conditions:
+            id:
+              value_presence: ABSENT
+        postconditions:
+          slot_conditions:
+            timestamp:
+              value_presence: PRESENT
+
+  SOSAInterval:
+    is_a: SOSATemporalEntity
+    class_uri: time:Interval
+    description: >-
+      An OWL-Time interval, either described by a beginning and end or
+      referenced by its UUID. A reference shall resolve to a complete
+      description already available to the client. Each endpoint of a
+      complete interval is an SOSAInstant carrying a timestamp. An ONVIF
+      Client shall verify that both endpoints are valid date-times and that
+      the end is not before the beginning. The lexical patterns alone do not
+      enforce these conditions.
+
+      Intervals described only by a duration or repetition are not represented
+      by this class.
+    attributes:
+      beginning:
+        range: SOSAInstant
+        slot_uri: time:hasBeginning
+        inlined: true
+        required: false
+        # Endpoints must be complete instants, even when they have an id.
+        all_of:
+          - range: SOSAInstant
+            inlined: true
+            range_expression:
+              slot_conditions:
+                timestamp:
+                  value_presence: PRESENT
+        description: The beginning of the interval, as a complete instant.
+      end:
+        range: SOSAInstant
+        slot_uri: time:hasEnd
+        inlined: true
+        required: false
+        all_of:
+          - range: SOSAInstant
+            inlined: true
+            range_expression:
+              slot_conditions:
+                timestamp:
+                  value_presence: PRESENT
+        description: The end of the interval, as a complete instant.
+    rules:
+      - title: An anonymous interval requires both endpoints
+        preconditions:
+          slot_conditions:
+            id:
+              value_presence: ABSENT
+        postconditions:
+          slot_conditions:
+            beginning:
+              value_presence: PRESENT
+            end:
+              value_presence: PRESENT
+      - title: An interval beginning requires an end
+        preconditions:
+          slot_conditions:
+            beginning:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            end:
+              value_presence: PRESENT
+      - title: An interval end requires a beginning
+        preconditions:
+          slot_conditions:
+            end:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            beginning:
+              value_presence: PRESENT
+
+  SOSAObservation:
+    abstract: false
+    is_a: Observation
+    class_uri: sosa:Observation
+    description: >-
+      Concrete, instantiable InformationItem representing an observation in the
+      SOSA model. It may be used directly, with a concrete result, or specialised
+      by a class that narrows its result type and other fields.
+    attributes:
+      hasResult:
+        range: SOSAObservationResult
+        slot_uri: sosa:hasResult
+        inlined: true
+        required: true
+        value_presence: PRESENT
+        description: >-
+          What the observation found. The result is nested inside the observation
+          and not referenced by identifier: it is not an information item of its
+          own, it has no independent existence, and it is meaningless apart from
+          the observation that produced it.
+
+          The field is mandatory and its range is abstract. Every value shall
+          therefore instantiate a concrete subclass of SOSAObservationResult.
+          A more specific observation class may narrow the range to its
+          corresponding result class in slot_usage:
+
+            ExampleSOSAObservation:
+              is_a: SOSAObservation
+              slot_usage:
+                hasResult:
+                  range: ExampleSOSAObservationResult
+                  value_presence: PRESENT
+                  required: true
+
+          A subclass that refines the slot shall retain value_presence:
+          PRESENT, as shown above. The concrete result type is carried by the
+          nested result object.
+      featureOfInterest:
+        range: SOSAFeatureOfInterest
+        slot_uri: sosa:hasFeatureOfInterest
+        inlined: true
+        required: false
+        description: >-
+          The entity whose property is observed, nested as an instance of a
+          concrete SOSAFeatureOfInterest subclass. It may carry an identifier
+          for the entity itself.
+      procedure:
+        range: SOSAProcedure
+        slot_uri: sosa:usedProcedure
+        inlined: true
+        required: false
+        description: >-
+          The method by which this observation was produced, as an instance of
+          a concrete SOSAProcedure subclass.
+      observedProperty:
+        range: SOSAObservableProperty
+        slot_uri: sosa:observedProperty
+        inlined: true
+        required: false
+        description: >-
+          The property of the feature of interest that this observation
+          estimates or calculates, as an instance of a concrete
+          SOSAObservableProperty subclass.
+      madeBySensor:
+        range: SOSASensor
+        slot_uri: sosa:madeBySensor
+        inlined: true
+        required: false
+        description: The sensor that made the observation, as a concrete SOSASensor subclass.
+      phenomenonTime:
+        range: SOSATemporalEntity
+        slot_uri: sosa:phenomenonTime
+        inlined: true
+        required: false
+        description: >-
+          The OWL-Time entity at which the result applies to the feature of
+          interest, represented as an SOSAInstant or SOSAInterval, either
+          described inline or referenced by UUID with its concrete type. A
+          reference shall resolve to a complete, type-consistent description
+          already available to the client. It is not necessarily the result time.
+      resultTime:
+        range: Iso8601Instant
+        slot_uri: sosa:resultTime
+        required: false
+        description: >-
+          The sosa:resultTime property is the instant at which the observation
+          was completed. Its literal value uses the shared Iso8601Instant type,
+          with a UTC designator or an explicit offset, and the RDF datatype
+          xsd:dateTime. It is distinct from phenomenonTime, which relates the
+          observation to a temporal entity.
