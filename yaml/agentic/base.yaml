@@ -31,10 +31,10 @@ classes:
           an ONVIF Client determines what it has received.
 
           Every abstract class of this model that is used as the range of a
-          nested slot declares a slot of this kind, and only such classes do.
+          nested slot declares a slot of this kind. SOSAInstant and SOSAInterval
+          inherit it from SOSATemporalEntity to identify the inline temporal entity.
           The rule has a single reason: a range that names an abstract class
-          says nothing about the contents of the object, since an abstract
-          class carries no fields of its own beyond this designator. Without
+          does not by itself identify the concrete shape of the object. Without
           the designator the compiled JSON Schema admits nothing at all, and an
           ONVIF Client that received such an object would have no way of
           learning which concrete class it is looking at. With it, the schema
@@ -43,9 +43,9 @@ classes:
           class from the object rather than guessing it from the fields that
           happen to be present.
 
-          A class whose range is already concrete does not declare it: the
-          class is then fixed by the schema itself, and the field would only
-          repeat what is already known.
+          A nested class whose range is already a single concrete class normally
+          does not need it. The concrete SOSA and OWL-Time entities that declare
+          @type are exceptions: they use it to assert their RDF classes explicitly.
 
           The value shall expand, through the inline JSON-LD context of the
           enclosing InformationEnvelope, to the class_uri of the concrete
@@ -87,10 +87,6 @@ classes:
           The confidence of an item is the confidence of that item alone. It is
           not derived from, and shall not be propagated to, any item that cites
           it in supportedBy.
-      productionTime:
-        range: Time
-        required: true
-        description: Production timestamp of the information item.
       provenance:
         range: Provenance
         required: true
@@ -128,13 +124,13 @@ classes:
           @type @id, each of the four terms marked @protected. No nested or
           type-scoped context shall redefine @base or these terms.
 
-          A third-party class that declares attributes of its own is
-          represented by a type-scoped context mapping those unqualified JSON
-          property names to their slot_uri values. Its shape is intentionally
-          open because those modules and their terms are not known by this
-          schema in advance; JSON-LD validation checks that its mappings agree
-          with the class_uri and slot_uri values of the loaded modules, and
-          that the identifier mappings are exactly those specified.
+          Type-scoped contexts map properties to their slot_uri values,
+          including inherited properties and SOSA properties whose URIs differ
+          from the default ONVIF vocabulary. Their shape is intentionally open
+          because third-party modules and their terms are not known by this
+          schema in advance; JSON-LD validation checks that mappings agree with
+          the class_uri and slot_uri values of the loaded modules, and that the
+          identifier mappings are exactly those specified.
       '@type':
         designates_type: true
         range: curie
@@ -218,13 +214,13 @@ classes:
   Location:
     abstract: true
     description: >-
-      Abstract spatial descriptor for an InformationItem.
+      Abstract spatial descriptor for a feature of interest.
 
       The class is abstract because a place can be given in two irreducibly
       different ways: by the function it serves, such as a named entrance or lane,
       or by its geometry. Either form is introduced as a concrete subclass, by a
       future revision of this specification or by a vendor extension, without
-      changing Observation.
+      changing SOSAExtendedFeatureOfInterest.
     attributes:
       '@type':
         designates_type: true
@@ -239,295 +235,12 @@ classes:
         required: false
         description: Optional vendor extension container.
 
-  FeatureOfInterest:
-    abstract: false
-    description: >-
-      The kind of real-world entity an observation is about, as opposed to what
-      was found about it, which is the SOSAObservationResult.
-
-      The entity is named in one of two ways, and exactly one of them is used by
-      any given instance: by the vocabulary of this specification, in the onvif
-      slot, or by the vendor, in the custom slot. Expressing that choice is the
-      only reason the class exists; a FeatureOfInterest that carries both slots,
-      or neither, is invalid.
-
-      The arrangement keeps the common vocabulary closed while leaving the set of
-      observable entities open. An ONVIF Client that receives a value it does not
-      implement can always tell which of the two cases it is in - a value of this
-      specification it does not support, or a vendor value it does not know - and
-      an ONVIF Device can name entities of its own without any risk of a future
-      value of this specification taking the same name.
-
-      The class is concrete and is not specialised. The vocabulary grows in two
-      ways only: a new value of FeatureOfInterestType, added by a future version
-      of this specification, or a URI of a vendor's own in the custom slot. An
-      ONVIF Client therefore never encounters a subclass of FeatureOfInterest,
-      and the two slots are the whole of what it has to interpret.
-    attributes:
-      onvif:
-        range: FeatureOfInterestType
-        required: false
-        description: >-
-          The entity, named by the vocabulary of this specification. An ONVIF
-          Device shall use this slot wherever a value of FeatureOfInterestType
-          applies to what is being observed.
-      custom:
-        range: uri
-        pattern: '^[A-Za-z][A-Za-z0-9+.\-]*:[^\s]+$'
-        required: false
-        description: >-
-          The entity, named by the vendor, for an entity FeatureOfInterestType
-          does not name. The value shall be an absolute URI in a namespace the
-          vendor controls, in the same sense as the vendor_namespace of a
-          VendorExtension.
-
-          The pattern imposes that shape, and each of its two parts carries a
-          distinct meaning. The leading production, [A-Za-z][A-Za-z0-9+.\-]*
-          followed by a colon, is the URI scheme, and it is what identifies the
-          namespace the proprietary extension belongs to: it tells an ONVIF
-          Client that the value is a vendor's own and under which naming
-          authority it is to be resolved. Where the scheme is a generic one, such
-          as https, the authority that follows it participates in identifying the
-          namespace as well, and it is then the vendor's registered domain that
-          makes the namespace its own. The remainder, [^\s]+, is the vendor's own
-          name for the entity within that namespace; it is opaque to this
-          specification, and only the vendor owning the namespace assigns meaning
-          to it. Whitespace is excluded throughout so that the value remains a
-          single token.
-    exactly_one_of:
-      - slot_conditions:
-          onvif:
-            value_presence: PRESENT
-      - slot_conditions:
-          custom:
-            value_presence: PRESENT
-
-  Procedure:
-    abstract: false
-    description: >-
-      How an observation was produced: the method that turned the physical world
-      into a result, as opposed to the entity observed, which is the
-      featureOfInterest, or to what was found, which is the SOSAObservationResult.
-
-      The procedure is named in one of two ways, and exactly one of them is used
-      by any given instance: by the vocabulary of this specification, in the
-      onvif slot, or by the vendor, in the custom slot. The class is deliberately
-      built the same way as FeatureOfInterest, and for the same reasons, so that
-      an ONVIF Client handles a procedure it does not recognise exactly as it
-      handles a feature of interest it does not recognise.
-
-      Naming a procedure is not describing it. The class states which method was
-      used, and neither how that method works nor with what parameters it was
-      configured; those belong to the provenance of the information item, or to a
-      vendor extension.
-
-      The class is concrete and is not specialised, for the reason given for
-      FeatureOfInterest: the set of methods grows through a new value of
-      ProcedureType or through a URI of a vendor's own, and never through a
-      subclass.
-    attributes:
-      onvif:
-        range: ProcedureType
-        required: false
-        description: >-
-          The method, named by the vocabulary of this specification. An ONVIF
-          Device shall use this slot wherever a value of ProcedureType applies to
-          how the observation was produced.
-      custom:
-        range: uri
-        pattern: '^[A-Za-z][A-Za-z0-9+.\-]*:[^\s]+$'
-        required: false
-        description: >-
-          The method, named by the vendor, for a method ProcedureType does not
-          name. The value shall be an absolute URI in a namespace the vendor
-          controls, in the same sense as the vendor_namespace of a
-          VendorExtension.
-
-          The pattern imposes that shape, and each of its two parts carries a
-          distinct meaning. The leading production, [A-Za-z][A-Za-z0-9+.\-]*
-          followed by a colon, is the URI scheme, and it is what identifies the
-          namespace the proprietary extension belongs to: it tells an ONVIF
-          Client that the value is a vendor's own and under which naming
-          authority it is to be resolved. Where the scheme is a generic one, such
-          as https, the authority that follows it participates in identifying the
-          namespace as well, and it is then the vendor's registered domain that
-          makes the namespace its own. The remainder, [^\s]+, is the vendor's own
-          name for the method within that namespace; it is opaque to this
-          specification, and only the vendor owning the namespace assigns meaning
-          to it. Whitespace is excluded throughout so that the value remains a
-          single token.
-    exactly_one_of:
-      - slot_conditions:
-          onvif:
-            value_presence: PRESENT
-      - slot_conditions:
-          custom:
-            value_presence: PRESENT
-
-  SOSAObservationResult:
-    abstract: true
-    description: >-
-      Abstract container for what a SOSAObservation of the physical world found: the
-      measured quantity itself, as opposed to the circumstances of the
-      measurement, which a SOSAObservation carries in observedTime, observedSpace,
-      productionTime and provenance.
-
-      The class is abstract because there is nothing a generic result can state.
-      What a result contains depends entirely on what was observed - a plate
-      reading, a vehicle classification, a speed. A concrete subclass of
-      SOSAObservationResult describes the result; a more specific observation
-      class may constrain its result slot to the corresponding result class.
-    attributes:
-      '@type':
-        designates_type: true
-        range: curie
-        required: true
-        description: >-
-          The CURIE of the concrete result class this object instantiates.
-          It is required for the reason given for the type designator of
-          InformationItem.
-
-          The field identifies the concrete result class. A more specific
-          SOSAObservation class may constrain its result slot to that class, but
-          a directly instantiated SOSAObservation does not fix a single result
-          type. The range is abstract, so the value shall instantiate a concrete
-          subclass.
-      extensible:
-        range: Extensible
-        required: false
-        description: Optional vendor extension container.
-
   Observation:
     abstract: true
     is_a: InformationItem
     description: >-
-      Abstract base class for information about something observed. In addition
-      to the fields inherited from InformationItem, it declares only observedTime,
-      the temporal context of the observation.
-    attributes:
-      observedTime:
-        range: Time
-        required: false
-        description: Temporal context observed by this observation.
-
-  SOSAObservation:
-    abstract: false
-    is_a: Observation
-    description: >-
-      Concrete, instantiable InformationItem representing an observation in the
-      SOSA model. It may be used directly, with a concrete result, or specialised
-      by a class that narrows its result type and other fields.
-
-      An observation is either direct or derived. A direct observation is what a
-      sensor produced by looking at the physical world, and cites nothing. A
-      derived observation is computed from other observations and lists them in
-      supportedBy: a speed, for example, is obtained from two observations of the
-      same subject by dividing the distance between their observedSpace values by
-      the interval between their observedTime values. Both forms are measurements
-      of the same physical world, expressed in the units they would have had if a
-      sensor had measured them directly; the derivation is arithmetic over
-      measurements and introduces no criterion that the measurements do not
-      already contain.
-
-      This is what separates a SOSAObservation that cites other items from an
-      Assessment that cites other items. An Assessment applies a criterion
-      external to the measurement, and its result is an interpretation that
-      cannot be reached from the supporting data by computation alone. The same
-      items can feed both: an average speed of 82 km/h is a SOSAObservation derived
-      from positions and times, while the statement that this speed exceeds the
-      limit in force at that place is an Assessment.
-    attributes:
-      result:
-        range: SOSAObservationResult
-        inlined: true
-        required: true
-        value_presence: PRESENT
-        description: >-
-          What the observation found. The result is nested inside the observation
-          and not referenced by identifier: it is not an information item of its
-          own, it has no independent existence, and it is meaningless apart from
-          the observation that produced it.
-
-          The field is mandatory and its range is abstract. Every value shall
-          therefore instantiate a concrete subclass of SOSAObservationResult.
-          A more specific observation class may narrow the range to its
-          corresponding result class in slot_usage:
-
-            ExampleSOSAObservation:
-              is_a: SOSAObservation
-              slot_usage:
-                result:
-                  range: ExampleSOSAObservationResult
-                  value_presence: PRESENT
-                  required: true
-
-          A subclass that refines the slot shall retain value_presence:
-          PRESENT, as shown above. The concrete result type is carried by the
-          nested result object.
-      featureOfInterest:
-        range: FeatureOfInterest
-        inlined: true
-        required: false
-        description: >-
-          The entity this observation is about. It is nested inside the
-          observation and not referenced by identifier: it is not an information
-          item of its own, it has no independent existence, and it names the
-          subject of this observation only.
-      procedure:
-        range: Procedure
-        inlined: true
-        required: false
-        description: >-
-          The method by which this observation was produced, nested for the same
-          reason the featureOfInterest is.
-
-          The slot describes a direct observation, where there is a method that
-          turned the physical world into the result. A derived observation is
-          computed from the observations it lists in supportedBy, and the method
-          that applies to it is the arithmetic stated there; it therefore omits
-          this slot, unless the derivation is itself a named method of this
-          specification or of the vendor.
-      observedSpace:
-        range: Location
-        required: false
-        description: Spatial context observed by this observation.
-      supportedBy:
-        range: UUID
-        any_of:
-          - range: Observation
-          - range: ObservationsCollection
-        multivalued: true
-        inlined: false
-        required: false
-        description: >-
-          Identifiers of the observations this observation was derived from. The
-          field is omitted, or carries an empty list, for a direct observation;
-          the two forms have the same meaning. It carries one or more identifiers
-          for a derived observation.
-
-          Each identifier shall resolve either to an observation or to an
-          ObservationsCollection, whose members are then taken in its place, and
-          no other kind of item may be cited here. Which of the two an identifier
-          resolved to is read from the @type of the item itself, as specified for
-          InformationItem.
-
-          The range is UUID, which imposes the shape of an identifier and nothing
-          more, and the any_of records the two admissible classes in
-          machine-readable form. It does not impose them, and no compiled schema
-          can: the slot carries the identifier of an item and not the item, so
-          neither the JSON Schema nor the SHACL shapes derived from this module
-          constrain the class of what the identifier resolves to. The restriction
-          is referential, and is one of the checks an ONVIF Client performs
-          against the items it has received.
-
-          The observations are referenced, not nested. The references shall be
-          directed and acyclic, the productionTime of a derived observation shall
-          be more recent than the productionTime of every observation it cites,
-          and every chain shall terminate in direct observations.
-
-          The confidence of a derived observation is its own, as stated for
-          InformationItem.confidence: it is neither computed from, nor propagated
-          to, the observations it cites.
+      Abstract base class for information about something observed. It adds no
+      fields to those inherited from InformationItem.
 
   ObservationsCollection:
     abstract: false
@@ -562,9 +275,8 @@ classes:
 
           The range is UUID, which imposes the shape of an identifier and nothing
           more, and the any_of records the single admissible class in
-          machine-readable form. It does not impose it, for the reason given for
-          SOSAObservation.supportedBy: the slot carries the identifier of an item and
-          not the item, so the restriction is referential and is checked by an
+          machine-readable form. It does not impose it: the slot carries the
+          identifier of an item and not the item, so the restriction is referential and is checked by an
           ONVIF Client against the items it has received.
 
   AssessmentResult:
@@ -626,6 +338,10 @@ classes:
       items may be assessed differently by two Assessments, or by a later
       Assessment of the same kind, without any observation being revised.
     attributes:
+      productionTime:
+        range: Time
+        required: true
+        description: Production timestamp of the assessment.
       result:
         range: AssessmentResult
         inlined: true
@@ -638,9 +354,8 @@ classes:
           it has no independent existence, and it is meaningless apart from the
           assessment that reached it.
 
-          The slot is declared ABSENT here, on the abstract class, for exactly
-          the reason set out for SOSAObservation.result, and everything stated there
-          applies unchanged: a concrete Assessment shall refine this slot in
+          The slot is declared ABSENT here, on the abstract class: a concrete
+          Assessment shall refine this slot in
           slot_usage, naming its own AssessmentResult subclass as the range and
           restating value_presence as PRESENT where the result is mandatory or
           UNCOMMITTED where it is optional. An assessment that refines only
@@ -658,7 +373,7 @@ classes:
           assessments, or both, because the criterion it applies can bear on an
           earlier interpretation as much as on a measurement. Any information
           item may therefore be cited here, and the admissible classes are not
-          restricted further, unlike the supportedBy of a SOSAObservation.
+          restricted further.
 
           The range is UUID, which imposes the shape of an identifier; the class
           of a cited item is read from the @type it carries, as specified for
@@ -666,5 +381,7 @@ classes:
 
           The items are referenced, not nested: each identifier shall resolve to
           an information item the ONVIF Client has already received. The
-          acyclicity, productionTime ordering and traceability rules stated for
-          SOSAObservation.supportedBy apply here as well.
+          reference graph shall be directed and acyclic, and each chain shall
+          terminate in observations. If a
+          supporting item is an Assessment, this assessment's productionTime
+          shall be more recent than that of the supporting assessment.

@@ -6,7 +6,6 @@ classDiagram
         +curie @type
         +UUID id
         +Likelihood confidence
-        +Time productionTime
         +Provenance provenance
         +Extensible extensible
     }
@@ -22,15 +21,16 @@ classDiagram
 
     class Observation {
         <<abstract>>
-        +Time observedTime
     }
 
     class SOSAObservation {
-        +SOSAObservationResult result
-        +FeatureOfInterest featureOfInterest
-        +Procedure procedure
-        +Location observedSpace
-        +UUID[] supportedBy
+        +SOSAObservationResult hasResult
+        +SOSAFeatureOfInterest featureOfInterest
+        +SOSAProcedure procedure
+        +SOSAObservableProperty observedProperty
+        +SOSASensor madeBySensor
+        +SOSATemporalEntity phenomenonTime
+        +Iso8601Instant resultTime
     }
 
     class ObservationsCollection {
@@ -39,6 +39,7 @@ classDiagram
 
     class Assessment {
         <<abstract>>
+        +Time productionTime
         +AssessmentResult result
         +UUID[] supportedBy
     }
@@ -55,14 +56,49 @@ classDiagram
         +Extensible extensible
     }
 
-    class FeatureOfInterest {
-        +FeatureOfInterestType onvif
-        +uri custom
+    class SOSAFeatureOfInterest {
+        <<abstract>>
+        +curie @type
+        +UUID id
     }
 
-    class Procedure {
-        +ProcedureType onvif
-        +uri custom
+    class SOSAExtendedFeatureOfInterest {
+        <<abstract>>
+        +curie @type
+        +Location space
+    }
+
+    class SOSAProcedure {
+        <<abstract>>
+        +curie @type
+        +UUID id
+    }
+
+    class SOSAObservableProperty {
+        <<abstract>>
+        +curie @type
+        +UUID id
+    }
+
+    class SOSASensor {
+        <<abstract>>
+        +curie @type
+        +UUID id
+    }
+
+    class SOSATemporalEntity {
+        <<abstract>>
+        +curie @type
+        +UUID id
+    }
+
+    class SOSAInstant {
+        +Iso8601Instant timestamp
+    }
+
+    class SOSAInterval {
+        +SOSAInstant beginning
+        +SOSAInstant end
     }
 
     class Provenance {
@@ -159,12 +195,15 @@ classDiagram
     InformationItem <|-- Assessment
     InformationItem <|-- ObservationsCollection
     Observation <|-- SOSAObservation
-
+    SOSAFeatureOfInterest <|-- SOSAExtendedFeatureOfInterest
     Extensible <|-- VendorExtension
     Extensible <|-- VendorExtensible
 
     Time <|-- ISO8601Timestamp
     Time <|-- ISO8601Interval
+
+    SOSATemporalEntity <|-- SOSAInstant
+    SOSATemporalEntity <|-- SOSAInterval
 
     Signature <|-- OnvifSignature
     SigningKey <|-- X509CertificateChain
@@ -174,16 +213,19 @@ classDiagram
     InformationEnvelope "1" o-- "0..*" ItemDigest : hashes
     InformationEnvelope "1" --> "0..1" Signature : signature
 
-    InformationItem --> "1" Time : productionTime
+    Assessment --> "1" Time : productionTime
     InformationItem --> "1" Provenance : provenance
     InformationItem ..> Extensible : extensible
 
-    SOSAObservation --> "1" SOSAObservationResult : result
-    SOSAObservation ..> FeatureOfInterest : featureOfInterest
-    SOSAObservation ..> Procedure : procedure
-    SOSAObservation ..> Location : observedSpace
-    SOSAObservation ..> "0..*" Observation : supportedBy
-    SOSAObservation ..> "0..*" ObservationsCollection : supportedBy
+    SOSAObservation --> "1" SOSAObservationResult : hasResult
+    SOSAObservation ..> SOSAFeatureOfInterest : featureOfInterest
+    SOSAObservation ..> SOSAProcedure : procedure
+    SOSAObservation ..> SOSAObservableProperty : observedProperty
+    SOSAObservation ..> SOSASensor : madeBySensor
+    SOSAObservation ..> SOSATemporalEntity : phenomenonTime
+    SOSAInterval --> "0..1" SOSAInstant : beginning
+    SOSAInterval --> "0..1" SOSAInstant : end
+    SOSAExtendedFeatureOfInterest ..> Location : space
 
     Assessment --> "0..1" AssessmentResult : result
     Assessment ..> "1..*" InformationItem : supportedBy
