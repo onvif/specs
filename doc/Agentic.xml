@@ -256,7 +256,7 @@
                 <para><emphasis role="bold">ONVIF endpoint</emphasis></para>
               </entry>
               <entry align="left">
-                <para>An MCP Server that wraps one or more agentic analytics capabilities, exposes
+                <para>An MCP Server that wraps one or more capabilities, exposes
                   each directly as an MCP Tool discovered with <code>tools/list</code>, together
                   with a schema announcement and a metadata publisher.</para>
               </entry>
@@ -278,7 +278,7 @@
                 <para>A callable entry point that an ONVIF endpoint exposes over MCP, described by a
                   name, a human-readable description and an <code>inputSchema</code>, discovered
                   with <code>tools/list</code> and invoked with <code>tools/call</code>. Every
-                  analytic or control capability of an ONVIF endpoint, such as
+                  capability of an ONVIF endpoint, such as
                     <code>motion_detection</code>, is exposed directly as a Tool: there is no
                   separate catalogue of capabilities to be discovered before a Tool can be
                   configured or invoked. This specification defines the Tools common to every
@@ -441,7 +441,7 @@
               description, and an <code>inputSchema</code> (JSON Schema) that fully describes the
               expected arguments. The Tools an ONVIF endpoint exposes are the means by which an ONVIF
               Client reads and controls its agentic capabilities, such as running a detector or
-              querying service status. Every capability is discovered directly as a Tool, with no
+              querying service status. Every operation is discovered directly as a Tool, with no
               separate catalogue to consult first. The ONVIF Client invokes a Tool by sending a
                 <code>tools/call</code> JSON-RPC request. This specification defines the Tools
               common to every conforming device and the conventions that govern every other Tool an
@@ -1070,8 +1070,9 @@
         requirements; a token carrying <code>onvif:Operator</code> satisfies
           <code>READ_SYSTEM</code> in addition to <code>ACTUATE</code>.</para>
       <para>The table below is normative. Each Tool exposed via <code>tools/list</code> shall
-        include an annotation declaring its access class. The ONVIF endpoint shall enforce this
-        mapping at runtime.</para>
+        include <code>_meta["org.onvif/accessClass"]</code> declaring its access class (see <xref
+          linkend="sec_tool_access_class"/>). The ONVIF endpoint shall enforce this mapping at
+        runtime.</para>
       <table xml:id="tab-role-mcp-mapping">
         <title>MCP Operation Access Class and Minimum Role Requirements</title>
         <tgroup cols="3">
@@ -1149,8 +1150,9 @@
           </tbody>
         </tgroup>
       </table>
-      <para>A Tool's access class, declared in its <code>tools/list</code> annotation, governs every
-        operation that acts on a task created by invoking it. For <code>tools/call</code> itself the
+      <para>A Tool's access class, declared in <code>_meta["org.onvif/accessClass"]</code> of its
+          <code>tools/list</code> descriptor, governs every operation that acts on a task created
+        by invoking it. For <code>tools/call</code> itself the
         Tool is named directly in the request, so the ONVIF endpoint knows the applicable access
         class immediately and rejects an inadequate role with HTTP 403 before doing anything else.
           <code>tasks/get</code>, <code>tasks/update</code>, and <code>tasks/cancel</code> identify
@@ -1455,11 +1457,12 @@
           that does not surface <code>_meta</code> to the agent driving it shall still let that
           agent construct a valid call. <code>_meta</code> carries ONVIF-specific metadata that
           goes beyond what JSON Schema can express — a stable cross-vendor identity for the
-          operation and the Tool's static capabilities — and is additional to, not a substitute
-          for, what <code>inputSchema</code> and <code>outputSchema</code> already state. The two
-          ONVIF conventions this specification defines for <code>_meta</code> are specified in
-          <xref linkend="sec_tool_identity"/> and <xref linkend="sec_tool_capabilities"/>; neither
-          is a standard MCP field.</para>
+          operation, the Tool's static capabilities, and the access class that governs it — and is
+          additional to, not a substitute for, what <code>inputSchema</code> and
+            <code>outputSchema</code> already state. The three ONVIF conventions this
+          specification defines for <code>_meta</code> are specified in <xref
+            linkend="sec_tool_identity"/>, <xref linkend="sec_tool_capabilities"/>, and <xref
+            linkend="sec_tool_access_class"/>; none of the three is a standard MCP field.</para>
         <para>The ONVIF Client shall validate Tool arguments against <code>inputSchema</code>
           before sending a <code>tools/call</code> request. After completing tool discovery the
           ONVIF Client has obtained, without any out-of-band documentation: the complete catalogue
@@ -1484,11 +1487,16 @@
           <para><code>_meta["org.onvif/canonicalUri"]</code> is the identity, and is an ONVIF
             convention and not a standard MCP field. Where present, it shall be the same on every
             ONVIF endpoint that implements the operation, and shall be stable under any renaming of
-              <code>name</code>. For a Tool reserved by this specification the value is
-              <code>https://www.onvif.org/ver10/agentic/tool/</code> followed by the reserved name,
-            for example <code>https://www.onvif.org/ver10/agentic/tool/set_event_stream_parameters</code>.
-            For any other Tool the value lies in a namespace controlled by the party that defined
-            it, in the same sense as the <code>vendor_namespace</code> of a
+              <code>name</code>.</para>
+          <para>For a Tool reserved by this specification — <code>get_status</code> and
+              <code>set_event_stream_parameters</code> — <code>_meta["org.onvif/canonicalUri"]</code>
+            shall be present, and its value is <code>https://www.onvif.org/ver10/agentic/tool/</code>
+            followed by the reserved name, for example
+              <code>https://www.onvif.org/ver10/agentic/tool/set_event_stream_parameters</code>. An
+            ONVIF Client relies on it to recognise these two Tools across endpoints regardless of
+            whatever local <code>name</code> an endpoint has arbitrated for them.</para>
+          <para>For any other Tool the value, where present, lies in a namespace controlled by the
+            party that defined it, in the same sense as the <code>vendor_namespace</code> of a
               <code>VendorExtension</code> (see <xref linkend="sec_vendor_field_extensions"/>). An
             ONVIF endpoint that cannot guarantee stability under renaming for a Tool of its own
             omits the annotation for that Tool, and an ONVIF Client then has no cross-device
@@ -1541,6 +1549,38 @@
             because a licence is applied that extends the categories a detection Tool accepts — the
             ONVIF endpoint shall send <code>notifications/tools/list_changed</code> and the ONVIF
             Client shall re-call <code>tools/list</code> to obtain the updated descriptor.</para>
+        </section>
+
+        <section xml:id="sec_tool_access_class">
+          <title>Tool access class</title>
+          <para>Every Tool exposed via <code>tools/list</code> shall carry
+              <code>_meta["org.onvif/accessClass"]</code>, the access class that governs who may
+            call it and every operation that acts on a task it creates, as specified in <xref
+              linkend="sec_role_to_mcp_operation_mapping"/>. This is an ONVIF convention and not a
+            standard MCP field. Unlike <code>_meta["org.onvif/canonicalUri"]</code>, which an ONVIF
+            endpoint may omit for a Tool of its own when it cannot guarantee stability under
+            renaming, <code>_meta["org.onvif/accessClass"]</code> is never omitted: the ONVIF
+            endpoint enforces it at runtime, and a Tool it cannot classify is a Tool it cannot
+            expose.</para>
+          <para>The value is one of the access classes defined by the ONVIF Core Specification:
+              <code>PRE_AUTH</code>, <code>READ_SYSTEM</code>,
+              <code>READ_SYSTEM_SENSITIVE</code>, <code>READ_SYSTEM_SECRET</code>,
+              <code>WRITE_SYSTEM</code>, <code>UNRECOVERABLE</code>, <code>READ_MEDIA</code>, and
+              <code>ACTUATE</code>. This specification's own reserved Tools, and the fixed MCP
+            methods of <xref linkend="sec_role_to_mcp_operation_mapping"/>, use only three of the
+            eight — <code>READ_SYSTEM</code>, <code>ACTUATE</code>, and <code>WRITE_SYSTEM</code>
+            — because none of them needs the other five; a vendor Tool uses whichever of the eight
+            matches its impact, for example <code>READ_MEDIA</code> for a Tool that reads recorded
+            media, or <code>UNRECOVERABLE</code> for one that resets configuration to factory
+            defaults. The definition of each class, and its default
+            Administrator/Operator/User/Anonymous role mapping, is given by the ONVIF Core
+            Specification and is not restated here.</para>
+          <para>An access class is not a capability in the sense of <xref
+              linkend="sec_tool_capabilities"/>: it does not describe what the device instance
+            supports, but who is authorized to invoke the Tool and to act on the tasks it creates.
+            It is therefore carried in its own <code>_meta</code> key rather than inside
+              <code>_meta["org.onvif/capabilities"]</code>, so that a Tool with no capabilities of
+            its own — such as <code>get_status</code> — still has a place to declare it.</para>
         </section>
 
         <section xml:id="sec_detection_class_vocabulary">
@@ -1626,10 +1666,10 @@
         expose: <code>get_status</code> (<xref linkend="sec_tool_get_status"/>) and
           <code>set_event_stream_parameters</code> (<xref
           linkend="sec_tool_set_event_stream_parameters"/>). Every other Tool a given endpoint
-        exposes for its own analytic or control capabilities — <code>motion_detection</code> is
+        exposes — <code>motion_detection</code> is
         the worked example of <xref linkend="sec_tool_motion_detection"/> — varies between device
         instances and over time, and is discovered the same way, with <code>tools/list</code>: there
-        is no distinct discovery path for an endpoint's own capabilities and no requirement that
+        is no distinct discovery path for an endpoint's own tools and no requirement that
         every ONVIF endpoint expose any particular one of them.</para>
 
       <section xml:id="sec_task_model">
@@ -1670,9 +1710,7 @@
           state only when the execution itself ends — because it was cancelled (see below), because
           it completed on its own, or because it failed. <code>taskId</code> is therefore the
           external identifier of the execution for its whole lifetime, and this specification uses
-          no separate execution identifier alongside it: where an earlier revision of an ONVIF
-          endpoint's own model used an <code>executionId</code>, that role is now played by
-            <code>taskId</code>. An ONVIF endpoint may keep a further, internal identifier for a
+          no separate execution identifier alongside it. An ONVIF endpoint may keep a further, internal identifier for a
           physical producer it shares between several such tasks (see below), but that identifier
           is never the one an ONVIF Client is given to track its own execution.</para>
         <para><code>ttlMs</code> governs the retention and usability of the task record — how long
@@ -1688,7 +1726,8 @@
             <code>isError: true</code>: this is how a Tool-level failure of a continuous execution —
           for instance a detector that could not keep running because its video source failed — is
           reported. <code>failed</code> is reserved for an error at the JSON-RPC or task-protocol
-          level itself, such as a malformed <code>tasks/get</code> request, and not for an
+          level itself, such as an internal error that leaves the ONVIF endpoint unable to continue the
+          execution, and not for an
           application-level failure of the Tool the task represents; an ONVIF endpoint shall not use
             <code>failed</code> to report the latter.</para>
         <para>Observations and assessments produced by a continuous execution are never returned as
@@ -1724,16 +1763,15 @@
           given point — is an ONVIF-specific undertaking and not one MCP itself makes; an ONVIF
           endpoint that offers such a guarantee shall say so in the description of the Tool
           concerned, and an ONVIF Client shall not assume it of a Tool that does not.</para>
-        <para>Where an ONVIF endpoint maps several ONVIF Clients' requests for the same analytic
-          capability onto one shared physical producer — for instance because the underlying
+        <para>Where an ONVIF endpoint maps several ONVIF Clients' requests for the same
+          tool onto one shared physical producer — for instance because the underlying
           detector process is a single instance serving every caller — the task is the logical
           request one client made, and is distinct from that shared producer. Cancelling the task
           created for client A's request shall stop the production A asked for and shall not stop
           an execution client B separately requested on the same producer: the ONVIF endpoint is
           responsible for keeping the producer running for B's sake, under B's own task, until B's
           task is itself cancelled or ends. This specification does not define a lease, an
-          autostart, or an autostop mechanism for the shared producer itself; that is a distinct,
-          separately tracked piece of work and is out of scope here.</para>
+          autostart, or an autostop mechanism for the shared producer itself.</para>
       </section>
 
       <section xml:id="sec_tool_get_status">
@@ -1784,7 +1822,7 @@
       <section xml:id="sec_tool_motion_detection">
         <title>motion_detection — a worked example</title>
         <para><code>motion_detection</code> is used throughout this specification as the running
-          example of a Tool an ONVIF endpoint exposes for one of its own analytic capabilities. It
+          example of a Tool an ONVIF endpoint exposes for one of its own operations. It
           is illustrative: its name, its argument shape, and the category identifiers it accepts are
           not themselves mandated by this specification, and an ONVIF endpoint names and shapes its
           own Tools as its capabilities require, subject only to the conventions of <xref
@@ -1825,7 +1863,8 @@
     "required": ["config"]
   },
   "_meta": {
-    "org.onvif/canonicalUri": "https://www.onvif.org/agentic/tool/motion_detection",
+    "org.onvif/canonicalUri": "https://vendor.example/agentic/tool/motion_detection",
+    "org.onvif/accessClass": "ACTUATE",
     "org.onvif/capabilities": {
       "maxConcurrentExecutions": 2
     }
@@ -3734,7 +3773,8 @@ default_range: string</programlisting>
           "required": ["config"]
         },
         "_meta": {
-          "org.onvif/canonicalUri": "https://www.onvif.org/ver10/agentic/tool/get_status"
+          "org.onvif/canonicalUri": "https://www.onvif.org/ver10/agentic/tool/get_status",
+          "org.onvif/accessClass": "READ_SYSTEM"
         }
       },
       {
@@ -3763,6 +3803,7 @@ default_range: string</programlisting>
         },
         "_meta": {
           "org.onvif/canonicalUri": "https://www.onvif.org/ver10/agentic/tool/set_event_stream_parameters",
+          "org.onvif/accessClass": "ACTUATE",
           "org.onvif/capabilities": {
             "defaultKeepaliveIntervalMs": 30000,
             "minKeepaliveIntervalMs": 5000,
@@ -3795,7 +3836,8 @@ default_range: string</programlisting>
           "required": ["config"]
         },
         "_meta": {
-          "org.onvif/canonicalUri": "https://www.onvif.org/agentic/tool/motion_detection",
+          "org.onvif/canonicalUri": "https://vendor.example/agentic/tool/motion_detection",
+          "org.onvif/accessClass": "ACTUATE",
           "org.onvif/capabilities": {
             "maxConcurrentExecutions": 2
           }
@@ -5760,9 +5802,8 @@ classes:
         call would be rejected with <code>-32013 ResourceExhausted</code> even though the Tool
         itself is otherwise available.</para>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client starts an execution.
-        The single <code>config</code> object carries both the criterion — which, unlike in an
-        earlier revision of this annex, is not configured separately and persistently, but applies
-        to this execution alone — and the parameters of this particular run, and the client
+        The single <code>config</code> object carries both the criterion — which applies to this
+        execution alone — and the parameters of this particular run, and the client
         validates it against the Tool's <code>inputSchema</code> before sending it. Tasks support is
         declared because this Tool, too, starts a continuous execution with no synchronous
         alternative.</para>
