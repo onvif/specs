@@ -1007,8 +1007,8 @@
           <code>ItemDigest</code> — resolve against the same base, so a JSON-LD processor produces
           them as edges between those nodes without any identifier being minted by the ONVIF
           Client. That list is exhaustive: every other field of an information item that names
-          something else — the <code>hasResult</code>, the <code>featureOfInterest</code>, the
-          <code>procedure</code>, the <code>provenance</code> —
+          something else — the <code>hasResult</code>, the <code>hasFeatureOfInterest</code>, the
+          <code>usedProcedure</code>, the <code>provenance</code> —
           carries a nested object and not a bare identifier, and is an ordinary property of the item.
           A nested object may itself have an <code>id</code>; a temporal reference carries both
           <code>id</code> and <code>@type</code> as described in <xref linkend="sec_object_identifiers"/>.
@@ -2388,11 +2388,11 @@
         their RDF class in <code>@type</code>, independently of any <code>id</code> identifying
         the instance. For example:</para>
       <programlisting>{
-  "featureOfInterest": {
+  "hasFeatureOfInterest": {
     "@type": "acme:SOSAVehicle", "id": "12345678-1234-1234-1234-123456789ab1",
     "space": { "@type": "acme:SOSAVehicleLocation" }
   },
-  "procedure": { "@type": "acme:SOSAAnalyticsProcedure", "id": "12345678-1234-1234-1234-123456789ab2" },
+  "usedProcedure": { "@type": "acme:SOSAAnalyticsProcedure", "id": "12345678-1234-1234-1234-123456789ab2" },
   "observedProperty": { "@type": "acme:SOSASpeedProperty", "id": "12345678-1234-1234-1234-123456789ab3" },
   "madeBySensor": { "@type": "acme:SOSACameraSensor", "id": "12345678-1234-1234-1234-123456789ab4" },
   "phenomenonTime": { "@type": "time:Instant", "timestamp": "2026-01-01T00:00:00Z" }
@@ -2414,11 +2414,11 @@
             result subclass.</para>
         </listitem>
         <listitem>
-          <para><code>featureOfInterest</code> — the entity the observation is about, as specified in
+          <para><code>hasFeatureOfInterest</code> — the entity the observation is about, as specified in
             <xref linkend="sec_feature_of_interest"/>.</para>
         </listitem>
         <listitem>
-          <para><code>procedure</code> — the method by which the observation was produced, as
+          <para><code>usedProcedure</code> — the method by which the observation was produced, as
             specified in <xref linkend="sec_procedure"/>.</para>
         </listitem>
         <listitem>
@@ -2478,11 +2478,11 @@
         <title>SOSAFeatureOfInterest</title>
         <para><code>SOSAFeatureOfInterest</code> represents the particular real-world entity a
           <code>SOSAObservation</code> is about, as opposed to what was found about it, which is the
-          <code>hasResult</code>. It is the type of the optional <code>featureOfInterest</code> field of
+          <code>hasResult</code>. It is the type of the optional <code>hasFeatureOfInterest</code> field of
           a <code>SOSAObservation</code>.</para>
         <para>The class is abstract. A concrete subclass identifies the kind of entity, and its
           instance carries that subclass's CURIE in <code>@type</code>. The bundle defines no
-          concrete subclasses; a module that supplies <code>featureOfInterest</code> shall define
+          concrete subclasses; a module that supplies <code>hasFeatureOfInterest</code> shall define
           or import one. Without a loaded concrete subclass, the optional field cannot be populated
           by a valid instance.</para>
         <para>For example, an external module can define the illustrative class used above:</para>
@@ -2524,13 +2524,13 @@ classes:
         <title>SOSAProcedure</title>
         <para><code>SOSAProcedure</code> represents the method by which a <code>SOSAObservation</code> was
           produced: what turned the physical world into the result, as opposed to the entity observed
-          or to what was found about it. It is the type of the optional <code>procedure</code> field
+          or to what was found about it. It is the type of the optional <code>usedProcedure</code> field
           of a <code>SOSAObservation</code>. Its optional UUID <code>id</code> identifies a
           reusable procedure.</para>
         <para><code>SOSAProcedure</code> is abstract. A concrete
           subclass identifies the method, and its instance carries that subclass's CURIE in
           <code>@type</code>. The bundle defines no concrete subclasses; a module that supplies
-          <code>procedure</code> shall define or import one.</para>
+          <code>usedProcedure</code> shall define or import one.</para>
         <para>Naming a procedure is not describing it. The field states which method was used, and
           neither how that method works nor with what parameters it was configured. Where an ONVIF
           Client needs to know which component performed the method, that is the
@@ -4145,7 +4145,7 @@ data:         "phenomenonTime": {
 data:           "@type": "time:Instant",
 data:           "timestamp": "2026-08-04T13:05:00.000Z"
 data:         },
-data:         "featureOfInterest": {
+data:         "hasFeatureOfInterest": {
 data:           "@type": "acme:SOSAVehicle",
 data:           "space": {
 data:             "@type": "acme:FunctionalLocation",
@@ -4187,7 +4187,7 @@ data:         "phenomenonTime": {
 data:           "@type": "time:Instant",
 data:           "timestamp": "2026-08-04T13:05:04.000Z"
 data:         },
-data:         "featureOfInterest": {
+data:         "hasFeatureOfInterest": {
 data:           "@type": "acme:SOSAVehicle",
 data:           "space": {
 data:             "@type": "acme:FunctionalLocation",
@@ -4424,7 +4424,7 @@ X-MCP-Subscription-Id: sub_9f2a1c7e0b4d3f6a
           "@type": "time:Instant",
           "timestamp": "2026-08-04T13:05:00.000Z"
         },
-        "featureOfInterest": {
+        "hasFeatureOfInterest": {
           "@type": "acme:SOSAVehicle",
           "space": {
             "@type": "acme:FunctionalLocation",
