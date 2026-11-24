@@ -205,7 +205,8 @@ font-family: monospace;
             <xsl:for-each select="db:listitem">
 				<li>
 				    <xsl:apply-templates select="db:para" mode="plaindiv"/>
-                </li>
+				    <xsl:apply-templates select="db:itemizedlist"/>
+				</li>
             </xsl:for-each>
         </ul>
     </xsl:template>
