@@ -1,0 +1,126 @@
+id: https://www.onvif.org/ver10/agentic/enums/linkml/
+name: onvif-agentic-enum
+description: ONVIF Agentic Service enums
+prefixes:
+  linkml: https://w3id.org/linkml/
+  onvif: https://www.onvif.org/ver10/agentic/linkml/
+imports:
+  - linkml:types
+default_prefix: onvif
+default_range: string
+
+enums:
+
+  AgenticEngineState:
+    description: >-
+      Operational state of the Agentic Service analytics engine, as returned by
+      the get_status Tool.
+    permissible_values:
+      running:
+        description: The analytics engine is operating normally.
+      stopped:
+        description: The analytics engine is not processing functions.
+      degraded:
+        description: The analytics engine is operating with reduced capability.
+      error:
+        description: The analytics engine cannot operate normally because of an error.
+
+  DigestAlgorithm:
+    description: >-
+      Hash algorithms that may be used to digest a canonicalised
+      InformationItem, to compute the envelope digest, and to compute the
+      fingerprint of a public key. Each permissible value carries, in its
+      meaning, the object identifier of the algorithm, so that the formal
+      identifier is the same one used by the ONVIF Media Signing
+      Specification.
+
+      This enumeration only fixes the wire representation of an algorithm
+      name. It is not a statement of which algorithms are acceptable: the
+      algorithm an ONVIF Device shall use, and the algorithms an ONVIF Client
+      shall accept, are those mandated by the current version of the ONVIF
+      Security Baseline. Where the two disagree, the ONVIF Security Baseline
+      prevails, and a value listed here may well be forbidden by it.
+    permissible_values:
+      SHA256:
+        meaning: "urn:oid:2.16.840.1.101.3.4.2.1"
+        description: SHA-256 as specified in FIPS 180-4.
+      SHA384:
+        meaning: "urn:oid:2.16.840.1.101.3.4.2.2"
+        description: SHA-384 as specified in FIPS 180-4.
+      SHA512:
+        meaning: "urn:oid:2.16.840.1.101.3.4.2.3"
+        description: SHA-512 as specified in FIPS 180-4.
+
+  SignatureAlgorithm:
+    description: >-
+      Signature algorithms that may be used to sign an envelope digest. Each
+      permissible value carries, in its meaning, the object identifier of the
+      algorithm.
+
+      This enumeration only fixes the wire representation of an algorithm
+      name. It is not a statement of which algorithms are acceptable: the
+      algorithm an ONVIF Device shall use, and the algorithms an ONVIF Client
+      shall accept, are those mandated by the current version of the ONVIF
+      Security Baseline. Where the two disagree, the ONVIF Security Baseline
+      prevails, and a value listed here may well be forbidden by it.
+    permissible_values:
+      ECDSA_P256_SHA256:
+        meaning: "urn:oid:1.2.840.10045.4.3.2"
+        description: ECDSA over NIST P-256 with SHA-256.
+      ECDSA_P384_SHA384:
+        meaning: "urn:oid:1.2.840.10045.4.3.3"
+        description: ECDSA over NIST P-384 with SHA-384.
+      ECDSA_P521_SHA512:
+        meaning: "urn:oid:1.2.840.10045.4.3.4"
+        description: ECDSA over NIST P-521 with SHA-512.
+      RSASSA_PSS:
+        meaning: "urn:oid:1.2.840.113549.1.1.10"
+        description: >-
+          RSASSA-PSS. The digest used within the padding scheme is the one
+          declared by the digestAlgorithm field.
+
+  FeatureOfInterestType:
+    description: >-
+      Kinds of real-world entity an observation can be about, as named by this
+      specification and carried by the onvif slot of a FeatureOfInterest.
+
+      This enumeration is closed: every value it can take is listed here. It does
+      not claim to exhaust what an ONVIF Device may observe, and an entity it
+      does not name is reported through the custom slot of a FeatureOfInterest
+      instead. Because the two slots are mutually exclusive, a value of this
+      enumeration and a value of a vendor's own can never be confused for one
+      another.
+
+      An ONVIF Device shall use the value listed here where one applies. Coining
+      a vendor value for an entity this enumeration already names defeats the
+      purpose of having a common vocabulary, because an ONVIF Client cannot know
+      that the two denote the same kind of thing.
+    permissible_values:
+      Vehicle:
+        description: >-
+          A vehicle. The value names the entity the observation is about, and
+          not the method that found it, which the Procedure names.
+      Person:
+        description: >-
+          A person. The value names the entity the observation is about, and not
+          the method that found it, which the Procedure names.
+
+  ProcedureType:
+    description: >-
+      Methods by which an observation can be produced, as named by this
+      specification and carried by the onvif slot of a Procedure.
+
+      This enumeration is closed, and is open to extension by a vendor in exactly
+      the way FeatureOfInterestType is: a method this specification does not name
+      is reported through the custom slot of a Procedure instead.
+
+      A value names a method without describing it. It says how the physical
+      world was turned into a result, at the granularity an ONVIF Client needs in
+      order to know what kind of thing it is looking at, and not which
+      implementation was used nor how it was configured.
+    permissible_values:
+      Analytics:
+        description: >-
+          Analysis of a media stream by an analytics module of an ONVIF Device,
+          which is the method by which an ONVIF Device produces an observation
+          from what a sensor captured.
