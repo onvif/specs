@@ -128,6 +128,14 @@ classes:
           @type @id, each of the four terms marked @protected. No nested or
           type-scoped context shall redefine @base or these terms.
 
+          Spatial relation properties and collection members also map to their
+          declared RDF properties with @type @id, so that a UUID value denotes
+          a node. Topological relations may alternatively embed objects; feature
+          geometry properties and collection members carry only UUIDs. The
+          asGeoJSON property maps to onvif:asGeoJSON with @type @json; export
+          as GeoSPARQL literals requires the separate conversion specified in
+          the Agentic specification.
+
           A third-party class that declares attributes of its own is
           represented by a type-scoped context mapping those unqualified JSON
           property names to their slot_uri values. Its shape is intentionally
@@ -222,9 +230,8 @@ classes:
 
       The class is abstract because a place can be given in two irreducibly
       different ways: by the function it serves, such as a named entrance or lane,
-      or by its geometry. Either form is introduced as a concrete subclass, by a
-      future revision of this specification or by a vendor extension, without
-      changing Observation.
+      or by its geometry. GeoSPARQL spatial objects are concrete subclasses;
+      other forms may be introduced without changing Observation.
     attributes:
       '@type':
         designates_type: true
@@ -234,6 +241,14 @@ classes:
           The CURIE of the concrete spatial descriptor this object
           instantiates. It is required for the reason given for the type
           designator of InformationItem.
+      id:
+        range: UUID
+        required: true
+        description: >-
+          Identifier of this location. It uses the same UUID identifier space
+          and JSON-LD base as information items. This slot is not marked as a
+          LinkML identifier because that would make the JSON Schema generator
+          turn embedded spatial relation targets into string references.
       extensible:
         range: Extensible
         required: false

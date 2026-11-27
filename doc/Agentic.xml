@@ -108,6 +108,8 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7517.txt">http://www.ietf.org/rfc/rfc7517.txt</link>&gt;</para>
     <para>IETF RFC 7519 JSON Web Token (JWT)</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc7519.txt">http://www.ietf.org/rfc/rfc7519.txt</link>&gt;</para>
+    <para>IETF RFC 7946 The GeoJSON Format</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.rfc-editor.org/rfc/rfc7946">https://www.rfc-editor.org/rfc/rfc7946</link>&gt;</para>
     <para>IETF RFC 8414 OAuth 2.0 Authorization Server Metadata</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.ietf.org/rfc/rfc8414.txt">http://www.ietf.org/rfc/rfc8414.txt</link>&gt;</para>
     <para>IETF RFC 8446 TLS 1.3</para>
@@ -130,6 +132,8 @@
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://modelcontextprotocol.io/extensions/tasks/overview">https://modelcontextprotocol.io/extensions/tasks/overview</link>&gt;</para>
     <para>MCP Events Extension — Design Sketch Proposal</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://raw.githubusercontent.com/modelcontextprotocol/experimental-ext-triggers-events/refs/heads/main/docs/design-sketch-proposal.md">https://raw.githubusercontent.com/modelcontextprotocol/experimental-ext-triggers-events/refs/heads/main/docs/design-sketch-proposal.md</link>&gt;</para>
+    <para>OGC GeoSPARQL 1.1</para>
+    <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://docs.ogc.org/is/22-047r1/22-047r1.html">https://docs.ogc.org/is/22-047r1/22-047r1.html</link>&gt;</para>
     <para>ONVIF Core Specification</para>
     <para>&lt;<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf">https://www.onvif.org/specs/core/ONVIF-Core-Specification.pdf</link>&gt;</para>
     <para>ONVIF Media Signing Specification</para>
@@ -758,7 +762,8 @@
           processor without access to the originating ONVIF endpoint.</para>
         <para>The ONVIF endpoint shall derive the inline context from the same closure of LinkML
           modules against which it validates the envelope, with the exception of the identifier
-          mappings, whose values are fixed by this specification as specified below. It shall not
+          mappings and the <code>asGeoJSON</code> JSON literal mapping specified below and in
+          <xref linkend="sec_geosparql_location"/>. It shall not
           maintain a separate, manually authored vocabulary map. The modules have already been
           exposed as resources during session establishment (see <xref
             linkend="sec_annex_schema_retrieval"/>), and
@@ -786,8 +791,8 @@
           </listitem>
           <listitem>
             <para><code>id</code> to the keyword <code>@id</code>, as a protected term, so that the
-              identifier of an information item or of an envelope is its JSON-LD node
-              identifier;</para>
+              identifier of an information item, an envelope or a location is its
+              JSON-LD node identifier;</para>
           </listitem>
           <listitem>
             <para><code>supportedBy</code>, <code>observations</code> and <code>item</code> each to
@@ -812,7 +817,9 @@
           could represent only one of them. The context shall be generated from the LinkML schema
           model; it may be assembled from the output of the LinkML JSON-LD context generator, but
           the type-scoped mappings are an additional required step because that generator does not
-          generate nested type directives. An implementation may remove class and property mappings
+          generate nested type directives. The generator output shall also be adjusted to map
+          <code>asGeoJSON</code> with <code>@type</code> <code>@json</code> when that term is
+          used. An implementation may remove class and property mappings
           that are not needed by that envelope, provided that expansion of every class and property
           used in the envelope is unchanged. The identifier mappings specified below shall not be
           removed.</para>
@@ -852,7 +859,8 @@
           and shall treat an envelope that fails this check as non-conformant. This applies equally
           to an envelope that has been stored or forwarded.</para>
         <para><code>@type</code> shall name the class of the node it appears on. For a class declared
-          by the ONVIF Agentic Schema Bundle the value is an <code>onvif</code> CURIE, for example
+          by the ONVIF Agentic Schema Bundle the value is the CURIE for its declared class URI,
+          for example
             <code>onvif:ObservationsCollection</code>. For a class declared by a third-party module
           the value uses the prefix declared by that module, for example
             <code>acme:ThermalObservation</code>. In both cases the expanded URI shall equal the
@@ -866,7 +874,8 @@
           time, a provenance, an observed location, an observation result, an assessment result, a
           signature, a key descriptor and an extension container are all of that kind. An object whose
           place is declared in terms of a concrete class, such as a feature of interest or a procedure,
-          shall not carry it.</para>
+          shall not carry it unless the class inherits a type designator, as GeoSPARQL locations
+          do.</para>
         <para>The same obligation applies outside the information model, to the objects of the function
           layer carried in the arguments and the results of the Tools: a <code>config</code>, an
           execution <code>parameters</code> object, an execution result and a
@@ -888,7 +897,8 @@
           opportunity to contradict it.</para>
         <para>The obligation is a property of the position and not of the class: a class carries
           <code>@type</code> in the positions where the declared class is abstract, and an ONVIF
-          Client shall not expect it elsewhere. A vendor introducing a class into an existing abstract
+          Client shall not expect it elsewhere except where the class inherits a type designator.
+          A vendor introducing a class into an existing abstract
           family therefore inherits the obligation without having to be told of it, and a future
           revision of this specification that makes an abstract family out of what is now a single
           concrete class shall introduce the keyword on the objects concerned.</para>
@@ -952,7 +962,9 @@
           envelope. An ONVIF Client shall verify that the mappings in that context agree with the
           LinkML modules served by the device, and that its identifier mappings are those specified
           in <xref linkend="sec_context_and_type_annotations"/>, before relying on the resulting
-          graph.</para>
+          graph. The direct graph contains an ONVIF JSON literal for <code>asGeoJSON</code>;
+          obtaining GeoSPARQL geometry literals requires the additional conversion specified in
+          <xref linkend="sec_geosparql_location"/>.</para>
         <para>Second, the identifiers of information items and envelopes are JSON-LD node
           identifiers, as stated in <xref linkend="sec_object_identifiers"/>. Each resolves against
           the fixed base of the inline context to an absolute IRI, which is the same wherever the
@@ -962,18 +974,18 @@
           <code>ObservationsCollection</code>, the <code>item</code> field of an
           <code>ItemDigest</code> — resolve against the same base, so a JSON-LD processor produces
           them as edges between those nodes without any identifier being minted by the ONVIF
-          Client. That list is exhaustive: every other field of an information item that names
+          Client. Spatial relation, feature geometry and collection member fields may also refer to
+          a spatial object by UUID, as specified in <xref linkend="sec_location"/>. Other fields of an information item that name
           something else — the <code>result</code>, the <code>featureOfInterest</code>, the
           <code>procedure</code>, the <code>provenance</code>, the <code>observedSpace</code> —
-          carries a nested object and not an identifier, and is an ordinary property of the item.
-          Any other string value, including one that has the form of a UUID, remains a
-          literal.</para>
+          carry a nested object and not an identifier, and are ordinary properties of the item.
+          String values not mapped as node identifiers or references remain literals.</para>
         <para>An edge produced in this way states only that one identifier cites another. It does
           not establish that the cited item exists, that it is of a class the citing field admits,
           that it was produced before the citing item, or that the references are acyclic. Those are
-          the checks of <xref linkend="sec_assessment"/>, and an ONVIF Client shall apply them
+          the checks of <xref linkend="sec_assessment"/> for references between items, and an ONVIF Client shall apply them
           whether it resolves references by comparing identifier strings or by processing the
-          graph.</para>
+          graph. Spatial references have the separate rules in <xref linkend="sec_location"/>.</para>
         <para>A node identifier depends on the base as well as on the UUID. The same UUID resolved
           against a different base designates a different node, which is why the base is fixed by
           this specification and shall not be overridden.</para>
@@ -2171,16 +2183,18 @@
         <code>InformationEnvelope</code> that encloses items. In the LinkML schema the identifier is
         declared as a slot named <code>id</code>, and it appears on the wire under that name as a
         plain string.</para>
-      <para>The objects nested inside an item carry none. A production time, a provenance, an
-        observed location, an observation result, an assessment result, a signature, a key
+      <para>Except for locations, the objects nested inside an item carry no identifier. A
+        production time, a provenance, an observation result, an assessment result, a signature, a key
         descriptor and an extension container exist only inside the item or the envelope that
         carries them: nothing cites them, nothing resolves a reference to them, and they are reached
-        only by reading the object that encloses them. An identifier on such an object would name
+        only by reading the object that encloses them. A location instead carries a mandatory
+        UUID, allowing spatial relations to cite it as specified in <xref linkend="sec_location"/>.
+        An identifier on the other objects would name
         something that has no existence of its own, while having to be canonicalised and covered by
         every digest computed over its container. What such an object is is stated by its
         <code>@type</code>, as specified in <xref linkend="sec_context_and_type_annotations"/>, and
         that is all an ONVIF Client needs of it.</para>
-      <para>The value of every such identifier shall be a UUID as specified in RFC 9562, written in
+      <para>The value of every item, envelope or location identifier shall be a UUID as specified in RFC 9562, written in
         the canonical lowercase hyphenated form, for example
         <code>3f2b8c1e-6a4d-4f7b-9e21-5c8d0a1b2e3f</code>. Uppercase forms, the URN form
         <code>urn:uuid:</code>, and the braced Microsoft form shall not be used.</para>
@@ -2207,8 +2221,9 @@
         UUID, shall not assume that lexicographic order reflects creation order unless it knows the
         version in use, and shall treat two identifiers as designating the same object if and only
         if they are equal as strings.</para>
-      <para>An ONVIF endpoint shall not reuse an identifier: once emitted, a UUID designates one
-        object for the lifetime of the deployment. This property is what makes identifier-based
+      <para>An ONVIF endpoint shall not reuse an identifier for a different object: once emitted,
+        a UUID designates one item, envelope or location for the lifetime of the deployment.
+        This property is what makes identifier-based
         references, such as the supporting items of an assessment (see <xref
           linkend="sec_assessment"/>), and digest-to-item binding in a signed envelope (see <xref
           linkend="sec_onvif_signature"/>) unambiguous.</para>
@@ -3037,13 +3052,124 @@
         pedestrian crossing — which is a name assigned when the site is commissioned and which says
         what happens there but not where it is. Or it can be given by its geometry: a polygon in
         image coordinates, a point in a geographic reference system, a volume in a building model.
-        Neither form can be derived from the other, and a class that tried to carry both would leave
-        an ONVIF Client unable to tell which of the two it had actually been given.</para>
-      <para>Concrete forms are introduced by a future revision of this specification or by a vendor
-        extension, and either form may be added without any change to <code>Observation</code>. An
+        A feature may have both a functional meaning and an associated geometry, but neither can
+        be derived from the other.</para>
+      <para>GeoSPARQL spatial objects defined below and forms introduced by a vendor extension can
+        be used without any change to <code>Observation</code>. An
         ONVIF Client shall therefore select its handling from the concrete type of the received
         object, and shall not assume that a location it receives is given in the form it
         expects.</para>
+      <para>Every concrete location shall carry an <code>id</code> UUID, including when it is
+        embedded in another object. A location and a reference to it use the same fixed
+        JSON-LD base as information items; spatial references carry the bare UUID, not an absolute
+        IRI. Referencing an identifier does not establish that the object is available or of the
+        expected class.</para>
+
+      <section xml:id="sec_geosparql_location">
+        <title>GeoSPARQL locations</title>
+        <para>This specification uses the vocabulary of OGC GeoSPARQL 1.1, namespace
+          <code>http://www.opengis.net/ont/geosparql#</code>, prefix <code>geo</code>.
+          <code>GeoSpatialObject</code> derives from <code>Location</code>, with
+          <code>GeoFeature</code> and <code>GeoGeometry</code> as subclasses. These LinkML class
+          names correspond respectively to the GeoSPARQL class URIs
+          <code>geo:SpatialObject</code>, <code>geo:Feature</code> and
+          <code>geo:Geometry</code>; the wire <code>@type</code> uses the URI CURIE.
+          A feature is a
+          real-world entity with a spatial presence; a geometry describes positions in a spatial
+          reference system. <code>GeoSpatialObjectCollection</code>,
+          <code>GeoFeatureCollection</code> and <code>GeoGeometryCollection</code> also derive
+          from <code>Location</code> and map to the corresponding GeoSPARQL collection class URIs.
+          They are collections rather than spatial objects; their <code>member</code> property
+          maps to <code>rdfs:member</code> and carries UUID references only, not embedded objects.
+          A feature or geometry collection admits only members of the corresponding kind. The
+          target class cannot be determined from its UUID alone; an ONVIF Client that resolves a
+          reference shall verify that its target is of the permitted kind.</para>
+        <para>A feature may associate geometries using <code>geometry</code>,
+          <code>defaultGeometry</code>, <code>boundingBox</code> and
+          <code>centroid</code>. Each is a list of UUID references to
+          <code>GeoGeometry</code> objects, not embedded objects. An ONVIF Client that resolves
+          a reference shall verify the target type. GeoSPARQL does not require exactly one default
+          geometry. Spatial objects may carry
+          size measurements, and geometries may carry dimensions, resolution or
+          accuracy, and the <code>empty</code> and <code>simple</code> properties, as
+          described by their GeoSPARQL definitions. Field names omit the <code>has</code> or
+          <code>is</code> prefix, but their <code>slot_uri</code> values remain the corresponding
+          GeoSPARQL property URIs. Non-metric measurements are JSON-LD node
+          objects using an appropriate measurement vocabulary; their structure and units are not
+          constrained by this model. JSON Schema alone does not validate these objects.</para>
+        <para>A geometry may carry an <code>asGeoJSON</code> list whose entries are GeoJSON
+          Geometry objects, not strings or GeoJSON Feature objects. Objects may include
+          optional members, including foreign members as permitted by RFC 7946. GeoJSON uses
+          WGS 84 longitude and latitude, in that order. An implementation shall validate each
+          object against the geometry and reference-system rules of RFC 7946 and GeoSPARQL 1.1.
+          The LinkML range is deliberately unconstrained to preserve foreign members; the generated
+          JSON Schema checks that the field is a list but does not reject all non-object entries
+          or validate GeoJSON syntax or CRS. Implementations shall perform these checks separately.
+          This model does not provide a WKT representation or the empty-string GeoSPARQL
+          literal form.</para>
+        <para>Spatial objects may state the Simple Features, Egenhofer and RCC8 topological
+          relations defined in the LinkML module. Each relation is a list of embedded spatial
+          objects or UUID references. These are assertions by the producer, not results the
+          recipient is required to calculate or infer. If an object is embedded, its type and
+          contents are validated normally. If a reference is resolved, its target shall be a
+          spatial object of the class allowed by that field.</para>
+        <para>In the inline JSON-LD context, each spatial relation, feature geometry property and
+          collection member maps to its declared <code>slot_uri</code> with <code>@type</code>
+          set to <code>@id</code>. This makes UUID strings node references while objects embedded
+          in topological relations remain nodes; feature geometry properties and collection members
+          shall be UUIDs. The <code>asGeoJSON</code> term maps to
+          <code>onvif:asGeoJSON</code> with <code>@type</code> set to
+          <code>@json</code>. A JSON-LD processor treats the entire list as one
+          <code>rdf:JSON</code> literal, not as one literal per entry.
+          Type-scoped contexts shall include these
+          mappings for inherited properties as well as locally declared properties, and shall
+          preserve the datatypes of numeric and boolean GeoSPARQL properties. The
+          protected <code>id</code> mapping and fixed base remain unchanged.</para>
+        <para>To export a GeoSPARQL graph, an ONVIF Client shall first verify any applicable
+          signature against the original payload, before conversion, and shall leave that payload
+          unchanged. In a derived graph, it shall replace each
+          <code>onvif:asGeoJSON</code> JSON literal with one
+          <code>geo:asGeoJSON</code> triple per list entry. Each object shall be serialized
+          as a valid JSON text and used as a literal with datatype
+          <code>geo:geoJSONLiteral</code>. An empty list produces no such triples.
+          Identical triples may collapse because an RDF graph is a set.
+          Conversion shall preserve each object's contents and shall not assign the GeoSPARQL
+          datatype to the entire list. The derived graph is not the signed payload.</para>
+        <para>For example, the following JSON-LD fragment illustrates the mappings and both forms
+          of spatial relation. In an envelope its context is included in the envelope's inline
+          context, together with the other mappings required by this specification.</para>
+        <programlisting>{
+  "@context": {
+    "@version": 1.1,
+    "@base": "https://www.onvif.org/ver10/agentic/id/",
+    "geo": "http://www.opengis.net/ont/geosparql#",
+    "onvif": "https://www.onvif.org/ver10/agentic/linkml/",
+    "id": { "@id": "@id", "@protected": true },
+    "geometry": { "@id": "geo:hasGeometry", "@type": "@id" },
+    "sfWithin": { "@id": "geo:sfWithin", "@type": "@id" },
+    "asGeoJSON": { "@id": "onvif:asGeoJSON", "@type": "@json" }
+  },
+  "@graph": [
+    {
+      "@type": "geo:Feature",
+      "id": "12345678-1234-1234-1234-123456789ab1",
+      "geometry": ["12345678-1234-1234-1234-123456789ab4"],
+      "sfWithin": [
+        "12345678-1234-1234-1234-123456789ab2",
+        { "@type": "geo:Feature", "id": "12345678-1234-1234-1234-123456789ab3" }
+      ]
+    },
+    {
+      "@type": "geo:Geometry",
+      "id": "12345678-1234-1234-1234-123456789ab4",
+      "asGeoJSON": [{ "type": "Point", "coordinates": [-99.13, 19.43] }]
+    }
+  ]
+}</programlisting>
+        <para>These model bindings do not require a SPARQL endpoint, spatial functions, query
+          rewriting or RDFS entailment and do not by themselves establish conformance to any
+          GeoSPARQL conformance class.</para>
+      </section>
     </section>
 
     <section xml:id="sec_timing">
@@ -4052,6 +4178,7 @@ data:           "timestamp": "2026-08-04T13:05:00.000Z"
 data:         },
 data:         "observedSpace": {
 data:           "@type": "FunctionalLocation",
+data:           "id": "17d07d65-3099-4c9f-b472-e23cf2e4f812",
 data:           "name": "Main Gate",
 data:           "token": "Area_MainGate"
 data:         },
@@ -4095,6 +4222,7 @@ data:           "timestamp": "2026-08-04T13:05:04.000Z"
 data:         },
 data:         "observedSpace": {
 data:           "@type": "FunctionalLocation",
+data:           "id": "c0e0a230-6984-4dcf-9f35-6c47b0948dfb",
 data:           "name": "Ambulance Drop-off",
 data:           "token": "Area_AmbulanceDropoff"
 data:         },
@@ -4301,7 +4429,8 @@ data: }}</programlisting>
           events occur, the ONVIF endpoint POSTs each <code>EventOccurrence</code> to the registered
           callback URL, signed per Standard Webhooks and identifying the subscription. The
           occurrence is the same object that the stream carried, and the payload is the same
-          <code>InformationEnvelope</code>; only the framing differs.</para>
+          <code>InformationEnvelope</code>; only the framing differs. The signature header shown
+          below is illustrative and must be computed for the actual request body.</para>
         <programlisting>POST /hooks/onvif-vehicle HTTP/1.1
 Host: client.example.com
 Content-Type: application/json
@@ -4333,6 +4462,7 @@ X-MCP-Subscription-Id: sub_9f2a1c7e0b4d3f6a
         },
         "observedSpace": {
           "@type": "FunctionalLocation",
+          "id": "17d07d65-3099-4c9f-b472-e23cf2e4f812",
           "name": "Main Gate",
           "token": "Area_MainGate"
         },
@@ -4858,6 +4988,7 @@ classes:
       },
       "observedSpace": {
         "@type": "hackathon2026:GeoPoint",
+        "id": "4bc34686-d82c-4580-a575-f18fb2ac01d1",
         "latitude": 19.4326,
         "longitude": -99.1332,
         "horizontalAccuracy": 2.5
@@ -4998,6 +5129,7 @@ classes:
       },
       "observedSpace": {
         "@type": "hackathon2026:GeoPoint",
+        "id": "f57c4d2f-6044-4420-a4b4-ad09bbd359e3",
         "latitude": 19.434397,
         "longitude": -99.1332,
         "horizontalAccuracy": 2.5
@@ -5143,6 +5275,7 @@ classes:
       },
       "observedSpace": {
         "@type": "hackathon2026:GeoPoint",
+        "id": "f57c4d2f-6044-4420-a4b4-ad09bbd359e3",
         "latitude": 19.434397,
         "longitude": -99.1332,
         "horizontalAccuracy": 2.5
