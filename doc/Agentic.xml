@@ -1713,15 +1713,42 @@
           no separate execution identifier alongside it. An ONVIF endpoint may keep a further, internal identifier for a
           physical producer it shares between several such tasks (see below), but that identifier
           is never the one an ONVIF Client is given to track its own execution.</para>
-        <para><code>ttlMs</code> governs the retention and usability of the task record — how long
-          the ONVIF endpoint undertakes to keep answering <code>tasks/get</code> for it — and is not
-          a timer that stops the execution: an ONVIF endpoint shall not cancel or otherwise end a
-          continuous execution merely because its task's <code>ttlMs</code> has elapsed, and shall
-          document separately, if it does not retain the task indefinitely, for how long after the
-          execution ends <code>tasks/get</code> remains answerable for it. Equally, a client
-          disconnecting, or simply not polling for a time, does not by itself cancel the execution
-          or the task; an execution the client has stopped tracking keeps running, and keeps
-          producing events, until it is cancelled or ends on its own.</para>
+        <para>The <code>ttlMs</code> field has the meaning defined by the MCP Tasks extension:
+          it describes the time-to-live of the task from its creation, not the requested duration
+          of the Tool execution. Its value may change over the lifetime of the task.</para>
+        <para>For a continuous execution created by a client request, the ONVIF endpoint shall
+          retain the corresponding task and keep its <code>taskId</code> valid for the duration of
+          that execution. While the execution is active, authorized clients shall be able to use
+          that <code>taskId</code> with <code>tasks/get</code> and <code>tasks/cancel</code>,
+          subject to the applicable access rules. The endpoint shall not fail, discard, or make
+          the task inaccessible solely because its previously reported <code>ttlMs</code> has
+          elapsed while the execution remains active, and shall not cancel or otherwise end the
+          execution solely for that reason. The endpoint may use a finite <code>ttlMs</code> or
+            <code>null</code>, as defined by MCP; where a finite value is used, it shall update
+          it as necessary to reflect the required retention. A finite <code>ttlMs</code> is
+          measured from <code>createdAt</code>, not from the time of the latest update. The
+          endpoint shall document the retention of the task after the execution ends.</para>
+        <para>A client that retains an earlier finite <code>ttlMs</code> may, as permitted by
+          MCP, consider the task no longer usable after that value elapses, even if the endpoint
+          has since extended it. Updating the value does not guarantee that the client will poll
+          again. An endpoint may use <code>ttlMs: null</code> to avoid this ambiguity when the
+          future lifetime of the task cannot be bounded.</para>
+        <para>A Tool that supports a client-requested relative execution duration shall expose an
+          optional <code>durationMs</code> property in <code>arguments.config</code> and describe
+          its permitted values in its <code>inputSchema</code>. The requested duration is expressed
+          in milliseconds and measured from the actual start of the execution, not from task
+          creation. When <code>durationMs</code> is omitted, the client requests no duration limit;
+          Tool-specific limits and other termination conditions may still apply. The requested
+          duration does not alter the meaning of <code>ttlMs</code>. The Tool definition shall
+          describe any applicable limits and how an unsupported request is rejected. A Tool that
+          also supports an absolute validity interval shall describe how that interval interacts
+          with <code>durationMs</code>.</para>
+        <para>If an execution reaches its requested duration without another termination condition
+          occurring first, the execution ends and the task reaches <code>completed</code>.
+          Cancellation continues to use <code>tasks/cancel</code> with MCP cancellation semantics.
+          A client disconnecting, or simply not polling for a time, does not by itself cancel the
+          execution or the task; an execution the client has stopped tracking keeps running and
+          producing events until it is cancelled or ends on its own.</para>
         <para>A terminal <code>completed</code> status may carry a Tool result with
             <code>isError: true</code>: this is how a Tool-level failure of a continuous execution —
           for instance a detector that could not keep running because its video source failed — is
@@ -1855,6 +1882,11 @@
           },
           "sourceToken": {
             "type": "string"
+          },
+          "durationMs": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Execution duration in milliseconds; invalid values are rejected with -32602 InvalidParams."
           }
         },
         "required": ["classes", "sourceToken"]
@@ -1881,13 +1913,14 @@
           Tool's concurrency and not a guarantee that a given call will be admitted (see <xref
             linkend="sec_tool_capabilities"/>). The name, the category set, and the concurrency
           limit shown are illustrative and are not imposed on every ONVIF endpoint or every Tool of
-          this kind.</para>
+          this kind. This Tool also supports the optional <code>durationMs</code> property for a
+          client-requested execution duration, as specified in <xref linkend="sec_task_model"/>.</para>
         <para>A call that selects categories this descriptor supports starts a continuous execution,
           represented by a task that stays <code>working</code> for as long as the detector is
           active, as specified in <xref linkend="sec_task_model"/>. Detections are delivered
           exclusively as metadata events, never as an intermediate <code>tasks/get</code> result.
-          The execution is ended with <code>tasks/cancel</code>, as specified in <xref
-            linkend="sec_task_cancellation"/>.</para>
+          The execution may be ended with <code>tasks/cancel</code>, as specified in <xref
+            linkend="sec_task_cancellation"/>, or by reaching the requested duration.</para>
         <para>See <xref linkend="sec_annex_tool_motion_detection"/> for a complete wire format
           example, including the task lifecycle and its cancellation.</para>
       </section>
@@ -3828,7 +3861,12 @@ default_range: string</programlisting>
                   "uniqueItems": true
                 },
                 "confidenceThreshold": { "type": "number", "minimum": 0, "maximum": 1 },
-                "sourceToken": { "type": "string" }
+                "sourceToken": { "type": "string" },
+                "durationMs": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Execution duration in milliseconds; invalid values are rejected with -32602 InvalidParams."
+                }
               },
               "required": ["classes", "sourceToken"]
             }
@@ -3939,7 +3977,8 @@ default_range: string</programlisting>
 }</programlisting>
       <para><emphasis>Request (Client to Device):</emphasis> The ONVIF Client retries, now
         declaring Tasks support, starting <code>motion_detection</code> for <code>human</code> and
-        <code>vehicle</code> on <code>VideoSource_1</code>.</para>
+        <code>vehicle</code> on <code>VideoSource_1</code>, requesting a duration of one hour from
+        the start of execution.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 12,
@@ -3950,7 +3989,8 @@ default_range: string</programlisting>
       "config": {
         "classes": ["human", "vehicle"],
         "confidenceThreshold": 0.8,
-        "sourceToken": "VideoSource_1"
+        "sourceToken": "VideoSource_1",
+        "durationMs": 3600000
       }
     },
     "_meta": {
@@ -3978,13 +4018,15 @@ default_range: string</programlisting>
     "status": "working",
     "createdAt": "2026-08-04T13:04:58.000Z",
     "lastUpdatedAt": "2026-08-04T13:04:58.000Z",
-    "ttlMs": 3600000,
+    "ttlMs": null,
     "pollIntervalMs": 5000
   }
 }</programlisting>
       <para>The task stays <code>working</code> for as long as the detector is active; it is not
         expected to reach a terminal state while <code>motion_detection</code> keeps running, unlike
-        a task that represented only a start operation. Detections are never returned by
+        a task that represented only a start operation. The requested <code>durationMs</code> limits
+        this execution; <code>ttlMs: null</code> instead indicates unlimited task retention.
+        Detections are never returned by
           <code>tasks/get</code>: they arrive exclusively as metadata events, on whichever of
           <code>events/stream</code>, <code>events/poll</code>, or webhook the ONVIF Client has set
         up.</para>
@@ -4099,7 +4141,7 @@ default_range: string</programlisting>
     "status": "working",
     "createdAt": "2026-08-04T13:04:58.000Z",
     "lastUpdatedAt": "2026-08-04T13:09:58.000Z",
-    "ttlMs": 3600000,
+    "ttlMs": null,
     "pollIntervalMs": 5000
   }
 }</programlisting>
@@ -4141,8 +4183,9 @@ default_range: string</programlisting>
     }
   }
 }</programlisting>
-      <para><emphasis>Request (Client to Device):</emphasis> The shift ends and the execution is no
-        longer wanted, so the ONVIF Client cancels its task, again declaring Tasks support.</para>
+      <para><emphasis>Request (Client to Device):</emphasis> The shift ends before the requested
+        duration elapses and the execution is no longer wanted, so the ONVIF Client cancels its
+        task, again declaring Tasks support.</para>
       <programlisting>{
   "jsonrpc": "2.0",
   "id": 17,
@@ -4195,11 +4238,13 @@ default_range: string</programlisting>
     "status": "cancelled",
     "createdAt": "2026-08-04T13:04:58.000Z",
     "lastUpdatedAt": "2026-08-04T13:12:10.000Z",
-    "ttlMs": 3600000
+    "ttlMs": null
   }
 }</programlisting>
-      <para>Cancelling <code>task_motion_001</code> stops only the execution this client's call
-        created. The second entry shown in <xref linkend="sec_annex_tool_get_status"/> — a
+      <para>In this example the endpoint retains the task indefinitely after cancellation, as
+        indicated by <code>ttlMs: null</code>. Cancelling <code>task_motion_001</code> stops only
+        the execution this client's call created. The second entry shown in <xref
+          linkend="sec_annex_tool_get_status"/> — a
         factory-started producer on the same device — is unaffected: it never had a task of its
         own to cancel, and no other client's execution on a producer this device may share is
         stopped by this request.</para>
@@ -5868,16 +5913,21 @@ classes:
         rather than assessed, since a fine cannot rest on a measurement its own producer does not
         stand behind. <code>emitOnlyWhenExceeded</code> is left at its default of <code>true</code>,
         which is what makes the mere existence of an assessment the statement that the limit was
-        exceeded. <code>validity</code> bears on this run and not on the criterion; where it is
-        omitted the execution runs until it is cancelled. <code>dryRun</code> is <code>false</code>
+        exceeded. <code>validity</code> is this Tool's absolute interval for the run, not the
+        relative <code>durationMs</code> property defined in <xref linkend="sec_task_model"/>.
+        This example Tool does not offer a client-requested relative duration. Where
+          <code>validity</code> is omitted, no interval is requested; the execution can still end
+        through cancellation or another termination condition. <code>dryRun</code> is <code>false</code>
         here, so the assessments are real; with <code>true</code> the service would evaluate the
         same criterion and report what it would have produced without emitting any
           <code>SpeedingAssessment</code>, which is how a limit can be tried against live traffic
         before any fine follows from it. The client may ask for a dry run only because
           <code>supportsDryRun</code> was <code>true</code> in the Tool's capabilities.</para>
       <para>The task stays <code>working</code> for as long as the execution is active, as
-        specified in <xref linkend="sec_task_model"/>. The assessments themselves arrive as
-        metadata events, each in a signed envelope of its own, never as an intermediate
+        specified in <xref linkend="sec_task_model"/>. The finite <code>ttlMs</code> describes
+        task retention from creation, not the duration of the execution; the endpoint updates it
+        as necessary to retain the task while the execution remains active. The assessments
+        themselves arrive as metadata events, each in a signed envelope of its own, never as an intermediate
           <code>tasks/get</code> result: the envelope of <xref
           linkend="sec_annex_hk_assessment_service"/> is one of them, produced at 10:15:12 by this
         execution.</para>
