@@ -1,0 +1,139 @@
+---
+title: ONVIF Agentic metadata class hierarchy (selected fields)
+---
+classDiagram
+    direction TB
+
+    class InformationEnvelope {
+        @context : Any
+        @type : curie
+        id : UUID
+        items : InformationItem [1..*]
+        hashes : ItemDigest [0..*]
+        signature : Signature [0..1]
+    }
+    class InformationItem {
+        <<abstract>>
+        @type : curie
+        id : UUID
+        confidence : Likelihood
+        productionTime : Time
+        provenance : Provenance
+        extensible : Extensible [0..1]
+    }
+    class Observation {
+        <<abstract>>
+        result : ObservationResult
+        featureOfInterest : FeatureOfInterest [0..1]
+        procedure : Procedure [0..1]
+        observedTime : Time [0..1]
+        observedSpace : Location [0..1]
+        supportedBy : UUID [0..*]
+    }
+    class ObservationsCollection {
+        observations : UUID [1..*]
+    }
+    class Assessment {
+        <<abstract>>
+        result : AssessmentResult
+        supportedBy : UUID [1..*]
+    }
+    class ObservationResult {
+        <<abstract>>
+        @type : curie
+        extensible : Extensible [0..1]
+    }
+    class AssessmentResult {
+        <<abstract>>
+        @type : curie
+        extensible : Extensible [0..1]
+    }
+    class Location {
+        <<abstract>>
+        @type : curie
+        id : UUID
+        extensible : Extensible [0..1]
+    }
+    class Provenance {
+        <<abstract>>
+        @type : curie
+        extensible : Extensible [0..1]
+    }
+    class Time {
+        <<abstract>>
+        @type : curie
+        extensible : Extensible [0..1]
+    }
+    class ISO8601Timestamp {
+        timestamp : Iso8601Instant
+    }
+    class ISO8601Interval {
+        intervalString : Iso8601IntervalString
+    }
+    class Extensible {
+        <<abstract>>
+        @type : curie
+    }
+    class Signature {
+        <<abstract>>
+        @type : curie
+        extensible : Extensible [0..1]
+    }
+    class OnvifSignature {
+        digestAlgorithm : DigestAlgorithm
+        signatureAlgorithm : SignatureAlgorithm
+        created : Iso8601UtcInstant
+        key : SigningKey
+        envelopeDigest : Base64Binary
+        signatureValue : Base64Binary
+    }
+
+    class GeoSpatialObject {
+        metricLength : double [0..*]
+        metricArea : double [0..*]
+        metricVolume : double [0..*]
+    }
+    class GeoFeature {
+        geometry : UUID [0..*]
+        defaultGeometry : UUID [0..*]
+        boundingBox : UUID [0..*]
+        centroid : UUID [0..*]
+    }
+    class GeoGeometry {
+        asGeoJSON : GeoJSONGeometry [0..*]
+        dimension : integer [0..*]
+        coordinateDimension : integer [0..*]
+        spatialDimension : integer [0..*]
+        empty : boolean [0..*]
+        simple : boolean [0..*]
+    }
+    class GeoSpatialObjectCollection {
+        member : UUID [0..*]
+    }
+    class GeoFeatureCollection {
+        member : UUID [0..*]
+    }
+    class GeoGeometryCollection {
+        member : UUID [0..*]
+    }
+
+    InformationEnvelope --> InformationItem : items
+    InformationEnvelope --> Signature : signature
+    InformationItem <|-- Observation
+    InformationItem <|-- ObservationsCollection
+    InformationItem <|-- Assessment
+    InformationItem --> Time : productionTime
+    InformationItem --> Provenance : provenance
+    Observation --> Location : observedSpace
+    Time <|-- ISO8601Timestamp
+    Time <|-- ISO8601Interval
+    Signature <|-- OnvifSignature
+    Location <|-- GeoSpatialObject
+    GeoSpatialObject <|-- GeoFeature
+    GeoSpatialObject <|-- GeoGeometry
+    Location <|-- GeoSpatialObjectCollection
+    GeoSpatialObjectCollection <|-- GeoFeatureCollection
+    GeoSpatialObjectCollection <|-- GeoGeometryCollection
+
+    note for GeoSpatialObject "Topology relations: Simple Features, Egenhofer and RCC8"
+    note for Location "Each concrete location has a mandatory UUID"
