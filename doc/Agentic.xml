@@ -604,8 +604,9 @@
           <listitem>
             <para>The <emphasis>vocabulary namespace</emphasis> is the expansion of
               <code>default_prefix</code>, which is
-                <code>https://www.onvif.org/ver10/agentic/linkml/</code> for every module of this
-              specification. It is bound to the <code>onvif</code> prefix and to
+                <code>https://www.onvif.org/ver10/agentic/linkml/</code> for ONVIF-defined terms.
+              Reused terms retain their declared <code>class_uri</code> or <code>slot_uri</code>,
+              for example those in the GeoSPARQL namespace. The ONVIF namespace is bound to the <code>onvif</code> prefix and to
               <code>@vocab</code> in the inline <code>@context</code>, as specified in
               <xref linkend="sec_context_and_type_annotations"/>.</para>
           </listitem>
@@ -725,6 +726,11 @@
               <xref linkend="ch_metadata"/>.</para>
           </listitem>
           <listitem>
+            <para><code>agentic/geosparql</code>: geographic location forms based on GeoSPARQL,
+              including features, geometries, spatial relations and collections, as described in
+              <xref linkend="sec_geosparql_location"/>.</para>
+          </listitem>
+          <listitem>
             <para><code>agentic</code>: the function-control interface —
                 <code>FunctionDescriptor</code>,
                 <code>ListFunctionsResult</code>, the abstract bases that every function
@@ -735,8 +741,9 @@
         <para>An ONVIF endpoint shall not redefine a class, a type or an enumeration that the bundle
           declares. This ensures that an ONVIF Client that has already loaded the bundle does not
           need to re-fetch it for each new ONVIF endpoint it connects to.</para>
-        <para>Because every module places its classes in the same vocabulary namespace, a class is
-          identified in the same way whichever module declares it. An ONVIF Client therefore resolves
+        <para>ONVIF-defined classes share one vocabulary namespace; reused classes retain their
+          declared class URI. A class is identified by that URI whichever module declares it.
+          An ONVIF Client therefore resolves
           a class name against the bundle as a whole, and not against the particular document in
           which the class happens to appear; moving a class between modules in a future revision does
           not change its identity.</para>
@@ -3067,6 +3074,12 @@
 
       <section xml:id="sec_geosparql_location">
         <title>GeoSPARQL locations</title>
+        <para>This first binding supports geographic points and regions expressed in
+          GeoJSON. It does not define image coordinates, local coordinate frames,
+          orientation, sampled trajectories or solid three-dimensional regions.
+          Additional location forms may be introduced through the existing
+          <code>Location</code> extension point. A longitude, latitude and altitude tuple
+          does not by itself define a three-dimensional volume.</para>
         <para>This specification uses the vocabulary of OGC GeoSPARQL 1.1, namespace
           <code>http://www.opengis.net/ont/geosparql#</code>, prefix <code>geo</code>.
           <code>GeoSpatialObject</code> derives from <code>Location</code>, with
@@ -3087,7 +3100,11 @@
         <para>A feature may associate geometries using <code>geometry</code>,
           <code>defaultGeometry</code>, <code>boundingBox</code> and
           <code>centroid</code>. Each is a list of UUID references to
-          <code>GeoGeometry</code> objects, not embedded objects. An ONVIF Client that resolves
+          <code>GeoGeometry</code> objects or embedded <code>GeoGeometry</code> objects.
+          Embedding a geometry makes the feature representation self-contained; the
+          embedded geometry shall carry its own UUID and type designator. A feature may
+          carry an optional <code>label</code>, mapped to <code>rdfs:label</code>, for its
+          human-readable name. The label is not an identifier. An ONVIF Client that resolves
           a reference shall verify the target type. GeoSPARQL does not require exactly one default
           geometry. Spatial objects may carry
           size measurements, and geometries may carry dimensions, resolution or
@@ -3097,8 +3114,21 @@
           GeoSPARQL property URIs. Non-metric measurements are JSON-LD node
           objects using an appropriate measurement vocabulary; their structure and units are not
           constrained by this model. JSON Schema alone does not validate these objects.</para>
-        <para>A geometry may carry an <code>asGeoJSON</code> list whose entries are GeoJSON
-          Geometry objects, not strings or GeoJSON Feature objects. Objects may include
+        <para>Within this binding, <code>dimension</code>, <code>coordinateDimension</code>,
+          <code>spatialDimension</code>, <code>spatialResolution</code>,
+          <code>metricSpatialResolution</code>, <code>spatialAccuracy</code>,
+          <code>metricSpatialAccuracy</code>, <code>empty</code> and <code>simple</code>
+          are optional single-valued properties. Dimensions and metric accuracy and resolution
+          shall satisfy the numeric bounds in the schema. Where both are supplied,
+          <code>dimension</code> shall not exceed <code>spatialDimension</code>, and
+          <code>spatialDimension</code> shall not exceed <code>coordinateDimension</code>.
+          These cross-field constraints are checked separately from JSON Schema.
+          Topological dimension is distinct from coordinate dimension: a polygon with XYZ
+          vertices has topological dimension 2 and coordinate dimension 3.</para>
+        <para>A geometry may carry an <code>asGeoJSON</code> list containing at most one GeoJSON
+          Geometry object, not a string or GeoJSON Feature object. A feature requiring multiple
+          geometries uses separate <code>GeoGeometry</code> objects with separate UUIDs.
+          Objects may include
           optional members, including foreign members as permitted by RFC 7946. GeoJSON uses
           WGS 84 longitude and latitude, in that order. An implementation shall validate each
           object against the geometry and reference-system rules of RFC 7946 and GeoSPARQL 1.1.
@@ -3107,6 +3137,23 @@
           or validate GeoJSON syntax or CRS. Implementations shall perform these checks separately.
           This model does not provide a WKT representation or the empty-string GeoSPARQL
           literal form.</para>
+        <para>A geometry UUID identifies an immutable geometry definition. Once emitted,
+          its coordinates, dimensions, accuracy and other supplied properties shall not be
+          changed under that UUID; a changed definition receives a new UUID. This rule does
+          not require a new feature UUID when the geometry associated with a persistent
+          feature changes. The enclosing information item records the spatial description
+          applicable to that item.</para>
+        <para>A spatial reference may target a definition embedded in the same envelope or
+          one previously received by the ONVIF Client. This binding defines no remote lookup
+          protocol. A producer shall embed a required geometry unless the exchange contract
+          establishes that its definition is already available to the recipient. A client
+          shall distinguish an unresolved reference from a resolved, validated definition
+          and shall not use an unresolved reference as geometry in a spatial calculation.
+          On resolution it shall verify the target class. Conflicting definitions of one
+          geometry UUID shall be reported as an error rather than silently merged or replaced.
+          A signature covering a citing item protects the UUID reference, not the contents
+          of a separately delivered target. Required origin verification of that target is
+          performed against the item and original protection that carry its definition.</para>
         <para>Spatial objects may state the Simple Features, Egenhofer and RCC8 topological
           relations defined in the LinkML module. Each relation is a list of embedded spatial
           objects or UUID references. These are assertions by the producer, not results the
@@ -3116,8 +3163,9 @@
         <para>In the inline JSON-LD context, each spatial relation, feature geometry property and
           collection member maps to its declared <code>slot_uri</code> with <code>@type</code>
           set to <code>@id</code>. This makes UUID strings node references while objects embedded
-          in topological relations remain nodes; feature geometry properties and collection members
-          shall be UUIDs. The <code>asGeoJSON</code> term maps to
+          in topological relations and feature geometry properties remain nodes. Collection members
+          shall be UUIDs. The <code>label</code> term maps to <code>rdfs:label</code>.
+          The <code>asGeoJSON</code> term maps to
           <code>onvif:asGeoJSON</code> with <code>@type</code> set to
           <code>@json</code>. A JSON-LD processor treats the entire list as one
           <code>rdf:JSON</code> literal, not as one literal per entry.
@@ -3135,37 +3183,53 @@
           Identical triples may collapse because an RDF graph is a set.
           Conversion shall preserve each object's contents and shall not assign the GeoSPARQL
           datatype to the entire list. The derived graph is not the signed payload.</para>
-        <para>For example, the following JSON-LD fragment illustrates the mappings and both forms
-          of spatial relation. In an envelope its context is included in the envelope's inline
+        <para>For example, the following JSON-LD fragment describes an entrance with an embedded
+          geographic polygon. It needs no geometry lookup. In an envelope its context is included in the envelope's inline
           context, together with the other mappings required by this specification.</para>
         <programlisting>{
   "@context": {
     "@version": 1.1,
     "@base": "https://www.onvif.org/ver10/agentic/id/",
     "geo": "http://www.opengis.net/ont/geosparql#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
     "onvif": "https://www.onvif.org/ver10/agentic/linkml/",
     "id": { "@id": "@id", "@protected": true },
+    "label": "rdfs:label",
+    "dimension": { "@id": "geo:dimension", "@type": "xsd:integer" },
+    "coordinateDimension": { "@id": "geo:coordinateDimension", "@type": "xsd:integer" },
+    "spatialDimension": { "@id": "geo:spatialDimension", "@type": "xsd:integer" },
     "geometry": { "@id": "geo:hasGeometry", "@type": "@id" },
     "sfWithin": { "@id": "geo:sfWithin", "@type": "@id" },
     "asGeoJSON": { "@id": "onvif:asGeoJSON", "@type": "@json" }
   },
-  "@graph": [
-    {
-      "@type": "geo:Feature",
-      "id": "12345678-1234-1234-1234-123456789ab1",
-      "geometry": ["12345678-1234-1234-1234-123456789ab4"],
-      "sfWithin": [
-        "12345678-1234-1234-1234-123456789ab2",
-        { "@type": "geo:Feature", "id": "12345678-1234-1234-1234-123456789ab3" }
-      ]
-    },
+  "@type": "geo:Feature",
+  "id": "12345678-1234-1234-1234-123456789ab1",
+  "label": "Main entrance",
+  "geometry": [
     {
       "@type": "geo:Geometry",
       "id": "12345678-1234-1234-1234-123456789ab4",
-      "asGeoJSON": [{ "type": "Point", "coordinates": [-99.13, 19.43] }]
+      "dimension": 2,
+      "coordinateDimension": 2,
+      "spatialDimension": 2,
+      "asGeoJSON": [{
+        "type": "Polygon",
+        "coordinates": [[
+          [-99.1300, 19.4300], [-99.1299, 19.4300],
+          [-99.1299, 19.4301], [-99.1300, 19.4301],
+          [-99.1300, 19.4300]
+        ]]
+      }]
     }
   ]
 }</programlisting>
+        <para>Complete point and entrance-polygon envelopes, an illustrative extension module,
+          and executable schema and JSON-LD checks accompany this specification in
+          <code>tests/agentic</code>. The fixture module is an example, not a new required
+          observation specialization. JSON Schema validates local structure; GeoJSON syntax,
+          cross-field consistency, reference resolution and cryptographic verification remain
+          separate validation steps.</para>
         <para>These model bindings do not require a SPARQL endpoint, spatial functions, query
           rewriting or RDFS entailment and do not by themselves establish conformance to any
           GeoSPARQL conformance class.</para>

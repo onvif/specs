@@ -206,29 +206,41 @@ slots:
       - range: GeoSpatialObject
     slot_uri: geo:rcc8ntppi
   geometry:
-    range: UUID
+    range: Any
     multivalued: true
-    inlined: false
+    inlined: true
+    any_of:
+      - range: UUID
+      - range: GeoGeometry
     slot_uri: geo:hasGeometry
-    description: UUIDs of the geometries representing the feature.
+    description: Geometries representing the feature, embedded or cited by UUID.
   defaultGeometry:
-    range: UUID
+    range: Any
     multivalued: true
-    inlined: false
+    inlined: true
+    any_of:
+      - range: UUID
+      - range: GeoGeometry
     slot_uri: geo:hasDefaultGeometry
-    description: UUIDs of the default geometries of the feature.
+    description: Default geometries of the feature, embedded or cited by UUID.
   boundingBox:
-    range: UUID
+    range: Any
     multivalued: true
-    inlined: false
+    inlined: true
+    any_of:
+      - range: UUID
+      - range: GeoGeometry
     slot_uri: geo:hasBoundingBox
-    description: UUIDs of the bounding geometries of the feature.
+    description: Bounding geometries of the feature, embedded or cited by UUID.
   centroid:
-    range: UUID
+    range: Any
     multivalued: true
-    inlined: false
+    inlined: true
+    any_of:
+      - range: UUID
+      - range: GeoGeometry
     slot_uri: geo:hasCentroid
-    description: UUIDs of the centroid geometries of the feature.
+    description: Centroid geometries of the feature, embedded or cited by UUID.
   member:
     slot_uri: rdfs:member
     range: UUID
@@ -339,62 +351,67 @@ classes:
       - defaultGeometry
       - boundingBox
       - centroid
+    attributes:
+      label:
+        slot_uri: rdfs:label
+        range: string
+        description: Optional human-readable name of the feature, not its identifier.
 
   GeoGeometry:
     is_a: GeoSpatialObject
     class_uri: geo:Geometry
-    description: A coherent set of direct positions in a spatial reference system.
+    description: >-
+      A coherent set of direct positions in a spatial reference system. Its UUID
+      identifies an immutable definition; changed coordinates or metadata receive
+      a new UUID, independently of the identity of the feature it represents.
     attributes:
       asGeoJSON:
         slot_uri: onvif:asGeoJSON
         range: GeoJSONGeometry
         multivalued: true
+        maximum_cardinality: 1
         inlined: true
         inlined_as_list: true
         description: >-
-          GeoJSON Geometry objects, not strings. JSON-LD maps the complete list
-          to an rdf:JSON literal; export to GeoSPARQL requires conversion of
-          each object to a separate geo:geoJSONLiteral.
+          At most one GeoJSON Geometry object, not a string. JSON-LD maps the
+          complete list to an rdf:JSON literal; export to GeoSPARQL requires
+          conversion of its entry to a geo:geoJSONLiteral.
       dimension:
         slot_uri: geo:dimension
         range: integer
-        multivalued: true
+        minimum_value: 0
       coordinateDimension:
         slot_uri: geo:coordinateDimension
         range: integer
-        multivalued: true
+        minimum_value: 1
       spatialDimension:
         slot_uri: geo:spatialDimension
         range: integer
-        multivalued: true
+        minimum_value: 1
       spatialResolution:
         slot_uri: geo:hasSpatialResolution
         range: Any
         inlined: true
-        multivalued: true
-        description: Measurement nodes describing spatial resolution.
+        description: A measurement node describing spatial resolution.
       metricSpatialResolution:
         slot_uri: geo:hasMetricSpatialResolution
         range: double
-        multivalued: true
+        minimum_value: 0
       spatialAccuracy:
         slot_uri: geo:hasSpatialAccuracy
         range: Any
         inlined: true
-        multivalued: true
-        description: Measurement nodes describing spatial accuracy.
+        description: A measurement node describing spatial accuracy.
       metricSpatialAccuracy:
         slot_uri: geo:hasMetricSpatialAccuracy
         range: double
-        multivalued: true
+        minimum_value: 0
       empty:
         slot_uri: geo:isEmpty
         range: boolean
-        multivalued: true
       simple:
         slot_uri: geo:isSimple
         range: boolean
-        multivalued: true
 
   GeoSpatialObjectCollection:
     is_a: Location
